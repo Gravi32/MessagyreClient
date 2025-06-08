@@ -119,57 +119,35 @@ class _ChatOverlayState extends State<ChatOverlay> {
     super.dispose();
   }
 
-  Widget topBar() {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        top: MediaQuery.of(context).padding.top + 12,
-      ),
-      height: 90,
-      color: CupertinoColors.systemBackground,
-      child: Column(
+  ObstructingPreferredSizeWidget topBar() {
+    return CupertinoNavigationBar(
+      middle: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Icon(CupertinoIcons.back),
-                ),
-                SizedBox(width: 8),
-                CircleAvatar(
-                  radius: 18,
-                  child: Text(widget.recipientUsername[0].toUpperCase()),
-                ),
-                SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      widget.recipientUsername,
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      'online',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    ),
-                  ],
-                ),
-                Spacer(),
-                Icon(CupertinoIcons.phone, size: 22),
-                SizedBox(width: 16),
-                Icon(CupertinoIcons.info, size: 22),
-              ],
-            ),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                child: Text(widget.recipientUsername[0].toUpperCase()),
+              ),
+              SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.recipientUsername,
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+              Spacer(),
+              Icon(CupertinoIcons.phone, size: 22),
+              SizedBox(width: 16),
+              Icon(CupertinoIcons.info, size: 22),
+            ],
           ),
-          Divider(color: Color.fromARGB(10, 0, 0, 0)),
         ],
       ),
     );
@@ -203,6 +181,17 @@ class _ChatOverlayState extends State<ChatOverlay> {
       return isOwned ? owned : received;
     }
 
+    Color getBubbleColor(bool isOwned) {
+      final isDarkMode =
+          CupertinoTheme.brightnessOf(context) == Brightness.dark;
+
+      return isOwned
+          ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF))
+          : (isDarkMode
+              ? const Color(0xFF3D3D3D)
+              : CupertinoColors.systemGrey3);
+    }
+
     return Align(
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -214,10 +203,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         ),
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color:
-              data.isOwned
-                  ? Color.fromARGB(255, 224, 170, 255)
-                  : CupertinoColors.systemGrey3,
+          color: getBubbleColor(data.isOwned),
           borderRadius: getBubbleShape(data.isOwned),
         ),
         child: Wrap(
@@ -239,7 +225,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   Widget bottomBar() {
     return Container(
-      color: CupertinoColors.systemGrey.withOpacity(0.1),
+      color: Theme.of(context).canvasColor,
       child: Padding(
         padding: EdgeInsets.only(
           right: 12,
@@ -261,7 +247,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 focusNode: messageFieldFocusNode,
                 scrollPhysics: BouncingScrollPhysics(),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.white,
+                  color: Theme.of(context).primaryColorDark,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 onSubmitted: sendMessage,
@@ -283,9 +269,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
     chatData?.unreadMessages = 0;
 
     return CupertinoPageScaffold(
+      navigationBar: topBar(),
       child: Column(
         children: [
-          topBar(),
           Expanded(
             child: ListView.builder(
               controller: chatScrollController,
