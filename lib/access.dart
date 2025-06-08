@@ -61,7 +61,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
     onSignalConnection = router.onSignalReceived.listen((signal) {
       if (signal.type != SignalType.Login) return;
-      
+
       isLoggingIn = false;
 
       var response = signal.data["Response"];
@@ -123,7 +123,6 @@ class _AccessOverlayState extends State<AccessOverlay> {
               controller: usernameController,
               disabled: isLoggingIn,
               onChanged: (_) => setState(() {}),
-              
             ),
 
             SizedBox(height: 20),
@@ -183,11 +182,16 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
             CupertinoButton.filled(
               padding: EdgeInsets.symmetric(vertical: 12),
-              onPressed: () {
-                Navigator.of(context).push(
-                  CupertinoPageRoute(builder: (context) => RegistrationPage()),
-                );
-              },
+              onPressed:
+                  isLoggingIn
+                      ? null
+                      : () {
+                        Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (context) => RegistrationPage(),
+                          ),
+                        );
+                      },
               child: Text(
                 "Créer un compte",
                 style: TextStyle(color: CupertinoColors.white),
