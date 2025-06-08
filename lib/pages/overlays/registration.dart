@@ -261,20 +261,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void askClosingConfirmation() {
-    void confirm() {
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
-    }
-
-    void cancel() {
-      Navigator.of(context).pop();
-    }
-
     if (currentPage == 0) {
-      // No need for confirmation
-      confirm();
+      // No need to ask if at page 1
+      Navigator.pop(context);
       return;
-    } 
+    }
 
     showCupertinoDialog(
       context: context,
@@ -287,10 +278,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
           actions: [
             CupertinoDialogAction(
               isDestructiveAction: true,
-              onPressed: confirm,
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
               child: Text("Oui"),
             ),
-            CupertinoDialogAction(onPressed: cancel, child: Text("Non")),
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Non"),
+            ),
           ],
         );
       },
