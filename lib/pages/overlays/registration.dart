@@ -34,6 +34,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
   bool canResendCode = false;
   Timer? resendTimer;
 
+  bool isWaitingForResponse = false;
+
   void goToPage(int index) {
     setState(() => currentPage = index);
     pageController.animateToPage(
@@ -110,6 +112,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             child: Text("@eduvaud.ch"),
           ),
           keyboardType: TextInputType.emailAddress,
+          disabled: isWaitingForResponse,
           onChanged: (input) {
             setState(() {
               isEmailValid = RegExp(
@@ -126,8 +129,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
           minSize: 0,
-          onPressed: isEmailValid ? () => sendEmail() : null,
-          child: Text("Envoyer le code de vérification"),
+          onPressed:
+              isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
+          child:
+              isWaitingForResponse
+                  ? CupertinoActivityIndicator()
+                  : Text("Envoyer le code de vérification"),
         ),
       ],
     );
@@ -150,6 +157,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           controller: codeController,
           error: codeError,
           keyboardType: TextInputType.number,
+          disabled: isWaitingForResponse,
           onChanged: (input) {
             setState(() {
               isCodeValid = input.length == 6;
@@ -163,12 +171,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
-          onPressed: isCodeValid ? () => sendCode() : null,
-          child: Text("Vérifier"),
+          onPressed:
+              isCodeValid && !isWaitingForResponse ? () => sendCode() : null,
+          child:
+              isWaitingForResponse
+                  ? CupertinoActivityIndicator()
+                  : Text("Vérifier"),
         ),
         SizedBox(height: 10),
         CupertinoButton(
-          onPressed: canResendCode ? () => sendEmail() : null,
+          onPressed:
+              canResendCode && !isWaitingForResponse ? () => sendEmail() : null,
           child: Text(
             canResendCode
                 ? "Renvoyer le code"
@@ -176,7 +189,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
         ),
         CupertinoButton(
-          onPressed: () => goToPage(0),
+          onPressed: isWaitingForResponse ? null : () => goToPage(0),
           child: Text("Changer d'adresse e-mail"),
         ),
       ],
@@ -201,6 +214,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           controller: passwordController,
           keyboardType: TextInputType.visiblePassword,
           alwaysHidePassword: true,
+          disabled: isWaitingForResponse,
           onChanged: (input) {
             setState(() {
               isPasswordValid = input.length >= 8;
@@ -217,6 +231,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           error: confirmPasswordError,
           controller: confirmPasswordController,
           keyboardType: TextInputType.visiblePassword,
+          disabled: isWaitingForResponse,
           onChanged: (input) {
             setState(() {
               isConfirmPasswordValid = passwordController.text == input;
@@ -230,14 +245,33 @@ class _RegistrationPageState extends State<RegistrationPage> {
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
           minSize: 0,
-          onPressed: (isPasswordValid && isConfirmPasswordValid) ? () => sendPassword() : null,
-          child: Text("Créer le compte"),
+          onPressed:
+              (isPasswordValid &&
+                      isConfirmPasswordValid &&
+                      !isWaitingForResponse)
+                  ? () => sendPassword()
+                  : null,
+          child:
+              isWaitingForResponse
+                  ? CupertinoActivityIndicator()
+                  : Text("Créer le compte"),
         ),
       ],
     );
   }
 
   void askClosingConfirmation() {
+    void confirm() {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    }
+
+    void cancel() {
+      Navigator.of(context).pop();
+    }
+
+    if (currentPage == 0) confirm(); // No need for confirmation 
+
     showCupertinoDialog(
       context: context,
       builder: (context) {
@@ -249,16 +283,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
           actions: [
             CupertinoDialogAction(
               isDestructiveAction: true,
+              onPressed: confirm,
               child: Text("Oui"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
             ),
-            CupertinoDialogAction(
-              child: Text("Non"),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+            CupertinoDialogAction(onPressed: cancel, child: Text("Non")),
           ],
         );
       },
@@ -319,10 +347,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               case "too_short":
-                passwordError = "Le mot de passe doit contenir au moins 8 caractères.";
+                passwordError =
+                    "Le mot de passe doit contenir au moins 8 caractères.";
                 return;
               default:
-                passwordError = "Une erreur s'est produite, veuillez reéssayer.";
+                passwordError =
+                    "Une erreur s'est produite, veuillez reéssayer.";
                 return;
             }
         }
