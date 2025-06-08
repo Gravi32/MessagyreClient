@@ -270,7 +270,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       Navigator.of(context).pop();
     }
 
-    if (currentPage == 0) confirm(); // No need for confirmation 
+    if (currentPage == 0) {
+      // No need for confirmation
+      confirm();
+      return;
+    } 
 
     showCupertinoDialog(
       context: context,
