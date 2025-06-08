@@ -20,6 +20,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
   final data = Data();
 
   bool isPasswordHidden = true;
+  bool isLoggingIn = false;
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -43,6 +44,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
       }
 
       usernameError = passwordError = null;
+      isLoggingIn = true;
 
       router.send(
         Signal(
@@ -59,13 +61,20 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
     onSignalConnection = router.onSignalReceived.listen((signal) {
       if (signal.type != SignalType.Login) return;
+      
+      isLoggingIn = false;
 
       var response = signal.data["Response"];
       var field = signal.data["Field"];
+      var account = signal.data["Account"];
 
       if (response == "success") {
-        // TODO: set account
-        if (mounted) Navigator.pop(context);
+        data.account = Account.fromJson(account);
+        debugPrint("account: ${data.account}");
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        onSignalConnection.cancel();
         return;
       }
 
@@ -112,7 +121,9 @@ class _AccessOverlayState extends State<AccessOverlay> {
               placeholder: "prénom.nom",
               error: usernameError,
               controller: usernameController,
+              disabled: isLoggingIn,
               onChanged: (_) => setState(() {}),
+              
             ),
 
             SizedBox(height: 20),
@@ -122,6 +133,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
               placeholder: "••••••••••••••••",
               error: passwordError,
               controller: passwordController,
+              disabled: isLoggingIn,
               keyboardType: TextInputType.visiblePassword,
               onChanged: (_) => setState(() {}),
             ),
@@ -131,19 +143,17 @@ class _AccessOverlayState extends State<AccessOverlay> {
             CupertinoButton.filled(
               padding: EdgeInsets.symmetric(vertical: 12),
               minSize: 0,
-              onPressed: (!fieldsAreEmpty) ? tryToLogin : null,
+              onPressed: (!fieldsAreEmpty && !isLoggingIn) ? tryToLogin : null,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 spacing: 15,
                 children: [
-                  Text("Accéder"),
-                  if (!fieldsAreEmpty) Icon(CupertinoIcons.right_chevron),
+                  isLoggingIn ? CupertinoActivityIndicator() : Text("Accéder"),
                 ],
               ),
             ),
 
             SizedBox(height: 30),
-
             Row(
               children: [
                 Expanded(
@@ -169,7 +179,6 @@ class _AccessOverlayState extends State<AccessOverlay> {
                 ),
               ],
             ),
-
             SizedBox(height: 30),
 
             CupertinoButton.filled(

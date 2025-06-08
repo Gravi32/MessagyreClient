@@ -38,7 +38,7 @@ enum SignalType { Login, Registration, Logout, Message, Search }
 class Message {
   @HiveField(0)
   String content;
-  
+
   @HiveField(1)
   DateTime sentAt;
 
@@ -86,9 +86,42 @@ class Chat {
 }
 
 class Account {
-  String username;
-  String? className;
-  bool isTeacher;
+  late String username, emailAddress;
+  late DateTime? creationDate, lastLogin;
+  late Map<String, dynamic>? profile;
 
-  Account({required this.username, this.className, this.isTeacher = false});
+  static Account? fromJson(String? source) {
+    if (source == null || source.trim().isEmpty) return null;
+
+    try {
+      final map = jsonDecode(source);
+      if (map == null) return null;
+
+      return Account()
+        ..username = map["Username"]
+        ..emailAddress = map["EmailAddress"]
+        ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
+        ..lastLogin = DateTime.tryParse(map["LastLogin"] ?? "")
+        ..profile =
+            (() {
+              final profileData = map["Profile"];
+              if (profileData == null ||
+                  (profileData is String && profileData.trim().isEmpty)) {
+                return <String, dynamic>{};
+              }
+
+              if (profileData is String) {
+                return jsonDecode(profileData);
+              }
+
+              return Map<String, dynamic>.from(profileData);
+            })();
+    } catch (e, stack) {
+      debugPrintStack(
+        stackTrace: stack,
+        label: "Account.fromJson error: $e\naccount: $source",
+      );
+      return null;
+    }
+  }
 }

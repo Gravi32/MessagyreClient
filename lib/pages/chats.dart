@@ -7,6 +7,7 @@ import 'package:messagyre_client/pages/overlays/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/extensions.dart';
 
 class ChatsPage extends StatefulWidget {
   const ChatsPage({super.key});
@@ -44,10 +45,9 @@ class _ChatsPageState extends State<ChatsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data.recipientUsername,
+                        data.recipientUsername.replaceAll('.', ' ').capitalize(),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          fontSize: 16,
                         ),
                       ),
                       Text(
@@ -57,7 +57,7 @@ class _ChatsPageState extends State<ChatsPage> {
                         softWrap: true,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
-                          color: Color.fromRGBO(0, 0, 0, .5),
+                          color: Theme.of(context).dividerColor,
                           fontSize: 15,
                         ),
                       ),
@@ -113,7 +113,7 @@ class _ChatsPageState extends State<ChatsPage> {
           },
         ),
 
-        Divider(indent: 60, color: const Color.fromARGB(10, 0, 0, 0)),
+        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
@@ -158,7 +158,9 @@ class _ChatsPageState extends State<ChatsPage> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             CupertinoSliverNavigationBar(
-              largeTitle: Text("Conversations"),
+              largeTitle: Text(
+                "Conversations",
+              ),
               trailing: GestureDetector(
                 child: Icon(CupertinoIcons.add),
                 onTap: () {

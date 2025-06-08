@@ -55,13 +55,6 @@ class App extends StatelessWidget {
           theme: CupertinoThemeData(
             brightness: brightness,
             primaryColor: Color.fromRGBO(100, 25, 104, 1),
-            textTheme: CupertinoTextThemeData(
-              navLargeTitleTextStyle: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.label,
-              ),
-            ),
           ),
           home: MainPage(),
         );
@@ -110,7 +103,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     router = ConnectionController();
-    router.connect("ws://10.0.2.2:5066");
+    router.connect("wss://messagyre.up.railway.app"); //"ws://10.0.2.2:5066"
     router.onConnected.listen((_) {
       showAccessOverlay();
     });
