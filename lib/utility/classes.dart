@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:messagyre_client/utility/extensions.dart';
 
 part 'classes.g.dart';
 
@@ -86,42 +87,68 @@ class Chat {
 }
 
 class Account {
-  late String username, emailAddress;
-  late DateTime? creationDate, lastLogin;
+  late String username;
+  late String emailAddress;
+  late DateTime? creationDate;
+  late DateTime? lastLogin;
   late Map<String, dynamic>? profile;
+
+  static Account? fromMap(Map<String, dynamic>? map) {
+    if (map == null) return null;
+
+    try {
+      return Account()
+        ..username = map["Username"] ?? ""
+        ..emailAddress = map["EmailAddress"] ?? ""
+        ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
+        ..lastLogin = DateTime.tryParse(map["LastLogin"] ?? "")
+        ..profile = _parseProfile(map["Profile"]);
+    } catch (e, stack) {
+      debugPrintStack(stackTrace: stack, label: "Account.fromMap error: $e");
+      return null;
+    }
+  }
 
   static Account? fromJson(String? source) {
     if (source == null || source.trim().isEmpty) return null;
 
     try {
-      final map = jsonDecode(source);
-      if (map == null) return null;
-
-      return Account()
-        ..username = map["Username"]
-        ..emailAddress = map["EmailAddress"]
-        ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
-        ..lastLogin = DateTime.tryParse(map["LastLogin"] ?? "")
-        ..profile =
-            (() {
-              final profileData = map["Profile"];
-              if (profileData == null ||
-                  (profileData is String && profileData.trim().isEmpty)) {
-                return <String, dynamic>{};
-              }
-
-              if (profileData is String) {
-                return jsonDecode(profileData);
-              }
-
-              return Map<String, dynamic>.from(profileData);
-            })();
+      final dynamic decoded = jsonDecode(source);
+      if (decoded is! Map<String, dynamic>) {
+        debugPrint("Account.fromJson error: JSON is not a valid map.");
+        return null;
+      }
+      return fromMap(decoded);
     } catch (e, stack) {
       debugPrintStack(
         stackTrace: stack,
-        label: "Account.fromJson error: $e\naccount: $source",
+        label: "Account.fromJson error: $e\nsource: $source",
       );
       return null;
     }
+  }
+
+  static Map<String, dynamic> _parseProfile(dynamic data) {
+    if (data == null) return {};
+
+    if (data is String) {
+      if (data.trim().isEmpty) return {};
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) return decoded;
+      } catch (_) {
+        return {};
+      }
+    }
+
+    if (data is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(data);
+    }
+
+    return {};
+  }
+
+  String getDisplayableUsername() {
+    return username.replaceAll('.', ' ').capitalize();
   }
 }

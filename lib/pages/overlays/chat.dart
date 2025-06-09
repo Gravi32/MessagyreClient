@@ -121,6 +121,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   ObstructingPreferredSizeWidget topBar() {
     return CupertinoNavigationBar(
+      border: Border(),
       middle: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -225,7 +226,6 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   Widget bottomBar() {
     return Container(
-      color: Theme.of(context).canvasColor,
       child: Padding(
         padding: EdgeInsets.only(
           right: 12,
@@ -247,7 +247,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 focusNode: messageFieldFocusNode,
                 scrollPhysics: BouncingScrollPhysics(),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColorDark,
+                  color: Theme.of(context).hoverColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 onSubmitted: sendMessage,

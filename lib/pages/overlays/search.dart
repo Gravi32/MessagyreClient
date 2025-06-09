@@ -17,7 +17,7 @@ class SearchPageState extends State<SearchPage> {
   final router = ConnectionController();
   final searchBarController = TextEditingController();
 
-  List<String> searchResults = [];
+  List<Account?> searchResults = [];
 
   Widget buildSearchBar() {
     return CupertinoSearchTextField(
@@ -32,18 +32,31 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget buildResult(String username) {
+  Widget buildResult(Account account) {
     return CupertinoListTile(
-      title: Text(username),
-      leading: CircleAvatar(child: Text(username[0].toUpperCase())),
-      subtitle: Text("2CCi1"),
+      padding: EdgeInsets.symmetric(vertical: 12),
+      title: Text(
+        account.getDisplayableUsername(),
+        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+      ),
+      leading: CircleAvatar(child: Text(account.username[0].toUpperCase()),radius: 50,),
+      leadingSize: 50,
+      subtitle:
+          account.profile?.isNotEmpty ?? false
+              ? Text(account.profile?["Class"])
+              : null,
       additionalInfo: Icon(
-        CupertinoIcons.bubble_right,
+        CupertinoIcons.chevron_forward,
         color: CupertinoColors.systemGrey,
       ),
       onTap: () {
         Navigator.of(context).pop();
-        Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: username,),));
+        Navigator.of(context, rootNavigator: true).push(
+          CupertinoPageRoute(
+            builder:
+                (context) => ChatOverlay(recipientUsername: account.username),
+          ),
+        );
       },
     );
   }
@@ -51,15 +64,31 @@ class SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+
     router.onSignalReceived.listen((signal) {
       if (signal.type != SignalType.Search) return;
 
       var resultsJson = signal.data["Result"];
       if (resultsJson == null) return;
 
-      setState(() {
-        searchResults = List<String>.from(jsonDecode(resultsJson));
-      });
+      try {
+        List<dynamic> resultsList = jsonDecode(resultsJson);
+        searchResults.clear();
+
+        for (int i = 0; i < resultsList.length; i++) {
+          var account = Account.fromMap(resultsList[i]);
+
+          searchResults.add(account);
+        }
+        setState(() {});
+      } catch (e, s) {
+        debugPrintStack(stackTrace: s, label: e.toString());
+      }
+
+      // setState(() {
+      //   searchResults =
+      //       resultsList.map((jsonAccount) => Account.fromJson(jsonAccount)).toList();
+      // });
     });
   }
 
@@ -84,7 +113,8 @@ class SearchPageState extends State<SearchPage> {
               shrinkWrap: true,
               itemCount: searchResults.length,
               itemBuilder: (context, index) {
-                return buildResult(searchResults[index]);
+                if (searchResults[index] == null) return null;
+                return buildResult(searchResults[index]!);
               },
             ),
           ],
