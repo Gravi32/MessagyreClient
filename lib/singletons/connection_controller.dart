@@ -38,13 +38,11 @@ class ConnectionController {
       onDone: () {
         debugPrint("Connection closed by server");
         _channel = null;
-        print("Reconnecting...");
         connect(url);
       },
       onError: (error) {
         debugPrint("Error: $error");
         _channel = null;
-        print("Reconnecting...");
         connect(url);
       },
     );
