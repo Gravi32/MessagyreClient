@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/extensions.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -105,25 +106,39 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget storagePage() {
-    void alertDialog() {
+    void confirmDeleteChats() {
       showCupertinoDialog(
         context: context,
         builder:
-            (context) => CupertinoAlertDialog(
+            (dialogContext) => CupertinoAlertDialog(
               title: Text("Effacer les conversations"),
               content: Text(
                 "Toutes les conversations seront effacées, cette action est irréversible.",
               ),
               actions: [
                 CupertinoDialogAction(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text("Annuler"),
                 ),
                 CupertinoDialogAction(
                   isDestructiveAction: true,
-                  onPressed: () {
-                    Hive.box("Chats").clear();
-                    Navigator.of(context).pop();
+                  onPressed: () async {
+                    try {
+                      if (Hive.isBoxOpen("Chats")) {
+                        await Hive.box<Chat>("Chats").clear();
+                      } else if (await Hive.boxExists("Chats")) {
+                        var box = await Hive.openBox<Chat>("Chats");
+                        await box.clear();
+                      }
+                    } catch (e, s) {
+                      debugPrintStack(stackTrace: s, label: e.toString());
+                    }
+
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+
+                    debugPrint("Donee");
                   },
                   child: Text("Effacer"),
                 ),
@@ -149,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: TextStyle(color: CupertinoColors.destructiveRed),
                   ),
                   onPressed: (context) {
-                    alertDialog();
+                    confirmDeleteChats();
                   },
                 ),
               ],
