@@ -230,7 +230,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         padding: EdgeInsets.only(
           right: 12,
           left: 12,
-          bottom: MediaQuery.of(context).padding.bottom,
+          bottom: MediaQuery.of(context).padding.bottom + 10,
           top: 6,
         ),
         child: Row(
@@ -270,41 +270,43 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
     return CupertinoPageScaffold(
       navigationBar: topBar(),
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: chatScrollController,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              itemCount:
-                  chatData == null
-                      ? 0
-                      : (chatData!.content.length < visibleMessageCount
-                          ? chatData!.content.length
-                          : visibleMessageCount),
-              itemBuilder: (context, index) {
-                if (chatData == null) return SizedBox.shrink();
+      child: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: chatScrollController,
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                itemCount:
+                    chatData == null
+                        ? 0
+                        : (chatData!.content.length < visibleMessageCount
+                            ? chatData!.content.length
+                            : visibleMessageCount),
+                itemBuilder: (context, index) {
+                  if (chatData == null) return SizedBox.shrink();
 
-                var list = chatData!.content;
-                int start = (list.length - visibleMessageCount).clamp(
-                  0,
-                  list.length,
-                );
-                var sliced = list.sublist(start);
+                  var list = chatData!.content;
+                  int start = (list.length - visibleMessageCount).clamp(
+                    0,
+                    list.length,
+                  );
+                  var sliced = list.sublist(start);
 
-                var data = sliced[index];
-                var previous = (index > 0) ? sliced[index - 1].isOwned : null;
-                var next =
-                    (index < sliced.length - 1)
-                        ? sliced[index + 1].isOwned
-                        : null;
+                  var data = sliced[index];
+                  var previous = (index > 0) ? sliced[index - 1].isOwned : null;
+                  var next =
+                      (index < sliced.length - 1)
+                          ? sliced[index + 1].isOwned
+                          : null;
 
-                return messageBubble(data, previous, next);
-              },
+                  return messageBubble(data, previous, next);
+                },
+              ),
             ),
-          ),
-          bottomBar(),
-        ],
+            bottomBar(),
+          ],
+        ),
       ),
     );
   }
