@@ -16,7 +16,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final data = Data();
 
-  bool isDarkMode = false;
+  late bool isDarkMode;
 
   Widget profilePage() {
     var profile = data.account!.profile!;
@@ -173,6 +173,13 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    isDarkMode = data.appBrightness == Brightness.dark;
+
+    super.initState();
   }
 
   @override

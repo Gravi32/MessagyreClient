@@ -18,6 +18,9 @@ void main() async {
   await Hive.openBox<Chat>("Chats");
   await Hive.openBox("AccessInfo");
 
+  Data().appBrightnessNotifier.value =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness;
+
   runApp(App());
 }
 
