@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ConnectionController {
   static final _instance = ConnectionController._singleton();
@@ -23,15 +24,17 @@ class ConnectionController {
 
   final data = Data();
 
+  String lastSentUsername = "", lastSentPassword = "";
+
   void connect(String url) async {
     if (isConnected) return;
 
     _channel = WebSocketChannel.connect(Uri.parse(url));
-    debugPrint("Connecting...");
+    _print("Connecting...");
 
     _channel!.stream.listen(
       (message) {
-        debugPrint("Received: $message");
+        _print("Received: $message");
 
         final signal = Signal.unpack(message);
         if (signal == null) return;
@@ -40,12 +43,12 @@ class ConnectionController {
         _onSignalReceived(signal);
       },
       onDone: () {
-        debugPrint("Connection closed by server");
+        _print("Connection closed by server");
         _channel = null;
         connect(url);
       },
       onError: (error) {
-        debugPrint("Error: $error");
+        _print("Error: $error");
         _channel = null;
         connect(url);
       },
@@ -53,12 +56,12 @@ class ConnectionController {
 
     _channel!.ready
         .then((_) {
-          debugPrint("Connected");
+          _print("Connected");
 
           _connectionStatusController.add(null);
         })
         .catchError((error) {
-          debugPrint("Could not connect: $error");
+          _print("Could not connect: $error");
         });
   }
 
@@ -69,7 +72,7 @@ class ConnectionController {
   void disconnect() {
     _channel?.sink.close();
     _channel = null;
-    debugPrint("Connection closed manually");
+    _print("Connection closed manually");
   }
 
   void login(String username, String password) {
@@ -79,13 +82,28 @@ class ConnectionController {
         data: {"Username": username, "Password": password},
       ).pack(),
     );
+    
+    lastSentUsername = username;
+    lastSentPassword = password;
+
+    _print("Logging in as $username... ($password)");
+  }
+
+  void _print(String content) {
+    debugPrint("[ConnectionController] $content");
   }
 
   void _onSignalReceived(Signal signal) {
-    if (signal.type != SignalType.Login) return;
-    var account = signal.data["Account"];
+    // On successful login
+    if (signal.type == SignalType.Login) {
+      var account = signal.data["Account"];
 
-    if (account == null) return;
-    data.account = Account.fromJson(account);
+      if (account == null) return;
+      data.account = Account.fromJson(account);
+
+      var box = Hive.box("AccessInfo");
+      box.put("Username", lastSentUsername);
+      box.put("Password", lastSentPassword);
+    }
   }
 }
