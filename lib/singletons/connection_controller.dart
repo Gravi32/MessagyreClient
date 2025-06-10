@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -20,6 +21,8 @@ class ConnectionController {
 
   bool get isConnected => _channel != null;
 
+  final data = Data();
+
   void connect(String url) async {
     if (isConnected) return;
 
@@ -34,6 +37,7 @@ class ConnectionController {
         if (signal == null) return;
 
         _signalController.add(signal);
+        _onSignalReceived(signal);
       },
       onDone: () {
         debugPrint("Connection closed by server");
@@ -66,5 +70,22 @@ class ConnectionController {
     _channel?.sink.close();
     _channel = null;
     debugPrint("Connection closed manually");
+  }
+
+  void login(String username, String password) {
+    send(
+      Signal(
+        type: SignalType.Login,
+        data: {"Username": username, "Password": password},
+      ).pack(),
+    );
+  }
+
+  void _onSignalReceived(Signal signal) {
+    if (signal.type != SignalType.Login) return;
+    var account = signal.data["Account"];
+
+    if (account == null) return;
+    data.account = Account.fromJson(account);
   }
 }

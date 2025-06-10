@@ -46,12 +46,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
       usernameError = passwordError = null;
       isLoggingIn = true;
 
-      router.send(
-        Signal(
-          type: SignalType.Login,
-          data: {"Username": username, "Password": password},
-        ).pack(),
-      );
+      router.login(username, password);
     });
   }
 
@@ -66,11 +61,10 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
       var response = signal.data["Response"];
       var field = signal.data["Field"];
-      var account = signal.data["Account"];
 
       if (response == "success") {
-        data.account = Account.fromJson(account);
-        debugPrint("account: ${data.account}");
+        // (the Account is handled by the ConnectionController)
+
         if (mounted) {
           Navigator.pop(context);
         }
@@ -83,8 +77,10 @@ class _AccessOverlayState extends State<AccessOverlay> {
       switch (response) {
         case "account_not_found":
           error = "Ce compte n'existe pas !";
+          break;
         case "wrong_password":
           error = "Mot de passe incorrect !";
+          break;
         default:
           error = "Une erreur s'est produite, veuillez reéssayer.";
       }
@@ -107,97 +103,115 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
     return CupertinoPageScaffold(
       child: SafeArea(
-        minimum: EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Image.asset("assets/icons/logo_purple.png", height: 100),
-
-            SizedBox(height: 40),
-
-            CustomTextField(
-              title: "Nom d'utilisateur",
-              placeholder: "prénom.nom",
-              error: usernameError,
-              controller: usernameController,
-              disabled: isLoggingIn,
-              onChanged: (_) => setState(() {}),
-            ),
-
-            SizedBox(height: 20),
-
-            CustomTextField(
-              title: "Mot de passe",
-              placeholder: "••••••••••••••••",
-              error: passwordError,
-              controller: passwordController,
-              disabled: isLoggingIn,
-              keyboardType: TextInputType.visiblePassword,
-              onChanged: (_) => setState(() {}),
-            ),
-
-            SizedBox(height: 36),
-
-            CupertinoButton.filled(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              minSize: 0,
-              onPressed: (!fieldsAreEmpty && !isLoggingIn) ? tryToLogin : null,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 15,
-                children: [
-                  isLoggingIn ? CupertinoActivityIndicator() : Text("Accéder"),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 30),
-            Row(
-              children: [
-                Expanded(
-                  child: Divider(
-                    color: CupertinoColors.systemGrey.withOpacity(.25),
-                    indent: 30,
-                    endIndent: 10,
-                  ),
+        minimum: const EdgeInsets.symmetric(horizontal: 20),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                Text(
-                  "ou",
-                  style: TextStyle(
-                    color: CupertinoColors.systemGrey,
-                    fontSize: 12,
-                  ),
-                ),
-                Expanded(
-                  child: Divider(
-                    color: CupertinoColors.systemGrey.withOpacity(.25),
-                    indent: 10,
-                    endIndent: 30,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 30),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Image.asset("assets/icons/logo_purple.png", height: 100),
 
-            CupertinoButton.filled(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              onPressed:
-                  isLoggingIn
-                      ? null
-                      : () {
-                        Navigator.of(context).push(
-                          CupertinoPageRoute(
-                            builder: (context) => RegistrationPage(),
+                      const SizedBox(height: 40),
+
+                      CustomTextField(
+                        title: "Nom d'utilisateur",
+                        placeholder: "prénom.nom",
+                        error: usernameError,
+                        controller: usernameController,
+                        disabled: isLoggingIn,
+                        onChanged: (_) => setState(() {}),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      CustomTextField(
+                        title: "Mot de passe",
+                        placeholder: "••••••••••••••••",
+                        error: passwordError,
+                        controller: passwordController,
+                        disabled: isLoggingIn,
+                        keyboardType: TextInputType.visiblePassword,
+                        onChanged: (_) => setState(() {}),
+                      ),
+
+                      const SizedBox(height: 36),
+
+                      CupertinoButton.filled(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        minSize: 0,
+                        onPressed: (!fieldsAreEmpty && !isLoggingIn)
+                            ? tryToLogin
+                            : null,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            isLoggingIn
+                                ? const CupertinoActivityIndicator()
+                                : const Text("Accéder"),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: CupertinoColors.systemGrey.withOpacity(.25),
+                              indent: 30,
+                              endIndent: 10,
+                            ),
                           ),
-                        );
-                      },
-              child: Text(
-                "Créer un compte",
-                style: TextStyle(color: CupertinoColors.white),
+                          const Text(
+                            "ou",
+                            style: TextStyle(
+                              color: CupertinoColors.systemGrey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: CupertinoColors.systemGrey.withOpacity(.25),
+                              indent: 10,
+                              endIndent: 30,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      CupertinoButton.filled(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        onPressed: isLoggingIn
+                            ? null
+                            : () {
+                                Navigator.of(context).push(
+                                  CupertinoPageRoute(
+                                    builder: (context) => const RegistrationPage(),
+                                  ),
+                                );
+                              },
+                        child: const Text(
+                          "Créer un compte",
+                          style: TextStyle(color: CupertinoColors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

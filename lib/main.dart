@@ -16,6 +16,7 @@ void main() async {
   Hive.registerAdapter(ChatAdapter());
 
   await Hive.openBox<Chat>("Chats");
+  await Hive.openBox("AccessInfo");
 
   runApp(App());
 }
@@ -90,12 +91,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   late ConnectionController router;
 
-  void showAccessOverlay() {
-    Navigator.of(
-      context,
-    ).push(CupertinoPageRoute(builder: (context) => AccessOverlay()));
-  }
-
   @override
   void initState() {
     super.initState();
@@ -105,7 +100,22 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     router = ConnectionController();
     router.connect("wss://messagyre.up.railway.app"); //"ws://10.0.2.2:5066"
     router.onConnected.listen((_) {
-      showAccessOverlay();
+      var loginInfo = Hive.box("AccessInfo");
+      router.login(
+        loginInfo.get("Username") ?? "",
+        loginInfo.get("Password") ?? "",
+      );
+    });
+
+    router.onSignalReceived.listen((signal) {
+      if (signal.type != SignalType.Login) return;
+
+      if (signal.data["Response"] != "success" && mounted) {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (context) => AccessOverlay()),
+        );
+      }
     });
   }
 
