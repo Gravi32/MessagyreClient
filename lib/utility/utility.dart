@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
+
 extension StringCasingExtension on String {
   String capitalize() {
     return split(' ')
@@ -6,4 +10,8 @@ extension StringCasingExtension on String {
             : '')
         .join(' ');
   }
+}
+
+Color adaptiveColor(BuildContext context, Color light, Color dark) {
+  return CupertinoTheme.of(context).brightness == Brightness.dark ? dark : light;
 }
