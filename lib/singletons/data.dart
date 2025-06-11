@@ -1,16 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/adapters.dart';
+import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
 class Data {
-  static final _instance = Data._singleton();
+  static final Data _instance = Data._internal();
+  factory Data() => _instance;
+  Data._internal();
 
-  // Singleton
-  factory Data() {
-    if (!Hive.isBoxOpen("Chats")) Hive.openBox("Chats");
-    return _instance;
-  }
-  Data._singleton();
+  late final ConnectionController router = ConnectionController();
 
   // Settings
   Account? account;
@@ -23,4 +21,20 @@ class Data {
 
   // Chats
   bool isChatOpen = false;
+
+  // Accounts
+  Map<String, ValueNotifier<String?>> pfpNotifiersCache = {};
+
+  ValueNotifier<String?> getPfpNotifier(String accountUsername) {
+    // Getting the cached URL notifier
+    var cachedURL = pfpNotifiersCache[accountUsername];
+    if (cachedURL != null) {
+      return cachedURL;
+    }
+
+    // Otherwise returns an empty one and asks the server to fill it
+    pfpNotifiersCache[accountUsername] = ValueNotifier<String?>(null);
+    router.getProfilePicture(accountUsername);
+    return pfpNotifiersCache[accountUsername]!;
+  }
 }

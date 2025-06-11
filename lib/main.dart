@@ -29,6 +29,15 @@ class App extends StatelessWidget {
 
   final data = Data();
 
+  static const bool useLocalhost = true;
+  static String localIP = "192.168.1.230:5066";
+
+  static String serverWebSocketAddress =
+      useLocalhost ? "ws://$localIP" : "wss://messagyre.up.railway.app";
+
+  static String serverHTTPAddress =
+      useLocalhost ? "http://$localIP" : "https://messagyre.up.railway.app";
+
   static List<Page> pages = [
     Page(
       name: "Notes",
@@ -101,7 +110,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     router = ConnectionController();
-    router.connect("wss://messagyre.up.railway.app"); //"ws://10.0.2.2:5066"
+    router.connect(App.serverWebSocketAddress);
     router.onConnected.listen((_) {
       var loginInfo = Hive.box("AccessInfo");
       router.login(
@@ -120,14 +129,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         );
       }
     });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      router.disconnect();
-    }
   }
 
   @override

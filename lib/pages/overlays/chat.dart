@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class ChatOverlay extends StatefulWidget {
   final String recipientUsername;
@@ -128,10 +129,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                child: Text(widget.recipientUsername[0].toUpperCase()),
-              ),
+              ProfilePictureDisplay(widget.recipientUsername),
               SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

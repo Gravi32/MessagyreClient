@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -39,7 +40,7 @@ class SearchPageState extends State<SearchPage> {
         account.getDisplayableUsername(),
         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
       ),
-      leading: CircleAvatar(child: Text(account.username[0].toUpperCase()),radius: 50,),
+      leading: ProfilePictureDisplay(account.username, radius: 50,),
       leadingSize: 50,
       subtitle:
           account.profile?.isNotEmpty ?? false

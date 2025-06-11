@@ -8,6 +8,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/extensions.dart';
+import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class ChatsPage extends StatefulWidget {
   const ChatsPage({super.key});
@@ -35,20 +36,17 @@ class _ChatsPageState extends State<ChatsPage> {
             height: 55,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  child: Text(data.recipientUsername[0].toUpperCase()),
-                ),
+                ProfilePictureDisplay(data.recipientUsername, radius: 24),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data.recipientUsername.replaceAll('.', ' ').capitalize(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                        data.recipientUsername
+                            .replaceAll('.', ' ')
+                            .capitalize(),
+                        style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       Text(
                         data.content.last.content,
@@ -113,7 +111,10 @@ class _ChatsPageState extends State<ChatsPage> {
           },
         ),
 
-        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
+        Divider(
+          indent: 60,
+          color: Theme.of(context).dividerColor.withAlpha(30),
+        ),
       ],
     );
   }
@@ -158,9 +159,7 @@ class _ChatsPageState extends State<ChatsPage> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             CupertinoSliverNavigationBar(
-              largeTitle: Text(
-                "Conversations",
-              ),
+              largeTitle: Text("Conversations"),
               trailing: GestureDetector(
                 child: Icon(CupertinoIcons.add),
                 onTap: () {

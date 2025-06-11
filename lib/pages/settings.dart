@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/extensions.dart';
+import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -15,11 +18,122 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final data = Data();
+  final router = ConnectionController();
 
   late bool isDarkMode;
 
   Widget profilePage() {
     var profile = data.account!.profile!;
+
+    void pickImage(ImageSource source) async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: source);
+
+      if (pickedFile == null) return;
+
+      await router.uploadProfilePicture(pickedFile.path);
+
+    }
+
+    void changeProfilePicture() {
+      showCupertinoSheet(
+        context: context,
+        pageBuilder:
+            (context) => CupertinoPageScaffold(
+              navigationBar: CupertinoNavigationBar(
+                middle: Text("Photo de profil"),
+                previousPageTitle: "Retour",
+              ),
+              child: SafeArea(
+                child: SettingsList(
+                  platform: DevicePlatform.iOS,
+                  sections: [
+                    SettingsSection(
+                      title: Text("Photo actuelle"),
+                      tiles: [
+                        SettingsTile(
+                          title: ProfilePictureDisplay(
+                            data.account!.username,
+                            radius: 80,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SettingsSection(
+                      title: Text("Changer de photo"),
+                      tiles: [
+                        SettingsTile(
+                          title: Text("Prendre une photo"),
+                          leading: Icon(CupertinoIcons.camera),
+                          onPressed: (_) => pickImage(ImageSource.camera),
+                        ),
+                        SettingsTile(
+                          title: Text("Choisir une photo de la galérie"),
+                          leading: Icon(CupertinoIcons.photo_on_rectangle),
+                          onPressed: (_) => pickImage(ImageSource.gallery),
+                        ),
+                        SettingsTile(
+                          title: Text(
+                            "Supprimer la photo",
+                            style: TextStyle(
+                              color: CupertinoColors.destructiveRed,
+                            ),
+                          ),
+                          leading: Icon(
+                            CupertinoIcons.trash,
+                            color: CupertinoColors.destructiveRed,
+                          ),
+                          onPressed: (_) => pickImage(ImageSource.camera),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      );
+    }
+
+    void changeClass() {
+      int selectedClassIndex = 0;
+
+      //var classList = ["-", "2M01", "2M02"];
+
+      showCupertinoModalPopup(
+        context: context,
+        builder:
+            (BuildContext context) => Container(
+              height: 216,
+              padding: const EdgeInsets.only(top: 6.0),
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              color: CupertinoColors.systemBackground.resolveFrom(context),
+              child: SafeArea(
+                top: false,
+                child: CupertinoPicker(
+                  magnification: 1.22,
+                  squeeze: 1.2,
+                  useMagnifier: true,
+                  itemExtent: 32,
+                  // This sets the initial item.
+                  scrollController: FixedExtentScrollController(
+                    initialItem: selectedClassIndex,
+                  ),
+                  // This is called when selected item is changed.
+                  onSelectedItemChanged: (int selectedItem) {
+                    setState(() {
+                      selectedClassIndex = selectedItem;
+                    });
+                  },
+                  children: List<Widget>.generate(10, (int index) {
+                    return Center(child: Text("a"));
+                  }),
+                ),
+              ),
+            ),
+      );
+    }
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -36,9 +150,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      CircleAvatar(
+                      ProfilePictureDisplay(
+                        data
+                            .account!
+                            .username, // TODO: Handle account being null
                         radius: 60,
-                        child: Text(data.account!.username[0].toUpperCase()),
                       ),
                       SizedBox(height: 15),
                       Row(
@@ -67,10 +183,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
+
                 SettingsTile.navigation(
                   leading: Icon(CupertinoIcons.person_alt_circle_fill),
                   title: Text("Photo de profil"),
+                  onPressed: (context) => changeProfilePicture(),
                 ),
+
                 SettingsTile.navigation(
                   leading: Icon(CupertinoIcons.bookmark),
                   title: Text("Classe"),
@@ -83,6 +202,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       textAlign: TextAlign.right,
                     ),
                   ),
+                  onPressed: (context) => changeClass(),
                 ),
                 SettingsTile.navigation(
                   leading: Icon(CupertinoIcons.text_aligncenter),
@@ -203,9 +323,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text("Votre compte"),
                 tiles: <SettingsTile>[
                   SettingsTile.navigation(
-                    leading: CircleAvatar(
-                      child: Text(data.account!.username[0].toUpperCase()),
-                    ),
+                    leading: ProfilePictureDisplay(data.account!.username),
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

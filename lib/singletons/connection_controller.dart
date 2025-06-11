@@ -1,28 +1,29 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class ConnectionController {
-  static final _instance = ConnectionController._singleton();
-
+  static final ConnectionController _instance =
+      ConnectionController._internal();
   factory ConnectionController() => _instance;
-  ConnectionController._singleton();
+  ConnectionController._internal();
+
+  late final Data data = Data();
 
   WebSocketChannel? _channel;
 
   final _signalController = StreamController<Signal>.broadcast();
   final _connectionStatusController = StreamController<void>.broadcast();
-
   Stream<Signal> get onSignalReceived => _signalController.stream;
   Stream<void> get onConnected => _connectionStatusController.stream;
-
   bool get isConnected => _channel != null;
-
-  final data = Data();
 
   String lastSentUsername = "", lastSentPassword = "";
 
@@ -82,17 +83,66 @@ class ConnectionController {
         data: {"Username": username, "Password": password},
       ).pack(),
     );
-    
+
     lastSentUsername = username;
     lastSentPassword = password;
 
     _print("Logging in as $username... ($password)");
   }
 
+  Future<String?> uploadProfilePicture(String filePath) async {
+    if (data.account == null) return null;
+
+    // Creating the request
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${App.serverHTTPAddress}/upload-pfp'),
+    );
+    request.fields["Username"] = data.account!.username;
+    request.files.add(await http.MultipartFile.fromPath('Image', filePath));
+
+    // Sending the request and waiting for the result
+    _print("Image uploaded. Waiting for response...");
+
+    final response = await request.send();
+
+    if (response.statusCode != 200) {
+      _print(
+        "Error uploading image (${response.statusCode}): ${await response.stream.bytesToString()}",
+      );
+    }
+
+    final responseBody = await response.stream.bytesToString();
+    final responseURL = jsonDecode(responseBody)["url"];
+
+    _print("Uploaded image for ${data.account!.username}: $responseURL");
+    data.pfpNotifiersCache[data.account!.username]?.value = responseURL;
+    return responseURL;
+  }
+
+  Future<String?> getProfilePicture(String accountUsername) async {
+    final response = await http.get(
+      Uri.parse(
+        "${App.serverHTTPAddress}/get-pfp-url?username=$accountUsername",
+      ),
+    );
+
+    if (response.statusCode != 200) {
+      _print("[PFP] HTTP GET Error (${response.statusCode})");
+      return null;
+    }
+
+    final result = json.decode(response.body)["url"] as String?;
+    data.pfpNotifiersCache[accountUsername]?.value = result;
+    return result;
+  }
+
+  // Local methods
   void _print(String content) {
     debugPrint("[ConnectionController] $content");
   }
 
+  // Local event handling
   void _onSignalReceived(Signal signal) {
     // On successful login
     if (signal.type == SignalType.Login) {
