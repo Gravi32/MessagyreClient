@@ -106,7 +106,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
               title: Text("Autres contacts"),
               tiles: [
                 SettingsTile(
-                  title: Text("Numéro"),
+                  title: Text("Numéro", overflow: TextOverflow.fade, softWrap: false,),
                   leading: Icon(CupertinoIcons.phone),
                   value: Text(profile["PhoneNumber"] ?? "-"),
                   onPressed:
@@ -115,13 +115,13 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                           : (context) => copyPhoneNumber(),
                 ),
                 SettingsTile(
-                  title: Text("Email"),
+                  title: Text("Email", overflow: TextOverflow.fade, softWrap: false,),
                   leading: Icon(CupertinoIcons.mail),
                   value: Text(account.emailAddress),
                   onPressed: (context) => copyEmailAddress(),
                 ),
                 SettingsTile(
-                  title: Text("Discord"),
+                  title: Text("Discord", overflow: TextOverflow.fade, softWrap: false,),
                   leading: Icon(CupertinoIcons.game_controller),
                   value: Text(profile["DiscordUsername"] ?? "-"),
                   onPressed:
