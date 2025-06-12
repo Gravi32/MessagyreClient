@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -64,6 +65,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     ? adaptiveColor(context, CupertinoColors.systemGrey5, CupertinoColors.darkBackgroundGray) 
                     : adaptiveColor(context, CupertinoColors.white, CupertinoColors.darkBackgroundGray),
             borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: adaptiveColor(context, CupertinoColors.systemGrey5, Colors.transparent))
           ),
           suffix:
               widget.suffix ??

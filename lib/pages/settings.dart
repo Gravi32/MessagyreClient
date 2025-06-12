@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/extensions.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -257,8 +257,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
                     }
-
-                    debugPrint("Donee");
                   },
                   child: Text("Effacer"),
                 ),

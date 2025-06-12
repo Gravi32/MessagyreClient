@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:messagyre_client/pages/overlays/chat.dart';
+import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -51,11 +50,10 @@ class SearchPageState extends State<SearchPage> {
         color: CupertinoColors.systemGrey,
       ),
       onTap: () {
-        Navigator.of(context).pop();
         Navigator.of(context, rootNavigator: true).push(
           CupertinoPageRoute(
             builder:
-                (context) => ChatOverlay(recipientUsername: account.username),
+                (context) => ProfileOverlay(account),
           ),
         );
       },

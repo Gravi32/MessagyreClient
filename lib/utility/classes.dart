@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:messagyre_client/utility/extensions.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 part 'classes.g.dart';
 

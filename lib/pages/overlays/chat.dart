@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class ChatOverlay extends StatefulWidget {
@@ -28,6 +30,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final messageFieldFocusNode = FocusNode();
 
   int visibleMessageCount = 50;
+
+  Account? lastAccountCache = null;
 
   void scrollDown() {
     Future.delayed(Duration(milliseconds: 100), () {
@@ -131,20 +135,51 @@ class _ChatOverlayState extends State<ChatOverlay> {
             children: [
               ProfilePictureDisplay(widget.recipientUsername),
               SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.recipientUsername,
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ],
+
+              GestureDetector(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.recipientUsername
+                          .replaceAll('.', ' ')
+                          .capitalize(),
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      widget.recipientUsername,
+                      style: TextStyle(
+                        color: adaptiveColor(context, CupertinoColors.systemGrey, CupertinoColors.systemGrey),
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14
+                      ),
+                    ),
+                  ],
+                ),
+                onTap: () async {
+                  debugPrint("Tap detected");
+
+                  final recipientAccount =
+                      widget.recipientUsername == lastAccountCache?.username
+                          ? lastAccountCache
+                          : await router.getAccount(widget.recipientUsername);
+
+                  if (recipientAccount == null || !mounted) return;
+
+                  lastAccountCache = recipientAccount;
+
+                  Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => ProfileOverlay(recipientAccount),
+                    ),
+                  );
+                },
               ),
+
               Spacer(),
               Icon(CupertinoIcons.phone, size: 22),
-              SizedBox(width: 16),
-              Icon(CupertinoIcons.info, size: 22),
             ],
           ),
         ],

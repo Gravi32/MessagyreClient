@@ -128,13 +128,30 @@ class ConnectionController {
     );
 
     if (response.statusCode != 200) {
-      _print("[PFP] HTTP GET Error (${response.statusCode})");
+      _print("[PFP] Failed fetching picture URL (${response.statusCode})");
       return null;
     }
 
     final result = json.decode(response.body)["url"] as String?;
     data.pfpNotifiersCache[accountUsername]?.value = result;
     return result;
+  }
+
+  Future<Account?> getAccount(String accountUsername) async {
+    final response = await http.get(
+      Uri.parse(
+        "${App.serverHTTPAddress}/get-account?username=$accountUsername",
+      ),
+    );
+
+    if (response.statusCode != 200) {
+      _print("[Account] Failed fetching account (${response.statusCode})");
+      return null;
+    }
+
+    final jsonResult = json.decode(response.body)["account"] as String?;
+
+    return Account.fromJson(jsonResult);
   }
 
   // Local methods

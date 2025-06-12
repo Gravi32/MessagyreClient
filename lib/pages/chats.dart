@@ -7,7 +7,7 @@ import 'package:messagyre_client/pages/overlays/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/extensions.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class ChatsPage extends StatefulWidget {
