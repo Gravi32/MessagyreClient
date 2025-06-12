@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -29,9 +31,11 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final messageFieldController = TextEditingController();
   final messageFieldFocusNode = FocusNode();
 
+  /// Configurations \\\
   int visibleMessageCount = 50;
+  double blurAmount = 5;
 
-  Account? lastAccountCache = null;
+  Account? lastAccountCache;
 
   void scrollDown() {
     Future.delayed(Duration(milliseconds: 100), () {
@@ -124,65 +128,67 @@ class _ChatOverlayState extends State<ChatOverlay> {
     super.dispose();
   }
 
-  ObstructingPreferredSizeWidget topBar() {
-    return CupertinoNavigationBar(
-      border: Border(),
-      middle: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              ProfilePictureDisplay(widget.recipientUsername),
-              SizedBox(width: 12),
-
-              GestureDetector(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      widget.recipientUsername
-                          .replaceAll('.', ' ')
-                          .capitalize(),
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      widget.recipientUsername,
-                      style: TextStyle(
-                        color: adaptiveColor(context, CupertinoColors.systemGrey, CupertinoColors.systemGrey),
-                        fontWeight: FontWeight.w400,
-                        fontSize: 14
-                      ),
-                    ),
-                  ],
+  Widget topBar(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+        child: Container(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+          color: Colors.transparent,
+          child: Container(
+            height: 72,
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                GestureDetector(
+                  child: Row(
+                    children: [Icon(CupertinoIcons.back), SizedBox(width: 15)],
+                  ),
+                  onTap: () => Navigator.of(context).pop(),
                 ),
-                onTap: () async {
-                  debugPrint("Tap detected");
-
-                  final recipientAccount =
-                      widget.recipientUsername == lastAccountCache?.username
-                          ? lastAccountCache
-                          : await router.getAccount(widget.recipientUsername);
-
-                  if (recipientAccount == null || !mounted) return;
-
-                  lastAccountCache = recipientAccount;
-
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => ProfileOverlay(recipientAccount),
-                    ),
-                  );
-                },
-              ),
-
-              Spacer(),
-              Icon(CupertinoIcons.phone, size: 22),
-            ],
+                ProfilePictureDisplay(widget.recipientUsername),
+                SizedBox(width: 12),
+                GestureDetector(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.recipientUsername
+                            .replaceAll('.', ' ')
+                            .capitalize(),
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        widget.recipientUsername,
+                        style: TextStyle(
+                          color: CupertinoColors.systemGrey,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () async {
+                    final recipientAccount =
+                        widget.recipientUsername == lastAccountCache?.username
+                            ? lastAccountCache
+                            : await router.getAccount(widget.recipientUsername);
+                    if (recipientAccount == null || !context.mounted) return;
+                    lastAccountCache = recipientAccount;
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => ProfileOverlay(recipientAccount),
+                      ),
+                    );
+                  },
+                ),
+                Spacer(),
+                Icon(CupertinoIcons.phone, size: 22),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -257,41 +263,77 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
   }
 
+  Widget messageList() {
+    return SafeArea(
+      child: ListView.builder(
+        controller: chatScrollController,
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        clipBehavior: Clip.none,
+        itemCount:
+            chatData == null
+                ? 0
+                : (chatData!.content.length < visibleMessageCount
+                    ? chatData!.content.length
+                    : visibleMessageCount),
+        itemBuilder: (context, index) {
+          if (chatData == null) return SizedBox.shrink();
+
+          var list = chatData!.content;
+          int start = (list.length - visibleMessageCount).clamp(0, list.length);
+          var sliced = list.sublist(start);
+
+          var data = sliced[index];
+          var previous = (index > 0) ? sliced[index - 1].isOwned : null;
+          var next =
+              (index < sliced.length - 1) ? sliced[index + 1].isOwned : null;
+
+          return messageBubble(data, previous, next);
+        },
+      ),
+    );
+  }
+
   Widget bottomBar() {
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.only(
-          right: 12,
-          left: 12,
-          bottom: MediaQuery.of(context).padding.bottom + 10,
-          top: 6,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            GestureDetector(child: Icon(CupertinoIcons.paperclip)),
-            SizedBox(width: 16),
-            Expanded(
-              child: CupertinoTextField(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                minLines: 1,
-                maxLines: 3,
-                controller: messageFieldController,
-                focusNode: messageFieldFocusNode,
-                scrollPhysics: BouncingScrollPhysics(),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).hoverColor,
-                  borderRadius: BorderRadius.circular(20),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+        child: Container(
+          color: Colors.transparent,
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: 12,
+              left: 12,
+              bottom: MediaQuery.of(context).padding.bottom + 10,
+              top: 8,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GestureDetector(child: Icon(CupertinoIcons.paperclip)),
+                SizedBox(width: 16),
+                Expanded(
+                  child: CupertinoTextField(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                    minLines: 1,
+                    maxLines: 3,
+                    controller: messageFieldController,
+                    focusNode: messageFieldFocusNode,
+                    scrollPhysics: BouncingScrollPhysics(),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).hoverColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    onSubmitted: sendMessage,
+                  ),
                 ),
-                onSubmitted: sendMessage,
-              ),
+                SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () => sendMessage(messageFieldController.text),
+                  child: Icon(CupertinoIcons.paperplane),
+                ),
+              ],
             ),
-            SizedBox(width: 16),
-            GestureDetector(
-              onTap: () => sendMessage(messageFieldController.text),
-              child: Icon(CupertinoIcons.paperplane),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -302,42 +344,26 @@ class _ChatOverlayState extends State<ChatOverlay> {
     chatData?.unreadMessages = 0;
 
     return CupertinoPageScaffold(
-      navigationBar: topBar(),
-      child: SafeArea(
-        child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/BackgroundTile.png"),
+            repeat: ImageRepeat.repeat,
+            scale: 3,
+            opacity: .1,
+          ),
+        ),
+        child: Stack(
           children: [
-            Expanded(
-              child: ListView.builder(
-                controller: chatScrollController,
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                itemCount:
-                    chatData == null
-                        ? 0
-                        : (chatData!.content.length < visibleMessageCount
-                            ? chatData!.content.length
-                            : visibleMessageCount),
-                itemBuilder: (context, index) {
-                  if (chatData == null) return SizedBox.shrink();
-
-                  var list = chatData!.content;
-                  int start = (list.length - visibleMessageCount).clamp(
-                    0,
-                    list.length,
-                  );
-                  var sliced = list.sublist(start);
-
-                  var data = sliced[index];
-                  var previous = (index > 0) ? sliced[index - 1].isOwned : null;
-                  var next =
-                      (index < sliced.length - 1)
-                          ? sliced[index + 1].isOwned
-                          : null;
-
-                  return messageBubble(data, previous, next);
-                },
-              ),
+            Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).padding.top + 50),
+                Expanded(child: messageList()),
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
+              ],
             ),
-            bottomBar(),
+            Positioned(top: 0, left: 0, right: 0, child: topBar(context)),
+            Positioned(bottom: 0, left: 0, right: 0, child: bottomBar()),
           ],
         ),
       ),
