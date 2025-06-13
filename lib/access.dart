@@ -108,9 +108,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -126,7 +124,11 @@ class _AccessOverlayState extends State<AccessOverlay> {
                         error: usernameError,
                         controller: usernameController,
                         disabled: isLoggingIn,
-                        onChanged: (_) => setState(() {}),
+                        onChanged:
+                            (_) => setState(() {
+                              usernameController.text =
+                                  usernameController.text.toLowerCase().replaceAll(' ', '');
+                            }),
                       ),
 
                       const SizedBox(height: 20),
@@ -146,9 +148,10 @@ class _AccessOverlayState extends State<AccessOverlay> {
                       CupertinoButton.filled(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         minSize: 0,
-                        onPressed: (!fieldsAreEmpty && !isLoggingIn)
-                            ? tryToLogin
-                            : null,
+                        onPressed:
+                            (!fieldsAreEmpty && !isLoggingIn)
+                                ? tryToLogin
+                                : null,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +169,9 @@ class _AccessOverlayState extends State<AccessOverlay> {
                         children: [
                           Expanded(
                             child: Divider(
-                              color: CupertinoColors.systemGrey.withOpacity(.25),
+                              color: CupertinoColors.systemGrey.withOpacity(
+                                .25,
+                              ),
                               indent: 30,
                               endIndent: 10,
                             ),
@@ -180,7 +185,9 @@ class _AccessOverlayState extends State<AccessOverlay> {
                           ),
                           Expanded(
                             child: Divider(
-                              color: CupertinoColors.systemGrey.withOpacity(.25),
+                              color: CupertinoColors.systemGrey.withOpacity(
+                                .25,
+                              ),
                               indent: 10,
                               endIndent: 30,
                             ),
@@ -192,15 +199,17 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
                       CupertinoButton.filled(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        onPressed: isLoggingIn
-                            ? null
-                            : () {
-                                Navigator.of(context).push(
-                                  CupertinoPageRoute(
-                                    builder: (context) => const RegistrationPage(),
-                                  ),
-                                );
-                              },
+                        onPressed:
+                            isLoggingIn
+                                ? null
+                                : () {
+                                  Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder:
+                                          (context) => const RegistrationPage(),
+                                    ),
+                                  );
+                                },
                         child: const Text(
                           "Créer un compte",
                           style: TextStyle(color: CupertinoColors.white),
