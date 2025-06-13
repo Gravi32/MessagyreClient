@@ -33,7 +33,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   /// Configurations \\\
   int visibleMessageCount = 50;
-  double blurAmount = 5;
+  double blurAmount = 15;
+  Color barLightColor = CupertinoColors.systemGrey5.withAlpha(150);
+  Color barDarkColor = CupertinoColors.darkBackgroundGray.withAlpha(150);
 
   Account? lastAccountCache;
 
@@ -134,7 +136,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-          color: Colors.transparent,
+          color: adaptiveColor(context, barLightColor, barDarkColor),
           child: Container(
             height: 72,
             padding: EdgeInsets.symmetric(horizontal: 16),
@@ -245,6 +247,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         decoration: BoxDecoration(
           color: getBubbleColor(data.isOwned),
           borderRadius: getBubbleShape(data.isOwned),
+          boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10,)]
         ),
         child: Wrap(
           alignment: WrapAlignment.end,
@@ -298,7 +301,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
-          color: Colors.transparent,
+          color: adaptiveColor(context, barLightColor, barDarkColor),
           child: Padding(
             padding: EdgeInsets.only(
               right: 12,
@@ -351,6 +354,13 @@ class _ChatOverlayState extends State<ChatOverlay> {
             repeat: ImageRepeat.repeat,
             scale: 3,
             opacity: .1,
+            colorFilter:
+                data.appBrightness == Brightness.dark
+                    ? null
+                    : ColorFilter.mode(
+                      Colors.black.withAlpha(100),
+                      BlendMode.srcIn,
+                    ),
           ),
         ),
         child: Stack(
@@ -359,7 +369,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
               children: [
                 SizedBox(height: MediaQuery.of(context).padding.top + 50),
                 Expanded(child: messageList()),
-                SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
               ],
             ),
             Positioned(top: 0, left: 0, right: 0, child: topBar(context)),
