@@ -97,6 +97,7 @@ class Account {
     if (map == null) return null;
 
     try {
+      debugPrint("ACCOUNT FROMMAP ${_parseProfile(map["Profile"])}");
       return Account()
         ..username = map["Username"] ?? ""
         ..emailAddress = map["EmailAddress"] ?? ""
@@ -129,6 +130,7 @@ class Account {
   }
 
   static Map<String, dynamic> _parseProfile(dynamic data) {
+    debugPrint("PARSE PROFILE CALLED: $data");
     if (data == null) return {};
 
     if (data is String) {
@@ -136,7 +138,8 @@ class Account {
       try {
         final decoded = jsonDecode(data);
         if (decoded is Map<String, dynamic>) return decoded;
-      } catch (_) {
+      } catch (e) {
+        debugPrint("Error $e");
         return {};
       }
     }
@@ -150,5 +153,12 @@ class Account {
 
   String getDisplayableUsername() {
     return username.replaceAll('.', ' ').capitalize();
+  }
+
+  @override
+  String toString() {
+    String profileString = "";
+    profile?.forEach((key, value) => profileString += "\n\t\t$key: $value");
+    return "[Account: $username]\n\tEmail: $emailAddress\n\tProfile: {$profileString}\n";
   }
 }

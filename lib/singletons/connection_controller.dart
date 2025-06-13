@@ -120,6 +120,30 @@ class ConnectionController {
     return responseURL;
   }
 
+  Future<bool> uploadProfile(Map<String, dynamic> profileObject) async {
+    if (data.account == null) return false;
+
+    final body = jsonEncode({
+      "Username": data.account!.username,
+      "Profile": profileObject,
+    });
+
+    final response = await http.post(
+      Uri.parse('${App.serverHTTPAddress}/upload-profile'),
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode != 200) {
+      _print(
+        "Error uploading profile (${response.statusCode}): ${response.body}",
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   Future<String?> getProfilePicture(String accountUsername) async {
     final response = await http.get(
       Uri.parse(

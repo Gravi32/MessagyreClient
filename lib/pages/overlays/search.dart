@@ -39,22 +39,20 @@ class SearchPageState extends State<SearchPage> {
         account.getDisplayableUsername(),
         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
       ),
-      leading: ProfilePictureDisplay(account.username, radius: 50,),
+      leading: ProfilePictureDisplay(account.username, radius: 50),
       leadingSize: 50,
       subtitle:
           account.profile?.isNotEmpty ?? false
-              ? Text(account.profile?["Class"])
+              ? Text(account.profile?["Class"] ?? "-")
               : null,
       additionalInfo: Icon(
         CupertinoIcons.chevron_forward,
         color: CupertinoColors.systemGrey,
       ),
       onTap: () {
+        debugPrint("[search.dart] $account");
         Navigator.of(context, rootNavigator: true).push(
-          CupertinoPageRoute(
-            builder:
-                (context) => ProfileOverlay(account),
-          ),
+          CupertinoPageRoute(builder: (context) => ProfileOverlay(account)),
         );
       },
     );

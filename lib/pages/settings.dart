@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -344,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onPressed:
                         (context) => Navigator.of(context).push(
                           CupertinoPageRoute(
-                            builder: (context) => profilePage(),
+                            builder: (context) => ProfileOverlay(data.account!),
                           ),
                         ),
                   ),
