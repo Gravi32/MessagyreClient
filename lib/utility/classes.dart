@@ -97,7 +97,6 @@ class Account {
     if (map == null) return null;
 
     try {
-      debugPrint("ACCOUNT FROMMAP ${_parseProfile(map["Profile"])}");
       return Account()
         ..username = map["Username"] ?? ""
         ..emailAddress = map["EmailAddress"] ?? ""
@@ -130,7 +129,7 @@ class Account {
   }
 
   static Map<String, dynamic> _parseProfile(dynamic data) {
-    debugPrint("PARSE PROFILE CALLED: $data");
+    
     if (data == null) return {};
 
     if (data is String) {

@@ -357,7 +357,6 @@ class _SettingsPageState extends State<SettingsPage> {
               tiles: [
                 SettingsTile.switchTile(
                   onToggle: (value) {
-                    debugPrint("$value");
                     setState(() {
                       isDarkMode = value;
                       data.appBrightness =
