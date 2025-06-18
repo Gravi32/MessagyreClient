@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -14,6 +16,7 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final router = ConnectionController();
+  final data = Data();
 
   final pageController = PageController();
   final emailController = TextEditingController();
@@ -22,6 +25,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final confirmPasswordController = TextEditingController();
 
   int currentPage = 0;
+  String? registrationToken;
 
   bool isEmailValid = false;
   bool isCodeValid = false;
@@ -45,32 +49,94 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  void sendEmail() {
-    router.send(
-      Signal(
-        type: SignalType.Registration,
-        data: {"email_address": "${emailController.text.trim()}@eduvaud.ch"},
-      ).pack(),
-    );
+  void sendEmail() async {
     startResendTimer();
+    isWaitingForResponse = true;
+
+    final response = await router.post("Auth/Registration", {
+      "EmailAddress": "${emailController.text.trim()}@eduvaud.ch",
+    }, handleUnauthorized: false);
+
+    isWaitingForResponse = false;
+
+    final responseData = jsonDecode(response.body);
+    final solutions = {
+      "WrongFormat":
+          "L'adresse e-mail doit respecter le format suivant : 'prénom.nom' !",
+      "WrongDomain": "L'adresse doit terminer en '@eduvaud.ch' !",
+      "AlreadyExists": "Cet adresse a déjà été utilisé !",
+      "AlreadySent":
+          "Veuillez patienter, le code a déjà été envoyé récemment !",
+    };
+
+    if (response.statusCode != 200) {
+      emailError =
+          solutions[responseData] ??
+          "Une erreur s'est produite, veuillez reéssayer.";
+    } else {
+      registrationToken = jsonDecode(response.body)["RegistrationToken"];
+      goToPage(1);
+    }
   }
 
-  void sendCode() {
-    router.send(
-      Signal(
-        type: SignalType.Registration,
-        data: {"verification_code": codeController.text.trim()},
-      ).pack(),
-    );
+  void sendCode() async {
+    isWaitingForResponse = true;
+
+    final response = await router.post("Auth/Registration", {
+      "RegistrationToken": registrationToken,
+      "VerificationCode": codeController.text.trim(),
+    }, handleUnauthorized: false);
+
+    isWaitingForResponse = false;
+
+    final responseData = jsonDecode(response.body);
+    final solutions = {
+      "WrongLength": "Le code doit contenir 6 chiffres.",
+      "WrongCode": "Le code est incorrect !",
+    };
+
+    if (response.statusCode == 401) {
+      goToPage(0);
+    } else if (response.statusCode != 200) {
+      codeError =
+          solutions[responseData] ??
+          "Une erreur s'est produite, veuillez reéssayer.";
+    } else {
+      goToPage(2);
+    }
   }
 
-  void sendPassword() {
-    router.send(
-      Signal(
-        type: SignalType.Registration,
-        data: {"password": passwordController.text.trim()},
-      ).pack(),
-    );
+  void sendPassword() async {
+    isWaitingForResponse = true;
+
+    final response = await router.post("Auth/Registration", {
+      "RegistrationToken": registrationToken,
+      "Password": passwordController.text.trim(),
+    }, handleUnauthorized: false);
+
+    isWaitingForResponse = false;
+
+    final responseData = jsonDecode(response.body);
+    final solutions = {
+      "TooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+    };
+
+    if (response.statusCode == 401) {
+      goToPage(0);
+    } else if (response.statusCode != 200) {
+      codeError =
+          solutions[responseData] ??
+          "Une erreur s'est produite, veuillez reéssayer.";
+    } else {
+      final token = responseData["AccessToken"];
+      data.token = token;
+      isWaitingForResponse = true;
+
+      await FlutterSecureStorage().write(key: "accessToken", value: token);
+
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      isWaitingForResponse = false;
+    }
   }
 
   void startResendTimer() {
@@ -292,73 +358,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
         );
       },
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    router.onSignalReceived.listen((signal) {
-      if (signal.type != SignalType.Registration) return;
-
-      final field = signal.data["Field"];
-      final response = signal.data["Response"];
-
-      setState(() {
-        switch (field) {
-          case "email_address":
-            switch (response) {
-              case "success":
-                goToPage(1);
-              case "wrong_format":
-                emailError =
-                    "L'adresse e-mail doit respecter le format suivant : 'prénom.nom' !";
-                return;
-              case "wrong_domain":
-                emailError = "L'adresse doit terminer en '@eduvaud.ch' !";
-                return;
-              case "already_exists":
-                emailError = "Cet adresse a déjà été utilisé !";
-                return;
-              case "wait":
-                emailError =
-                    "Veuillez patienter, le code a déjà été envoyé récemment !";
-                return;
-              default:
-                emailError = "Une erreur s'est produite, veuillez reéssayer.";
-                return;
-            }
-          case "verification_code":
-            switch (response) {
-              case "success":
-                goToPage(2);
-              case "wrong_length":
-                codeError = "Le code doit contenir 6 chiffres.";
-                return;
-              case "wrong":
-                codeError = "Le code est incorrect !";
-                return;
-              default:
-                codeError = "Une erreur s'est produite, veuillez reéssayer.";
-                return;
-            }
-          case "password":
-            switch (response) {
-              case "success":
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              case "too_short":
-                passwordError =
-                    "Le mot de passe doit contenir au moins 8 caractères.";
-                return;
-              default:
-                passwordError =
-                    "Une erreur s'est produite, veuillez reéssayer.";
-                return;
-            }
-        }
-      });
-    });
   }
 
   @override

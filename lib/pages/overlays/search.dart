@@ -17,76 +17,79 @@ class SearchPageState extends State<SearchPage> {
   final router = ConnectionController();
   final searchBarController = TextEditingController();
 
-  List<Account?> searchResults = [];
+  String? usernameBeingLoaded;
+  int searchCounter = 0;
+  int latestSearch = 0;
+
+  Map<String, String?> searchResults = {};
+
+  void search(String query) async {
+    final int thisSearch = ++searchCounter;
+
+    final response = await router.get("/Accounts/Search?Query=$query");
+
+    // Se questa ricerca non è più l’ultima → ignora
+    if (thisSearch < latestSearch) return;
+
+    latestSearch = thisSearch;
+
+    if (response.body.isEmpty) return;
+
+    Map<String, String?> rawResults;
+    try {
+      rawResults = Map<String, String?>.from(jsonDecode(response.body));
+    } catch (e) {
+      debugPrint("[Search Failed] Received invalid results: $e");
+      return;
+    }
+
+    if (rawResults.isEmpty) return;
+
+    setState(() {
+      searchResults = rawResults;
+    });
+  }
 
   Widget buildSearchBar() {
     return CupertinoSearchTextField(
       placeholder: "Réchercher un.e gymnasien.ne",
       padding: EdgeInsets.symmetric(vertical: 4),
       controller: searchBarController,
-      onChanged: (query) {
-        router.send(
-          Signal(type: SignalType.Search, data: {"Query": query}).pack(),
-        );
-      },
+      onChanged: search,
     );
   }
 
-  Widget buildResult(Account account) {
+  Widget buildResult(String username, String? profilePictureURL) {
     return CupertinoListTile(
       padding: EdgeInsets.symmetric(vertical: 12),
       title: Text(
-        account.getDisplayableUsername(),
+        Account.getDisplayableUsername(username),
         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
       ),
-      leading: ProfilePictureDisplay(account.username, radius: 50),
+      leading: ProfilePictureDisplay(username, radius: 50),
       leadingSize: 50,
-      subtitle:
-          account.profile?.isNotEmpty ?? false
-              ? Text(account.profile?["Class"] ?? "-")
-              : null,
+      subtitle: Text("Class", style: TextStyle(fontSize: 14)),
+
       additionalInfo: Icon(
         CupertinoIcons.chevron_forward,
         color: CupertinoColors.systemGrey,
       ),
-      onTap: () {
-        debugPrint("[search.dart] $account");
-        Navigator.of(context, rootNavigator: true).push(
-          CupertinoPageRoute(builder: (context) => ProfileOverlay(account)),
-        );
-      },
-    );
-  }
+      onTap: () async {
+        usernameBeingLoaded = username;
 
-  @override
-  void initState() {
-    super.initState();
+        final account = await router.getAccount(username);
 
-    router.onSignalReceived.listen((signal) {
-      if (signal.type != SignalType.Search) return;
+        usernameBeingLoaded = null;
 
-      var resultsJson = signal.data["Result"];
-      if (resultsJson == null) return;
-
-      try {
-        List<dynamic> resultsList = jsonDecode(resultsJson);
-        searchResults.clear();
-
-        for (int i = 0; i < resultsList.length; i++) {
-          var account = Account.fromMap(resultsList[i]);
-
-          searchResults.add(account);
+        if (account != null && mounted) {
+          Navigator.of(context, rootNavigator: true).push(
+            CupertinoPageRoute(builder: (context) => ProfileOverlay(account)),
+          );
         }
-        setState(() {});
-      } catch (e, s) {
-        debugPrintStack(stackTrace: s, label: e.toString());
-      }
-
-      // setState(() {
-      //   searchResults =
-      //       resultsList.map((jsonAccount) => Account.fromJson(jsonAccount)).toList();
-      // });
-    });
+      },
+      trailing:
+          usernameBeingLoaded == username ? CupertinoActivityIndicator() : null,
+    );
   }
 
   @override
@@ -110,8 +113,13 @@ class SearchPageState extends State<SearchPage> {
               shrinkWrap: true,
               itemCount: searchResults.length,
               itemBuilder: (context, index) {
-                if (searchResults[index] == null) return null;
-                return buildResult(searchResults[index]!);
+                if (searchResults.entries.elementAtOrNull(index) == null) {
+                  return null;
+                }
+                return buildResult(
+                  searchResults.keys.elementAt(index),
+                  searchResults.values.elementAt(index),
+                );
               },
             ),
           ],

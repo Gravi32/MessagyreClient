@@ -28,7 +28,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   late final account = widget.account;
   late final profile = widget.account.profile ?? {};
 
-  late final editMode = account.username == data.account?.username;
+  late final editMode = account.username == data.username;
 
   late bool changesMade = false;
 
@@ -95,61 +95,66 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   void changeBio() {
     final bioController = TextEditingController(text: profile["Bio"]);
+    String originalBio = profile["Bio"] ?? "";
 
     showCupertinoSheet(
       context: context,
-      pageBuilder:
-          (context) => CupertinoPageScaffold(
-            navigationBar: CupertinoNavigationBar(
-              middle: Text("Votre Bio"),
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: Text("Annuler"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+      pageBuilder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return CupertinoPageScaffold(
+              navigationBar: CupertinoNavigationBar(
+                middle: Text("Votre Bio"),
+                leading: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  child: Text("Annuler"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                trailing: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed:
+                      (bioController.text != originalBio)
+                          ? () {
+                            changesMade = true;
+                            profile["Bio"] = bioController.text;
+                            Navigator.of(context).pop();
+                          }
+                          : null,
+                  child: Text("Terminé"),
+                ),
               ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed:
-                    (bioController.text != profile["Bio"])
-                        ? () {
-                          changesMade = true;
-                          profile["Bio"] = bioController.text;
-
-                          Navigator.of(context).pop();
-                        }
-                        : null,
-                child: Text("Terminé"),
-              ),
-            ),
-            child: SafeArea(
-              child: SettingsList(
-                platform: DevicePlatform.iOS,
-                sections: [
-                  SettingsSection(
-                    tiles: [
-                      SettingsTile(
-                        title: CupertinoTextField(
-                          controller: bioController,
-                          decoration: BoxDecoration(),
-                          padding: EdgeInsets.zero,
-                          placeholder: "Bio",
-                          minLines: 1,
-                          maxLines: 3,
-                          maxLength: 100,
-                          onChanged: (_) => setState(() {}),
+              child: SafeArea(
+                child: SettingsList(
+                  platform: DevicePlatform.iOS,
+                  sections: [
+                    SettingsSection(
+                      tiles: [
+                        SettingsTile(
+                          title: CupertinoTextField(
+                            controller: bioController,
+                            decoration: BoxDecoration(),
+                            padding: EdgeInsets.zero,
+                            placeholder: "Bio",
+                            minLines: 1,
+                            maxLines: 3,
+                            maxLength: 100,
+                            onChanged: (_) => setSheetState(() {}),
+                          ),
+                          description: Text(
+                            "Votre bio est visible par tout le monde (même les profs !).",
+                          ),
                         ),
-                        description: Text(
-                          "Votre bio est visible par tout le monde (même les profs !).",
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -338,7 +343,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   @override
   Widget build(context) {
-    debugPrint("[profile.dart] ${widget.account}");
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: GestureDetector(
@@ -386,8 +390,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   ),
                   onPressed: () async {
                     bool success = await router.uploadProfile(profile);
-
-                    if (success) data.account?.profile = profile;
 
                     if (context.mounted) {
                       showCupertinoDialog(

@@ -23,18 +23,24 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
       valueListenable: data.getPfpNotifier(widget.accountUsername),
       builder: (context, newImageURL, child) {
         final useDefaultIcon = newImageURL == null || newImageURL.isEmpty;
-        final firstLetter = widget.accountUsername[0];
-        final defaultIconColor = Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0).modPow(1, Colors.primaries.length)];
-
+        final firstLetter =
+            widget.accountUsername.isNotEmpty ? widget.accountUsername[0] : '?';
+        final defaultIconColor =
+            Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) %
+                Colors.primaries.length];
         return Center(
           child: CircleAvatar(
             radius: widget.radius,
-            backgroundColor: useDefaultIcon ? defaultIconColor : Colors.transparent,
+            backgroundColor:
+                useDefaultIcon ? defaultIconColor : Colors.transparent,
             child:
                 useDefaultIcon
                     ? Text(
                       firstLetter.toUpperCase(),
-                      style: TextStyle(fontSize: diameter / 4, color: defaultIconColor.shade900),
+                      style: TextStyle(
+                        fontSize: diameter / 4,
+                        color: defaultIconColor.shade900,
+                      ),
                     )
                     : ClipOval(
                       child: CachedNetworkImage(

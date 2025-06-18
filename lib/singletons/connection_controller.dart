@@ -1,142 +1,250 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:web_socket_channel/io.dart';
 
 class ConnectionController {
-  static final ConnectionController _instance =
-      ConnectionController._internal();
+  // Configuration
+
+  static const bool useLocalhost = true;
+  static String localIP = "192.168.1.230:5066";
+
+  static String serverWebSocketAddress =
+      useLocalhost ? "ws://$localIP" : "wss://messagyre.up.railway.app";
+
+  static String serverHTTPAddress =
+      useLocalhost ? "http://$localIP" : "https://messagyre.up.railway.app";
+
+  // Singletons
+
+  static final _instance = ConnectionController._internal();
   factory ConnectionController() => _instance;
   ConnectionController._internal();
 
-  late final Data data = Data();
+  late final data = Data();
+  late final secureStorage = FlutterSecureStorage();
 
   WebSocketChannel? _channel;
 
-  final _signalController = StreamController<Signal>.broadcast();
+  // Events
+
+  final _messageDataController =
+      StreamController<Map<String, Object>>.broadcast();
   final _connectionStatusController = StreamController<void>.broadcast();
-  Stream<Signal> get onSignalReceived => _signalController.stream;
+  Stream<Map<String, Object>> get onMessageDataReceived =>
+      _messageDataController.stream;
   Stream<void> get onConnected => _connectionStatusController.stream;
+  void Function()? onUnauthorized;
+
   bool get isConnected => _channel != null;
 
-  String lastSentUsername = "", lastSentPassword = "";
+  Future<void> start() async {
+    debugPrint("[Router] Reading AccessToken...");
+    data.token = await secureStorage.read(key: "token");
 
-  void connect(String url) async {
-    if (isConnected) return;
+    debugPrint("[Router] Pinging server...");
+    var response = await post("/Auth/Check", {});
 
-    _channel = WebSocketChannel.connect(Uri.parse(url));
-    _print("Connecting...");
+    debugPrint("[Router] Server response code: ${response.statusCode}");
 
-    _channel!.stream.listen(
-      (message) {
-        _print("Received: $message");
-
-        final signal = Signal.unpack(message);
-        if (signal == null) return;
-
-        _signalController.add(signal);
-        _onSignalReceived(signal);
-      },
-      onDone: () {
-        _print("Connection closed by server");
-        _channel = null;
-        connect(url);
-      },
-      onError: (error) {
-        _print("Error: $error");
-        _channel = null;
-        connect(url);
-      },
-    );
-
-    _channel!.ready
-        .then((_) {
-          _print("Connected");
-
-          _connectionStatusController.add(null);
-        })
-        .catchError((error) {
-          _print("Could not connect: $error");
-        });
+    if (response.statusCode == 200) connect();
   }
 
-  void send(String message) {
+  // WebSocket Requests
+
+  void connect() async {
+    if (isConnected) return;
+
+    try {
+      final socket = await WebSocket.connect(
+        serverWebSocketAddress,
+        headers: {'Authorization': 'Bearer ${data.token}'},
+      ).timeout(const Duration(seconds: 5));
+
+      _channel = IOWebSocketChannel(socket);
+
+      debugPrint("[WebSocket] Connected");
+
+      _channel!.stream.listen(
+        (stringMessage) {
+          try {
+            final rawMessageData = jsonDecode(stringMessage);
+
+            final sender = rawMessageData["SenderUsername"]?.toString();
+            final content = rawMessageData["Content"]?.toString();
+            final rawSentAt = rawMessageData["SentAt"]?.toString();
+
+            if (sender == null || content == null || rawSentAt == null) {
+              throw FormatException("Missing fields");
+            }
+
+            final sentAt = DateTime.parse(rawSentAt);
+
+            final messageData = {
+              "SenderUsername": sender,
+              "Content": content,
+              "SentAt": sentAt,
+            };
+
+            _messageDataController.add(messageData);
+          } catch (e) {
+            debugPrint("[WebSocket] Received invalid message data: $e");
+          }
+        },
+        onDone: () {
+          debugPrint("[WebSocket] Connection closed by server");
+          _channel = null;
+          connect();
+        },
+        onError: (error) {
+          debugPrint("[WebSocket] Error: $error");
+          _channel = null;
+          connect();
+        },
+      );
+
+      _connectionStatusController.add(null);
+    } catch (e) {
+      if (e.toString().contains("401") && onUnauthorized != null) {
+        onUnauthorized!();
+        return;
+      }
+      debugPrint("[WebSocket] Could not connect ($e). Retrying...");
+      _channel = null;
+      connect();
+    }
+  }
+
+  void send(String recipientUsername, String messageContent) {
+    final message = jsonEncode({
+      "RecipientUsername": recipientUsername,
+      "Content": messageContent,
+    });
+
     _channel?.sink.add(message);
   }
 
   void disconnect() {
     _channel?.sink.close();
     _channel = null;
-    _print("Connection closed manually");
+    debugPrint("[WebSocket] Connection closed manually");
   }
 
-  void login(String username, String password) {
-    send(
-      Signal(
-        type: SignalType.Login,
-        data: {"Username": username, "Password": password},
-      ).pack(),
-    );
+  // HTTP Shorthands
 
-    lastSentUsername = username;
-    lastSentPassword = password;
+  Future<http.Response> post(
+    String route,
+    Object body, {
+    int timeout = 30,
+    bool sendToken = true,
+    bool handleUnauthorized = true,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(serverHTTPAddress + route),
+            headers: {
+              "Content-Type": "application/json",
+              if (sendToken && data.token != null)
+                "Authorization": "Bearer ${data.token!}",
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(Duration(seconds: timeout));
 
-    _print("Logging in as $username... ($password)");
+      if (handleUnauthorized &&
+          response.statusCode == 401 &&
+          onUnauthorized != null) {
+        onUnauthorized!();
+      }
+
+      return response;
+    } on TimeoutException {
+      debugPrint("[POST Request Timeout] $route");
+      return http.Response("Timeout", 408);
+    } catch (e) {
+      debugPrint("[POST Request Error] $route: $e");
+      return http.Response("Internal error", 500);
+    }
   }
+
+  Future<http.Response> get(
+    String route, {
+    bool sendToken = true,
+    int timeout = 30,
+  }) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse(serverHTTPAddress + route),
+            headers: {
+              "Content-Type": "application/json",
+              if (sendToken && data.token != null)
+                "Authorization": "Bearer ${data.token!}",
+            },
+          )
+          .timeout(Duration(seconds: timeout));
+
+      if (response.statusCode == 401 && onUnauthorized != null) {
+        onUnauthorized!();
+      }
+
+      return response;
+    } on TimeoutException {
+      debugPrint("[GET Request Timeout] $route");
+      return http.Response("Timeout", 408);
+    } catch (e) {
+      debugPrint("[GET Request Error] $route: $e");
+      return http.Response("Internal error", 500);
+    }
+  }
+
+  // HTTP Requests
 
   Future<String?> uploadProfilePicture(String filePath) async {
-    if (data.account == null) return null;
-
-    // Creating the request
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${App.serverHTTPAddress}/upload-pfp'),
+      Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfilePicture'),
     );
-    request.fields["Username"] = data.account!.username;
+
+    debugPrint("Sending $filePath");
+
+    request.headers["Authorization"] = "Bearer ${data.token}";
     request.files.add(await http.MultipartFile.fromPath('Image', filePath));
 
-    // Sending the request and waiting for the result
-    _print("Image uploaded. Waiting for response...");
-
     final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    debugPrint("${response.statusCode} $responseBody");
 
     if (response.statusCode != 200) {
-      _print(
-        "Error uploading image (${response.statusCode}): ${await response.stream.bytesToString()}",
-      );
+      debugPrint("[PFP Upload Failed] (${response.statusCode}): $responseBody");
+      return null;
     }
 
-    final responseBody = await response.stream.bytesToString();
-    final responseURL = jsonDecode(responseBody)["url"];
+    final responseURL = jsonDecode(responseBody)["ProfilePictureURL"];
+    debugPrint(responseURL);
+    data.pfpNotifiersCache[data.username]?.value = responseURL;
 
-    _print("Uploaded image for ${data.account!.username}: $responseURL");
-    data.pfpNotifiersCache[data.account!.username]?.value = responseURL;
     return responseURL;
   }
 
   Future<bool> uploadProfile(Map<String, dynamic> profileObject) async {
-    if (data.account == null) return false;
-
-    final body = jsonEncode({
-      "Username": data.account!.username,
+    final response = await post("/Accounts/Me/UploadProfile", {
+      "Token": data.token ?? "",
       "Profile": profileObject,
     });
 
-    final response = await http.post(
-      Uri.parse('${App.serverHTTPAddress}/upload-profile'),
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-
     if (response.statusCode != 200) {
-      _print(
-        "Error uploading profile (${response.statusCode}): ${response.body}",
+      debugPrint(
+        "[Profile Upload Failed] Error ${response.statusCode}: ${response.body}",
       );
       return false;
     }
@@ -145,56 +253,34 @@ class ConnectionController {
   }
 
   Future<String?> getProfilePicture(String accountUsername) async {
-    final response = await http.get(
-      Uri.parse(
-        "${App.serverHTTPAddress}/get-pfp-url?username=$accountUsername",
-      ),
+    final response = await get(
+      "/Accounts/GetProfilePictureURL?Username=$accountUsername",
     );
 
     if (response.statusCode != 200) {
-      _print("[PFP] Failed fetching picture URL (${response.statusCode})");
+      debugPrint(
+        "[PFP Get Failed] Error ${response.statusCode} (${response.body})",
+      );
       return null;
     }
 
-    final result = json.decode(response.body)["url"] as String?;
+    final result = json.decode(response.body) as String?;
     data.pfpNotifiersCache[accountUsername]?.value = result;
     return result;
   }
 
   Future<Account?> getAccount(String accountUsername) async {
-    final response = await http.get(
-      Uri.parse(
-        "${App.serverHTTPAddress}/get-account?username=$accountUsername",
-      ),
-    );
+    final response = await get("/Accounts/Get?Username=$accountUsername");
 
     if (response.statusCode != 200) {
-      _print("[Account] Failed fetching account (${response.statusCode})");
+      debugPrint(
+        "[Account Get Failed] Error ${response.statusCode}: ${response.body}",
+      );
       return null;
     }
 
-    final jsonResult = json.decode(response.body)["account"] as String?;
+    final result = Account.fromJson(response.body);
 
-    return Account.fromJson(jsonResult);
-  }
-
-  // Local methods
-  void _print(String content) {
-    debugPrint("[ConnectionController] $content");
-  }
-
-  // Local event handling
-  void _onSignalReceived(Signal signal) {
-    // On successful login
-    if (signal.type == SignalType.Login) {
-      var account = signal.data["Account"];
-
-      if (account == null) return;
-      data.account = Account.fromJson(account);
-
-      var box = Hive.box("AccessInfo");
-      box.put("Username", lastSentUsername);
-      box.put("Password", lastSentPassword);
-    }
+    return result;
   }
 }

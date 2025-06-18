@@ -6,35 +6,6 @@ import 'package:messagyre_client/utility/utility.dart';
 
 part 'classes.g.dart';
 
-class Signal {
-  SignalType type;
-  Map<String, String> data;
-
-  Signal({required this.type, Map<String, String>? data}) : data = data ?? {};
-
-  static Signal? unpack(String source) {
-    try {
-      final map = jsonDecode(source);
-      return Signal(
-        type: SignalType.values[map['Type']],
-        data: Map<String, String>.from(map['Data']),
-      );
-    } catch (e) {
-      debugPrint("[!] Received invalid JSON: $source");
-      return null;
-    }
-  }
-
-  String pack() {
-    return jsonEncode({'Type': type.index, 'Data': data});
-  }
-
-  @override
-  String toString() => "[${type.name} Signal] $data";
-}
-
-enum SignalType { Login, Registration, Logout, Message, Search }
-
 @HiveType(typeId: 0)
 class Message {
   @HiveField(0)
@@ -48,19 +19,22 @@ class Message {
 
   Message({required this.content, required this.sentAt, required this.isOwned});
 
-  static Message? fromSignal(Signal signal) {
-    var messageContent = signal.data["Content"];
-    var messageSentAt = signal.data["SentAt"];
-
-    if (messageContent == null || messageSentAt == null) {
-      return null;
-    }
-
+  factory Message.fromMessageData(Map<String, dynamic> messageData) {
     return Message(
-      content: messageContent,
-      sentAt: DateTime.parse(messageSentAt),
+      content: messageData["Content"],
+      sentAt: messageData["SentAt"],
       isOwned: false,
     );
+  }
+
+  String pack(String recipientUsername) {
+    var data = {
+      "RecipientUsername": recipientUsername,
+      "Content": content,
+      "SentAt": sentAt,
+    };
+
+    return jsonEncode(data);
   }
 
   @override
@@ -129,7 +103,6 @@ class Account {
   }
 
   static Map<String, dynamic> _parseProfile(dynamic data) {
-    
     if (data == null) return {};
 
     if (data is String) {
@@ -150,7 +123,7 @@ class Account {
     return {};
   }
 
-  String getDisplayableUsername() {
+  static String getDisplayableUsername(String username) {
     return username.replaceAll('.', ' ').capitalize();
   }
 
@@ -158,6 +131,6 @@ class Account {
   String toString() {
     String profileString = "";
     profile?.forEach((key, value) => profileString += "\n\t\t$key: $value");
-    return "[Account: $username]\n\tEmail: $emailAddress\n\tProfile: {$profileString}\n";
+    return "[Account: $username]\n\tEmail: $emailAddress\n\tProfile: {$profileString\n}\n";
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/utility/classes.dart';
 
 class Data {
   static final Data _instance = Data._internal();
@@ -10,9 +9,11 @@ class Data {
 
   late final ConnectionController router = ConnectionController();
 
-  // Settings
-  Account? account;
+  // Main
+  String? token;
+  String? username;
 
+  // Settings
   ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(
     Brightness.light,
   );

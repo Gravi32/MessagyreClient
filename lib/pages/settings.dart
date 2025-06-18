@@ -23,8 +23,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   late bool isDarkMode;
 
+  Account? account;
+
   Widget profilePage() {
-    var profile = data.account!.profile!;
+    var profile = account!.profile!;
 
     void pickImage(ImageSource source) async {
       final picker = ImagePicker();
@@ -33,7 +35,6 @@ class _SettingsPageState extends State<SettingsPage> {
       if (pickedFile == null) return;
 
       await router.uploadProfilePicture(pickedFile.path);
-
     }
 
     void changeProfilePicture() {
@@ -54,7 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       tiles: [
                         SettingsTile(
                           title: ProfilePictureDisplay(
-                            data.account!.username,
+                            data.username!,
                             radius: 80,
                           ),
                         ),
@@ -152,9 +153,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       ProfilePictureDisplay(
-                        data
-                            .account!
-                            .username, // TODO: Handle account being null
+                        data.username!, // TODO: Handle account being null
                         radius: 60,
                       ),
                       SizedBox(height: 15),
@@ -162,7 +161,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            data.account!.username.split('.')[0].capitalize(),
+                            data.username!.split('.')[0].capitalize(),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
@@ -172,7 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                       Text(
-                        data.account!.username,
+                        data.username!,
                         style: TextStyle(
                           color: Theme.of(context).dividerColor,
                           fontSize: 15,
@@ -299,6 +298,14 @@ class _SettingsPageState extends State<SettingsPage> {
     isDarkMode = data.appBrightness == Brightness.dark;
 
     super.initState();
+
+    router
+        .getAccount(data.username!)
+        .then(
+          (receivedAccount) => setState(() {
+            account = receivedAccount;
+          }),
+        );
   }
 
   @override
@@ -317,40 +324,43 @@ class _SettingsPageState extends State<SettingsPage> {
         body: SettingsList(
           platform: DevicePlatform.iOS,
           sections: [
-            if (data.account != null)
-              SettingsSection(
-                title: Text("Votre compte"),
-                tiles: <SettingsTile>[
-                  SettingsTile.navigation(
-                    leading: ProfilePictureDisplay(data.account!.username),
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          data.account!.username.split('.')[0].capitalize(),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+            SettingsSection(
+              title: Text("Votre compte"),
+              tiles: <SettingsTile>[
+                account == null
+                    ? SettingsTile(
+                      title: SizedBox(height: 1, child: CupertinoActivityIndicator()),
+                    )
+                    : SettingsTile.navigation(
+                      leading: ProfilePictureDisplay(data.username!),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            data.username!.split('.')[0].capitalize(),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        Text(
-                          data.account!.username,
-                          style: TextStyle(
-                            color: Theme.of(context).dividerColor,
-                            fontSize: 15,
+                          Text(
+                            data.username!,
+                            style: TextStyle(
+                              color: Theme.of(context).dividerColor,
+                              fontSize: 15,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      onPressed:
+                          (context) => Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              builder: (context) => ProfileOverlay(account!),
+                            ),
+                          ),
                     ),
-                    onPressed:
-                        (context) => Navigator.of(context).push(
-                          CupertinoPageRoute(
-                            builder: (context) => ProfileOverlay(data.account!),
-                          ),
-                        ),
-                  ),
-                ],
-              ),
+              ],
+            ),
 
             SettingsSection(
               title: Text("Apparence"),

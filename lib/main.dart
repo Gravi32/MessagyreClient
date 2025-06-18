@@ -8,6 +8,8 @@ import 'package:messagyre_client/pages/settings.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
@@ -16,9 +18,12 @@ void main() async {
   Hive.registerAdapter(ChatAdapter());
 
   await Hive.openBox<Chat>("Chats");
-  await Hive.openBox("AccessInfo");
+  final miscBox = await Hive.openBox("Misc");
 
-  Data().appBrightnessNotifier.value =
+  final data = Data();
+
+  data.username = miscBox.get("Username")?.toString();
+  data.appBrightnessNotifier.value =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
   runApp(App());
@@ -28,15 +33,6 @@ class App extends StatelessWidget {
   App({super.key});
 
   final data = Data();
-
-  static const bool useLocalhost = true;
-  static String localIP = "192.168.1.230:5066";
-
-  static String serverWebSocketAddress =
-      useLocalhost ? "ws://$localIP" : "wss://messagyre.up.railway.app";
-
-  static String serverHTTPAddress =
-      useLocalhost ? "http://$localIP" : "https://messagyre.up.railway.app";
 
   static List<Page> pages = [
     Page(
@@ -65,6 +61,7 @@ class App extends StatelessWidget {
       valueListenable: data.appBrightnessNotifier,
       builder: (context, brightness, _) {
         return CupertinoApp(
+          navigatorKey: navigatorKey,
           theme: CupertinoThemeData(
             brightness: brightness,
             primaryColor: Color.fromRGBO(100, 25, 104, 1),
@@ -101,34 +98,23 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   final _tabController = CupertinoTabController(initialIndex: 1);
 
-  late ConnectionController router;
+  late final router = ConnectionController();
+  late final data = Data();
+
+  void _switchToAccess() {
+    navigatorKey.currentState?.push(
+      CupertinoPageRoute(builder: (_) => AccessOverlay()),
+    );
+  }
 
   @override
   void initState() {
+    router.start();
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
 
-    router = ConnectionController();
-    router.connect(App.serverWebSocketAddress);
-    router.onConnected.listen((_) {
-      var loginInfo = Hive.box("AccessInfo");
-      router.login(
-        loginInfo.get("Username") ?? "",
-        loginInfo.get("Password") ?? "",
-      );
-    });
-
-    router.onSignalReceived.listen((signal) {
-      if (signal.type != SignalType.Login) return;
-
-      if (signal.data["Response"] != "success" && mounted) {
-        Navigator.push(
-          context,
-          CupertinoPageRoute(builder: (context) => AccessOverlay()),
-        );
-      }
-    });
+    ConnectionController().onUnauthorized = _switchToAccess;
   }
 
   @override

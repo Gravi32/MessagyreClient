@@ -65,13 +65,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
       );
     });
 
-    router.send(
-      Signal(
-        type: SignalType.Message,
-        data: {"RecipientUsername": widget.recipientUsername, "Content": input},
-      ).pack(),
-    );
-
+    router.send(widget.recipientUsername, input);
     chats.put(widget.recipientUsername, chatData!);
 
     messageFieldController.clear();
@@ -107,14 +101,12 @@ class _ChatOverlayState extends State<ChatOverlay> {
       }
     });
 
-    router.onSignalReceived.listen((signal) {
-      if (!mounted || signal.type != SignalType.Message) return;
-
-      var receivedMessage = Message.fromSignal(signal);
-      if (receivedMessage == null) return;
+    router.onMessageDataReceived.listen((messageData) {
+      //debugPrint("[chat.dart] message received $messageData");
+      final newMessage = Message.fromMessageData(messageData);
 
       setState(() {
-        chatData?.content.add(receivedMessage);
+        chatData?.content.add(newMessage);
       });
 
       chats.put(widget.recipientUsername, chatData!);
@@ -171,12 +163,16 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     ],
                   ),
                   onTap: () async {
-                    final recipientAccount =
+                    var recipientAccount =
                         widget.recipientUsername == lastAccountCache?.username
                             ? lastAccountCache
                             : await router.getAccount(widget.recipientUsername);
+
                     if (recipientAccount == null || !context.mounted) return;
                     lastAccountCache = recipientAccount;
+                    debugPrint(
+                      "[chat.dart] opening profile overlay for '$recipientAccount'",
+                    );
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
@@ -247,7 +243,13 @@ class _ChatOverlayState extends State<ChatOverlay> {
         decoration: BoxDecoration(
           color: getBubbleColor(data.isOwned),
           borderRadius: getBubbleShape(data.isOwned),
-          boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10,)]
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(30),
+              offset: Offset(3, 5),
+              blurRadius: 10,
+            ),
+          ],
         ),
         child: Wrap(
           alignment: WrapAlignment.end,

@@ -27,7 +27,6 @@ class _ChatsPageState extends State<ChatsPage> {
 
   Widget buildChatBar(Chat data) {
     var hasUnreadMessages = data.unreadMessages > 0;
-
     return Column(
       children: [
         CupertinoButton(
@@ -49,7 +48,7 @@ class _ChatsPageState extends State<ChatsPage> {
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        data.content.last.content,
+                        data.content.last.content.trim(),
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
@@ -127,14 +126,11 @@ class _ChatsPageState extends State<ChatsPage> {
 
     allChats = Hive.box<Chat>("Chats");
 
-    router.onSignalReceived.listen((signal) {
-      if (!mounted || data.isChatOpen || signal.type != SignalType.Message) {
-        return;
-      }
+    router.onMessageDataReceived.listen((messageData) {
+      if (!mounted || data.isChatOpen) return;
 
-      var senderUsername = signal.data["SenderUsername"];
-      var receivedMessage = Message.fromSignal(signal);
-      if (senderUsername == null || receivedMessage == null) return;
+      var senderUsername = messageData["SenderUsername"]!.toString();
+      var receivedMessage = Message.fromMessageData(messageData);
 
       var targetChat = allChats.get(senderUsername);
 
@@ -142,7 +138,6 @@ class _ChatsPageState extends State<ChatsPage> {
         targetChat = Chat(recipientUsername: senderUsername);
         targetChat.content.add(receivedMessage);
         targetChat.unreadMessages = 1;
-        debugPrint("SET UNREADMESSAGES TO 1");
       } else {
         targetChat.content.add(receivedMessage);
         targetChat.unreadMessages += 1;
