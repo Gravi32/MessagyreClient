@@ -66,7 +66,7 @@ class SearchPageState extends State<SearchPage> {
         Account.getDisplayableUsername(username),
         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
       ),
-      leading: ProfilePictureDisplay(username, radius: 50),
+      leading: ProfilePictureDisplay(accountUsername: username, radius: 50),
       leadingSize: 50,
       subtitle: Text("Class", style: TextStyle(fontSize: 14)),
 

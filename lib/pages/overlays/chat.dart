@@ -140,7 +140,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
                   ),
                   onTap: () => Navigator.of(context).pop(),
                 ),
-                ProfilePictureDisplay(widget.recipientUsername),
+                ProfilePictureDisplay(
+                  accountUsername: widget.recipientUsername,
+                ),
                 SizedBox(width: 12),
                 GestureDetector(
                   child: Column(
@@ -170,9 +172,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
                     if (recipientAccount == null || !context.mounted) return;
                     lastAccountCache = recipientAccount;
-                    debugPrint(
-                      "[chat.dart] opening profile overlay for '$recipientAccount'",
-                    );
+
                     Navigator.push(
                       context,
                       CupertinoPageRoute(

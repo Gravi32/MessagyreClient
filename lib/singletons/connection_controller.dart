@@ -208,48 +208,48 @@ class ConnectionController {
 
   // HTTP Requests
 
-  Future<String?> uploadProfilePicture(String filePath) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfilePicture'),
-    );
+  Future<bool> uploadProfile(
+    Map<String, dynamic> profileObject, {
+    String? imagePath,
+  }) async {
+    final uri = Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfile');
+    final request = http.MultipartRequest('POST', uri);
 
-    debugPrint("Sending $filePath");
+    // Adding the data
+    request.headers['Authorization'] = 'Bearer ${data.token}';
+    request.fields['Profile'] = jsonEncode(profileObject);
 
-    request.headers["Authorization"] = "Bearer ${data.token}";
-    request.files.add(await http.MultipartFile.fromPath('Image', filePath));
-
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-
-    debugPrint("${response.statusCode} $responseBody");
-
-    if (response.statusCode != 200) {
-      debugPrint("[PFP Upload Failed] (${response.statusCode}): $responseBody");
-      return null;
+    // Adding the profile picture (if present)
+    if (imagePath != null) {
+      request.files.add(await http.MultipartFile.fromPath('Image', imagePath));
     }
 
-    final responseURL = jsonDecode(responseBody)["ProfilePictureURL"];
-    debugPrint(responseURL);
-    data.pfpNotifiersCache[data.username]?.value = responseURL;
+    // Sending the request
+    try {
+      final response = await request.send().timeout(Duration(seconds: 10));
+      final responseBody = await response.stream.bytesToString();
 
-    return responseURL;
-  }
+      debugPrint("[ProfileUpload] ${response.statusCode} $responseBody");
 
-  Future<bool> uploadProfile(Map<String, dynamic> profileObject) async {
-    final response = await post("/Accounts/Me/UploadProfile", {
-      "Token": data.token ?? "",
-      "Profile": profileObject,
-    });
+      // Checking the result
+      if (response.statusCode != 200) {
+        debugPrint("[ProfileUpload Failed] (${response.statusCode})");
+        return false;
+      }
 
-    if (response.statusCode != 200) {
-      debugPrint(
-        "[Profile Upload Failed] Error ${response.statusCode}: ${response.body}",
-      );
+      // Updating the local cache (if new image)
+      final responseJson = jsonDecode(responseBody);
+      final updatedPfpUrl = responseJson["ProfilePictureURL"];
+
+      if (updatedPfpUrl != null && updatedPfpUrl is String) {
+        data.pfpNotifiersCache[data.username]?.value = updatedPfpUrl;
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint("[ProfileUpload Failed] $e");
       return false;
     }
-
-    return true;
   }
 
   Future<String?> getProfilePicture(String accountUsername) async {

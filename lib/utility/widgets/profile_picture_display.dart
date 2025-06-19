@@ -1,12 +1,20 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/singletons/data.dart';
 
 class ProfilePictureDisplay extends StatefulWidget {
-  final String accountUsername;
+  final String? accountUsername;
   final double? radius;
+  final String? picturePath;
 
-  const ProfilePictureDisplay(this.accountUsername, {super.key, this.radius});
+  const ProfilePictureDisplay({
+    this.accountUsername,
+    this.picturePath,
+    super.key,
+    this.radius,
+  });
 
   @override
   State<StatefulWidget> createState() => _ProfilePictureDisplayState();
@@ -14,46 +22,76 @@ class ProfilePictureDisplay extends StatefulWidget {
 
 class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
   final data = Data();
+  double diameter = 0;
+
+  Widget withoutPicture() {
+    final firstLetter =
+        widget.accountUsername == null || widget.accountUsername!.isNotEmpty
+            ? widget.accountUsername![0]
+            : '?';
+    final color =
+        Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) %
+            Colors.primaries.length];
+
+    return CircleAvatar(
+      radius: widget.radius,
+      backgroundColor: color,
+      child: Text(
+        firstLetter.toUpperCase(),
+        style: TextStyle(fontSize: diameter / 4, color: color.shade900),
+      ),
+    );
+  }
+
+  Widget withLocalPicture() {
+    return CircleAvatar(
+      radius: widget.radius,
+      backgroundColor: Colors.transparent,
+      child: ClipOval(
+        child: Image.file(
+          File(widget.picturePath!),
+          width: diameter,
+          height: diameter,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget withPictureURL() {
+    return ValueListenableBuilder(
+      valueListenable: data.getPfpNotifier(widget.accountUsername!),
+      builder: (context, newImageURL, child) {
+        final noImageFound = newImageURL == null || newImageURL.isEmpty;
+
+        return noImageFound
+            ? withoutPicture()
+            : CircleAvatar(
+              radius: widget.radius,
+              backgroundColor: Colors.transparent,
+              child: ClipOval(
+                child: CachedNetworkImage(
+                  imageUrl: newImageURL,
+                  width: diameter,
+                  height: diameter,
+                  fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                ),
+              ),
+            );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final double diameter = (widget.radius ?? 20) * 2;
+    diameter = (widget.radius ?? 20) * 2;
 
-    return ValueListenableBuilder(
-      valueListenable: data.getPfpNotifier(widget.accountUsername),
-      builder: (context, newImageURL, child) {
-        final useDefaultIcon = newImageURL == null || newImageURL.isEmpty;
-        final firstLetter =
-            widget.accountUsername.isNotEmpty ? widget.accountUsername[0] : '?';
-        final defaultIconColor =
-            Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) %
-                Colors.primaries.length];
-        return Center(
-          child: CircleAvatar(
-            radius: widget.radius,
-            backgroundColor:
-                useDefaultIcon ? defaultIconColor : Colors.transparent,
-            child:
-                useDefaultIcon
-                    ? Text(
-                      firstLetter.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: diameter / 4,
-                        color: defaultIconColor.shade900,
-                      ),
-                    )
-                    : ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: newImageURL,
-                        width: diameter,
-                        height: diameter,
-                        fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => Icon(Icons.error),
-                      ),
-                    ),
-          ),
-        );
-      },
+    return Center(
+      child:
+          widget.picturePath != null
+              ? withLocalPicture()
+              : withPictureURL(),
     );
   }
 }

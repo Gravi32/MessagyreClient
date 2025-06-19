@@ -30,7 +30,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   late final editMode = account.username == data.username;
 
-  late bool changesMade = false;
+  bool changesMade = false;
+  bool isUploading = false;
+  String? chosenPicturePath;
 
   void copy(String content) async {
     await Clipboard.setData(ClipboardData(text: content));
@@ -58,7 +60,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
       if (pickedFile == null) return;
 
-      await router.uploadProfilePicture(pickedFile.path);
+      setState(() {
+        changesMade = true;
+        chosenPicturePath = pickedFile.path;
+      });
     }
 
     showCupertinoModalPopup(
@@ -85,7 +90,12 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 isDestructiveAction: true,
                 onPressed: () {
                   Navigator.of(context).pop();
-                }, // TODO: Delete pfp
+                  setState(() {
+                    chosenPicturePath = null;
+                    changesMade = true;
+                    //TODO: Remove pfp
+                  });
+                },
                 child: Text("Supprimer la photo"),
               ),
             ],
@@ -384,12 +394,20 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
             changesMade
                 ? CupertinoButton(
                   padding: EdgeInsets.zero,
-                  child: Text(
-                    "Appliquer",
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                  child:
+                      isUploading
+                          ? CupertinoActivityIndicator()
+                          : Text(
+                            "Appliquer",
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                   onPressed: () async {
-                    bool success = await router.uploadProfile(profile);
+                    setState(() => isUploading = true);
+                    bool success = await router.uploadProfile(
+                      profile,
+                      imagePath: chosenPicturePath,
+                    );
+                    setState(() => isUploading = false);
 
                     if (context.mounted) {
                       showCupertinoDialog(
@@ -453,7 +471,11 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   ),
                   trailing: Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
-                    child: ProfilePictureDisplay(account.username, radius: 40),
+                    child: ProfilePictureDisplay(
+                      accountUsername: chosenPicturePath != null ? null : account.username,
+                      picturePath: chosenPicturePath,
+                      radius: 40,
+                    ),
                   ),
                   description: Text(
                     "${editMode ? "Vous avez" : "A"} rejoint le ${DateFormat('dd.MM.yyyy').format(account.creationDate!)}",

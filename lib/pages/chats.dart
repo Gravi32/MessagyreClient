@@ -35,7 +35,7 @@ class _ChatsPageState extends State<ChatsPage> {
             height: 55,
             child: Row(
               children: [
-                ProfilePictureDisplay(data.recipientUsername, radius: 24),
+                ProfilePictureDisplay(accountUsername: data.recipientUsername, radius: 24),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(

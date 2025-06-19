@@ -67,23 +67,8 @@ class Account {
   late DateTime? lastLogin;
   late Map<String, dynamic>? profile;
 
-  static Account? fromMap(Map<String, dynamic>? map) {
-    if (map == null) return null;
-
-    try {
-      return Account()
-        ..username = map["Username"] ?? ""
-        ..emailAddress = map["EmailAddress"] ?? ""
-        ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
-        ..lastLogin = DateTime.tryParse(map["LastLogin"] ?? "")
-        ..profile = _parseProfile(map["Profile"]);
-    } catch (e, stack) {
-      debugPrintStack(stackTrace: stack, label: "Account.fromMap error: $e");
-      return null;
-    }
-  }
-
   static Account? fromJson(String? source) {
+
     if (source == null || source.trim().isEmpty) return null;
 
     try {
@@ -102,6 +87,22 @@ class Account {
     }
   }
 
+  static Account? fromMap(Map<String, dynamic>? map) {
+    if (map == null) return null;
+
+    try {
+      return Account()
+        ..username = map["Username"] ?? ""
+        ..emailAddress = map["EmailAddress"] ?? ""
+        ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
+        ..lastLogin = DateTime.tryParse(map["LastLogin"] ?? "")
+        ..profile = _parseProfile(map["Profile"]);
+    } catch (e, stack) {
+      debugPrintStack(stackTrace: stack, label: "Account.fromMap error: $e");
+      return null;
+    }
+  }
+
   static Map<String, dynamic> _parseProfile(dynamic data) {
     if (data == null) return {};
 
@@ -111,7 +112,7 @@ class Account {
         final decoded = jsonDecode(data);
         if (decoded is Map<String, dynamic>) return decoded;
       } catch (e) {
-        debugPrint("Error $e");
+        debugPrint("[classes.dart] Account Parse Error: $e");
         return {};
       }
     }

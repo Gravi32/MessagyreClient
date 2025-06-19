@@ -31,17 +31,19 @@ class _AccessOverlayState extends State<AccessOverlay> {
     final username = usernameController.text;
     final password = passwordController.text;
 
-    if (!username.contains('.')) {
-      usernameError = "Le nom d'utilisateur doit contenir un point '.'";
-      return;
-    }
+    setState(() {
+      if (!username.contains('.')) {
+        usernameError = "Le nom d'utilisateur doit contenir un point '.'";
+        return;
+      }
 
-    if (password.length < 8) {
-      passwordError = "Le mot de passe doit contenir au moins 8 caractères.";
-      return;
-    }
+      if (password.length < 8) {
+        passwordError = "Le mot de passe doit contenir au moins 8 caractères.";
+        return;
+      }
 
-    usernameError = passwordError = null;
+      usernameError = passwordError = null;
+    });
 
     // Sending the request to the server
     debugPrint("[Access] Logging in as $username...");
@@ -81,7 +83,9 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
     // Closing the page
     if (mounted) Navigator.of(context).pop();
-    debugPrint("[Login successful] Token received and stored. (${token.toString().substring(0,10)}...)");
+    debugPrint(
+      "[Login successful] Token received and stored. (${token.toString().substring(0, 10)}...)",
+    );
 
     // Connecting to the WebSocket
     router.connect();
