@@ -86,7 +86,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
     // Closing the page
     if (mounted) Navigator.of(context).pop();
     debugPrint(
-      "[Login successful] Token received and stored. (${token.toString()}...)",
+      "[Login successful] Token received and stored.",
     );
 
     // Connecting to the WebSocket

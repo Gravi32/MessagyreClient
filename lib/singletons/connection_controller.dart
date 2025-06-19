@@ -264,9 +264,11 @@ class ConnectionController {
     );
 
     if (response.statusCode != 200) {
-      debugPrint(
-        "[PFP Get Failed] Error ${response.statusCode} (${response.body})",
-      );
+      if (response.statusCode != 404) {
+        debugPrint(
+          "[PFP Get Failed] Error ${response.statusCode} (${response.body})",
+        );
+      }
       return null;
     }
 
