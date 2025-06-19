@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/pages/overlays/registration.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -79,12 +80,13 @@ class _AccessOverlayState extends State<AccessOverlay> {
     final token = responseData["AccessToken"];
     data.token = token;
     data.username = username;
-    await FlutterSecureStorage().write(key: "accessToken", value: token);
+    await FlutterSecureStorage().write(key: "AccessToken", value: token);
+    await Hive.box("Misc").put("Username", username);
 
     // Closing the page
     if (mounted) Navigator.of(context).pop();
     debugPrint(
-      "[Login successful] Token received and stored. (${token.toString().substring(0, 10)}...)",
+      "[Login successful] Token received and stored. (${token.toString()}...)",
     );
 
     // Connecting to the WebSocket

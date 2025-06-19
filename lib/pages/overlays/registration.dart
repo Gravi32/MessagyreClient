@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
@@ -130,9 +131,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
     } else {
       final token = responseData["AccessToken"];
       data.token = token;
+
+      final username = responseData["Username"];
+      data.username = username;
       isWaitingForResponse = true;
 
-      await FlutterSecureStorage().write(key: "accessToken", value: token);
+      await FlutterSecureStorage().write(key: "AccessToken", value: token);
+      await Hive.box("Misc").put("Username", username);
 
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       isWaitingForResponse = false;

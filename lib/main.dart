@@ -23,6 +23,7 @@ void main() async {
   final data = Data();
 
   data.username = miscBox.get("Username")?.toString();
+  debugPrint("[main.dart] username: ${data.username}");
   data.appBrightnessNotifier.value =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
 

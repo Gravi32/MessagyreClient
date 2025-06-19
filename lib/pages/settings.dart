@@ -24,6 +24,18 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Account? account;
 
+  void getAccount() {
+    if (data.username == null) return;
+
+    router
+        .getAccount(data.username!)
+        .then(
+          (receivedAccount) => setState(() {
+            account = receivedAccount;
+          }),
+        );
+  }
+
   Widget storagePage() {
     void confirmDeleteChats() {
       showCupertinoDialog(
@@ -98,17 +110,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
     super.initState();
 
-    router
-        .getAccount(data.username!)
-        .then(
-          (receivedAccount) => setState(() {
-            account = receivedAccount;
-          }),
-        );
+    getAccount();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (account == null) getAccount();
+
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground,
       child: NestedScrollView(
@@ -128,10 +136,15 @@ class _SettingsPageState extends State<SettingsPage> {
               tiles: <SettingsTile>[
                 account == null
                     ? SettingsTile(
-                      title: SizedBox(height: 1, child: CupertinoActivityIndicator()),
+                      title: SizedBox(
+                        height: 1,
+                        child: CupertinoActivityIndicator(),
+                      ),
                     )
                     : SettingsTile.navigation(
-                      leading: ProfilePictureDisplay(accountUsername: data.username!),
+                      leading: ProfilePictureDisplay(
+                        accountUsername: data.username!,
+                      ),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [

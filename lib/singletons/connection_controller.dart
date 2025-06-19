@@ -47,7 +47,13 @@ class ConnectionController {
 
   Future<void> start() async {
     debugPrint("[Router] Reading AccessToken...");
-    data.token = await secureStorage.read(key: "token");
+    data.token = await secureStorage.read(key: "AccessToken");
+
+    if ((data.token == null || data.username == null) &&
+        onUnauthorized != null) {
+      onUnauthorized!();
+      return;
+    }
 
     debugPrint("[Router] Pinging server...");
     var response = await post("/Auth/Check", {});
