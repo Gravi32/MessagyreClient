@@ -137,7 +137,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 account == null
                     ? SettingsTile(
                       title: SizedBox(
-                        height: 1,
+                        height: 39,
                         child: CupertinoActivityIndicator(),
                       ),
                     )
