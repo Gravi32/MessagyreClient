@@ -35,7 +35,10 @@ class _ChatsPageState extends State<ChatsPage> {
             height: 55,
             child: Row(
               children: [
-                ProfilePictureDisplay(accountUsername: data.recipientUsername, radius: 24),
+                ProfilePictureDisplay(
+                  accountUsername: data.recipientUsername,
+                  radius: 24,
+                ),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -153,17 +156,39 @@ class _ChatsPageState extends State<ChatsPage> {
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            CupertinoSliverNavigationBar(
-              largeTitle: Text("Conversations"),
-              trailing: GestureDetector(
-                child: Icon(CupertinoIcons.add),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(builder: (context) => SearchPage()),
-                  );
-                },
-              ),
+            ValueListenableBuilder(
+              valueListenable: data.isConnecting,
+              builder:
+                  (context, isConnecting, _) => CupertinoSliverNavigationBar(
+                    leading: isConnecting ? Row(
+                      spacing: 8,
+                      children: [
+                        CupertinoActivityIndicator(),
+                        Text(
+                          "Connexion en cours...",
+                          style: TextStyle(
+                            color: adaptiveColor(
+                              context,
+                              CupertinoColors.systemGrey2,
+                              CupertinoColors.systemGrey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ) : null,
+                    largeTitle: Text("Conversations"),
+                    trailing: GestureDetector(
+                      child: Icon(CupertinoIcons.add),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) => SearchPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
             ),
           ];
         },

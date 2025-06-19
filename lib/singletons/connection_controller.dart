@@ -69,12 +69,15 @@ class ConnectionController {
     if (isConnected) return;
 
     try {
+      data.isConnecting.value = true;
+
       final socket = await WebSocket.connect(
         serverWebSocketAddress,
         headers: {'Authorization': 'Bearer ${data.token}'},
       ).timeout(const Duration(seconds: 5));
 
       _channel = IOWebSocketChannel(socket);
+      data.isConnecting.value = false;
 
       debugPrint("[WebSocket] Connected");
 
@@ -91,7 +94,7 @@ class ConnectionController {
               throw FormatException("Missing fields");
             }
 
-            final sentAt = DateTime.parse(rawSentAt);
+            final sentAt = DateTime.parse(rawSentAt).toLocal();
 
             final messageData = {
               "SenderUsername": sender,
@@ -118,6 +121,7 @@ class ConnectionController {
 
       _connectionStatusController.add(null);
     } catch (e) {
+      data.isConnecting.value = false;
       if (e.toString().contains("401") && onUnauthorized != null) {
         onUnauthorized!();
         return;

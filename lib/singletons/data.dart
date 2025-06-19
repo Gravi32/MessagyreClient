@@ -12,6 +12,7 @@ class Data {
   // Main
   String? token;
   String? username;
+  ValueNotifier<bool> isConnecting = ValueNotifier(false);
 
   // Settings
   ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(
