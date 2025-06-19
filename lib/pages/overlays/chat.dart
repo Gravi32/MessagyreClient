@@ -56,7 +56,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
     if (chatData == null) {
       chatData = Chat(recipientUsername: widget.recipientUsername);
-      chats.put(widget.recipientUsername, chatData!);
+      saveChatData();
     }
 
     setState(() {
@@ -66,11 +66,15 @@ class _ChatOverlayState extends State<ChatOverlay> {
     });
 
     router.send(widget.recipientUsername, input);
-    chats.put(widget.recipientUsername, chatData!);
+    saveChatData();
 
     messageFieldController.clear();
     messageFieldFocusNode.requestFocus();
     scrollDown();
+  }
+
+  void saveChatData() {
+    chats.put(widget.recipientUsername, chatData!);
   }
 
   @override
@@ -109,7 +113,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         chatData?.content.add(newMessage);
       });
 
-      chats.put(widget.recipientUsername, chatData!);
+      saveChatData();
       scrollDown();
     });
   }
@@ -347,6 +351,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   @override
   Widget build(BuildContext context) {
     chatData?.unreadMessages = 0;
+    saveChatData();
 
     return CupertinoPageScaffold(
       child: Container(
