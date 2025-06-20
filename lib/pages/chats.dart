@@ -45,10 +45,12 @@ class _ChatsPageState extends State<ChatsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data.recipientUsername
-                            .replaceAll('.', ' ')
-                            .capitalize(),
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        Account.getDisplayableUsername(data.recipientUsername),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)
+                        ),
                       ),
                       Text(
                         data.content.last.content.trim(),
@@ -160,22 +162,25 @@ class _ChatsPageState extends State<ChatsPage> {
               valueListenable: data.isConnecting,
               builder:
                   (context, isConnecting, _) => CupertinoSliverNavigationBar(
-                    leading: isConnecting ? Row(
-                      spacing: 8,
-                      children: [
-                        CupertinoActivityIndicator(),
-                        Text(
-                          "Connexion en cours...",
-                          style: TextStyle(
-                            color: adaptiveColor(
-                              context,
-                              CupertinoColors.systemGrey2,
-                              CupertinoColors.systemGrey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ) : null,
+                    leading:
+                        isConnecting
+                            ? Row(
+                              spacing: 8,
+                              children: [
+                                CupertinoActivityIndicator(),
+                                Text(
+                                  "Connexion en cours...",
+                                  style: TextStyle(
+                                    color: adaptiveColor(
+                                      context,
+                                      CupertinoColors.systemGrey2,
+                                      CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                            : null,
                     largeTitle: Text("Conversations"),
                     trailing: GestureDetector(
                       child: Icon(CupertinoIcons.add),

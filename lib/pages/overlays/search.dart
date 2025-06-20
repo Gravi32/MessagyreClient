@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
@@ -15,39 +16,72 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   final router = ConnectionController();
+  final data = Data();
   final searchBarController = TextEditingController();
 
+  bool isSearcing = false;
   String? usernameBeingLoaded;
   int searchCounter = 0;
   int latestSearch = 0;
+
+  double backgroundFigureAnimation = 0;
 
   Map<String, String?> searchResults = {};
 
   void search(String query) async {
     final int thisSearch = ++searchCounter;
 
+    setState(() {
+      isSearcing = true;
+    });
+
     final response = await router.get("/Accounts/Search?Query=$query");
 
-    // Se questa ricerca non è più l’ultima → ignora
     if (thisSearch < latestSearch) return;
+    setState(() {
+      isSearcing = false;
+    });
 
     latestSearch = thisSearch;
 
-    if (response.body.isEmpty) return;
-
     Map<String, String?> rawResults;
-    try {
-      rawResults = Map<String, String?>.from(jsonDecode(response.body));
-    } catch (e) {
-      debugPrint("[Search Failed] Received invalid results: $e");
-      return;
-    }
 
-    if (rawResults.isEmpty) return;
+    if (response.body.isEmpty) {
+      rawResults = {};
+    } else {
+      try {
+        rawResults = Map<String, String?>.from(jsonDecode(response.body));
+      } catch (e) {
+        debugPrint("[Search Failed] Received invalid results: $e");
+        return;
+      }
+    }
 
     setState(() {
       searchResults = rawResults;
     });
+  }
+
+  List<TextSpan> highlightSearchMatch(String fullText, String query) {
+    if (query.isEmpty) {
+      return [TextSpan(text: fullText)];
+    }
+
+    final startIndex = fullText.toLowerCase().indexOf(query.toLowerCase());
+    if (startIndex == -1) {
+      return [TextSpan(text: fullText)];
+    }
+
+    final endIndex = startIndex + query.length;
+
+    return [
+      TextSpan(text: fullText.substring(0, startIndex)),
+      TextSpan(
+        text: fullText.substring(startIndex, endIndex),
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      TextSpan(text: fullText.substring(endIndex)),
+    ];
   }
 
   Widget buildSearchBar() {
@@ -62,14 +96,37 @@ class SearchPageState extends State<SearchPage> {
   Widget buildResult(String username, String? profilePictureURL) {
     return CupertinoListTile(
       padding: EdgeInsets.symmetric(vertical: 12),
-      title: Text(
-        Account.getDisplayableUsername(username),
-        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+      title: Row(
+        children: [
+          Baseline(
+            baseline: 18,
+            baselineType: TextBaseline.alphabetic,
+            child: Text.rich(
+              TextSpan(
+                children: highlightSearchMatch(
+                  Account.getDisplayableUsername(username),
+                  searchBarController.text,
+                ),
+                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          Baseline(
+            baseline: 18,
+            baselineType: TextBaseline.alphabetic,
+            child: Text(
+              "2M01",
+              style: TextStyle(
+                color: CupertinoColors.systemGrey2,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
       ),
       leading: ProfilePictureDisplay(accountUsername: username, radius: 50),
       leadingSize: 50,
-      subtitle: Text("Class", style: TextStyle(fontSize: 14)),
-
       additionalInfo: Icon(
         CupertinoIcons.chevron_forward,
         color: CupertinoColors.systemGrey,
@@ -92,6 +149,143 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
+  Widget buildDecoration() {
+    Decoration? getDecoration() {
+      return data.appBrightness == Brightness.dark
+          ? BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: CupertinoColors.black.withAlpha(75),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          )
+          : null;
+    }
+
+    return searchResults.isNotEmpty
+        ? ListView.builder(
+          itemCount: searchResults.length,
+          itemBuilder: (context, index) {
+            if (searchResults.entries.elementAtOrNull(index) == null) {
+              return null;
+            }
+            return buildResult(
+              searchResults.keys.elementAt(index),
+              searchResults.values.elementAt(index),
+            );
+          },
+        )
+        : Center(
+          child:
+              searchBarController.text.length < 2
+                  ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0.0, end: 0.6),
+                        curve: Curves.easeOutCubic,
+                        duration: Duration(seconds: 2),
+                        builder: (context, radius, child) {
+                          return ShaderMask(
+                            shaderCallback: (bounds) {
+                              return RadialGradient(
+                                center: Alignment.center,
+                                radius: radius,
+                                colors: [
+                                  CupertinoColors.white.withAlpha(200),
+                                  CupertinoColors.transparent,
+                                ],
+                                stops: [0.7, 1.0],
+                              ).createShader(bounds);
+                            },
+                            blendMode: BlendMode.dstIn,
+                            child: Container(
+                              width: 300,
+                              height: 300,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage(
+                                    "assets/BackgroundTile.png",
+                                  ),
+                                  repeat: ImageRepeat.repeat,
+                                  scale: 3,
+                                  opacity: 0.15,
+                                  colorFilter:
+                                      data.appBrightness == Brightness.dark
+                                          ? null
+                                          : ColorFilter.mode(
+                                            CupertinoColors.black.withAlpha(
+                                              100,
+                                            ),
+                                            BlendMode.srcIn,
+                                          ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            decoration: getDecoration(),
+                            child: Text(
+                              "Récherchez vos amis !",
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+
+                          SizedBox(height: 15),
+                          Container(
+                            width: 200,
+                            decoration: getDecoration(),
+                            child: Image.asset("assets/MessagyreGuy.png"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                  : isSearcing
+                  ? CupertinoActivityIndicator()
+                  : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.person_crop_circle_badge_xmark,
+                        color: CupertinoColors.systemGrey,
+                        size: 40,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "Aucun utilisateur trouvé.",
+                        style: TextStyle(color: CupertinoColors.systemGrey),
+                      ),
+                    ],
+                  ),
+        );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          backgroundFigureAnimation = 1;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -109,18 +303,13 @@ class SearchPageState extends State<SearchPage> {
             SizedBox(height: 8),
             buildSearchBar(),
             SizedBox(height: 8),
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: searchResults.length,
-              itemBuilder: (context, index) {
-                if (searchResults.entries.elementAtOrNull(index) == null) {
-                  return null;
-                }
-                return buildResult(
-                  searchResults.keys.elementAt(index),
-                  searchResults.values.elementAt(index),
-                );
-              },
+            Expanded(
+              child: AnimatedOpacity(
+                opacity: backgroundFigureAnimation,
+                duration: Duration(milliseconds: 200),
+                curve: Curves.easeOutSine,
+                child: buildDecoration(),
+              ),
             ),
           ],
         ),
