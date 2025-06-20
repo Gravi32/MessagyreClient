@@ -356,38 +356,45 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: GestureDetector(
-          child: Icon(CupertinoIcons.back),
-          onTap: () {
-            if (changesMade) {
-              showCupertinoDialog(
-                context: context,
-                builder:
-                    (dialogContext) => CupertinoAlertDialog(
-                      title: Text("Annuler les changements ?"),
-                      content: Text(
-                        "Tout changement sera annulé. Cette action est irréversible !",
-                      ),
-                      actions: [
-                        CupertinoDialogAction(
-                          isDefaultAction: true,
-                          onPressed: () => Navigator.of(dialogContext).pop(),
-                          child: Text("Non"),
-                        ),
-                        CupertinoDialogAction(
-                          isDestructiveAction: true,
-                          onPressed: () {
-                            Navigator.of(dialogContext).pop();
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("Oui"),
-                        ),
-                      ],
-                    ),
-              );
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+          onTap:
+              isUploading
+                  ? null
+                  : () {
+                    if (changesMade) {
+                      showCupertinoDialog(
+                        context: context,
+                        builder:
+                            (dialogContext) => CupertinoAlertDialog(
+                              title: Text("Annuler les changements ?"),
+                              content: Text(
+                                "Tout changement sera annulé. Cette action est irréversible !",
+                              ),
+                              actions: [
+                                CupertinoDialogAction(
+                                  isDefaultAction: true,
+                                  onPressed:
+                                      () => Navigator.of(dialogContext).pop(),
+                                  child: Text("Non"),
+                                ),
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("Oui"),
+                                ),
+                              ],
+                            ),
+                      );
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+          child: Icon(
+            CupertinoIcons.back,
+            color: isUploading ? CupertinoColors.inactiveGray : null,
+          ),
         ),
         middle: Text(editMode ? "Mon profil" : account.username),
         trailing:
@@ -458,13 +465,14 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             account.username.replaceAll(".", " ").capitalize(),
                             style: TextStyle(fontSize: 20),
                           ),
-                          Text(
-                            profile["Class"] ?? "2M01",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: CupertinoColors.inactiveGray,
+                          if (account.classOrRole != null)
+                            Text(
+                              account.classOrRole!,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: CupertinoColors.inactiveGray,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ],
@@ -472,7 +480,8 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   trailing: Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
                     child: ProfilePictureDisplay(
-                      accountUsername: chosenPicturePath != null ? null : account.username,
+                      accountUsername:
+                          chosenPicturePath != null ? null : account.username,
                       picturePath: chosenPicturePath,
                       radius: 40,
                     ),

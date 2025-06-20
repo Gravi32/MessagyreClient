@@ -63,9 +63,14 @@ class Chat {
 class Account {
   late String username;
   late String emailAddress;
+  late String? classOrRole;
   late DateTime? creationDate;
   late DateTime? lastLogin;
   late Map<String, dynamic>? profile;
+
+  void format() {
+    
+  }
 
   static Account? fromJson(String? source) {
 
@@ -92,8 +97,9 @@ class Account {
 
     try {
       return Account()
-        ..username = map["Username"] ?? ""
-        ..emailAddress = map["EmailAddress"] ?? ""
+        ..username = map["Username"] ?? "unknown"
+        ..emailAddress = map["EmailAddress"] ?? "unknown"
+        ..classOrRole = map["ClassOrRole"]
         ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
         ..lastLogin = DateTime.tryParse(map["LastLogin"] ?? "")
         ..profile = _parseProfile(map["Profile"]);

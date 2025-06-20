@@ -49,7 +49,11 @@ class _ChatsPageState extends State<ChatsPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 16,
-                          color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)
+                          color: adaptiveColor(
+                            context,
+                            CupertinoColors.black,
+                            CupertinoColors.white,
+                          ),
                         ),
                       ),
                       Text(
@@ -58,7 +62,10 @@ class _ChatsPageState extends State<ChatsPage> {
                         overflow: TextOverflow.fade,
                         softWrap: true,
                         style: TextStyle(
-                          fontWeight: FontWeight.w400,
+                          fontWeight:
+                              hasUnreadMessages
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                           color: Theme.of(context).dividerColor,
                           fontSize: 15,
                         ),

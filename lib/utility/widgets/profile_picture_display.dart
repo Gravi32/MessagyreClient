@@ -8,10 +8,12 @@ class ProfilePictureDisplay extends StatefulWidget {
   final String? accountUsername;
   final double? radius;
   final String? picturePath;
+  final String? pictureURL;
 
   const ProfilePictureDisplay({
     this.accountUsername,
     this.picturePath,
+    this.pictureURL,
     super.key,
     this.radius,
   });
@@ -59,6 +61,26 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
   }
 
   Widget withPictureURL() {
+    final noImageFound = widget.pictureURL == null;
+
+    return noImageFound
+        ? withoutPicture()
+        : CircleAvatar(
+          radius: widget.radius,
+          backgroundColor: Colors.transparent,
+          child: ClipOval(
+            child: CachedNetworkImage(
+              imageUrl: widget.pictureURL!,
+              width: diameter,
+              height: diameter,
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) => Icon(Icons.error),
+            ),
+          ),
+        );
+  }
+
+  Widget withUsername() {
     return ValueListenableBuilder(
       valueListenable: data.getPfpNotifier(widget.accountUsername!),
       builder: (context, newImageURL, child) {
@@ -87,11 +109,18 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
   Widget build(BuildContext context) {
     diameter = (widget.radius ?? 20) * 2;
 
-    return Center(
-      child:
-          widget.picturePath != null
-              ? withLocalPicture()
-              : withPictureURL(),
-    );
+    Widget adequateChild = SizedBox.shrink();
+
+    if (widget.picturePath != null) {
+      adequateChild = withLocalPicture();
+    } else if (widget.pictureURL != null) {
+      adequateChild = withPictureURL();
+    } else if (widget.accountUsername != null) {
+      adequateChild = withUsername();
+    } else {
+      adequateChild = withoutPicture();
+    }
+
+    return Center(child: adequateChild);
   }
 }

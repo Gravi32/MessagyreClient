@@ -7,6 +7,26 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
+class SearchResult {
+  final String username;
+  final String? classOrRole;
+  final String? profilePictureURL;
+
+  SearchResult({
+    required this.username,
+    this.classOrRole,
+    this.profilePictureURL,
+  });
+
+  factory SearchResult.fromJson(Map<String, dynamic> json) {
+    return SearchResult(
+      username: json["Username"],
+      classOrRole: json["ClassOrRole"],
+      profilePictureURL: json["ProfilePictureURL"],
+    );
+  }
+}
+
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
@@ -26,7 +46,7 @@ class SearchPageState extends State<SearchPage> {
 
   double backgroundFigureAnimation = 0;
 
-  Map<String, String?> searchResults = {};
+  List<SearchResult> searchResults = [];
 
   void search(String query) async {
     final int thisSearch = ++searchCounter;
@@ -44,21 +64,25 @@ class SearchPageState extends State<SearchPage> {
 
     latestSearch = thisSearch;
 
-    Map<String, String?> rawResults;
+    List<SearchResult> results;
 
     if (response.body.isEmpty) {
-      rawResults = {};
+      results = [];
     } else {
       try {
-        rawResults = Map<String, String?>.from(jsonDecode(response.body));
+        final list = jsonDecode(response.body) as List;
+        results =
+            list
+                .map((jsonResult) => SearchResult.fromJson(jsonResult))
+                .toList();
       } catch (e) {
-        debugPrint("[Search Failed] Received invalid results: $e");
+        debugPrint("[Search Failed] Invalid JSON: $e");
         return;
       }
     }
 
     setState(() {
-      searchResults = rawResults;
+      searchResults = results;
     });
   }
 
@@ -85,17 +109,20 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget buildSearchBar() {
-    return CupertinoSearchTextField(
-      placeholder: "Réchercher un.e gymnasien.ne",
-      padding: EdgeInsets.symmetric(vertical: 4),
-      controller: searchBarController,
-      onChanged: search,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: CupertinoSearchTextField(
+        placeholder: "Réchercher un.e gymnasien.ne",
+        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+        controller: searchBarController,
+        onChanged: search,
+      ),
     );
   }
 
-  Widget buildResult(String username, String? profilePictureURL) {
+  Widget buildResult(SearchResult result) {
     return CupertinoListTile(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
       title: Row(
         children: [
           Baseline(
@@ -104,7 +131,7 @@ class SearchPageState extends State<SearchPage> {
             child: Text.rich(
               TextSpan(
                 children: highlightSearchMatch(
-                  Account.getDisplayableUsername(username),
+                  Account.getDisplayableUsername(result.username),
                   searchBarController.text,
                 ),
                 style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
@@ -116,7 +143,7 @@ class SearchPageState extends State<SearchPage> {
             baseline: 18,
             baselineType: TextBaseline.alphabetic,
             child: Text(
-              "2M01",
+              result.classOrRole ?? "",
               style: TextStyle(
                 color: CupertinoColors.systemGrey2,
                 fontSize: 16,
@@ -125,16 +152,20 @@ class SearchPageState extends State<SearchPage> {
           ),
         ],
       ),
-      leading: ProfilePictureDisplay(accountUsername: username, radius: 50),
+      leading: ProfilePictureDisplay(
+        accountUsername: result.username,
+        pictureURL: result.profilePictureURL,
+        radius: 40,
+      ),
       leadingSize: 50,
       additionalInfo: Icon(
         CupertinoIcons.chevron_forward,
         color: CupertinoColors.systemGrey,
       ),
       onTap: () async {
-        usernameBeingLoaded = username;
+        usernameBeingLoaded = result.username;
 
-        final account = await router.getAccount(username);
+        final account = await router.getAccount(result.username);
 
         usernameBeingLoaded = null;
 
@@ -145,7 +176,9 @@ class SearchPageState extends State<SearchPage> {
         }
       },
       trailing:
-          usernameBeingLoaded == username ? CupertinoActivityIndicator() : null,
+          usernameBeingLoaded == result.username
+              ? CupertinoActivityIndicator()
+              : null,
     );
   }
 
@@ -164,113 +197,94 @@ class SearchPageState extends State<SearchPage> {
           : null;
     }
 
-    return searchResults.isNotEmpty
-        ? ListView.builder(
-          itemCount: searchResults.length,
-          itemBuilder: (context, index) {
-            if (searchResults.entries.elementAtOrNull(index) == null) {
-              return null;
-            }
-            return buildResult(
-              searchResults.keys.elementAt(index),
-              searchResults.values.elementAt(index),
-            );
-          },
-        )
-        : Center(
-          child:
-              searchBarController.text.length < 2
-                  ? Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0.0, end: 0.6),
-                        curve: Curves.easeOutCubic,
-                        duration: Duration(seconds: 2),
-                        builder: (context, radius, child) {
-                          return ShaderMask(
-                            shaderCallback: (bounds) {
-                              return RadialGradient(
-                                center: Alignment.center,
-                                radius: radius,
-                                colors: [
-                                  CupertinoColors.white.withAlpha(200),
-                                  CupertinoColors.transparent,
-                                ],
-                                stops: [0.7, 1.0],
-                              ).createShader(bounds);
-                            },
-                            blendMode: BlendMode.dstIn,
-                            child: Container(
-                              width: 300,
-                              height: 300,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(
-                                    "assets/BackgroundTile.png",
-                                  ),
-                                  repeat: ImageRepeat.repeat,
-                                  scale: 3,
-                                  opacity: 0.15,
-                                  colorFilter:
-                                      data.appBrightness == Brightness.dark
-                                          ? null
-                                          : ColorFilter.mode(
-                                            CupertinoColors.black.withAlpha(
-                                              100,
-                                            ),
-                                            BlendMode.srcIn,
-                                          ),
-                                ),
-                              ),
-                            ),
-                          );
+    return Center(
+      child:
+          searchBarController.text.length < 2
+              ? Stack(
+                alignment: Alignment.center,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0.0, end: 0.6),
+                    curve: Curves.easeOutCubic,
+                    duration: Duration(seconds: 2),
+                    builder: (context, radius, child) {
+                      return ShaderMask(
+                        shaderCallback: (bounds) {
+                          return RadialGradient(
+                            center: Alignment.center,
+                            radius: radius,
+                            colors: [
+                              CupertinoColors.white.withAlpha(200),
+                              CupertinoColors.transparent,
+                            ],
+                            stops: [0.7, 1.0],
+                          ).createShader(bounds);
                         },
-                      ),
-
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            decoration: getDecoration(),
-                            child: Text(
-                              "Récherchez vos amis !",
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                              ),
-                              textAlign: TextAlign.center,
+                        blendMode: BlendMode.dstIn,
+                        child: Container(
+                          width: 300,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage("assets/BackgroundTile.png"),
+                              repeat: ImageRepeat.repeat,
+                              scale: 3,
+                              opacity: 0.15,
+                              colorFilter:
+                                  data.appBrightness == Brightness.dark
+                                      ? null
+                                      : ColorFilter.mode(
+                                        CupertinoColors.black.withAlpha(100),
+                                        BlendMode.srcIn,
+                                      ),
                             ),
                           ),
-
-                          SizedBox(height: 15),
-                          Container(
-                            width: 200,
-                            decoration: getDecoration(),
-                            child: Image.asset("assets/MessagyreGuy.png"),
-                          ),
-                        ],
-                      ),
-                    ],
-                  )
-                  : isSearcing
-                  ? CupertinoActivityIndicator()
-                  : Column(
+                        ),
+                      );
+                    },
+                  ),
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        CupertinoIcons.person_crop_circle_badge_xmark,
-                        color: CupertinoColors.systemGrey,
-                        size: 40,
+                      Container(
+                        decoration: getDecoration(),
+                        child: Text(
+                          "Récherchez vos amis !",
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        "Aucun utilisateur trouvé.",
-                        style: TextStyle(color: CupertinoColors.systemGrey),
+                      SizedBox(height: 15),
+                      Container(
+                        width: 200,
+                        decoration: getDecoration(),
+                        child: Image.asset("assets/MessagyreGuy.png"),
                       ),
                     ],
                   ),
-        );
+                ],
+              )
+              : isSearcing
+              ? CupertinoActivityIndicator()
+              : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.person_crop_circle_badge_xmark,
+                    color: CupertinoColors.systemGrey,
+                    size: 40,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Aucun utilisateur trouvé.",
+                    style: TextStyle(color: CupertinoColors.systemGrey),
+                  ),
+                ],
+              ),
+    );
   }
 
   @override
@@ -296,7 +310,6 @@ class SearchPageState extends State<SearchPage> {
         ),
       ),
       child: SafeArea(
-        minimum: EdgeInsets.symmetric(horizontal: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -308,7 +321,15 @@ class SearchPageState extends State<SearchPage> {
                 opacity: backgroundFigureAnimation,
                 duration: Duration(milliseconds: 200),
                 curve: Curves.easeOutSine,
-                child: buildDecoration(),
+                child:
+                    searchResults.isNotEmpty
+                        ? ListView.builder(
+                          itemCount: searchResults.length,
+                          itemBuilder:
+                              (context, index) =>
+                                  buildResult(searchResults[index]),
+                        )
+                        : buildDecoration(),
               ),
             ),
           ],
