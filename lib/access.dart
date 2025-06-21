@@ -19,6 +19,7 @@ class AccessOverlay extends StatefulWidget {
 class _AccessOverlayState extends State<AccessOverlay> {
   final router = ConnectionController();
   final data = Data();
+  final secureStorage = FlutterSecureStorage();
 
   bool isPasswordHidden = true;
   ValueNotifier<bool> isWaitingForResponse = ValueNotifier(false);
@@ -77,12 +78,14 @@ class _AccessOverlayState extends State<AccessOverlay> {
     }
 
     // Saving the received AccessToken
+    print(response.body);
     final accessToken = responseData["AccessToken"];
-    final refreshToken = responseData["AccessToken"];
+    final refreshToken = responseData["RefreshToken"];
     data.token = accessToken;
     data.username = username;
-    await FlutterSecureStorage().write(key: "AccessToken", value: accessToken);
-    await FlutterSecureStorage().write(key: "RefreshToken", value: refreshToken);
+    print(refreshToken);
+    await secureStorage.write(key: "AccessToken", value: accessToken);
+    await secureStorage.write(key: "RefreshToken", value: refreshToken);
     await Hive.box("Misc").put("Username", username);
 
     // Closing the page

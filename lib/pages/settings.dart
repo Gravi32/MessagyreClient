@@ -20,8 +20,10 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final data = Data();
   final router = ConnectionController();
+  final secureStorage = FlutterSecureStorage();
 
   late bool isDarkMode;
+  bool isRefreshTokenStored = false;
 
   Account? account;
 
@@ -35,6 +37,40 @@ class _SettingsPageState extends State<SettingsPage> {
             account = receivedAccount;
           }),
         );
+  }
+
+  void showLogoutDialog(BuildContext context, VoidCallback onLogoutConfirmed) {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (context) => CupertinoAlertDialog(
+            title: Text("Déconnexion"),
+            content: Text(
+              "Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion.",
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: Text("Non"),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onLogoutConfirmed();
+                },
+                child: Text("Oui"),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Future<void> checkRefreshToken() async {
+    final token = await secureStorage.read(key: "RefreshToken");
+    setState(() {
+      isRefreshTokenStored = token != null;
+    });
   }
 
   Widget storagePage() {
@@ -106,12 +142,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget debugPage() {
-    bool isRefreshTokenStored = false;
-
-    FlutterSecureStorage()
-        .read(key: "RefreshToken")
-        .then((value) => isRefreshTokenStored = value != null);
-
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         previousPageTitle: "Réglages",
@@ -139,12 +169,16 @@ class _SettingsPageState extends State<SettingsPage> {
               tiles: [
                 SettingsTile(
                   title: Text("Mode de test local"),
-                  value: Text(ConnectionController.useLocalhost ? "Oui" : "Non"),
+                  value: Text(
+                    ConnectionController.useLocalhost ? "Oui" : "Non",
+                  ),
                 ),
 
                 SettingsTile(
                   title: Text("Adresse du serveur"),
-                  value: Text(ConnectionController.serverHTTPAddress.substring(7)),
+                  value: Text(
+                    ConnectionController.serverHTTPAddress.substring(7),
+                  ),
                 ),
 
                 SettingsTile(
@@ -193,11 +227,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
-    isDarkMode = data.appBrightness == Brightness.dark;
-
     super.initState();
-
+    isDarkMode = data.appBrightness == Brightness.dark;
     getAccount();
+    checkRefreshToken();
   }
 
   @override
@@ -220,8 +253,8 @@ class _SettingsPageState extends State<SettingsPage> {
           sections: [
             SettingsSection(
               title: Text("Votre compte"),
-              tiles: <SettingsTile>[
-                account == null
+              tiles: [
+                (account == null || data.username == null)
                     ? SettingsTile(
                       title: SizedBox(
                         height: 39,
@@ -258,6 +291,23 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                     ),
+
+                SettingsTile.navigation(
+                  onPressed:
+                      (context) => showLogoutDialog(context, () async {
+                        data.username = null;
+                        data.token = null;
+                        await secureStorage.delete(key: "AccessToken");
+                        await secureStorage.delete(key: "RefreshToken");
+                        await Hive.box("Misc").delete("Username");
+
+                        if (router.onUnauthorized != null) {
+                          router.onUnauthorized!();
+                        }
+                      }),
+                  leading: Icon(CupertinoIcons.square_arrow_left),
+                  title: Text("Se déconnecter"),
+                ),
               ],
             ),
 
