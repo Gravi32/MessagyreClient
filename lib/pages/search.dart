@@ -123,33 +123,31 @@ class SearchPageState extends State<SearchPage> {
   Widget buildResult(SearchResult result) {
     return CupertinoListTile(
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-      title: Row(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Baseline(
-            baseline: 18,
-            baselineType: TextBaseline.alphabetic,
-            child: Text.rich(
-              TextSpan(
-                children: highlightSearchMatch(
-                  Account.getDisplayableUsername(result.username),
-                  searchBarController.text,
-                ),
-                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
+          Text.rich(
+            TextSpan(
+              children: highlightSearchMatch(
+                Account.getDisplayableUsername(result.username),
+                searchBarController.text,
               ),
+              style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
             ),
           ),
-          SizedBox(width: 8),
-          Baseline(
-            baseline: 18,
-            baselineType: TextBaseline.alphabetic,
-            child: Text(
+
+          if (result.classOrRole != null) ...[
+            SizedBox(width: 2),
+
+            Text(
               result.classOrRole ?? "",
               style: TextStyle(
                 color: CupertinoColors.systemGrey2,
-                fontSize: 16,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
               ),
             ),
-          ),
+          ],
         ],
       ),
       leading: ProfilePictureDisplay(
