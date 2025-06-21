@@ -77,10 +77,12 @@ class _AccessOverlayState extends State<AccessOverlay> {
     }
 
     // Saving the received AccessToken
-    final token = responseData["AccessToken"];
-    data.token = token;
+    final accessToken = responseData["AccessToken"];
+    final refreshToken = responseData["AccessToken"];
+    data.token = accessToken;
     data.username = username;
-    await FlutterSecureStorage().write(key: "AccessToken", value: token);
+    await FlutterSecureStorage().write(key: "AccessToken", value: accessToken);
+    await FlutterSecureStorage().write(key: "RefreshToken", value: refreshToken);
     await Hive.box("Misc").put("Username", username);
 
     // Closing the page

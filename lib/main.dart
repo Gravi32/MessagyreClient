@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/access.dart';
+import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
@@ -41,11 +42,23 @@ class App extends StatelessWidget {
       selectedIcon: CupertinoIcons.table_fill,
       build: () => GradesPage(),
     ),
+     Page(
+      name: "Dévoirs",
+      idleIcon: CupertinoIcons.checkmark_square,
+      selectedIcon: CupertinoIcons.checkmark_square_fill,
+      build: () => ChatsPage(),
+    ),
     Page(
       name: "Conversations",
       idleIcon: CupertinoIcons.chat_bubble_2,
       selectedIcon: CupertinoIcons.chat_bubble_2_fill,
       build: () => ChatsPage(),
+    ),
+    Page(
+      name: "Récherche",
+      idleIcon: CupertinoIcons.person_2,
+      selectedIcon: CupertinoIcons.person_2_fill,
+      build: () => SearchPage(),
     ),
     Page(
       name: "Réglages",
@@ -96,7 +109,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
-  final _tabController = CupertinoTabController(initialIndex: 1);
+  final _tabController = CupertinoTabController(initialIndex: 2);
 
   late final router = ConnectionController();
   late final data = Data();
