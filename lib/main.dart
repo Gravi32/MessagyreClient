@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/access.dart';
+import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/pages/chats.dart';
@@ -46,7 +47,7 @@ class App extends StatelessWidget {
       name: "Dévoirs",
       idleIcon: CupertinoIcons.checkmark_square,
       selectedIcon: CupertinoIcons.checkmark_square_fill,
-      build: () => ChatsPage(),
+      build: () => HomeworkPage(),
     ),
     Page(
       name: "Conversations",
