@@ -46,7 +46,6 @@ class ConnectionController {
   bool get isConnected => _channel != null;
 
   Future<void> start() async {
-    debugPrint("[Router] Reading AccessToken...");
     data.token = await secureStorage.read(key: "AccessToken");
 
     if ((data.token == null || data.username == null) &&
@@ -55,12 +54,24 @@ class ConnectionController {
       return;
     }
 
-    debugPrint("[Router] Pinging server...");
-    var response = await post("/Auth/Check", {});
+    connect();
+  }
 
-    debugPrint("[Router] Server response code: ${response.statusCode}");
+  Future<bool> refreshAccessToken() async {
+    final refreshToken = await secureStorage.read(key: "RefreshToken");
+    if (refreshToken == null) return false;
 
-    if (response.statusCode == 200) connect();
+    final response = await post("/Auth/Refresh", {
+      "RefreshToken": refreshToken,
+    }, handleAuthorization: false);
+
+    if (response.statusCode != 200) return false;
+
+    final results = jsonDecode(response.body);
+    data.token = results["AccessToken"];
+    await secureStorage.write(key: "AccessToken", value: data.token);
+    await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+    return true;
   }
 
   // WebSocket Requests
@@ -69,6 +80,7 @@ class ConnectionController {
     if (isConnected) return;
 
     try {
+      data.isConnected.value = false;
       data.isConnecting.value = true;
 
       final socket = await WebSocket.connect(
@@ -77,7 +89,9 @@ class ConnectionController {
       ).timeout(const Duration(seconds: 5));
 
       _channel = IOWebSocketChannel(socket);
+
       data.isConnecting.value = false;
+      data.isConnected.value = true;
 
       debugPrint("[WebSocket] Connected");
 
@@ -109,11 +123,13 @@ class ConnectionController {
         },
         onDone: () {
           debugPrint("[WebSocket] Connection closed by server");
+          data.isConnected.value = false;
           _channel = null;
           connect();
         },
         onError: (error) {
           debugPrint("[WebSocket] Error: $error");
+          data.isConnected.value = false;
           _channel = null;
           connect();
         },
@@ -122,6 +138,7 @@ class ConnectionController {
       _connectionStatusController.add(null);
     } catch (e) {
       data.isConnecting.value = false;
+      data.isConnected.value = false;
       if (e.toString().contains("401") && onUnauthorized != null) {
         onUnauthorized!();
         return;
@@ -153,8 +170,8 @@ class ConnectionController {
     String route,
     Object body, {
     int timeout = 30,
-    bool sendToken = true,
-    bool handleUnauthorized = true,
+    bool handleAuthorization = true,
+    bool hasRetried = false,
   }) async {
     try {
       final response = await http
@@ -162,17 +179,25 @@ class ConnectionController {
             Uri.parse(serverHTTPAddress + route),
             headers: {
               "Content-Type": "application/json",
-              if (sendToken && data.token != null)
+              if (handleAuthorization && data.token != null)
                 "Authorization": "Bearer ${data.token!}",
             },
             body: jsonEncode(body),
           )
           .timeout(Duration(seconds: timeout));
 
-      if (handleUnauthorized &&
-          response.statusCode == 401 &&
-          onUnauthorized != null) {
-        onUnauthorized!();
+      if (response.statusCode == 401 && handleAuthorization && !hasRetried) {
+        if (await refreshAccessToken()) {
+          return await post(
+            route,
+            body,
+            timeout: timeout,
+            handleAuthorization: handleAuthorization,
+            hasRetried: true,
+          );
+        } else if (onUnauthorized != null) {
+          onUnauthorized!();
+        }
       }
 
       return response;
@@ -189,6 +214,8 @@ class ConnectionController {
     String route, {
     bool sendToken = true,
     int timeout = 30,
+    bool handleAuthorization = true,
+    bool hasRetried = false,
   }) async {
     try {
       final response = await http
@@ -202,8 +229,19 @@ class ConnectionController {
           )
           .timeout(Duration(seconds: timeout));
 
-      if (response.statusCode == 401 && onUnauthorized != null) {
-        onUnauthorized!();
+      if (response.statusCode == 401 && handleAuthorization && !hasRetried) {
+        final refreshed = await refreshAccessToken();
+        if (refreshed) {
+          return await get(
+            route,
+            sendToken: sendToken,
+            timeout: timeout,
+            handleAuthorization: handleAuthorization,
+            hasRetried: true,
+          );
+        } else if (onUnauthorized != null) {
+          onUnauthorized!();
+        }
       }
 
       return response;
@@ -225,29 +263,24 @@ class ConnectionController {
     final uri = Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfile');
     final request = http.MultipartRequest('POST', uri);
 
-    // Adding the data
     request.headers['Authorization'] = 'Bearer ${data.token}';
     request.fields['Profile'] = jsonEncode(profileObject);
 
-    // Adding the profile picture (if present)
     if (imagePath != null) {
       request.files.add(await http.MultipartFile.fromPath('Image', imagePath));
     }
 
-    // Sending the request
     try {
       final response = await request.send().timeout(Duration(seconds: 10));
       final responseBody = await response.stream.bytesToString();
 
       debugPrint("[ProfileUpload] ${response.statusCode} $responseBody");
 
-      // Checking the result
       if (response.statusCode != 200) {
         debugPrint("[ProfileUpload Failed] (${response.statusCode})");
         return false;
       }
 
-      // Updating the local cache (if new image)
       final responseJson = jsonDecode(responseBody);
       final updatedPfpUrl = responseJson["ProfilePictureURL"];
 

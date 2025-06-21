@@ -12,7 +12,11 @@ class Data {
   // Main
   String? token;
   String? username;
+
+  // Connection
   ValueNotifier<bool> isConnecting = ValueNotifier(false);
+  ValueNotifier<bool> isConnected = ValueNotifier(false);
+  ValueNotifier<DateTime?> lastRequestTimestamp = ValueNotifier(null);
 
   // Settings
   ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(

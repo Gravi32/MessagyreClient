@@ -106,32 +106,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget debugPage() {
-    void confirm(Function() onConfirmed) {
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (dialogContext) => CupertinoAlertDialog(
-              title: Text("Confirmer l'action"),
-              content: Text(
-                "Veuillez-vous vraiment procéder ? Cette action est irréversible.",
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text("Annuler"),
-                ),
-                CupertinoDialogAction(
-                  isDestructiveAction: true,
-                  onPressed: () {
-                    onConfirmed();
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: Text("Confirmer"),
-                ),
-              ],
-            ),
-      );
-    }
+    bool isRefreshTokenStored = false;
+
+    FlutterSecureStorage()
+        .read(key: "RefreshToken")
+        .then((value) => isRefreshTokenStored = value != null);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -143,19 +122,66 @@ class _SettingsPageState extends State<SettingsPage> {
           platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(
-              title: Text("Token d'accès"),
+              title: Text("Informations générales"),
               tiles: [
-                SettingsTile(title: Text(data.token ?? "-")),
                 SettingsTile(
-                  title: Text(
-                    "Supprimer",
-                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  title: Text("Nom d'utilisateur"),
+                  value: Text(data.username ?? "-"),
+                ),
+                SettingsTile(
+                  title: Text("Photos de profil en cache"),
+                  value: Text(data.pfpNotifiersCache.length.toString()),
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: Text("Connexion"),
+              tiles: [
+                SettingsTile(
+                  title: Text("Mode de test local"),
+                  value: Text(ConnectionController.useLocalhost ? "Oui" : "Non"),
+                ),
+
+                SettingsTile(
+                  title: Text("Adresse du serveur"),
+                  value: Text(ConnectionController.serverHTTPAddress.substring(7)),
+                ),
+
+                SettingsTile(
+                  title: Text("Dernière requête HTTP"),
+                  value: Text(data.token != null ? "Oui" : "Non"),
+                ),
+
+                SettingsTile(
+                  title: Text("État du WebSocket"),
+                  value: ValueListenableBuilder<bool>(
+                    valueListenable: data.isConnecting,
+                    builder: (context, isConnecting, _) {
+                      if (isConnecting) {
+                        return Text("Connexion en cours...");
+                      }
+
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: data.isConnected,
+                        builder: (context, isConnected, _) {
+                          return Text(isConnected ? "Connecté" : "Déconnecté");
+                        },
+                      );
+                    },
                   ),
-                  onPressed:
-                      (context) => confirm(() {
-                        setState(() => data.token = null);
-                        FlutterSecureStorage().delete(key: "AccessToken");
-                      }),
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: Text("Tokens"),
+              tiles: [
+                SettingsTile(
+                  title: Text("Token d'accès (JWT)"),
+                  value: Text(data.token != null ? "Oui" : "Non"),
+                ),
+                SettingsTile(
+                  title: Text("Token de renouvellement"),
+                  value: Text(isRefreshTokenStored ? "Oui" : "Non"),
                 ),
               ],
             ),

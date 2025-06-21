@@ -53,7 +53,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
     var response = await router.post("/Auth/Login", {
       "Username": username,
       "Password": password,
-    }, handleUnauthorized: false);
+    }, handleAuthorization: false);
 
     isWaitingForResponse.value = false;
     final responseData = jsonDecode(response.body);
