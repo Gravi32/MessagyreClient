@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -95,6 +96,66 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: (context) {
                     confirmDeleteChats();
                   },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget debugPage() {
+    void confirm(Function() onConfirmed) {
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (dialogContext) => CupertinoAlertDialog(
+              title: Text("Confirmer l'action"),
+              content: Text(
+                "Veuillez-vous vraiment procéder ? Cette action est irréversible.",
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text("Annuler"),
+                ),
+                CupertinoDialogAction(
+                  isDestructiveAction: true,
+                  onPressed: () {
+                    onConfirmed();
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text("Confirmer"),
+                ),
+              ],
+            ),
+      );
+    }
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        previousPageTitle: "Réglages",
+        middle: Text("Débogage"),
+      ),
+      child: SafeArea(
+        child: SettingsList(
+          platform: DevicePlatform.iOS,
+          sections: [
+            SettingsSection(
+              title: Text("Token d'accès"),
+              tiles: [
+                SettingsTile(title: Text(data.token ?? "-")),
+                SettingsTile(
+                  title: Text(
+                    "Supprimer",
+                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  ),
+                  onPressed:
+                      (context) => confirm(() {
+                        setState(() => data.token = null);
+                        FlutterSecureStorage().delete(key: "AccessToken");
+                      }),
                 ),
               ],
             ),
@@ -202,6 +263,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                   leading: Icon(CupertinoIcons.delete),
                   title: Text("Effacer les données"),
+                ),
+              ],
+            ),
+
+            SettingsSection(
+              title: Text("Autres"),
+              tiles: [
+                SettingsTile.navigation(
+                  onPressed:
+                      (context) => Navigator.of(context).push(
+                        CupertinoPageRoute(builder: (context) => debugPage()),
+                      ),
+                  leading: Icon(CupertinoIcons.ant),
+                  title: Text("Débogage"),
                 ),
               ],
             ),
