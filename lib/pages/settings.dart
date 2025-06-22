@@ -351,6 +351,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       (context) => Navigator.of(context).push(
                         CupertinoPageRoute(builder: (context) => debugPage()),
                       ),
+                  leading: Icon(CupertinoIcons.bubble_right),
+                  title: Text("Envoyez un commentaire"),
+                ),
+                SettingsTile.navigation(
+                  onPressed:
+                      (context) => Navigator.of(context).push(
+                        CupertinoPageRoute(builder: (context) => debugPage()),
+                      ),
                   leading: Icon(CupertinoIcons.ant),
                   title: Text("Débogage"),
                 ),

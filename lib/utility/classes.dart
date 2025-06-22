@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 part 'classes.g.dart';
@@ -60,6 +61,24 @@ class Chat {
       "[$recipientUsername's chat] messages: ${content.length}";
 }
 
+@HiveType(typeId: 2)
+class Homework {
+  @HiveField(0)
+  String title = "Nouveau devoir";
+
+  @HiveField(1)
+  Subject subject = Subject.Maths;
+
+  @HiveField(2)
+  DateTime dueDate = DateTime.now().add(Duration(days: 1));
+
+  @HiveField(3)
+  String? description;
+
+  @HiveField(4)
+  DateTime creationDate = DateTime.now();
+}
+
 class Account {
   late String username;
   late String emailAddress;
@@ -68,12 +87,9 @@ class Account {
   late DateTime? lastLogin;
   late Map<String, dynamic>? profile;
 
-  void format() {
-    
-  }
+  void format() {}
 
   static Account? fromJson(String? source) {
-
     if (source == null || source.trim().isEmpty) return null;
 
     try {
