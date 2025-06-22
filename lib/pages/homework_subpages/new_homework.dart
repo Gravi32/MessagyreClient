@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/pages/settings.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class NewHomework extends StatefulWidget {
