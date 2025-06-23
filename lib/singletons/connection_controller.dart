@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/singletons/data.dart';
@@ -12,14 +13,14 @@ import 'package:web_socket_channel/io.dart';
 
 class ConnectionController {
   // Configuration
+  static const String localIP = "192.168.1.230:5066";
 
-  static const bool useLocalhost = true;
-  static String localIP = "192.168.1.230:5066";
+  static final bool useLocalhost = false; //!kReleaseMode;
 
-  static String serverWebSocketAddress =
+  static final String serverWebSocketAddress =
       useLocalhost ? "ws://$localIP" : "wss://messagyre.up.railway.app";
 
-  static String serverHTTPAddress =
+  static final String serverHTTPAddress =
       useLocalhost ? "http://$localIP" : "https://messagyre.up.railway.app";
 
   // Singletons
@@ -70,7 +71,10 @@ class ConnectionController {
     final results = jsonDecode(response.body);
     data.token = results["AccessToken"];
     await secureStorage.write(key: "AccessToken", value: data.token);
-    await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+    await secureStorage.write(
+      key: "RefreshToken",
+      value: results["RefreshToken"],
+    );
     return true;
   }
 
@@ -143,7 +147,7 @@ class ConnectionController {
         onUnauthorized!();
         return;
       }
-      debugPrint("[WebSocket] Could not connect ($e). Retrying...");
+      debugPrint("[WebSocket] Could not connect to $serverWebSocketAddress ($e). Retrying...");
       _channel = null;
       connect();
     }

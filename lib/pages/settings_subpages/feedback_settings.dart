@@ -11,13 +11,14 @@ class FeedbackSettingsPage extends StatefulWidget {
 }
 
 class _FeedbackSettingsPageState extends State<FeedbackSettingsPage> {
+  final feedbackController = TextEditingController();
 
   void confirmDeleteChats() {
     showCupertinoDialog(
       context: context,
       builder:
           (dialogContext) => CupertinoAlertDialog(
-            title: Text("Effacer les conversations"),
+            title: Text("Envoyez un commentaire"),
             content: Text(
               "Toutes les conversations seront effacées, cette action est irréversible.",
             ),
@@ -56,22 +57,25 @@ class _FeedbackSettingsPageState extends State<FeedbackSettingsPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         previousPageTitle: "Réglages",
-        middle: Text("Effacer les données"),
+        middle: Text("Envoyer un commentaire"),
       ),
       child: SafeArea(
         child: SettingsList(
           platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(
+              title: Text("Contenu du commentaire"),
               tiles: [
                 SettingsTile(
-                  title: Text(
-                    "Effacer les conversations",
-                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  title: CupertinoTextField(
+                    controller: feedbackController,
+                    decoration: BoxDecoration(),
+                    padding: EdgeInsets.zero,
+                    textAlignVertical: TextAlignVertical.top,
+                    minLines: 1,
+                    maxLines: 15,
+                    placeholder: "J'ai remarqué que...",
                   ),
-                  onPressed: (context) {
-                    confirmDeleteChats();
-                  },
                 ),
               ],
             ),
