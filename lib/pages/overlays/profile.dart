@@ -489,7 +489,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   description: Text(
                     "${editMode ? "Vous avez" : "A"} rejoint le ${DateFormat('dd.MM.yyyy').format(account.creationDate!)}",
                   ),
-                  onPressed: (_) => changeProfilePicture(),
+                  onPressed: editMode ? (_) => changeProfilePicture() : null,
                 ),
               ],
             ),
@@ -499,7 +499,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
               tiles: [
                 SettingsTile(
                   title: Text(profile["Bio"] ?? "-"),
-                  onPressed: (_) => changeBio(),
+                  onPressed: editMode ? (_) => changeBio() : null,
                 ),
               ],
             ),
@@ -588,7 +588,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                   isDestructiveAction: true,
                                   onPressed: () async {
                                     Navigator.of(dialogContext).pop();
-
+//TODO: hide the Delete Chat button if the chat does not exist.
                                     if (Hive.isBoxOpen("Chats")) {
                                       await Hive.box<Chat>(
                                         "Chats",
