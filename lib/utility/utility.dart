@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 
 extension StringCasingExtension on String {
   String capitalize() {
@@ -18,6 +19,41 @@ Color adaptiveColor(BuildContext context, Color light, Color dark) {
       ? dark
       : light;
 }
+
+String formatDate(DateTime targetDate, {bool includeTime = false}) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final date = DateTime(targetDate.year, targetDate.month, targetDate.day);
+
+  final difference = date.difference(today).inDays;
+  final dayName = DateFormat.EEEE('fr_CH').format(targetDate);
+
+  String result;
+
+  if (difference == 0) {
+    result = "aujourd'hui";
+  } else if (difference == 1) {
+    result = "demain";
+  } else if (difference == -1) {
+    result = "hier";
+  } else if (difference > 1 && difference <= 6) {
+    result = dayName;
+  } else if (difference >= 7 && difference <= 13) {
+    result = "$dayName prochain";
+  } else if (difference < -1 && difference >= -13) {
+    result = "$dayName dernier";
+  } else {
+    result = DateFormat("d MMMM", 'fr_CH').format(targetDate);
+  }
+
+  if (includeTime) {
+    final time = DateFormat.Hm('fr_CH').format(targetDate);
+    result += " à $time";
+  }
+
+  return result;
+}
+
 
 String formatSwissPhoneNumber(String input) {
   // Removing everything but digits

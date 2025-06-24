@@ -101,13 +101,14 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..subject = fields[1] as Subject
       ..dueDate = fields[2] as DateTime
       ..description = fields[3] as String?
-      ..creationDate = fields[4] as DateTime;
+      ..creationDate = fields[4] as DateTime
+      ..isGraded = fields[5] as bool;
   }
 
   @override
   void write(BinaryWriter writer, Homework obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -117,7 +118,9 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..writeByte(3)
       ..write(obj.description)
       ..writeByte(4)
-      ..write(obj.creationDate);
+      ..write(obj.creationDate)
+      ..writeByte(5)
+      ..write(obj.isGraded);
   }
 
   @override

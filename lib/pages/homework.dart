@@ -5,6 +5,8 @@ import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/subjects.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage({super.key});
@@ -49,33 +51,169 @@ class _HomeworkPageState extends State<HomeworkPage> {
             },
             body: SafeArea(
               top: false,
-              bottom: false,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: ValueListenableBuilder(
                   valueListenable: allHomework.listenable(),
                   builder: (context, Box<Homework> box, _) {
+                    // Deleting old homework
+                    for (int key in box.keys) {
+                      if (box.containsKey(key) &&
+                          box.get(key)!.dueDate.isBefore(DateTime.now())) {
+                        box.delete(key);
+                      }
+                    }
+
                     // Page Content
 
                     final homeworkList = box.values.toList();
                     homeworkList.sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
-                    return Column(
-                      children: [
-                        if (homeworkList.isNotEmpty)
-                          Text(
-                            "Vos devoirs pour ${DateFormat('EEEE', 'fr_FR').format(homeworkList.first.dueDate)}",
-                          ),
-
-                        ListView.builder(
+                    return homeworkList.isEmpty
+                        ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 10,
+                          children: [
+                            Icon(
+                              CupertinoIcons.sparkles,
+                              size: 40,
+                              color: CupertinoColors.separator.resolveFrom(
+                                context,
+                              ),
+                            ),
+                            Text(
+                              "Pas de devoirs !",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: CupertinoColors.separator.resolveFrom(
+                                  context,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                        : ListView.builder(
                           padding: EdgeInsets.only(top: 8),
                           itemCount: homeworkList.length,
                           itemBuilder: (context, index) {
-                            return Text(homeworkList[index].title);
+                            final homework = homeworkList[index];
+                            final previousHomework =
+                                index > 0 ? homeworkList[index - 1] : null;
+
+                            final isOnSameDay =
+                                previousHomework != null &&
+                                homework.dueDate.year ==
+                                    previousHomework.dueDate.year &&
+                                homework.dueDate.month ==
+                                    previousHomework.dueDate.month &&
+                                homework.dueDate.day ==
+                                    previousHomework.dueDate.day;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (!isOnSameDay) ...[
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Pour ${formatDate(homework.dueDate)}",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Text(
+                                        DateFormat(
+                                          "d MMMM y",
+                                          'fr_CH',
+                                        ).format(homework.dueDate),
+                                        style: TextStyle(
+                                          color: CupertinoColors.inactiveGray
+                                              .resolveFrom(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 12),
+                                ],
+
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: adaptiveColor(
+                                      context,
+                                      CupertinoColors.systemGroupedBackground
+                                          .resolveFrom(context),
+                                      CupertinoColors
+                                          .secondarySystemGroupedBackground
+                                          .resolveFrom(context),
+                                    ),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8),
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              SubjectHelper.toFrench(
+                                                homework.subject,
+                                              ),
+                                              style: TextStyle(
+                                                color:
+                                                    CupertinoTheme.of(
+                                                      context,
+                                                    ).primaryColor,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                            if (homework.isGraded)
+                                              Icon(CupertinoIcons.chart_bar),
+                                          ],
+                                        ),
+                                        SizedBox(height: 5),
+                                        Text(
+                                          homework.title.capitalize(),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        if (homework.description != null)
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              top: 16,
+                                              bottom: 28,
+                                            ),
+                                            child: Text(homework.description!),
+                                          ),
+
+                                        Text(
+                                          "Ajouté ${formatDate(homework.creationDate)}",
+                                          textAlign: TextAlign.end,
+                                          style: TextStyle(
+                                            color: CupertinoColors.inactiveGray
+                                                .resolveFrom(context),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(height: 16),
+                              ],
+                            );
                           },
-                        ),
-                      ],
-                    );
+                        );
                   },
                 ),
               ),

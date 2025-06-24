@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/access.dart';
 import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/pages/search.dart';
@@ -9,6 +10,7 @@ import 'package:messagyre_client/pages/grades.dart';
 import 'package:messagyre_client/pages/settings.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/subjects.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -19,6 +21,7 @@ void main() async {
   Hive.registerAdapter(MessageAdapter());
   Hive.registerAdapter(ChatAdapter());
   Hive.registerAdapter(HomeworkAdapter());
+  Hive.registerAdapter(SubjectAdapter());
 
   await Hive.openBox<Chat>("Chats");
   await Hive.openBox<Homework>("Homework");
@@ -29,6 +32,8 @@ void main() async {
   data.username = miscBox.get("Username")?.toString();
   data.appBrightnessNotifier.value =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
+
+  await initializeDateFormatting('fr_CH', null);
 
   runApp(App());
 }

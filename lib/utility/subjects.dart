@@ -1,3 +1,5 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
 enum Subject {
   French,
   Italian,
@@ -69,5 +71,22 @@ class SubjectHelper {
 
       case Subject.TM: return "Travail de Maturité";
     }
+  }
+}
+
+
+class SubjectAdapter extends TypeAdapter<Subject> {
+  @override
+  final int typeId = 3;
+
+  @override
+  Subject read(BinaryReader reader) {
+    final index = reader.readInt();
+    return Subject.values[index];
+  }
+
+  @override
+  void write(BinaryWriter writer, Subject obj) {
+    writer.writeInt(obj.index);
   }
 }

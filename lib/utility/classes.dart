@@ -77,7 +77,12 @@ class Homework {
 
   @HiveField(4)
   DateTime creationDate = DateTime.now();
+
+  @HiveField(5)
+  bool isGraded = false;
 }
+
+// Subject uses HiveType 3
 
 class Account {
   late String username;
