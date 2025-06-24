@@ -74,6 +74,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   void saveChatData() {
+    if (chatData == null) return;
     chats.put(widget.recipientUsername, chatData!);
   }
 
