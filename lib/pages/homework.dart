@@ -22,21 +22,30 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   late Box<Homework> allHomework;
 
-  void showNewHomeworkPopup() async {
+  void showNewHomeworkPopup({Homework? toEdit}) async {
     final newHomework = await showCupertinoSheet<Homework?>(
       context: context,
-      pageBuilder: (context) => NewHomework(),
+      pageBuilder: (context) => NewHomework(toEdit: toEdit),
     );
 
     if (newHomework == null) return;
+
+    if (toEdit != null) toEdit.delete();
+
     allHomework.add(newHomework);
   }
 
-  void showViewHomeworkPopup(Homework homework) {
-    showCupertinoSheet(
+  void showViewHomeworkPopup(Homework homework) async {
+    final action = await showCupertinoSheet<int>(
       context: context,
-      pageBuilder: (context) => ViewHomework(homework: homework,),
+      pageBuilder: (context) => ViewHomework(homework: homework),
     );
+
+    if (action == 1) {
+      showNewHomeworkPopup(toEdit: homework);
+    } else if (action == 2) {
+      homework.delete();
+    }
   }
 
   @override
@@ -67,7 +76,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     // Deleting old homework
                     for (int key in box.keys) {
                       if (box.containsKey(key) &&
-                          box.get(key)!.dueDate.isBefore(DateTime.now())) {
+                          (box.get(key)!.dueDate.isBefore(DateTime.now()) ||
+                              box
+                                  .get(key)!
+                                  .creationDate
+                                  .isAfter(DateTime.now()))) {
                         box.delete(key);
                       }
                     }
@@ -196,7 +209,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                               fontSize: 18,
                                             ),
                                           ),
-                                          if (homework.description != null)
+                                          if (homework.description != null &&
+                                              homework.description!.isNotEmpty)
                                             Padding(
                                               padding: EdgeInsets.only(
                                                 top: 16,

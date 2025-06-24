@@ -15,6 +15,8 @@ class RegistrationPage extends StatefulWidget {
   State<RegistrationPage> createState() => _RegistrationPageState();
 }
 
+// TODO: La registrazione non funziona, rivedi le richieste HTTP
+
 class _RegistrationPageState extends State<RegistrationPage> {
   final router = ConnectionController();
   final data = Data();

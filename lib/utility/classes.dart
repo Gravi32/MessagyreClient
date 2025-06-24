@@ -8,7 +8,7 @@ import 'package:messagyre_client/utility/utility.dart';
 part 'classes.g.dart';
 
 @HiveType(typeId: 0)
-class Message {
+class Message extends HiveObject {
   @HiveField(0)
   String content;
 
@@ -44,7 +44,7 @@ class Message {
 }
 
 @HiveType(typeId: 1)
-class Chat {
+class Chat extends HiveObject {
   @HiveField(0)
   String recipientUsername;
 
@@ -62,7 +62,7 @@ class Chat {
 }
 
 @HiveType(typeId: 2)
-class Homework {
+class Homework extends HiveObject {
   @HiveField(0)
   String title = "Nouveau devoir";
 

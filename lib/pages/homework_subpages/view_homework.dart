@@ -16,6 +16,36 @@ class ViewHomework extends StatefulWidget {
 class _ViewHomeworkState extends State<ViewHomework> {
   late final homework = widget.homework;
 
+  void showDeletePopup() {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (dialogContext) => CupertinoAlertDialog(
+            title: Text("Supprimer le devoir ?"),
+            content: Text(
+              "Voulez-vous vraiment supprimer le devoir \"${widget.homework.title}\" ? Cette action est irréversible.",
+            ),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pop(0);
+                },
+                child: Text("Annuler"),
+              ),
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pop(2);
+                },
+                isDestructiveAction: true,
+                child: Text("Supprimer"),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -91,7 +121,7 @@ class _ViewHomeworkState extends State<ViewHomework> {
                 Spacer(),
 
                 CupertinoButton.filled(
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).pop(1),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 6,
@@ -100,7 +130,7 @@ class _ViewHomeworkState extends State<ViewHomework> {
                 ),
                 SizedBox(height: 6),
                 CupertinoButton(
-                  onPressed: () {},
+                  onPressed: showDeletePopup,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 6,

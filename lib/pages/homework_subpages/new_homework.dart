@@ -5,31 +5,40 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class NewHomework extends StatefulWidget {
-  const NewHomework({super.key});
+  final Homework? toEdit;
+
+  const NewHomework({super.key, this.toEdit});
 
   @override
   State<StatefulWidget> createState() => _NewHomeworkState();
 }
 
 class _NewHomeworkState extends State<NewHomework> {
-  final titleController = TextEditingController();
-  final descriptionController = TextEditingController();
+  late final editMode = widget.toEdit != null;
 
-  Subject subject = Subject.Maths;
-  DateTime dueDate = DateTime.now().add(Duration(days: 1));
-  bool isGraded = false;
+  late final titleController = TextEditingController(
+    text: widget.toEdit?.title,
+  );
+  late final descriptionController = TextEditingController(
+    text: widget.toEdit?.description,
+  );
 
-  void createHomework() {
-    var newHomework = Homework();
+  late Subject subject = widget.toEdit?.subject ?? Subject.Maths;
+  late DateTime dueDate =
+      widget.toEdit?.dueDate ?? DateTime.now().add(Duration(days: 1));
+  late bool isGraded = widget.toEdit?.isGraded ?? false;
 
-    newHomework
+  void confirmHomework() {
+    var homework = widget.toEdit ?? Homework();
+
+    homework
       ..title = titleController.text
       ..subject = subject
       ..dueDate = dueDate
       ..isGraded = isGraded
       ..description = descriptionController.text;
 
-    Navigator.of(context).pop(newHomework);
+    Navigator.of(context).pop(homework);
   }
 
   void showSubjectPicker() {
@@ -128,11 +137,14 @@ class _NewHomeworkState extends State<NewHomework> {
           onPressed: Navigator.of(context).pop,
           child: Text("Annuler"),
         ),
-        middle: Text("Nouveau devoir"),
+        middle: Text(editMode ? "Modifier le devoir" : "Nouveau devoir"),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          onPressed: createHomework,
-          child: Text("Ajouter", style: TextStyle(fontWeight: FontWeight.bold)),
+          onPressed: titleController.text.isNotEmpty ? confirmHomework : null,
+          child: Text(
+            editMode ? "Terminé" : "Ajouter",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ),
 
