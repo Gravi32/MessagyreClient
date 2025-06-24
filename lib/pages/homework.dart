@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
+import 'package:messagyre_client/pages/homework_subpages/view_homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -29,6 +30,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
     if (newHomework == null) return;
     allHomework.add(newHomework);
+  }
+
+  void showViewHomeworkPopup(Homework homework) {
+    showCupertinoSheet(
+      context: context,
+      pageBuilder: (context) => ViewHomework(homework: homework,),
+    );
   }
 
   @override
@@ -138,75 +146,82 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                   SizedBox(height: 12),
                                 ],
 
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: adaptiveColor(
-                                      context,
-                                      CupertinoColors.systemGroupedBackground
-                                          .resolveFrom(context),
-                                      CupertinoColors
-                                          .secondarySystemGroupedBackground
-                                          .resolveFrom(context),
+                                GestureDetector(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: adaptiveColor(
+                                        context,
+                                        CupertinoColors.systemGroupedBackground
+                                            .resolveFrom(context),
+                                        CupertinoColors
+                                            .secondarySystemGroupedBackground
+                                            .resolveFrom(context),
+                                      ),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(8),
+                                      ),
                                     ),
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(8),
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              SubjectHelper.toFrench(
-                                                homework.subject,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                SubjectHelper.toFrench(
+                                                  homework.subject,
+                                                ),
+                                                style: TextStyle(
+                                                  color:
+                                                      CupertinoTheme.of(
+                                                        context,
+                                                      ).primaryColor,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 18,
+                                                ),
                                               ),
-                                              style: TextStyle(
-                                                color:
-                                                    CupertinoTheme.of(
-                                                      context,
-                                                    ).primaryColor,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 18,
+                                              if (homework.isGraded)
+                                                Icon(CupertinoIcons.chart_bar),
+                                            ],
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            homework.title,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                          if (homework.description != null)
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                top: 16,
+                                                bottom: 28,
+                                              ),
+                                              child: Text(
+                                                homework.description!,
                                               ),
                                             ),
-                                            if (homework.isGraded)
-                                              Icon(CupertinoIcons.chart_bar),
-                                          ],
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          homework.title.capitalize(),
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                        if (homework.description != null)
-                                          Padding(
-                                            padding: EdgeInsets.only(
-                                              top: 16,
-                                              bottom: 28,
-                                            ),
-                                            child: Text(homework.description!),
-                                          ),
 
-                                        Text(
-                                          "Ajouté ${formatDate(homework.creationDate)}",
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            color: CupertinoColors.inactiveGray
-                                                .resolveFrom(context),
+                                          Text(
+                                            "Ajouté ${formatDate(homework.creationDate)}",
+                                            textAlign: TextAlign.end,
+                                            style: TextStyle(
+                                              color: CupertinoColors
+                                                  .inactiveGray
+                                                  .resolveFrom(context),
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
+
+                                  onTap: () => showViewHomeworkPopup(homework),
                                 ),
 
                                 SizedBox(height: 16),
