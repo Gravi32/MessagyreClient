@@ -1,4 +1,4 @@
-package com.example.messagyre_client
+package com.graviware.messagyre
 
 import io.flutter.embedding.android.FlutterActivity
 
