@@ -78,12 +78,10 @@ class _AccessOverlayState extends State<AccessOverlay> {
     }
 
     // Saving the received AccessToken
-    print(response.body);
     final accessToken = responseData["AccessToken"];
     final refreshToken = responseData["RefreshToken"];
     data.token = accessToken;
     data.username = username;
-    print(refreshToken);
     await secureStorage.write(key: "AccessToken", value: accessToken);
     await secureStorage.write(key: "RefreshToken", value: refreshToken);
     await Hive.box("Misc").put("Username", username);

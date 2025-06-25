@@ -353,6 +353,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   @override
   Widget build(context) {
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: GestureDetector(

@@ -102,25 +102,17 @@ class ConnectionController {
       _channel!.stream.listen(
         (stringMessage) {
           try {
-            final rawMessageData = jsonDecode(stringMessage);
+            final decoded = jsonDecode(stringMessage);
 
-            final sender = rawMessageData["SenderUsername"]?.toString();
-            final content = rawMessageData["Content"]?.toString();
-            final rawSentAt = rawMessageData["SentAt"]?.toString();
-
-            if (sender == null || content == null || rawSentAt == null) {
-              throw FormatException("Missing fields");
+            if (decoded is List) {
+              for (final rawMessageData in decoded) {
+                _handleMessage(rawMessageData);
+              }
+            } else if (decoded is Map<String, dynamic>) {
+              _handleMessage(decoded);
+            } else {
+              throw FormatException("Unexpected message format");
             }
-
-            final sentAt = DateTime.parse(rawSentAt).toLocal();
-
-            final messageData = {
-              "SenderUsername": sender,
-              "Content": content,
-              "SentAt": sentAt,
-            };
-
-            _messageDataController.add(messageData);
           } catch (e) {
             debugPrint("[WebSocket] Received invalid message data: $e");
           }
@@ -147,9 +139,35 @@ class ConnectionController {
         onUnauthorized!();
         return;
       }
-      debugPrint("[WebSocket] Could not connect to $serverWebSocketAddress ($e). Retrying...");
+      debugPrint(
+        "[WebSocket] Could not connect to $serverWebSocketAddress ($e). Retrying...",
+      );
       _channel = null;
       connect();
+    }
+  }
+
+  void _handleMessage(Map<String, dynamic> rawMessageData) {
+    try {
+      final sender = rawMessageData["SenderUsername"]?.toString();
+      final content = rawMessageData["Content"]?.toString();
+      final rawSentAt = rawMessageData["SentAt"]?.toString();
+
+      if (sender == null || content == null || rawSentAt == null) {
+        throw FormatException("Missing fields");
+      }
+
+      final sentAt = DateTime.parse(rawSentAt).toLocal();
+
+      final messageData = {
+        "SenderUsername": sender,
+        "Content": content,
+        "SentAt": sentAt,
+      };
+
+      _messageDataController.add(messageData);
+    } catch (e) {
+      debugPrint("[WebSocket] Invalid message format: $e");
     }
   }
 
