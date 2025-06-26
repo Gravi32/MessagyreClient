@@ -50,7 +50,7 @@ class App extends StatelessWidget {
       selectedIcon: CupertinoIcons.table_fill,
       build: () => GradesPage(),
     ),
-     Page(
+    Page(
       name: "Dévoirs",
       idleIcon: CupertinoIcons.checkmark_square,
       selectedIcon: CupertinoIcons.checkmark_square_fill,
@@ -112,13 +112,15 @@ class Page {
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
+  static final CupertinoTabController tabController = CupertinoTabController(
+    initialIndex: 2,
+  );
+
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
-  final _tabController = CupertinoTabController(initialIndex: 2);
-
   late final router = ConnectionController();
   late final data = Data();
 
@@ -130,29 +132,26 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    router.start();
     super.initState();
-
+    router.start();
     WidgetsBinding.instance.addObserver(this);
-
     ConnectionController().onUnauthorized = _switchToAccess;
+
+    MainPage.tabController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-
-    _tabController.dispose();
-
+    MainPage.tabController.dispose();
     router.disconnect();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
-      controller: _tabController,
+      controller: MainPage.tabController,
       tabBar: CupertinoTabBar(
         iconSize: 25,
         onTap: (_) {
@@ -160,12 +159,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         },
         items:
             App.pages.map((page) {
+              final index = App.pages.indexOf(page);
+              final isSelected = MainPage.tabController.index == index;
               return BottomNavigationBarItem(
-                icon: Icon(
-                  (_tabController.index == App.pages.indexOf(page)
-                      ? page.selectedIcon
-                      : page.idleIcon),
-                ),
+                icon: Icon(isSelected ? page.selectedIcon : page.idleIcon),
                 label: page.name,
               );
             }).toList(),

@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
-import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -191,14 +191,7 @@ class _ChatsPageState extends State<ChatsPage> {
                     largeTitle: Text("Conversations"),
                     trailing: GestureDetector(
                       child: Icon(CupertinoIcons.add),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => SearchPage(),
-                          ),
-                        );
-                      },
+                      onTap: () => MainPage.tabController.index = 3,
                     ),
                   ),
             ),
