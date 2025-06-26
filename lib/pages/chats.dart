@@ -199,7 +199,6 @@ class _ChatsPageState extends State<ChatsPage> {
         },
         body: SafeArea(
           top: false,
-          bottom: false,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: ValueListenableBuilder(
@@ -211,13 +210,34 @@ class _ChatsPageState extends State<ChatsPage> {
                       b.content.last.sentAt.compareTo(a.content.last.sentAt),
                 );
 
-                return ListView.builder(
-                  padding: EdgeInsets.only(top: 8),
-                  itemCount: chatsList.length,
-                  itemBuilder: (context, index) {
-                    return buildChatBar(chatsList[index]);
-                  },
-                );
+                return chatsList.isEmpty
+                    ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 10,
+                      children: [
+                        Icon(
+                          CupertinoIcons.sparkles,
+                          size: 40,
+                          color: CupertinoColors.separator.resolveFrom(context),
+                        ),
+                        Text(
+                          "Entamez une conversation !",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: CupertinoColors.separator.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                    : ListView.builder(
+                      padding: EdgeInsets.only(top: 8),
+                      itemCount: chatsList.length,
+                      itemBuilder: (context, index) {
+                        return buildChatBar(chatsList[index]);
+                      },
+                    );
               },
             ),
           ),
