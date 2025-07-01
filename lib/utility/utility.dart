@@ -54,7 +54,6 @@ String formatDate(DateTime targetDate, {bool includeTime = false}) {
   return result;
 }
 
-
 String formatSwissPhoneNumber(String input) {
   // Removing everything but digits
   String digits = input.replaceAll(RegExp(r'\D'), '');
