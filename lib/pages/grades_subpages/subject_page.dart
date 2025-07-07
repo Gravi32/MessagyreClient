@@ -2,21 +2,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
-import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
-class GradesPage extends StatefulWidget {
-  const GradesPage({super.key});
+class SubjectPage extends StatefulWidget {
+  final Subject subject;
+  final List<Grade> grades;
+
+  const SubjectPage({super.key, required this.subject, required this.grades});
 
   @override
-  State<StatefulWidget> createState() => _GradesPageState();
+  State<StatefulWidget> createState() => _SubjectPageState();
 }
 
-class _GradesPageState extends State<GradesPage> {
+class _SubjectPageState extends State<SubjectPage> {
   final router = ConnectionController();
   final data = Data();
 
@@ -148,12 +150,12 @@ class _GradesPageState extends State<GradesPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(
-              CupertinoPageRoute(
-                builder:
-                    (builder) => SubjectPage(subject: subject, grades: grades),
-              ),
-            );
+            // Navigator.of(context, rootNavigator: true).push(
+            //   CupertinoPageRoute(
+            //     builder:
+            //         (builder) => SubjectPage(subject: subject, grades: grades),
+            //   ),
+            // );
           },
         ),
 

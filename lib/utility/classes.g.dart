@@ -133,3 +133,51 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+class GradeAdapter extends TypeAdapter<Grade> {
+  @override
+  final int typeId = 4;
+
+  @override
+  Grade read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Grade()
+      ..subject = fields[0] as Subject
+      ..title = fields[1] as String
+      ..grade = fields[2] as double
+      ..date = fields[3] as DateTime
+      ..details = fields[4] as String?
+      ..weight = fields[5] as double;
+  }
+
+  @override
+  void write(BinaryWriter writer, Grade obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.subject)
+      ..writeByte(1)
+      ..write(obj.title)
+      ..writeByte(2)
+      ..write(obj.grade)
+      ..writeByte(3)
+      ..write(obj.date)
+      ..writeByte(4)
+      ..write(obj.details)
+      ..writeByte(5)
+      ..write(obj.weight);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GradeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

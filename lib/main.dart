@@ -22,9 +22,11 @@ void main() async {
   Hive.registerAdapter(ChatAdapter());
   Hive.registerAdapter(HomeworkAdapter());
   Hive.registerAdapter(SubjectAdapter());
+  Hive.registerAdapter(GradeAdapter());
 
   await Hive.openBox<Chat>("Chats");
   await Hive.openBox<Homework>("Homework");
+  await Hive.openBox<Grade>("Grades");
   final miscBox = await Hive.openBox("Misc");
 
   final data = Data();

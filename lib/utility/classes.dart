@@ -84,6 +84,27 @@ class Homework extends HiveObject {
 
 // Subject uses HiveType 3
 
+@HiveType(typeId: 4)
+class Grade extends HiveObject {
+  @HiveField(0)
+  Subject subject = Subject.Maths;
+
+  @HiveField(1)
+  String title = "Test sans titre";
+
+  @HiveField(2)
+  double grade = 4;
+
+  @HiveField(3)
+  DateTime date = DateTime.now();
+
+  @HiveField(4)
+  String? details;
+
+  @HiveField(5)
+  double weight = 1;
+}
+
 class Account {
   late String username;
   late String emailAddress;
