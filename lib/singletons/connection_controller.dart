@@ -18,10 +18,10 @@ class ConnectionController {
   static final bool useLocalhost = false; //!kReleaseMode;
 
   static final String serverWebSocketAddress =
-      useLocalhost ? "ws://$localIP" : "wss://messagyre.up.railway.app";
+      useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev"; // "wss://messagyre.up.railway.app";
 
   static final String serverHTTPAddress =
-      useLocalhost ? "http://$localIP" : "https://messagyre.up.railway.app";
+      useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev"; // "https://messagyre.up.railway.app";
 
   // Singletons
 
