@@ -90,7 +90,7 @@ class ConnectionController {
       final socket = await WebSocket.connect(
         serverWebSocketAddress,
         headers: {'Authorization': 'Bearer ${data.token}'},
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 35));
 
       _channel = IOWebSocketChannel(socket);
 
