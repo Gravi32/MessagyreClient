@@ -6,8 +6,9 @@ import 'package:settings_ui/settings_ui.dart';
 
 class NewGrade extends StatefulWidget {
   final Grade? toEdit;
+  final Subject? subject;
 
-  const NewGrade({super.key, this.toEdit});
+  const NewGrade({super.key, this.toEdit, this.subject});
 
   @override
   State<StatefulWidget> createState() => _NewGradeState();
@@ -23,21 +24,42 @@ class _NewGradeState extends State<NewGrade> {
     text: widget.toEdit?.details,
   );
 
-  late Subject subject = widget.toEdit?.subject ?? Subject.Maths;
+  late Subject subject =
+      widget.toEdit?.subject ?? widget.subject ?? Subject.Maths;
   late double grade = widget.toEdit?.grade ?? 4;
   late DateTime date = widget.toEdit?.date ?? DateTime.now();
   late double weight = widget.toEdit?.weight ?? 1;
 
   void confirmGrade() {
-    var grade = widget.toEdit ?? Grade();
+    if (titleController.text.isEmpty) {
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (_) => CupertinoAlertDialog(
+              title: Text("Titre requis"),
+              content: Text("Veuillez entrer un titre pour la note."),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("OK"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+      );
+      return;
+    }
 
-    grade
+    var gradeData = widget.toEdit ?? Grade();
+
+    gradeData
       ..title = titleController.text
+      ..grade = grade
+      ..weight = weight
       ..subject = subject
       ..date = date
       ..details = detailsController.text;
 
-    Navigator.of(context).pop(grade);
+    Navigator.of(context).pop(gradeData);
   }
 
   void showSubjectPicker() {
@@ -122,7 +144,9 @@ class _NewGradeState extends State<NewGrade> {
 
   Widget buildGradePicker() {
     final grades = List.generate(11, (i) => i * .5 + 1);
-    final controller = FixedExtentScrollController(initialItem: grades.indexOf(grade));
+    final controller = FixedExtentScrollController(
+      initialItem: grades.indexOf(grade),
+    );
 
     return SizedBox(
       height: 60,
@@ -211,7 +235,7 @@ class _NewGradeState extends State<NewGrade> {
         middle: Text(editMode ? "Modifier la note" : "Nouvelle note"),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          onPressed: titleController.text.isNotEmpty ? confirmGrade : null,
+          onPressed: confirmGrade,
           child: Text(
             editMode ? "Terminé" : "Ajouter",
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -329,7 +353,7 @@ class _NewGradeState extends State<NewGrade> {
 
                 SettingsTile.navigation(
                   leading: Icon(CupertinoIcons.photo_on_rectangle),
-                  title: Text("Ajouter des photos")
+                  title: Text("Ajouter des photos"),
                 ),
               ],
             ),

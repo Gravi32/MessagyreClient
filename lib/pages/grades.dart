@@ -8,6 +8,7 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/grade_display.dart';
 
 class GradesPage extends StatefulWidget {
   const GradesPage({super.key});
@@ -22,52 +23,17 @@ class _GradesPageState extends State<GradesPage> {
 
   late Box<Grade> allGrades;
 
-  Widget gradeDisplay(double grade) {
-    final double size = 48;
-    final CupertinoDynamicColor color;
-
-    if (grade >= 4) {
-      color = CupertinoColors.activeGreen;
-    } else if (grade > 3.75) {
-      color = CupertinoColors.activeOrange;
-    } else {
-      color = CupertinoColors.systemRed;
+  double calculateAverage(List<Grade> grades) {
+    if (grades.isEmpty) return 0.0;
+    double total = 0.0;
+    for (var gradeData in grades) {
+      total += gradeData.grade;
     }
-
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              value: grade / 6,
-              strokeWidth: 4,
-              backgroundColor: adaptiveColor(
-                context,
-                CupertinoColors.black.withAlpha(20),
-                CupertinoColors.white.withAlpha(30),
-              ),
-              color: color,
-            ),
-          ),
-          Text(
-            grade.toStringAsFixed(1),
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: CupertinoColors.label.resolveFrom(context),
-            ),
-          ),
-        ],
-      ),
-    );
+    return total / grades.length;
   }
 
   Widget buildSubjectBar(Subject subject, List<Grade> grades) {
+
     return Column(
       children: [
         CupertinoButton(
@@ -76,7 +42,7 @@ class _GradesPageState extends State<GradesPage> {
             height: 55,
             child: Row(
               children: [
-                gradeDisplay(1),
+                GradeDisplay(grade: calculateAverage(grades), size: 56,),
 
                 SizedBox(width: 12),
 
@@ -88,7 +54,7 @@ class _GradesPageState extends State<GradesPage> {
                         SubjectHelper.toFrench(subject),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          fontSize: 16,
+                          fontSize: 20,
                           color: adaptiveColor(
                             context,
                             CupertinoColors.black,
@@ -97,7 +63,7 @@ class _GradesPageState extends State<GradesPage> {
                         ),
                       ),
                       Text(
-                        "${grades.length} notes",
+                        "${grades.length} note${grades.length > 1 ? 's' : ''}",
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,

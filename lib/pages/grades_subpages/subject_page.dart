@@ -7,6 +7,7 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/grade_display.dart';
 
 class SubjectPage extends StatefulWidget {
   final Subject subject;
@@ -22,54 +23,7 @@ class _SubjectPageState extends State<SubjectPage> {
   final router = ConnectionController();
   final data = Data();
 
-  late Box<Grade> allGrades;
-
-  Widget gradeDisplay(double grade) {
-    final double size = 48;
-    final CupertinoDynamicColor color;
-
-    if (grade >= 4) {
-      color = CupertinoColors.activeGreen;
-    } else if (grade > 3.75) {
-      color = CupertinoColors.activeOrange;
-    } else {
-      color = CupertinoColors.systemRed;
-    }
-
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              value: grade / 6,
-              strokeWidth: 4,
-              backgroundColor: adaptiveColor(
-                context,
-                CupertinoColors.black.withAlpha(20),
-                CupertinoColors.white.withAlpha(30),
-              ),
-              color: color,
-            ),
-          ),
-          Text(
-            grade.toStringAsFixed(1),
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: CupertinoColors.label.resolveFrom(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildSubjectBar(Subject subject, List<Grade> grades) {
+  Widget buildGradeBar(Grade gradeData) {
     return Column(
       children: [
         CupertinoButton(
@@ -78,85 +32,49 @@ class _SubjectPageState extends State<SubjectPage> {
             height: 55,
             child: Row(
               children: [
-                gradeDisplay(1),
+                GradeDisplay(grade: gradeData.grade),
 
                 SizedBox(width: 12),
 
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 4,
                     children: [
-                      Text(
-                        SubjectHelper.toFrench(subject),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: adaptiveColor(
-                            context,
-                            CupertinoColors.black,
-                            CupertinoColors.white,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            gradeData.title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
+                              color: adaptiveColor(
+                                context,
+                                CupertinoColors.black,
+                                CupertinoColors.white,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Text(
-                        "${grades.length} notes",
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(
-                          color: Theme.of(context).dividerColor,
-                          fontSize: 15,
-                        ),
+                          Text(
+                            formatDate(gradeData.date).capitalize(),
+                            maxLines: 2,
+                            overflow: TextOverflow.fade,
+                            softWrap: true,
+                            style: TextStyle(
+                              color: Theme.of(context).dividerColor,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                // Column(
-                //   crossAxisAlignment: CrossAxisAlignment.end,
-                //   children: [
-                //     Text(
-                //       DateFormat('HH:mm').format(data.content.last.sentAt),
-                //       style: TextStyle(
-                //         fontSize: 12,
-                //         color: CupertinoColors.systemGrey,
-                //         fontWeight:
-                //             hasUnreadMessages
-                //                 ? FontWeight.w400
-                //                 : FontWeight.w400,
-                //       ),
-                //     ),
-                //     if (hasUnreadMessages)
-                //       Container(
-                //         margin: EdgeInsets.only(top: 4),
-                //         padding: EdgeInsets.symmetric(
-                //           horizontal: 6,
-                //           vertical: 2,
-                //         ),
-                //         decoration: BoxDecoration(
-                //           color: CupertinoColors.systemBlue,
-                //           borderRadius: BorderRadius.circular(12),
-                //         ),
-                //         child: Text(
-                //           data.unreadMessages.toString(),
-                //           style: TextStyle(
-                //             color: CupertinoColors.white,
-                //             fontSize: 12,
-                //           ),
-                //         ),
-                //       ),
-                //   ],
-                // ),
               ],
             ),
           ),
-          onPressed: () {
-            // Navigator.of(context, rootNavigator: true).push(
-            //   CupertinoPageRoute(
-            //     builder:
-            //         (builder) => SubjectPage(subject: subject, grades: grades),
-            //   ),
-            // );
-          },
+          onPressed: () => showNewGradePopup(toEdit: gradeData),
         ),
 
         Divider(
@@ -167,24 +85,64 @@ class _SubjectPageState extends State<SubjectPage> {
     );
   }
 
-  void showNewHomeworkPopup({Grade? toEdit}) async {
+  Widget buildList() {
+    widget.grades.sort((gradeA, gradeB) {
+      return gradeB.date.compareTo(gradeA.date);
+    });
+
+    return widget.grades.isEmpty
+        ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 10,
+          children: [
+            Icon(
+              CupertinoIcons.sparkles,
+              size: 40,
+              color: CupertinoColors.separator.resolveFrom(context),
+            ),
+            Text(
+              "Ajoutez une note !",
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: CupertinoColors.separator.resolveFrom(context),
+              ),
+            ),
+          ],
+        )
+        : ListView.builder(
+          padding: EdgeInsets.only(top: 8),
+          itemCount: widget.grades.length,
+          itemBuilder: (context, index) {
+            return buildGradeBar(widget.grades.elementAt(index));
+          },
+        );
+  }
+
+  void showNewGradePopup({Grade? toEdit}) async {
     final newGrade = await showCupertinoSheet<Grade?>(
       context: context,
-      pageBuilder: (context) => NewGrade(), //toEdit: toEdit),
+      pageBuilder:
+          (context) => NewGrade(subject: widget.subject, toEdit: toEdit),
     );
 
     if (newGrade == null) return;
 
-    if (toEdit != null) toEdit.delete();
+    if (toEdit != null) {
+      toEdit
+        ..title = newGrade.title
+        ..grade = newGrade.grade
+        ..subject = newGrade.subject
+        ..date = newGrade.date
+        ..weight = newGrade.weight
+        ..details = newGrade.details;
 
-    allGrades.add(newGrade);
-  }
+      await toEdit.save();
+    } else {
+      await Hive.box<Grade>("Grades").add(newGrade);
+      widget.grades.add(newGrade);
+    }
 
-  @override
-  void initState() {
-    super.initState();
-
-    allGrades = Hive.box<Grade>("Grades");
+    setState(() {});
   }
 
   @override
@@ -194,63 +152,18 @@ class _SubjectPageState extends State<SubjectPage> {
         children: [
           NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [CupertinoSliverNavigationBar(largeTitle: Text("Notes"))];
+              return [
+                CupertinoSliverNavigationBar(
+                  largeTitle: Text(SubjectHelper.toFrench(widget.subject)),
+                  previousPageTitle: "Retour",
+                ),
+              ];
             },
             body: SafeArea(
               top: false,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: ValueListenableBuilder(
-                  valueListenable: allGrades.listenable(),
-                  builder: (context, Box<Grade> box, _) {
-                    final gradeList = box.values.toList();
-                    gradeList.sort((gradeA, gradeB) {
-                      return gradeB.date.compareTo(gradeA.date);
-                    });
-
-                    final subjectGradeList = <Subject, List<Grade>>{};
-                    for (var grade in gradeList) {
-                      subjectGradeList.putIfAbsent(grade.subject, () => []);
-                      subjectGradeList[grade.subject]!.add(grade);
-                    }
-
-                    return gradeList.isEmpty
-                        ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 10,
-                          children: [
-                            Icon(
-                              CupertinoIcons.sparkles,
-                              size: 40,
-                              color: CupertinoColors.separator.resolveFrom(
-                                context,
-                              ),
-                            ),
-                            Text(
-                              "Ajoutez une note !",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: CupertinoColors.separator.resolveFrom(
-                                  context,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                        : ListView.builder(
-                          padding: EdgeInsets.only(top: 8),
-                          itemCount: subjectGradeList.length,
-                          itemBuilder: (context, index) {
-                            final subjectGrades = subjectGradeList.entries
-                                .elementAt(index);
-                            return buildSubjectBar(
-                              subjectGrades.key,
-                              subjectGrades.value,
-                            );
-                          },
-                        );
-                  },
-                ),
+                child: buildList(),
               ),
             ),
           ),
@@ -259,7 +172,7 @@ class _SubjectPageState extends State<SubjectPage> {
             bottom: MediaQuery.paddingOf(context).bottom + 20,
             right: 20,
             child: CupertinoButton.tinted(
-              onPressed: showNewHomeworkPopup,
+              onPressed: showNewGradePopup,
               sizeStyle: CupertinoButtonSize.medium,
               child: Row(
                 spacing: 8,
