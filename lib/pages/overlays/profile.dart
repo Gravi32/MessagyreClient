@@ -240,7 +240,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             contactTile(
                               "PhoneNumber",
                               CupertinoIcons.phone,
-                              changeMode: true,
                               placeholder: "Numéro de téléphone",
                               controller: phoneNumberController,
                               onChanged: (value) {
@@ -264,7 +263,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             contactTile(
                               "InstagramUsername",
                               FontAwesomeIcons.instagram,
-                              changeMode: true,
                               placeholder: "Nom d'utilisateur sur Instagram",
                               controller: instagramUsernameController,
                               onChanged: (_) => setSheetState(() {}),
@@ -273,7 +271,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             contactTile(
                               "SnapchatUsername",
                               FontAwesomeIcons.snapchat,
-                              changeMode: true,
                               placeholder: "Nom d'utilisateur sur Snapchat",
                               controller: snapchatUsernameController,
                               onChanged: (_) => setSheetState(() {}),
@@ -282,7 +279,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             contactTile(
                               "DiscordUsername",
                               CupertinoIcons.game_controller,
-                              changeMode: true,
                               placeholder: "Nom d'utilisateur sur Discord",
                               controller: discordUsernameController,
                               onChanged: (_) => setSheetState(() {}),
@@ -302,21 +298,23 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     String contact,
     IconData? icon, {
     bool description = false,
-    bool changeMode = false,
     String? placeholder,
     TextEditingController? controller,
     void Function(String)? onChanged,
   }) {
     final value = profile[contact];
 
-    if (changeMode) {
+    if (editMode) {
+      // Edit mode: TextField
+
+      controller ??= TextEditingController(text: value);
       return SettingsTile(
         leading: Icon(icon ?? CupertinoIcons.mail),
         title: CupertinoTextField(
           controller: controller,
           decoration: BoxDecoration(),
           padding: EdgeInsets.zero,
-          placeholder: placeholder,
+          placeholder: placeholder ?? "Ajouter",
           onChanged: onChanged,
         ),
         description:
@@ -326,34 +324,31 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 )
                 : null,
       );
-    }
+    } else {
+      // View mode: Text
 
-    return SettingsTile(
-      title: Text(
-        value ?? "Ajouter",
-        overflow: TextOverflow.fade,
-        softWrap: false,
-        style:
-            value == null
-                ? TextStyle(color: CupertinoColors.inactiveGray)
+      return SettingsTile(
+        leading: Icon(icon ?? CupertinoIcons.mail),
+        title: Text(
+          value ?? "Ajouter",
+          overflow: TextOverflow.fade,
+          softWrap: false,
+          style:
+              value == null
+                  ? TextStyle(color: CupertinoColors.inactiveGray)
+                  : null,
+        ),
+        description:
+            description
+                ? Text("Appuyez pour copier dans le presse-papiers.")
                 : null,
-      ),
-      leading: Icon(icon),
-      onPressed: (_) => editMode ? changeContacts() : copy(value),
-      description:
-          description
-              ? Text(
-                editMode
-                    ? "Appuyez pour modifier."
-                    : "Appuyez pour copier dans le presse-papiers.",
-              )
-              : null,
-    );
+        onPressed: value != null ? (_) => copy(value) : null,
+      );
+    }
   }
 
   @override
   Widget build(context) {
-
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: GestureDetector(
@@ -589,7 +584,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                   isDestructiveAction: true,
                                   onPressed: () async {
                                     Navigator.of(dialogContext).pop();
-//TODO: hide the Delete Chat button if the chat does not exist.
+                                    //TODO: hide the Delete Chat button if the chat does not exist.
                                     if (Hive.isBoxOpen("Chats")) {
                                       await Hive.box<Chat>(
                                         "Chats",
