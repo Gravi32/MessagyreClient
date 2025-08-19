@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class NewGrade extends StatefulWidget {
@@ -90,54 +91,13 @@ class _NewGradeState extends State<NewGrade> {
   }
 
   void showDatePicker() {
-    final now = DateTime.now();
-
-    final endSchoolYear = now.month >= 9 ? now.year + 1 : now.year;
-    final schoolEndDate = DateTime(endSchoolYear, 6, 6);
-
-    DateTime initial = date;
-
-    if (initial.isBefore(now)) {
-      initial = now;
-    } else if (initial.isAfter(schoolEndDate)) {
-      initial = schoolEndDate;
-    }
-
-    if (now.isAfter(schoolEndDate)) {
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (_) => CupertinoAlertDialog(
-              title: Text("Année scolaire terminée"),
-              content: Text(
-                "Ce n'est plus possible d'ajouter de devoirs pour cette année scolaire.",
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("OK"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-      );
-      return;
-    }
-
     showCupertinoModalPopup(
       context: context,
       builder:
-          (_) => Container(
-            height: 250,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            child: CupertinoDatePicker(
-              mode: CupertinoDatePickerMode.date,
-              initialDateTime: initial,
-              minimumDate: now,
-              maximumDate: schoolEndDate,
-              minimumYear: now.year,
-              maximumYear: schoolEndDate.year,
-              onDateTimeChanged: (value) => setState(() => date = value),
-            ),
+          (_) => CustomDatePicker(
+            initialDate: date,
+            allowFuture: false,
+            onDateSelected: (newDate) => setState(() => date = newDate),
           ),
     );
   }
@@ -328,7 +288,8 @@ class _NewGradeState extends State<NewGrade> {
                     ),
                   ),
                   value: Text(
-                    formatDate(date).capitalize(),
+                    formatDate(date)[0].toUpperCase() +
+                        formatDate(date).substring(1),
                     style: TextStyle(fontSize: 16),
                   ),
                   onPressed: (context) => showDatePicker(),

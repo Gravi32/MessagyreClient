@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
+import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class NewHomework extends StatefulWidget {
@@ -42,81 +44,25 @@ class _NewHomeworkState extends State<NewHomework> {
   }
 
   void showSubjectPicker() {
-    final controller = FixedExtentScrollController(initialItem: subject.index);
-
     showCupertinoModalPopup(
       context: context,
       builder:
-          (_) => Container(
-            height: 250,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            child: CupertinoPicker.builder(
-              itemExtent: 60,
-              childCount: Subject.values.length,
-              scrollController: controller,
-              onSelectedItemChanged:
-                  (value) => setState(() {
-                    subject = Subject.values[value];
-                  }),
-              itemBuilder: (context, index) {
-                return Center(
-                  child: Text(SubjectHelper.toFrench(Subject.values[index])),
-                );
-              },
-            ),
+          (_) => CustomSubjectPicker(
+            initialSubject: subject,
+            onSubjectSelected: (selectedSubject) {
+              setState(() => subject = selectedSubject);
+            },
           ),
     );
   }
 
   void showDatePicker() {
-    final now = DateTime.now();
-
-    final endSchoolYear = now.month >= 9 ? now.year + 1 : now.year;
-    final schoolEndDate = DateTime(endSchoolYear, 6, 6);
-
-    DateTime initial = dueDate;
-
-    if (initial.isBefore(now)) {
-      initial = now;
-    } else if (initial.isAfter(schoolEndDate)) {
-      initial = schoolEndDate;
-    }
-
-    if (now.isAfter(schoolEndDate)) {
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (_) => CupertinoAlertDialog(
-              title: Text("Année scolaire terminée"),
-              content: Text(
-                "Ce n'est plus possible d'ajouter de devoirs pour cette année scolaire.",
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("OK"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-      );
-      return;
-    }
-
     showCupertinoModalPopup(
       context: context,
       builder:
-          (_) => Container(
-            height: 250,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            child: CupertinoDatePicker(
-              mode: CupertinoDatePickerMode.date,
-              initialDateTime: initial,
-              minimumDate: now,
-              maximumDate: schoolEndDate,
-              minimumYear: now.year,
-              maximumYear: schoolEndDate.year,
-              onDateTimeChanged: (value) => setState(() => dueDate = value),
-            ),
+          (_) => CustomDatePicker(
+            initialDate: dueDate,
+            onDateSelected: (newDate) => setState(() => dueDate = newDate),
           ),
     );
   }
