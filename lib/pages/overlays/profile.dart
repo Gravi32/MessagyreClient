@@ -304,8 +304,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     final value = profile[contact];
 
     if (editMode) {
-      // Edit mode: TextField
-
       controller ??= TextEditingController(text: value);
       return SettingsTile(
         leading: Icon(icon ?? CupertinoIcons.mail),
@@ -324,8 +322,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 : null,
       );
     } else {
-      // View mode: Text
-
       return SettingsTile(
         leading: Icon(icon ?? CupertinoIcons.mail),
         title: Text(
@@ -558,9 +554,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   SettingsTile.navigation(
                     leading: Icon(CupertinoIcons.phone),
                     title: Text("Appeler"),
+                    enabled: false,
                   ),
 
-                  SettingsTile(
+                  if (Hive.box<Chat>("Chats").containsKey(account.username)) SettingsTile(
                     leading: Icon(
                       CupertinoIcons.trash,
                       color: CupertinoColors.destructiveRed,
@@ -576,7 +573,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             return CupertinoAlertDialog(
                               title: Text("Supprimer la conversation"),
                               content: Text(
-                                "Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible.",
+                                "Voulez-vous vraiment supprimer la conversation avec ${account.username} ? Cette action est irréversible.",
                               ),
                               actions: [
                                 CupertinoDialogAction(
