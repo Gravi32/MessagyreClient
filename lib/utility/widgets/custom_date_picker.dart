@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime initialDate;
@@ -31,11 +32,12 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final schoolStart = DateTime(now.year, 8, 18);
-    final schoolEnd = now.isBefore(schoolStart)
-        ? DateTime(now.year, 6, 6)
-        : DateTime(now.year + 1, 6, 6);
+    final schoolEnd =
+        now.isBefore(schoolStart)
+            ? DateTime(now.year, 6, 6)
+            : DateTime(now.year + 1, 6, 6);
 
-    final minDate = widget.allowPast ? null : now;
+    final minDate = widget.allowPast ? schoolStart : now;
     final maxDate = widget.allowFuture ? schoolEnd : now;
 
     return Container(
@@ -47,7 +49,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
       child: Column(
         children: [
           Container(
-            color: CupertinoColors.systemGrey6,
+            color: CupertinoColors.systemBackground.resolveFrom(context),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -56,7 +58,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                   child: Text("Annuler"),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                Text("Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                Text(
+                  "Date",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                ),
                 CupertinoButton(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text("Terminé"),
@@ -74,6 +79,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
               initialDateTime: tempDate,
               minimumDate: minDate,
               maximumDate: maxDate,
+              minimumYear: minDate.year,
+              maximumYear: maxDate.year,
               onDateTimeChanged: (value) => tempDate = value,
             ),
           ),

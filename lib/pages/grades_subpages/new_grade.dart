@@ -80,6 +80,7 @@ class _NewGradeState extends State<NewGrade> {
       context: context,
       builder: (_) => CustomDatePicker(
         initialDate: date,
+        allowFuture: false,
         onDateSelected: (newDate) => setState(() => date = newDate),
       ),
     );
