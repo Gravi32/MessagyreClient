@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -483,7 +482,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     ),
                   ),
                   description: Text(
-                    "${editMode ? "Vous avez" : "A"} rejoint le ${DateFormat('dd.MM.yyyy').format(account.creationDate!)}",
+                    "${editMode ? "Vous avez" : "A"} rejoint le ${formatDate(account.creationDate ?? DateTime.now())}.",
                   ),
                   onPressed: editMode ? (_) => changeProfilePicture() : null,
                 ),
