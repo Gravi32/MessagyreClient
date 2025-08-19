@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/access.dart';
@@ -32,13 +34,22 @@ void main() async {
   final data = Data();
 
   data.username = miscBox.get("Username")?.toString();
-  data.appBrightnessNotifier.value =
-      WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  data.appBrightnessNotifier.value = Brightness.dark;
 
   await initializeDateFormatting('fr_CH', null);
 
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.black,
+      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
+
   runApp(App());
 }
+
 
 class App extends StatelessWidget {
   App({super.key});
