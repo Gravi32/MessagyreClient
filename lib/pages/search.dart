@@ -121,32 +121,41 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget buildResult(SearchResult result) {
-    return CupertinoListTile(
+    return CupertinoListTile.notched(
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      title: Row(
         children: [
-          Text.rich(
-            TextSpan(
-              children: highlightSearchMatch(
-                Account.getDisplayableUsername(result.username),
-                searchBarController.text,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(
+                TextSpan(
+                  children: highlightSearchMatch(
+                    Account.getDisplayableUsername(result.username),
+                    searchBarController.text,
+                  ),
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
+                ),
               ),
-              style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
-            ),
+
+              if (result.classOrRole != null) ...[
+                SizedBox(width: 2),
+
+                Text(
+                  result.classOrRole ?? "",
+                  style: TextStyle(
+                    color: CupertinoColors.systemGrey2,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ],
           ),
 
-          if (result.classOrRole != null) ...[
-            SizedBox(width: 2),
-
-            Text(
-              result.classOrRole ?? "",
-              style: TextStyle(
-                color: CupertinoColors.systemGrey2,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
+          if (usernameBeingLoaded == result.username) ...[
+            SizedBox(width: 10),
+            CupertinoActivityIndicator(),
           ],
         ],
       ),
@@ -161,11 +170,15 @@ class SearchPageState extends State<SearchPage> {
         color: CupertinoColors.systemGrey,
       ),
       onTap: () async {
-        usernameBeingLoaded = result.username;
+        setState(() {
+          usernameBeingLoaded = result.username;
+        });
 
         final account = await router.getAccount(result.username);
 
-        usernameBeingLoaded = null;
+        setState(() {
+          usernameBeingLoaded = null;
+        });
 
         if (account != null && mounted) {
           Navigator.of(context, rootNavigator: true).push(
@@ -173,10 +186,7 @@ class SearchPageState extends State<SearchPage> {
           );
         }
       },
-      trailing:
-          usernameBeingLoaded == result.username
-              ? CupertinoActivityIndicator()
-              : null,
+          
     );
   }
 
