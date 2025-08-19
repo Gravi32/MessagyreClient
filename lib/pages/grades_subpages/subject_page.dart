@@ -37,12 +37,13 @@ class _SubjectPageState extends State<SubjectPage> {
                 SizedBox(width: 12),
 
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 4,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
                         children: [
                           Text(
                             gradeData.title,
@@ -56,17 +57,29 @@ class _SubjectPageState extends State<SubjectPage> {
                               ),
                             ),
                           ),
-                          Text(
-                            formatDate(gradeData.date).capitalize(),
-                            maxLines: 2,
-                            overflow: TextOverflow.fade,
-                            softWrap: true,
-                            style: TextStyle(
-                              color: Theme.of(context).dividerColor,
-                              fontSize: 15,
+                          if (gradeData.details != null &&
+                              gradeData.details!.isNotEmpty) ...[
+                            Text(
+                              gradeData.details!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).dividerColor,
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
+                      ),
+                      Text(
+                        formatDate(gradeData.date).capitalize(),
+                        maxLines: 2,
+                        overflow: TextOverflow.fade,
+                        softWrap: true,
+                        style: TextStyle(
+                          color: Theme.of(context).dividerColor,
+                          fontSize: 15,
+                        ),
                       ),
                     ],
                   ),
