@@ -56,9 +56,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     void pickImage(ImageSource source) async {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: source);
-
       if (pickedFile == null) return;
-
       setState(() {
         changesMade = true;
         chosenPicturePath = pickedFile.path;
@@ -92,7 +90,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   setState(() {
                     chosenPicturePath = null;
                     changesMade = true;
-                    //TODO: Remove pfp
+                    data.pfpNotifiersCache[account.username]?.value = null;
                   });
                 },
                 child: Text("Supprimer la photo"),
@@ -557,74 +555,75 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     enabled: false,
                   ),
 
-                  if (Hive.box<Chat>("Chats").containsKey(account.username)) SettingsTile(
-                    leading: Icon(
-                      CupertinoIcons.trash,
-                      color: CupertinoColors.destructiveRed,
-                    ),
-                    title: Text(
-                      "Supprimer la conversation",
-                      style: TextStyle(color: CupertinoColors.destructiveRed),
-                    ),
-                    onPressed:
-                        (context) => showCupertinoDialog(
-                          context: context,
-                          builder: (BuildContext dialogContext) {
-                            return CupertinoAlertDialog(
-                              title: Text("Supprimer la conversation"),
-                              content: Text(
-                                "Voulez-vous vraiment supprimer la conversation avec ${account.username} ? Cette action est irréversible.",
-                              ),
-                              actions: [
-                                CupertinoDialogAction(
-                                  isDestructiveAction: true,
-                                  onPressed: () async {
-                                    Navigator.of(dialogContext).pop();
-                                    //TODO: hide the Delete Chat button if the chat does not exist.
-                                    if (Hive.isBoxOpen("Chats")) {
-                                      await Hive.box<Chat>(
-                                        "Chats",
-                                      ).delete(account.username);
-                                    }
+                  if (Hive.box<Chat>("Chats").containsKey(account.username))
+                    SettingsTile(
+                      leading: Icon(
+                        CupertinoIcons.trash,
+                        color: CupertinoColors.destructiveRed,
+                      ),
+                      title: Text(
+                        "Supprimer la conversation",
+                        style: TextStyle(color: CupertinoColors.destructiveRed),
+                      ),
+                      onPressed:
+                          (context) => showCupertinoDialog(
+                            context: context,
+                            builder: (BuildContext dialogContext) {
+                              return CupertinoAlertDialog(
+                                title: Text("Supprimer la conversation"),
+                                content: Text(
+                                  "Voulez-vous vraiment supprimer la conversation avec ${account.username} ? Cette action est irréversible.",
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    isDestructiveAction: true,
+                                    onPressed: () async {
+                                      Navigator.of(dialogContext).pop();
 
-                                    if (dialogContext.mounted) {
-                                      Navigator.of(dialogContext).push(
-                                        CupertinoDialogRoute(
-                                          builder:
-                                              (_) => CupertinoAlertDialog(
-                                                title: Text("Supprimée"),
-                                                content: Text(
-                                                  "La conversation avec ${account.username} a été supprimée du téléphone.",
-                                                ),
-                                                actions: [
-                                                  CupertinoDialogAction(
-                                                    child: Text("OK"),
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                        ),
+                                      if (Hive.isBoxOpen("Chats")) {
+                                        await Hive.box<Chat>(
+                                          "Chats",
+                                        ).delete(account.username);
+                                      }
+
+                                      if (dialogContext.mounted) {
+                                        Navigator.of(dialogContext).push(
+                                          CupertinoDialogRoute(
+                                            builder:
+                                                (_) => CupertinoAlertDialog(
+                                                  title: Text("Supprimée"),
+                                                  content: Text(
+                                                    "La conversation avec ${account.username} a été supprimée du téléphone.",
                                                   ),
-                                                ],
-                                              ),
-                                          context: context,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: Text("Supprimer"),
-                                ),
-                                CupertinoDialogAction(
-                                  isDefaultAction: true,
-                                  onPressed: () {
-                                    Navigator.pop(dialogContext);
-                                  },
-                                  child: Text("Annuler"),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                  ),
+                                                  actions: [
+                                                    CupertinoDialogAction(
+                                                      child: Text("OK"),
+                                                      onPressed:
+                                                          () => Navigator.pop(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                            context: context,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Text("Supprimer"),
+                                  ),
+                                  CupertinoDialogAction(
+                                    isDefaultAction: true,
+                                    onPressed: () {
+                                      Navigator.pop(dialogContext);
+                                    },
+                                    child: Text("Annuler"),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                    ),
                 ],
               ),
           ],

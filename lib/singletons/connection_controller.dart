@@ -18,10 +18,14 @@ class ConnectionController {
   static final bool useLocalhost = false; //!kReleaseMode;
 
   static final String serverWebSocketAddress =
-      useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev"; // "wss://messagyre.up.railway.app";
+      useLocalhost
+          ? "ws://$localIP"
+          : "wss://messagyre.fly.dev"; // "wss://messagyre.up.railway.app";
 
   static final String serverHTTPAddress =
-      useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev"; // "https://messagyre.up.railway.app";
+      useLocalhost
+          ? "http://$localIP"
+          : "https://messagyre.fly.dev"; // "https://messagyre.up.railway.app";
 
   // Singletons
 
@@ -195,7 +199,6 @@ class ConnectionController {
     bool handleAuthorization = true,
     bool hasRetried = false,
   }) async {
-
     debugPrint("[POST] $route: $body");
     try {
       final response = await http
@@ -283,6 +286,7 @@ class ConnectionController {
   Future<bool> uploadProfile(
     Map<String, dynamic> profileObject, {
     String? imagePath,
+    bool removeProfilePicture = false,
   }) async {
     final uri = Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfile');
     final request = http.MultipartRequest('POST', uri);
@@ -292,10 +296,12 @@ class ConnectionController {
 
     if (imagePath != null) {
       request.files.add(await http.MultipartFile.fromPath('Image', imagePath));
+    } else if (removeProfilePicture) {
+      request.fields['RemoveProfilePicture'] = 'true';
     }
 
     try {
-      final response = await request.send().timeout(Duration(seconds: 10));
+      final response = await request.send().timeout(Duration(seconds: 60));
       final responseBody = await response.stream.bytesToString();
 
       debugPrint("[ProfileUpload] ${response.statusCode} $responseBody");
