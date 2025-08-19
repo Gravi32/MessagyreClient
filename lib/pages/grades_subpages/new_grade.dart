@@ -3,6 +3,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
+import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class NewGrade extends StatefulWidget {
@@ -35,17 +36,16 @@ class _NewGradeState extends State<NewGrade> {
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
         context: context,
-        builder:
-            (_) => CupertinoAlertDialog(
-              title: Text("Titre requis"),
-              content: Text("Veuillez entrer un titre pour la note."),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("OK"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
+        builder: (_) => CupertinoAlertDialog(
+          title: Text("Titre requis"),
+          content: Text("Veuillez entrer un titre pour la note."),
+          actions: [
+            CupertinoDialogAction(
+              child: Text("OK"),
+              onPressed: () => Navigator.pop(context),
             ),
+          ],
+        ),
       );
       return;
     }
@@ -64,41 +64,24 @@ class _NewGradeState extends State<NewGrade> {
   }
 
   void showSubjectPicker() {
-    final controller = FixedExtentScrollController(initialItem: subject.index);
-
     showCupertinoModalPopup(
       context: context,
-      builder:
-          (_) => Container(
-            height: 250,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            child: CupertinoPicker.builder(
-              itemExtent: 60,
-              childCount: Subject.values.length,
-              scrollController: controller,
-              onSelectedItemChanged:
-                  (value) => setState(() {
-                    subject = Subject.values[value];
-                  }),
-              itemBuilder: (context, index) {
-                return Center(
-                  child: Text(SubjectHelper.toFrench(Subject.values[index])),
-                );
-              },
-            ),
-          ),
+      builder: (_) => CustomSubjectPicker(
+        initialSubject: subject,
+        onSubjectSelected: (selectedSubject) {
+          setState(() => subject = selectedSubject);
+        },
+      ),
     );
   }
 
   void showDatePicker() {
     showCupertinoModalPopup(
       context: context,
-      builder:
-          (_) => CustomDatePicker(
-            initialDate: date,
-            allowFuture: false,
-            onDateSelected: (newDate) => setState(() => date = newDate),
-          ),
+      builder: (_) => CustomDatePicker(
+        initialDate: date,
+        onDateSelected: (newDate) => setState(() => date = newDate),
+      ),
     );
   }
 
@@ -120,18 +103,13 @@ class _NewGradeState extends State<NewGrade> {
               itemExtent: 60,
               diameterRatio: 2,
               physics: const FixedExtentScrollPhysics(),
-              onSelectedItemChanged:
-                  (index) => setState(() => grade = grades[index]),
+              onSelectedItemChanged: (index) => setState(() => grade = grades[index]),
               childDelegate: ListWheelChildBuilderDelegate(
                 childCount: grades.length,
                 builder: (context, index) {
                   final thisGrade = grades[index];
                   final isWhole = thisGrade % 1 == 0;
-                  final display =
-                      isWhole
-                          ? thisGrade.toInt().toString()
-                          : thisGrade.toStringAsFixed(1);
-
+                  final display = isWhole ? thisGrade.toInt().toString() : thisGrade.toStringAsFixed(1);
                   final isSelected = grade == thisGrade;
 
                   return RotatedBox(
@@ -141,12 +119,9 @@ class _NewGradeState extends State<NewGrade> {
                         display,
                         style: TextStyle(
                           fontSize: isSelected ? 28 : 22,
-                          color:
-                              isSelected
-                                  ? CupertinoColors.label.resolveFrom(context)
-                                  : CupertinoColors.inactiveGray.resolveFrom(
-                                    context,
-                                  ),
+                          color: isSelected
+                              ? CupertinoColors.label.resolveFrom(context)
+                              : CupertinoColors.inactiveGray.resolveFrom(context),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -156,7 +131,6 @@ class _NewGradeState extends State<NewGrade> {
               ),
             ),
           ),
-
           IgnorePointer(
             child: Align(
               alignment: Alignment.center,
@@ -185,6 +159,7 @@ class _NewGradeState extends State<NewGrade> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      resizeToAvoidBottomInset: true,
       navigationBar: CupertinoNavigationBar(
         border: null,
         leading: CupertinoButton(
@@ -202,123 +177,114 @@ class _NewGradeState extends State<NewGrade> {
           ),
         ),
       ),
-
       child: SafeArea(
-        child: SettingsList(
-          platform: DevicePlatform.iOS,
-          sections: [
-            SettingsSection(
-              title: Column(
-                children: [
-                  CupertinoTextField(
-                    controller: titleController,
-                    decoration: BoxDecoration(),
-                    padding: EdgeInsets.zero,
-                    placeholder: "Test de Cryptographie 1",
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
-                    placeholderStyle: TextStyle(
-                      color: CupertinoColors.placeholderText.resolveFrom(
-                        context,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SettingsList(
+            platform: DevicePlatform.iOS,
+            sections: [
+              SettingsSection(
+                title: Column(
+                  children: [
+                    CupertinoTextField(
+                      controller: titleController,
+                      decoration: BoxDecoration(),
+                      padding: EdgeInsets.zero,
+                      placeholder: "Test de Cryptographie 1",
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+                      placeholderStyle: TextStyle(
+                        color: CupertinoColors.placeholderText.resolveFrom(context),
+                        fontWeight: FontWeight.w700,
                       ),
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                  SizedBox(height: 10),
-                ],
-              ),
-              tiles: [
-                SettingsTile(title: buildGradePicker()),
-
-                SettingsTile(
-                  title: Text(
-                    "Branche",
-                    style: TextStyle(
-                      color: CupertinoColors.inactiveGray.resolveFrom(context),
-                    ),
-                  ),
-                  value: Text(
-                    SubjectHelper.toFrench(subject),
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  onPressed: (context) => showSubjectPicker(),
+                    SizedBox(height: 10),
+                  ],
                 ),
-
-                SettingsTile(
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Valeur",
-                            style: TextStyle(
-                              color: CupertinoColors.inactiveGray.resolveFrom(
-                                context,
+                tiles: [
+                  SettingsTile(title: buildGradePicker()),
+                  SettingsTile(
+                    title: Text(
+                      "Branche",
+                      style: TextStyle(
+                        color: CupertinoColors.inactiveGray.resolveFrom(context),
+                      ),
+                    ),
+                    value: Text(
+                      SubjectHelper.toFrench(subject),
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    onPressed: (context) => showSubjectPicker(),
+                  ),
+                  SettingsTile(
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Valeur",
+                              style: TextStyle(
+                                color: CupertinoColors.inactiveGray.resolveFrom(context),
                               ),
                             ),
-                          ),
-                          Text((switch (weight) {
-                            0 => "Zéro",
-                            .5 => "Moitié",
-                            1 => "Note entière",
-                            _ => weight.toString(),
-                          })),
-                        ],
-                      ),
-                      CupertinoSlider(
-                        value: weight,
-                        divisions: 4,
-                        onChanged:
-                            (newWeight) => setState(() => weight = newWeight),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            SettingsSection(
-              tiles: [
-                SettingsTile(
-                  title: Text(
-                    "Date de reception",
-                    style: TextStyle(
-                      color: CupertinoColors.inactiveGray.resolveFrom(context),
+                            Text((switch (weight) {
+                              0 => "Zéro",
+                              .5 => "Moitié",
+                              1 => "Note entière",
+                              _ => weight.toString(),
+                            })),
+                          ],
+                        ),
+                        CupertinoSlider(
+                          value: weight,
+                          divisions: 4,
+                          onChanged: (newWeight) => setState(() => weight = newWeight),
+                        ),
+                      ],
                     ),
                   ),
-                  value: Text(
-                    formatDate(date)[0].toUpperCase() +
-                        formatDate(date).substring(1),
-                    style: TextStyle(fontSize: 16),
+                ],
+              ),
+              SettingsSection(
+                tiles: [
+                  SettingsTile(
+                    title: Text(
+                      "Date de réception",
+                      style: TextStyle(
+                        color: CupertinoColors.inactiveGray.resolveFrom(context),
+                      ),
+                    ),
+                    value: Text(
+                      formatDate(date)[0].toUpperCase() + formatDate(date).substring(1),
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    onPressed: (context) => showDatePicker(),
                   ),
-                  onPressed: (context) => showDatePicker(),
-                ),
-              ],
-            ),
-
-            SettingsSection(
-              title: Text("Informations facultatives"),
-              tiles: [
-                SettingsTile(
-                  title: CupertinoTextField(
-                    controller: detailsController,
-                    decoration: BoxDecoration(),
-                    padding: EdgeInsets.zero,
-                    textAlignVertical: TextAlignVertical.top,
-                    minLines: 1,
-                    maxLines: 15,
-                    placeholder: "Ajoutez des informations supplémentaires...",
+                ],
+              ),
+              SettingsSection(
+                title: Text("Informations facultatives"),
+                tiles: [
+                  SettingsTile(
+                    title: CupertinoTextField(
+                      controller: detailsController,
+                      decoration: BoxDecoration(),
+                      padding: EdgeInsets.zero,
+                      textAlignVertical: TextAlignVertical.top,
+                      minLines: 1,
+                      maxLines: 15,
+                      placeholder: "Ajoutez des informations supplémentaires...",
+                    ),
                   ),
-                ),
-
-                SettingsTile.navigation(
-                  leading: Icon(CupertinoIcons.photo_on_rectangle),
-                  title: Text("Ajouter des photos"),
-                ),
-              ],
-            ),
-          ],
+                  SettingsTile.navigation(
+                    leading: Icon(CupertinoIcons.photo_on_rectangle),
+                    title: Text("Ajouter des photos"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

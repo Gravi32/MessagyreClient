@@ -46,24 +46,22 @@ class _NewHomeworkState extends State<NewHomework> {
   void showSubjectPicker() {
     showCupertinoModalPopup(
       context: context,
-      builder:
-          (_) => CustomSubjectPicker(
-            initialSubject: subject,
-            onSubjectSelected: (selectedSubject) {
-              setState(() => subject = selectedSubject);
-            },
-          ),
+      builder: (_) => CustomSubjectPicker(
+        initialSubject: subject,
+        onSubjectSelected: (selectedSubject) {
+          setState(() => subject = selectedSubject);
+        },
+      ),
     );
   }
 
   void showDatePicker() {
     showCupertinoModalPopup(
       context: context,
-      builder:
-          (_) => CustomDatePicker(
-            initialDate: dueDate,
-            onDateSelected: (newDate) => setState(() => dueDate = newDate),
-          ),
+      builder: (_) => CustomDatePicker(
+        initialDate: dueDate,
+        onDateSelected: (newDate) => setState(() => dueDate = newDate),
+      ),
     );
   }
 
@@ -77,6 +75,7 @@ class _NewHomeworkState extends State<NewHomework> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      resizeToAvoidBottomInset: true,
       navigationBar: CupertinoNavigationBar(
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
@@ -93,66 +92,65 @@ class _NewHomeworkState extends State<NewHomework> {
           ),
         ),
       ),
-
       child: SafeArea(
-        child: SettingsList(
-          platform: DevicePlatform.iOS,
-          sections: [
-            SettingsSection(
-              title: Text("Informations principales"),
-              tiles: [
-                SettingsTile(
-                  leading: Icon(CupertinoIcons.textformat),
-                  title: CupertinoTextField(
-                    controller: titleController,
-                    decoration: BoxDecoration(),
-                    padding: EdgeInsets.zero,
-                    placeholder: "Titre",
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: SettingsList(
+            platform: DevicePlatform.iOS,
+            sections: [
+              SettingsSection(
+                title: Text("Informations principales"),
+                tiles: [
+                  SettingsTile(
+                    leading: Icon(CupertinoIcons.textformat),
+                    title: CupertinoTextField(
+                      controller: titleController,
+                      decoration: BoxDecoration(),
+                      padding: EdgeInsets.zero,
+                      placeholder: "Titre",
+                    ),
                   ),
-                ),
-
-                SettingsTile(
-                  leading: Icon(CupertinoIcons.book),
-                  title: Text("Branche"),
-                  value: Text(SubjectHelper.toFrench(subject)),
-                  onPressed: (context) => showSubjectPicker(),
-                ),
-
-                SettingsTile(
-                  leading: Icon(CupertinoIcons.calendar),
-                  value: Text(formatDate(dueDate).capitalize()),
-                  title: Text("Date de remise"),
-                  onPressed: (context) => showDatePicker(),
-                ),
-              ],
-            ),
-
-            SettingsSection(
-              title: Text("Autres informations"),
-              tiles: [
-                SettingsTile.switchTile(
-                  leading: Icon(CupertinoIcons.chart_bar),
-                  title: Text("Noté"),
-                  initialValue: isGraded,
-                  onToggle: (newValue) {
-                    setState(() => isGraded = newValue);
-                  },
-                ),
-                SettingsTile(
-                  leading: Icon(CupertinoIcons.doc_text),
-                  title: CupertinoTextField(
-                    controller: descriptionController,
-                    decoration: BoxDecoration(),
-                    padding: EdgeInsets.zero,
-                    textAlignVertical: TextAlignVertical.top,
-                    minLines: 1,
-                    maxLines: 15,
-                    placeholder: "Description et liens",
+                  SettingsTile(
+                    leading: Icon(CupertinoIcons.book),
+                    title: Text("Branche"),
+                    value: Text(SubjectHelper.toFrench(subject)),
+                    onPressed: (context) => showSubjectPicker(),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  SettingsTile(
+                    leading: Icon(CupertinoIcons.calendar),
+                    value: Text(formatDate(dueDate).capitalize()),
+                    title: Text("Date de remise"),
+                    onPressed: (context) => showDatePicker(),
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: Text("Autres informations"),
+                tiles: [
+                  SettingsTile.switchTile(
+                    leading: Icon(CupertinoIcons.chart_bar),
+                    title: Text("Noté"),
+                    initialValue: isGraded,
+                    onToggle: (newValue) {
+                      setState(() => isGraded = newValue);
+                    },
+                  ),
+                  SettingsTile(
+                    leading: Icon(CupertinoIcons.doc_text),
+                    title: CupertinoTextField(
+                      controller: descriptionController,
+                      decoration: BoxDecoration(),
+                      padding: EdgeInsets.zero,
+                      textAlignVertical: TextAlignVertical.top,
+                      minLines: 1,
+                      maxLines: 15,
+                      placeholder: "Description et liens",
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
