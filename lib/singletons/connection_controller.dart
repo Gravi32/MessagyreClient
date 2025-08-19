@@ -195,6 +195,8 @@ class ConnectionController {
     bool handleAuthorization = true,
     bool hasRetried = false,
   }) async {
+
+    debugPrint("[POST] $route: $body");
     try {
       final response = await http
           .post(

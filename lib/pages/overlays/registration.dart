@@ -56,7 +56,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     startResendTimer();
     isWaitingForResponse = true;
 
-    final response = await router.post("Auth/Registration", {
+    final response = await router.post("/Auth/Registration", {
       "EmailAddress": "${emailController.text.trim()}@eduvaud.ch",
     }, handleAuthorization: false);
 
@@ -85,7 +85,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void sendCode() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("Auth/Registration", {
+    final response = await router.post("/Auth/Registration", {
       "RegistrationToken": registrationToken,
       "VerificationCode": codeController.text.trim(),
     }, handleAuthorization: false);
@@ -112,7 +112,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void sendPassword() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("Auth/Registration", {
+    final response = await router.post("/Auth/Registration", {
       "RegistrationToken": registrationToken,
       "Password": passwordController.text.trim(),
     }, handleAuthorization: false);
