@@ -135,7 +135,14 @@ class _SubjectPageState extends State<SubjectPage> {
     final newGrade = await showCupertinoSheet<Grade?>(
       context: context,
       pageBuilder:
-          (context) => NewGrade(subject: widget.subject, toEdit: toEdit),
+          (context) => NewGrade(
+            subject: widget.subject,
+            toEdit: toEdit,
+            onDelete: () {
+              widget.grades.remove(toEdit);
+              setState(() {}); 
+            },
+          ),
     );
 
     if (newGrade == null) return;

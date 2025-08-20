@@ -9,8 +9,9 @@ import 'package:settings_ui/settings_ui.dart';
 class NewGrade extends StatefulWidget {
   final Grade? toEdit;
   final Subject? subject;
+  final VoidCallback? onDelete;
 
-  const NewGrade({super.key, this.toEdit, this.subject});
+  const NewGrade({super.key, this.toEdit, this.subject, this.onDelete});
 
   @override
   State<StatefulWidget> createState() => _NewGradeState();
@@ -36,16 +37,17 @@ class _NewGradeState extends State<NewGrade> {
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
         context: context,
-        builder: (_) => CupertinoAlertDialog(
-          title: Text("Titre requis"),
-          content: Text("Veuillez entrer un titre pour la note."),
-          actions: [
-            CupertinoDialogAction(
-              child: Text("OK"),
-              onPressed: () => Navigator.pop(context),
+        builder:
+            (_) => CupertinoAlertDialog(
+              title: Text("Titre requis"),
+              content: Text("Veuillez entrer un titre pour la note."),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("OK"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
             ),
-          ],
-        ),
       );
       return;
     }
@@ -66,23 +68,25 @@ class _NewGradeState extends State<NewGrade> {
   void showSubjectPicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CustomSubjectPicker(
-        initialSubject: subject,
-        onSubjectSelected: (selectedSubject) {
-          setState(() => subject = selectedSubject);
-        },
-      ),
+      builder:
+          (_) => CustomSubjectPicker(
+            initialSubject: subject,
+            onSubjectSelected: (selectedSubject) {
+              setState(() => subject = selectedSubject);
+            },
+          ),
     );
   }
 
   void showDatePicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CustomDatePicker(
-        initialDate: date,
-        allowFuture: false,
-        onDateSelected: (newDate) => setState(() => date = newDate),
-      ),
+      builder:
+          (_) => CustomDatePicker(
+            initialDate: date,
+            allowFuture: false,
+            onDateSelected: (newDate) => setState(() => date = newDate),
+          ),
     );
   }
 
@@ -104,13 +108,17 @@ class _NewGradeState extends State<NewGrade> {
               itemExtent: 60,
               diameterRatio: 2,
               physics: const FixedExtentScrollPhysics(),
-              onSelectedItemChanged: (index) => setState(() => grade = grades[index]),
+              onSelectedItemChanged:
+                  (index) => setState(() => grade = grades[index]),
               childDelegate: ListWheelChildBuilderDelegate(
                 childCount: grades.length,
                 builder: (context, index) {
                   final thisGrade = grades[index];
                   final isWhole = thisGrade % 1 == 0;
-                  final display = isWhole ? thisGrade.toInt().toString() : thisGrade.toStringAsFixed(1);
+                  final display =
+                      isWhole
+                          ? thisGrade.toInt().toString()
+                          : thisGrade.toStringAsFixed(1);
                   final isSelected = grade == thisGrade;
 
                   return RotatedBox(
@@ -120,9 +128,12 @@ class _NewGradeState extends State<NewGrade> {
                         display,
                         style: TextStyle(
                           fontSize: isSelected ? 28 : 22,
-                          color: isSelected
-                              ? CupertinoColors.label.resolveFrom(context)
-                              : CupertinoColors.inactiveGray.resolveFrom(context),
+                          color:
+                              isSelected
+                                  ? CupertinoColors.label.resolveFrom(context)
+                                  : CupertinoColors.inactiveGray.resolveFrom(
+                                    context,
+                                  ),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -168,7 +179,7 @@ class _NewGradeState extends State<NewGrade> {
           onPressed: Navigator.of(context).pop,
           child: Text("Annuler"),
         ),
-        middle: Text(editMode ? "Modifier la note" : "Nouvelle note"),
+        middle: Text(editMode ? widget.toEdit!.title : "Nouvelle note"),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: confirmGrade,
@@ -180,7 +191,9 @@ class _NewGradeState extends State<NewGrade> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: SettingsList(
             platform: DevicePlatform.iOS,
             sections: [
@@ -192,9 +205,14 @@ class _NewGradeState extends State<NewGrade> {
                       decoration: BoxDecoration(),
                       padding: EdgeInsets.zero,
                       placeholder: "Test de Cryptographie 1",
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                      ),
                       placeholderStyle: TextStyle(
-                        color: CupertinoColors.placeholderText.resolveFrom(context),
+                        color: CupertinoColors.placeholderText.resolveFrom(
+                          context,
+                        ),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -207,7 +225,9 @@ class _NewGradeState extends State<NewGrade> {
                     title: Text(
                       "Branche",
                       style: TextStyle(
-                        color: CupertinoColors.inactiveGray.resolveFrom(context),
+                        color: CupertinoColors.inactiveGray.resolveFrom(
+                          context,
+                        ),
                       ),
                     ),
                     value: Text(
@@ -226,7 +246,9 @@ class _NewGradeState extends State<NewGrade> {
                             Text(
                               "Valeur",
                               style: TextStyle(
-                                color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                color: CupertinoColors.inactiveGray.resolveFrom(
+                                  context,
+                                ),
                               ),
                             ),
                             Text((switch (weight) {
@@ -240,7 +262,8 @@ class _NewGradeState extends State<NewGrade> {
                         CupertinoSlider(
                           value: weight,
                           divisions: 4,
-                          onChanged: (newWeight) => setState(() => weight = newWeight),
+                          onChanged:
+                              (newWeight) => setState(() => weight = newWeight),
                         ),
                       ],
                     ),
@@ -253,11 +276,14 @@ class _NewGradeState extends State<NewGrade> {
                     title: Text(
                       "Date de réception",
                       style: TextStyle(
-                        color: CupertinoColors.inactiveGray.resolveFrom(context),
+                        color: CupertinoColors.inactiveGray.resolveFrom(
+                          context,
+                        ),
                       ),
                     ),
                     value: Text(
-                      formatDate(date)[0].toUpperCase() + formatDate(date).substring(1),
+                      formatDate(date)[0].toUpperCase() +
+                          formatDate(date).substring(1),
                       style: TextStyle(fontSize: 16),
                     ),
                     onPressed: (context) => showDatePicker(),
@@ -275,12 +301,62 @@ class _NewGradeState extends State<NewGrade> {
                       textAlignVertical: TextAlignVertical.top,
                       minLines: 1,
                       maxLines: 15,
-                      placeholder: "Ajoutez des informations supplémentaires...",
+                      placeholder:
+                          "Ajoutez des informations supplémentaires...",
                     ),
                   ),
                   SettingsTile.navigation(
                     leading: Icon(CupertinoIcons.photo_on_rectangle),
                     title: Text("Ajouter des photos"),
+                  ),
+                ],
+              ),
+
+              if (editMode) SettingsSection(
+                tiles: [
+                  SettingsTile(
+                    leading: Icon(
+                      CupertinoIcons.trash,
+                      color: CupertinoColors.destructiveRed.resolveFrom(
+                        context,
+                      ),
+                    ),
+                    title: Text(
+                      "Supprimer la note",
+                      style: TextStyle(
+                        color: CupertinoColors.destructiveRed.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                    onPressed: (context) {
+                      showCupertinoDialog(
+                        context: context,
+                        builder:
+                            (_) => CupertinoAlertDialog(
+                              title: Text("Supprimer la note"),
+                              content: Text(
+                                "Êtes-vous sûr de vouloir supprimer cette note ?",
+                              ),
+                              actions: [
+                                CupertinoDialogAction(
+                                  child: Text("Annuler"),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  child: Text("Supprimer"),
+                                  onPressed: () {
+                                    widget.toEdit?.delete();
+                                    widget.onDelete?.call();
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop(widget.toEdit);
+                                  },
+                                ),
+                              ],
+                            ),
+                      );
+                    },
                   ),
                 ],
               ),
