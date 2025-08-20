@@ -107,7 +107,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
     });
 
     router.onMessageDataReceived.listen((messageData) {
-      //debugPrint("[chat.dart] message received $messageData");
+      debugPrint("[chat.dart] message received $messageData");
       final newMessage = Message.fromMessageData(messageData);
 
       setState(() {
