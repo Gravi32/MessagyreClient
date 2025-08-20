@@ -7,47 +7,106 @@ class StorageSettingsPage extends StatefulWidget {
   const StorageSettingsPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _StorageSettingsPageState();
+  State<StorageSettingsPage> createState() => _StorageSettingsPageState();
 }
 
 class _StorageSettingsPageState extends State<StorageSettingsPage> {
-
-  void confirmDeleteChats() {
+  Future<void> confirmDeleteBox(
+    String boxName,
+    String title,
+    String message,
+  ) async {
     showCupertinoDialog(
       context: context,
       builder:
           (dialogContext) => CupertinoAlertDialog(
-            title: Text("Effacer les conversations"),
-            content: Text(
-              "Toutes les conversations seront effacées, cette action est irréversible.",
-            ),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text("Annuler"),
+                title: Text(title),
+                content: Text(message),
+                actions: [
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text("Annuler"),
+                  ),
+                  CupertinoDialogAction(
+                    isDestructiveAction: true,
+                    onPressed: () async {
+                      try {
+                        if (boxName == "Chats") {
+                          final box =
+                              Hive.isBoxOpen("Chats")
+                                  ? Hive.box<Chat>("Chats")
+                                  : await Hive.openBox<Chat>("Chats");
+                          await box.clear();
+                        } else if (boxName == "Homework") {
+                          final box =
+                              Hive.isBoxOpen("Homework")
+                                  ? Hive.box<Homework>("Homework")
+                                  : await Hive.openBox<Homework>("Homework");
+                          await box.clear();
+                        } else if (boxName == "Grades") {
+                          final box =
+                              Hive.isBoxOpen("Grades")
+                                  ? Hive.box<Grade>("Grades")
+                                  : await Hive.openBox<Grade>("Grades");
+                          await box.clear();
+                        }
+                      } catch (e, s) {
+                        debugPrintStack(stackTrace: s, label: e.toString());
+                      }
+                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                    },
+                    child: Text("Effacer"),
+                  ),
+                ],
               ),
-              CupertinoDialogAction(
-                isDestructiveAction: true,
-                onPressed: () async {
-                  try {
-                    if (Hive.isBoxOpen("Chats")) {
-                      await Hive.box<Chat>("Chats").clear();
-                    } else if (await Hive.boxExists("Chats")) {
-                      var box = await Hive.openBox<Chat>("Chats");
-                      await box.clear();
-                    }
-                  } catch (e, s) {
-                    debugPrintStack(stackTrace: s, label: e.toString());
-                  }
+    );
+  }
 
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                },
-                child: Text("Effacer"),
+  Future<void> confirmDeleteAll() async {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (dialogContext) => CupertinoAlertDialog(
+                title: Text("Effacer toutes les données"),
+                content: Text(
+                  "Toutes les notes, tous les devoirs et toutes les conversations seront supprimés de manière irréversible.",
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text("Annuler"),
+                  ),
+                  CupertinoDialogAction(
+                    isDestructiveAction: true,
+                    onPressed: () async {
+                      try {
+                        for (var boxName in ["Chats", "Grades", "Homework"]) {
+                          if (boxName == "Chats") {
+                            final box = Hive.isBoxOpen("Chats")
+                                ? Hive.box<Chat>("Chats")
+                                : await Hive.openBox<Chat>("Chats");
+                            await box.clear();
+                          } else if (boxName == "Grades") {
+                            final box = Hive.isBoxOpen("Grades")
+                                ? Hive.box<Grade>("Grades")
+                                : await Hive.openBox<Grade>("Grades");
+                            await box.clear();
+                          } else if (boxName == "Homework") {
+                            final box = Hive.isBoxOpen("Homework")
+                                ? Hive.box<Homework>("Homework")
+                                : await Hive.openBox<Homework>("Homework");
+                            await box.clear();
+                          }
+                        }
+                      } catch (e, s) {
+                        debugPrintStack(stackTrace: s, label: e.toString());
+                      }
+                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                    },
+                    child: Text("Effacer"),
+                  ),
+                ],
               ),
-            ],
-          ),
     );
   }
 
@@ -65,13 +124,55 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             SettingsSection(
               tiles: [
                 SettingsTile(
+                  leading: Icon(CupertinoIcons.chat_bubble_2, color: CupertinoColors.destructiveRed),
                   title: Text(
                     "Effacer les conversations",
                     style: TextStyle(color: CupertinoColors.destructiveRed),
                   ),
-                  onPressed: (context) {
-                    confirmDeleteChats();
-                  },
+                  onPressed:
+                      (context) => confirmDeleteBox(
+                        "Chats",
+                        "Effacer les conversations",
+                        "Toutes les conversations seront effacées, cette action est irréversible.",
+                      ),
+                ),
+                SettingsTile(
+                  leading: Icon(CupertinoIcons.table, color: CupertinoColors.destructiveRed),
+                  title: Text(
+                    "Effacer les notes",
+                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  ),
+                  onPressed:
+                      (context) => confirmDeleteBox(
+                        "Grades",
+                        "Effacer les notes",
+                        "Toutes les notes seront effacées, cette action est irréversible.",
+                      ),
+                ),
+                SettingsTile(
+                  leading: Icon(CupertinoIcons.checkmark_square, color: CupertinoColors.destructiveRed),
+                  title: Text(
+                    "Effacer les devoirs",
+                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  ),
+                  onPressed:
+                      (context) => confirmDeleteBox(
+                        "Homework",
+                        "Effacer les devoirs",
+                        "Tous les devoirs seront effacés, cette action est irréversible.",
+                      ),
+                ),
+              ],
+            ),
+            SettingsSection(
+              tiles: [
+                SettingsTile(
+                  leading: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
+                  title: Text(
+                    "Tout effacer",
+                    style: TextStyle(color: CupertinoColors.destructiveRed),
+                  ),
+                  onPressed: (context) => confirmDeleteAll(),
                 ),
               ],
             ),
