@@ -184,6 +184,28 @@ class _SettingsPageState extends State<SettingsPage> {
                   leading: Icon(CupertinoIcons.delete),
                   title: Text("Effacer les données"),
                 ),
+                SettingsTile(
+                  onPressed:
+                      (context) => Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (context) => StorageSettingsPage(),
+                        ),
+                      ),
+                  leading: Icon(CupertinoIcons.square_arrow_up),
+                  title: Text("Exporter les données"),
+                  enabled: false, // Placeholder for future implementation
+                ),
+                SettingsTile(
+                  onPressed:
+                      (context) => Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (context) => StorageSettingsPage(),
+                        ),
+                      ),
+                  leading: Icon(CupertinoIcons.square_arrow_down),
+                  title: Text("Importer les données"),
+                  enabled: false, // Placeholder for future implementation
+                ),
               ],
             ),
 
