@@ -144,6 +144,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final data = Data();
 
   void _switchToAccess() {
+    print("[!] Unauthorized access, switching to AccessOverlay");
+
     navigatorKey.currentState?.push(
       CupertinoPageRoute(builder: (_) => AccessOverlay()),
     );

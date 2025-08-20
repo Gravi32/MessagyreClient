@@ -55,6 +55,7 @@ class ConnectionController {
 
     if ((data.token == null || data.username == null) &&
         onUnauthorized != null) {
+      debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
       onUnauthorized!();
       return;
     }
@@ -140,6 +141,8 @@ class ConnectionController {
       data.isConnecting.value = false;
       data.isConnected.value = false;
       if (e.toString().contains("401") && onUnauthorized != null) {
+        debugPrint("[WebSocket] Unauthorized access, switching to AccessOverlay");
+        _channel = null;
         onUnauthorized!();
         return;
       }
@@ -223,6 +226,7 @@ class ConnectionController {
             hasRetried: true,
           );
         } else if (onUnauthorized != null) {
+          debugPrint("[POST] Unauthorized access, switching to AccessOverlay ($route)");
           onUnauthorized!();
         }
       }
@@ -267,6 +271,7 @@ class ConnectionController {
             hasRetried: true,
           );
         } else if (onUnauthorized != null) {
+          debugPrint("[GET] Unauthorized access, switching to AccessOverlay ($route)");
           onUnauthorized!();
         }
       }
