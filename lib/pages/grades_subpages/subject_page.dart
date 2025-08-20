@@ -32,7 +32,7 @@ class _SubjectPageState extends State<SubjectPage> {
             height: 55,
             child: Row(
               children: [
-                GradeDisplay(grade: gradeData.grade),
+                GradeDisplay(grade: gradeData.grade, weight: gradeData.weight,),
 
                 SizedBox(width: 12),
 

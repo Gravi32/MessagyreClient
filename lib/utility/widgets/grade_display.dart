@@ -5,8 +5,14 @@ import 'package:messagyre_client/utility/utility.dart';
 class GradeDisplay extends StatefulWidget {
   final double grade;
   final double size;
+  final double weight;
 
-  const GradeDisplay({super.key, required this.grade, this.size = 48});
+  const GradeDisplay({
+    super.key,
+    required this.grade,
+    this.size = 48,
+    this.weight = 1.0,
+  });
 
   @override
   State<GradeDisplay> createState() => _GradeDisplayState();
@@ -17,6 +23,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
   Widget build(BuildContext context) {
     final double size = widget.size;
     final CupertinoDynamicColor color;
+    final int alpha = ((.25 + widget.weight * .75) * 255).toInt();
 
     if (widget.grade >= 4) {
       color = CupertinoColors.activeGreen;
@@ -28,7 +35,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
 
     return SizedBox(
       width: size,
-      height: size,
+      height: size + 14,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -42,7 +49,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   value: widget.grade / 6,
                   strokeWidth: 4,
                   strokeCap: StrokeCap.round,
-                  color: color,
+                  color: color.withAlpha(alpha),
                 ),
                 Transform.flip(
                   flipX: true,
@@ -54,9 +61,9 @@ class _GradeDisplayState extends State<GradeDisplay> {
                       strokeCap: StrokeCap.round,
                       color: adaptiveColor(
                         context,
-                        CupertinoColors.black.withAlpha(30),
-                        CupertinoColors.white.withAlpha(30),
-                      ),
+                        CupertinoColors.black,
+                        CupertinoColors.white,
+                      ).withAlpha(30),
                     ),
                   ),
                 ),
@@ -64,13 +71,44 @@ class _GradeDisplayState extends State<GradeDisplay> {
             ),
           ),
           Text(
-            widget.grade.toStringAsFixed(1),
+            widget.grade % 1 == 0
+                ? widget.grade.toInt().toString()
+                : widget.grade.toStringAsFixed(1),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: CupertinoColors.label.resolveFrom(context),
             ),
           ),
+          if (widget.weight != 1)
+            Positioned(
+              bottom: 0,
+              child: Transform.translate(
+                offset: const Offset(0, 1),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.systemBackground.resolveFrom(context).withAlpha(200),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    "${(widget.weight * 100).toInt()}%",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

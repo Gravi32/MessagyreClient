@@ -36,7 +36,7 @@ class _GradesPageState extends State<GradesPage> {
             height: 55,
             child: Row(
               children: [
-                GradeDisplay(grade: calculateAverage(grades), size: 56),
+                GradeDisplay(grade: calculateAverage(grades), size: 56,),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
