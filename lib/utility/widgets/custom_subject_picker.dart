@@ -37,7 +37,7 @@ class _CustomSubjectPickerState extends State<CustomSubjectPicker> {
       child: Column(
         children: [
           Container(
-            color: CupertinoColors.systemGrey6,
+            color: CupertinoColors.systemBackground.resolveFrom(context),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
