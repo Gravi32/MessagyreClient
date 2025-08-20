@@ -34,7 +34,7 @@ class _GradesPageState extends State<GradesPage> {
     return total / grades.length;
   }
 
-  Widget buildSubjectBar(Subject subject, List<Grade> grades) {
+  Widget buildSubjectBar(Subject subject, List<Grade> grades, int index) {
     return Column(
       children: [
         CupertinoButton(
@@ -74,14 +74,27 @@ class _GradesPageState extends State<GradesPage> {
                     ],
                   ),
                 ),
+
+                ReorderableDragStartListener(
+                  index: index,
+
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      CupertinoIcons.line_horizontal_3,
+                      size: 20,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
           onPressed: () {
             Navigator.of(context, rootNavigator: true).push(
               CupertinoPageRoute(
-                builder: (builder) =>
-                    SubjectPage(subject: subject, grades: grades),
+                builder:
+                    (builder) => SubjectPage(subject: subject, grades: grades),
               ),
             );
           },
@@ -123,7 +136,6 @@ class _GradesPageState extends State<GradesPage> {
     }
     subjectGradeList = subjectGradeMap.entries.toList();
 
-    // Ordina secondo la box SubjectOrder
     final savedOrder = subjectOrderBox.get('order')?.cast<int>();
     if (savedOrder != null) {
       subjectGradeList.sort((a, b) {
@@ -154,83 +166,68 @@ class _GradesPageState extends State<GradesPage> {
                   builder: (context, Box<Grade> box, _) {
                     return subjectGradeList.isEmpty
                         ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                CupertinoIcons.sparkles,
-                                size: 40,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              CupertinoIcons.sparkles,
+                              size: 40,
+                              color: CupertinoColors.separator.resolveFrom(
+                                context,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Ajoutez une note !",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
                                 color: CupertinoColors.separator.resolveFrom(
                                   context,
                                 ),
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                "Ajoutez une note !",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.separator.resolveFrom(
-                                    context,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
+                            ),
+                          ],
+                        )
                         : ReorderableListView.builder(
-                            buildDefaultDragHandles: false,
-                            itemCount: subjectGradeList.length,
-                            padding: EdgeInsets.only(top: 8),
-                            onReorder: (oldIndex, newIndex) {
-                              if (newIndex > oldIndex) newIndex--;
-                              final subjectGrades =
-                                  subjectGradeList.removeAt(oldIndex);
-                              subjectGradeList.insert(newIndex, subjectGrades);
+                          buildDefaultDragHandles: false,
+                          itemCount: subjectGradeList.length,
+                          padding: EdgeInsets.only(top: 8),
+                          onReorder: (oldIndex, newIndex) {
+                            if (newIndex > oldIndex) newIndex--;
+                            final subjectGrades = subjectGradeList.removeAt(
+                              oldIndex,
+                            );
+                            subjectGradeList.insert(newIndex, subjectGrades);
 
-                              // Salva l'ordine nella box SubjectOrder
-                              final order = subjectGradeList
-                                  .map((e) => e.key.index)
-                                  .toList();
-                              subjectOrderBox.put('order', order);
-                            },
-                            proxyDecorator: (
-                              Widget child,
-                              int index,
-                              Animation<double> animation,
-                            ) {
-                              return Material(
-                                color: CupertinoColors.systemBackground
-                                    .resolveFrom(context)
-                                    .withAlpha(150),
-                                child: child,
-                              );
-                            },
-                            itemBuilder: (context, index) {
-                              final subjectGrades = subjectGradeList[index];
-                              return Container(
-                                key: ValueKey(subjectGrades.key),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: buildSubjectBar(
-                                        subjectGrades.key,
-                                        subjectGrades.value,
-                                      ),
-                                    ),
-                                    ReorderableDragStartListener(
-                                      index: index,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Icon(
-                                          CupertinoIcons.line_horizontal_3,
-                                          size: 20,
-                                          color: CupertinoColors.systemGrey,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
+                            final order =
+                                subjectGradeList
+                                    .map((e) => e.key.index)
+                                    .toList();
+                            subjectOrderBox.put('order', order);
+                          },
+                          proxyDecorator: (
+                            Widget child,
+                            int index,
+                            Animation<double> animation,
+                          ) {
+                            return Material(
+                              color: CupertinoColors.systemBackground
+                                  .resolveFrom(context)
+                                  .withAlpha(150),
+                              child: child,
+                            );
+                          },
+                          itemBuilder: (context, index) {
+                            final subjectGrades = subjectGradeList[index];
+                            return Container(
+                              key: ValueKey(subjectGrades.key),
+                              child: buildSubjectBar(
+                                subjectGrades.key,
+                                subjectGrades.value,
+                                index
+                              ),
+                            );
+                          },
+                        );
                   },
                 ),
               ),
