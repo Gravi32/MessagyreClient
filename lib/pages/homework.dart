@@ -257,7 +257,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
               sizeStyle: CupertinoButtonSize.medium,
               child: Row(
                 spacing: 8,
-                children: [Icon(CupertinoIcons.add), Text("Ajouter un devoir")],
+                children: [Icon(CupertinoIcons.add), Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w500),)],
               ),
             ),
           ),

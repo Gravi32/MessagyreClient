@@ -25,8 +25,6 @@ class _GradesPageState extends State<GradesPage> {
   late Box<List> subjectOrderBox;
   List<MapEntry<Subject, List<Grade>>> subjectGradeList = [];
 
-  
-
   Widget buildSubjectBar(Subject subject, List<Grade> grades, int index) {
     return Column(
       children: [
@@ -36,7 +34,7 @@ class _GradesPageState extends State<GradesPage> {
             height: 55,
             child: Row(
               children: [
-                GradeDisplay(grade: calculateAverage(grades), size: 56,),
+                GradeDisplay(grade: calculateAverage(grades), size: 56),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -237,7 +235,10 @@ class _GradesPageState extends State<GradesPage> {
                 children: [
                   Icon(CupertinoIcons.add),
                   SizedBox(width: 8),
-                  Text("Ajouter une note"),
+                  Text(
+                    "Ajouter une note",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
                 ],
               ),
             ),

@@ -32,7 +32,7 @@ class _SubjectPageState extends State<SubjectPage> {
             height: 55,
             child: Row(
               children: [
-                GradeDisplay(grade: gradeData.grade, weight: gradeData.weight,),
+                GradeDisplay(grade: gradeData.grade, weight: gradeData.weight),
 
                 SizedBox(width: 12),
 
@@ -140,7 +140,7 @@ class _SubjectPageState extends State<SubjectPage> {
             toEdit: toEdit,
             onDelete: () {
               widget.grades.remove(toEdit);
-              setState(() {}); 
+              setState(() {});
             },
           ),
     );
@@ -196,7 +196,13 @@ class _SubjectPageState extends State<SubjectPage> {
               sizeStyle: CupertinoButtonSize.medium,
               child: Row(
                 spacing: 8,
-                children: [Icon(CupertinoIcons.add), Text("Ajouter une note")],
+                children: [
+                  Icon(CupertinoIcons.add),
+                  Text(
+                    "Ajouter une note",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ],
               ),
             ),
           ),
