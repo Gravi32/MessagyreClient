@@ -25,14 +25,7 @@ class _GradesPageState extends State<GradesPage> {
   late Box<List> subjectOrderBox;
   List<MapEntry<Subject, List<Grade>>> subjectGradeList = [];
 
-  double calculateAverage(List<Grade> grades) {
-    if (grades.isEmpty) return 0.0;
-    double total = 0.0;
-    for (var gradeData in grades) {
-      total += gradeData.grade;
-    }
-    return total / grades.length;
-  }
+  
 
   Widget buildSubjectBar(Subject subject, List<Grade> grades, int index) {
     return Column(
@@ -223,7 +216,7 @@ class _GradesPageState extends State<GradesPage> {
                               child: buildSubjectBar(
                                 subjectGrades.key,
                                 subjectGrades.value,
-                                index
+                                index,
                               ),
                             );
                           },

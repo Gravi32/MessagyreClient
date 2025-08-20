@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/utility/classes.dart';
 
 extension StringCasingExtension on String {
   String capitalize() {
@@ -81,4 +82,18 @@ String formatSwissPhoneNumber(String input) {
   if (digits.length > 9) buffer.write(' ${digits.substring(9)}');
 
   return buffer.toString();
+}
+
+double calculateAverage(List<Grade> grades) {
+  if (grades.isEmpty) return 0.0;
+
+  double total = 0.0;
+  double totalWeight = 0.0;
+
+  for (var gradeData in grades) {
+    total += gradeData.grade * gradeData.weight;
+    totalWeight += gradeData.weight;
+  }
+
+  return totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
 }
