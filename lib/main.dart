@@ -29,10 +29,13 @@ void main() async {
   await Hive.openBox<Chat>("Chats");
   await Hive.openBox<Homework>("Homework");
   await Hive.openBox<Grade>("Grades");
+  
+  // Box per salvare l'ordine dei subject
+  await Hive.openBox<List>("SubjectOrder");  
+
   final miscBox = await Hive.openBox("Misc");
 
   final data = Data();
-
   data.username = miscBox.get("Username")?.toString();
   data.appBrightnessNotifier.value = Brightness.dark;
 
@@ -49,7 +52,6 @@ void main() async {
 
   runApp(App());
 }
-
 
 class App extends StatelessWidget {
   App({super.key});
@@ -100,6 +102,11 @@ class App extends StatelessWidget {
             brightness: brightness,
             primaryColor: Color.fromRGBO(100, 25, 104, 1),
           ),
+          localizationsDelegates: [
+            DefaultMaterialLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
           home: MainPage(),
         );
       },
@@ -111,7 +118,6 @@ class Page {
   final String name;
   final IconData idleIcon;
   final IconData selectedIcon;
-
   final Widget Function() build;
 
   const Page({
@@ -170,15 +176,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         onTap: (_) {
           setState(() {});
         },
-        items:
-            App.pages.map((page) {
-              final index = App.pages.indexOf(page);
-              final isSelected = MainPage.tabController.index == index;
-              return BottomNavigationBarItem(
-                icon: Icon(isSelected ? page.selectedIcon : page.idleIcon),
-                label: page.name,
-              );
-            }).toList(),
+        items: App.pages.map((page) {
+          final index = App.pages.indexOf(page);
+          final isSelected = MainPage.tabController.index == index;
+          return BottomNavigationBarItem(
+            icon: Icon(isSelected ? page.selectedIcon : page.idleIcon),
+            label: page.name,
+          );
+        }).toList(),
       ),
       tabBuilder: (BuildContext context, int currentPage) {
         return CupertinoTabView(
