@@ -45,6 +45,28 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
     }
   }
 
+  Future<void> deleteBox(String name) async {
+    try {
+      Box<HiveObject>? box;
+      bool isOpen = Hive.isBoxOpen(name);
+
+      if (name == "Chats") {
+        box = isOpen ? Hive.box<Chat>(name) : await Hive.openBox<Chat>(name);
+      } else if (name == "Homework") {
+        box =
+            isOpen
+                ? Hive.box<Homework>(name)
+                : await Hive.openBox<Homework>(name);
+      } else if (name == "Grades") {
+        box = isOpen ? Hive.box<Grade>(name) : await Hive.openBox<Grade>(name);
+      }
+
+      await box?.clear();
+    } catch (e, s) {
+      debugPrintStack(stackTrace: s, label: e.toString());
+    }
+  }
+
   String formatBytes(int bytes) => "${(bytes / 1024).toStringAsFixed(1)} Ko";
 
   Future<void> confirmDeleteBox(
@@ -66,29 +88,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () async {
-                  try {
-                    if (boxName == "Chats") {
-                      final box =
-                          Hive.isBoxOpen("Chats")
-                              ? Hive.box<Chat>("Chats")
-                              : await Hive.openBox<Chat>("Chats");
-                      await box.clear();
-                    } else if (boxName == "Homework") {
-                      final box =
-                          Hive.isBoxOpen("Homework")
-                              ? Hive.box<Homework>("Homework")
-                              : await Hive.openBox<Homework>("Homework");
-                      await box.clear();
-                    } else if (boxName == "Grades") {
-                      final box =
-                          Hive.isBoxOpen("Grades")
-                              ? Hive.box<Grade>("Grades")
-                              : await Hive.openBox<Grade>("Grades");
-                      await box.clear();
-                    }
-                  } catch (e, s) {
-                    debugPrintStack(stackTrace: s, label: e.toString());
-                  }
+                  await deleteBox(boxName);
 
                   await _loadBoxSizes();
                   if (dialogContext.mounted) Navigator.of(dialogContext).pop();
@@ -118,18 +118,9 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
                 isDestructiveAction: true,
                 onPressed: () async {
                   for (var boxName in ["Chats", "Grades", "Homework"]) {
-                    try {
-                      if (Hive.isBoxOpen(boxName)) {
-                        await Hive.box(boxName).clear();
-                      } else if (await Hive.boxExists(boxName)) {
-                        final box = await Hive.openBox(boxName);
-                        await box.clear();
-                      }
-                    } catch (e, s) {
-                      debugPrintStack(stackTrace: s, label: e.toString());
-                    }
+                    deleteBox(boxName);
                   }
-                  await _loadBoxSizes(); // aggiorna dimensioni
+                  await _loadBoxSizes();
                   if (dialogContext.mounted) Navigator.of(dialogContext).pop();
                 },
                 child: Text("Effacer"),
