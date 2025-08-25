@@ -55,7 +55,9 @@ class ConnectionController {
 
     if ((data.token == null || data.username == null) &&
         onUnauthorized != null) {
-      debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
+      debugPrint(
+        "[ConnectionController] No token or username found in storage. Switching to AccessOverlay.",
+      );
       onUnauthorized!();
       return;
     }
@@ -69,7 +71,7 @@ class ConnectionController {
 
     final response = await post("/Auth/Refresh", {
       "RefreshToken": refreshToken,
-    }, handleAuthorization: false);
+    });
 
     if (response.statusCode != 200) return false;
 
@@ -83,8 +85,27 @@ class ConnectionController {
     return true;
   }
 
-  // WebSocket Requests
+  Future<bool> isAuthorized() async {
+    if (onUnauthorized == null) return false;
 
+    // No token stored, either the first time on the app or logged out
+    if (data.token == null) {
+      onUnauthorized!();
+      return false;
+    }
+
+    final response = refreshAccessToken();
+
+    // The server refused to refresh access, user was kicked out or banned
+    if (!await response) {
+      onUnauthorized!();
+      return false;
+    }
+
+    return response;
+  }
+
+  // WebSocket Requests
   void connect() async {
     if (isConnected) return;
 
@@ -92,10 +113,14 @@ class ConnectionController {
       data.isConnected.value = false;
       data.isConnecting.value = true;
 
+      debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
+
+      if (!await isAuthorized()) return;
+
       final socket = await WebSocket.connect(
         serverWebSocketAddress,
         headers: {'Authorization': 'Bearer ${data.token}'},
-      ).timeout(const Duration(seconds: 35));
+      ).timeout(const Duration(seconds: 40));
 
       _channel = IOWebSocketChannel(socket);
 
@@ -137,19 +162,18 @@ class ConnectionController {
       );
 
       _connectionStatusController.add(null);
-    } catch (e) {
+    } catch (errorData) {
+      final error = errorData.toString();
       data.isConnecting.value = false;
       data.isConnected.value = false;
-      if (e.toString().contains("401") && onUnauthorized != null) {
-        debugPrint("[WebSocket] Unauthorized access, switching to AccessOverlay");
-        _channel = null;
-        onUnauthorized!();
-        return;
-      }
+
       debugPrint(
-        "[WebSocket] Could not connect to $serverWebSocketAddress ($e). Retrying...",
+        "[WebSocket] Could not connect to $serverWebSocketAddress \n\t($error). \t\nRetrying...",
       );
+
+      // Reconnecting after 3 seconds
       _channel = null;
+      await Future.delayed(const Duration(seconds: 3));
       connect();
     }
   }
@@ -199,37 +223,18 @@ class ConnectionController {
     String route,
     Object body, {
     int timeout = 30,
-    bool handleAuthorization = true,
-    bool hasRetried = false,
   }) async {
-    debugPrint("[POST] $route: $body");
     try {
       final response = await http
           .post(
             Uri.parse(serverHTTPAddress + route),
             headers: {
               "Content-Type": "application/json",
-              if (handleAuthorization && data.token != null)
-                "Authorization": "Bearer ${data.token!}",
+              if (data.token != null) "Authorization": "Bearer ${data.token!}",
             },
             body: jsonEncode(body),
           )
           .timeout(Duration(seconds: timeout));
-
-      if (response.statusCode == 401 && handleAuthorization && !hasRetried) {
-        if (await refreshAccessToken()) {
-          return await post(
-            route,
-            body,
-            timeout: timeout,
-            handleAuthorization: handleAuthorization,
-            hasRetried: true,
-          );
-        } else if (onUnauthorized != null) {
-          debugPrint("[POST] Unauthorized access, switching to AccessOverlay ($route)");
-          onUnauthorized!();
-        }
-      }
 
       return response;
     } on TimeoutException {
@@ -241,40 +246,17 @@ class ConnectionController {
     }
   }
 
-  Future<http.Response> get(
-    String route, {
-    bool sendToken = true,
-    int timeout = 30,
-    bool handleAuthorization = true,
-    bool hasRetried = false,
-  }) async {
+  Future<http.Response> get(String route, {int timeout = 30}) async {
     try {
       final response = await http
           .get(
             Uri.parse(serverHTTPAddress + route),
             headers: {
               "Content-Type": "application/json",
-              if (sendToken && data.token != null)
-                "Authorization": "Bearer ${data.token!}",
+              if (data.token != null) "Authorization": "Bearer ${data.token!}",
             },
           )
           .timeout(Duration(seconds: timeout));
-
-      if (response.statusCode == 401 && handleAuthorization && !hasRetried) {
-        final refreshed = await refreshAccessToken();
-        if (refreshed) {
-          return await get(
-            route,
-            sendToken: sendToken,
-            timeout: timeout,
-            handleAuthorization: handleAuthorization,
-            hasRetried: true,
-          );
-        } else if (onUnauthorized != null) {
-          debugPrint("[GET] Unauthorized access, switching to AccessOverlay ($route)");
-          onUnauthorized!();
-        }
-      }
 
       return response;
     } on TimeoutException {

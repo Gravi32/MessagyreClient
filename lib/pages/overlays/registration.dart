@@ -58,7 +58,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     final response = await router.post("/Auth/Registration", {
       "EmailAddress": "${emailController.text.trim()}@eduvaud.ch",
-    }, handleAuthorization: false);
+    });
 
     isWaitingForResponse = false;
 
@@ -88,7 +88,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final response = await router.post("/Auth/Registration", {
       "RegistrationToken": registrationToken,
       "VerificationCode": codeController.text.trim(),
-    }, handleAuthorization: false);
+    });
 
     isWaitingForResponse = false;
 
@@ -115,7 +115,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final response = await router.post("/Auth/Registration", {
       "RegistrationToken": registrationToken,
       "Password": passwordController.text.trim(),
-    }, handleAuthorization: false);
+    });
 
     isWaitingForResponse = false;
 
@@ -134,13 +134,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
       final accessToken = responseData["AccessToken"];
       final refreshToken = responseData["RefreshToken"];
       final username = responseData["Username"];
-      
+
       data.token = accessToken;
       data.username = username;
       isWaitingForResponse = true;
 
-      await FlutterSecureStorage().write(key: "AccessToken", value: accessToken);
-      await FlutterSecureStorage().write(key: "RefreshToken", value: refreshToken);
+      await FlutterSecureStorage().write(
+        key: "AccessToken",
+        value: accessToken,
+      );
+      await FlutterSecureStorage().write(
+        key: "RefreshToken",
+        value: refreshToken,
+      );
       await Hive.box("Misc").put("Username", username);
 
       if (mounted) Navigator.of(context, rootNavigator: true).pop();

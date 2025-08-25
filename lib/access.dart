@@ -54,7 +54,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
     var response = await router.post("/Auth/Login", {
       "Username": username,
       "Password": password,
-    }, handleAuthorization: false);
+    });
 
     isWaitingForResponse.value = false;
     final responseData = jsonDecode(response.body);
@@ -88,9 +88,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
     // Closing the page
     if (mounted) Navigator.of(context).pop();
-    debugPrint(
-      "[Login successful] Token received and stored.",
-    );
+    debugPrint("[Login successful] Token received and stored.");
 
     // Connecting to the WebSocket
     router.connect();
