@@ -150,13 +150,14 @@ class GradeAdapter extends TypeAdapter<Grade> {
       ..grade = fields[2] as double
       ..date = fields[3] as DateTime
       ..details = fields[4] as String?
-      ..weight = fields[5] as double;
+      ..weight = fields[5] as double
+      ..groupName = fields[6] as String?;
   }
 
   @override
   void write(BinaryWriter writer, Grade obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.subject)
       ..writeByte(1)
@@ -168,7 +169,9 @@ class GradeAdapter extends TypeAdapter<Grade> {
       ..writeByte(4)
       ..write(obj.details)
       ..writeByte(5)
-      ..write(obj.weight);
+      ..write(obj.weight)
+      ..writeByte(6)
+      ..write(obj.groupName);
   }
 
   @override

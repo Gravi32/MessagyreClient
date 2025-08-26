@@ -10,8 +10,17 @@ class NewGrade extends StatefulWidget {
   final Grade? toEdit;
   final Subject? subject;
   final VoidCallback? onDelete;
+  final List<String> existingGroupNames;
+  final String? groupName;
 
-  const NewGrade({super.key, this.toEdit, this.subject, this.onDelete});
+  const NewGrade({
+    super.key,
+    this.toEdit,
+    this.subject,
+    this.onDelete,
+    this.existingGroupNames = const [],
+    this.groupName,
+  });
 
   @override
   State<StatefulWidget> createState() => _NewGradeState();
@@ -32,8 +41,15 @@ class _NewGradeState extends State<NewGrade> {
   late double grade = widget.toEdit?.grade ?? 4;
   late DateTime date = widget.toEdit?.date ?? DateTime.now();
   late double weight = widget.toEdit?.weight ?? 1;
+  late String? groupName = widget.toEdit?.groupName ?? widget.groupName;
+
+  late bool isInGroup = groupName != null;
+
+  late List<String> groupNames = List.from(widget.existingGroupNames);
 
   void confirmGrade() {
+    print("Confirming grade");
+
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
         context: context,
@@ -60,9 +76,12 @@ class _NewGradeState extends State<NewGrade> {
       ..weight = weight
       ..subject = subject
       ..date = date
-      ..details = detailsController.text;
+      ..details = detailsController.text
+      ..groupName = groupName;
 
     Navigator.of(context).pop(gradeData);
+
+    print("window popped");
   }
 
   void showSubjectPicker() {
@@ -270,6 +289,110 @@ class _NewGradeState extends State<NewGrade> {
                   ),
                 ],
               ),
+
+              SettingsSection(
+                tiles: [
+                  SettingsTile.switchTile(
+                    title: Text(
+                      "Fait partie d'un groupe",
+                      style: TextStyle(
+                        color: CupertinoColors.inactiveGray.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                    initialValue: isInGroup,
+                    onToggle: (value) {
+                      setState(() {
+                        isInGroup = value;
+                        if (!value) {
+                          groupName = null;
+                        }
+                      });
+                    },
+                  ),
+
+                  if (isInGroup) ...[
+                    ...groupNames.map((name) {
+                      return SettingsTile(
+                        title: GestureDetector(
+                          child: Text(name),
+                          onTap:
+                              () => setState(() {
+                                groupName = name;
+                              }),
+                        ),
+                        trailing:
+                            groupName == name
+                                ? Icon(CupertinoIcons.check_mark, size: 18)
+                                : null,
+                      );
+                    }),
+
+                    SettingsTile(
+                      title: GestureDetector(
+                        child: Row(
+                          children: [
+                            Icon(CupertinoIcons.add_circled, size: 20),
+                            const SizedBox(width: 10),
+                            Text("Ajouter un groupe"),
+                          ],
+                        ),
+                        onTap: () {
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (_) {
+                              final controller = TextEditingController();
+                              return CupertinoAlertDialog(
+                                title: Text("Nouveau groupe"),
+                                content: Column(
+                                  children: [
+                                    SizedBox(height: 10),
+                                    CupertinoTextField(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 10,
+                                        horizontal: 12,
+                                      ),
+                                      controller: controller,
+                                      placeholder: "Nom du groupe",
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text("Annuler"),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                  CupertinoDialogAction(
+                                    isDefaultAction: true,
+                                    child: Text("Ajouter"),
+                                    onPressed: () {
+                                      final newName = controller.text.trim();
+                                      try {
+                                        if (newName.isNotEmpty &&
+                                            !groupNames.contains(newName)) {
+                                          setState(() {
+                                            groupNames.add(newName);
+                                            groupName = newName;
+                                          });
+                                        }
+                                      } catch (e) {
+                                        debugPrint("Error adding group: $e");
+                                      }
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+
               SettingsSection(
                 tiles: [
                   SettingsTile(
@@ -312,54 +435,55 @@ class _NewGradeState extends State<NewGrade> {
                 ],
               ),
 
-              if (editMode) SettingsSection(
-                tiles: [
-                  SettingsTile(
-                    leading: Icon(
-                      CupertinoIcons.trash,
-                      color: CupertinoColors.destructiveRed.resolveFrom(
-                        context,
-                      ),
-                    ),
-                    title: Text(
-                      "Supprimer la note",
-                      style: TextStyle(
+              if (editMode)
+                SettingsSection(
+                  tiles: [
+                    SettingsTile(
+                      leading: Icon(
+                        CupertinoIcons.trash,
                         color: CupertinoColors.destructiveRed.resolveFrom(
                           context,
                         ),
                       ),
-                    ),
-                    onPressed: (context) {
-                      showCupertinoDialog(
-                        context: context,
-                        builder:
-                            (_) => CupertinoAlertDialog(
-                              title: Text("Supprimer la note"),
-                              content: Text(
-                                "Êtes-vous sûr de vouloir supprimer cette note ?",
+                      title: Text(
+                        "Supprimer la note",
+                        style: TextStyle(
+                          color: CupertinoColors.destructiveRed.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                      onPressed: (context) {
+                        showCupertinoDialog(
+                          context: context,
+                          builder:
+                              (_) => CupertinoAlertDialog(
+                                title: Text("Supprimer la note"),
+                                content: Text(
+                                  "Êtes-vous sûr de vouloir supprimer cette note ?",
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text("Annuler"),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                  CupertinoDialogAction(
+                                    isDestructiveAction: true,
+                                    child: Text("Supprimer"),
+                                    onPressed: () {
+                                      widget.toEdit?.delete();
+                                      widget.onDelete?.call();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop(widget.toEdit);
+                                    },
+                                  ),
+                                ],
                               ),
-                              actions: [
-                                CupertinoDialogAction(
-                                  child: Text("Annuler"),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                                CupertinoDialogAction(
-                                  isDestructiveAction: true,
-                                  child: Text("Supprimer"),
-                                  onPressed: () {
-                                    widget.toEdit?.delete();
-                                    widget.onDelete?.call();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop(widget.toEdit);
-                                  },
-                                ),
-                              ],
-                            ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

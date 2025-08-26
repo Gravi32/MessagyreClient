@@ -85,7 +85,7 @@ class _GradesPageState extends State<GradesPage> {
             Navigator.of(context, rootNavigator: true).push(
               CupertinoPageRoute(
                 builder:
-                    (builder) => SubjectPage(subject: subject, grades: grades),
+                    (builder) => SubjectPage(subject: subject),
               ),
             );
           },
@@ -118,7 +118,7 @@ class _GradesPageState extends State<GradesPage> {
     subjectOrderBox = Hive.box<List>("SubjectOrder");
   }
 
-  void _loadSubjects() {
+  void loadSubjects() {
     final gradeList = allGrades.values.toList();
     final subjectGradeMap = <Subject, List<Grade>>{};
     for (var grade in gradeList) {
@@ -139,7 +139,7 @@ class _GradesPageState extends State<GradesPage> {
 
   @override
   Widget build(BuildContext context) {
-    _loadSubjects();
+    loadSubjects();
 
     return CupertinoPageScaffold(
       child: Stack(

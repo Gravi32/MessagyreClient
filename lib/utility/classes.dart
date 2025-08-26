@@ -103,6 +103,9 @@ class Grade extends HiveObject {
 
   @HiveField(5)
   double weight = 1;
+
+  @HiveField(6)
+  String? groupName;
 }
 
 class Account {
