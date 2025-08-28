@@ -15,6 +15,16 @@ extension StringCasingExtension on String {
   }
 }
 
+extension ColorExtension on Color {
+  Color withBrightness(double brightness) {
+    final hsl = HSLColor.fromColor(this);
+    final adjustedHsl = hsl.withLightness(
+      (hsl.lightness + brightness).clamp(0.0, 1.0),
+    );
+    return adjustedHsl.toColor();
+  }
+}
+
 Color adaptiveColor(BuildContext context, Color light, Color dark) {
   return CupertinoTheme.of(context).brightness == Brightness.dark
       ? dark

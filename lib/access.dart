@@ -120,6 +120,33 @@ class _AccessOverlayState extends State<AccessOverlay> {
                               height: 100,
                             ),
 
+                            const SizedBox(height: 10),
+
+                            Text(
+                              "Bienvenue sur Messagyre",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoColors.label.resolveFrom(
+                                  context,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Text(
+                              "connectez-vous pour continuer",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: CupertinoColors.label
+                                    .resolveFrom(context)
+                                    .withOpacity(.7),
+                              ),
+                            ),
+
                             const SizedBox(height: 40),
 
                             CustomTextField(

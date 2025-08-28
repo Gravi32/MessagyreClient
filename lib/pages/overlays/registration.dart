@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -92,11 +94,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     isWaitingForResponse = false;
 
-    final responseData = jsonDecode(response.body);
+    var responseData = "";
     final solutions = {
       "WrongLength": "Le code doit contenir 6 chiffres.",
       "WrongCode": "Le code est incorrect !",
     };
+
+    try {
+      responseData = jsonDecode(response.body);
+    } catch (_) {}
 
     if (response.statusCode == 401) {
       goToPage(0);
@@ -149,7 +155,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
       );
       await Hive.box("Misc").put("Username", username);
 
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
       isWaitingForResponse = false;
     }
   }
@@ -177,11 +186,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Spacer(),
         Text(
-          "Pour commencer, veuillez entrer votre adresse email officiel du gymnase.",
+          "Adresse e-mail",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: CupertinoTheme.of(context).primaryColor.withBrightness(.075),
+          ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 36),
+        SizedBox(height: 12),
+        Text(
+          "veuillez entrer votre adresse e-mail officiel du gymnase.",
+          textAlign: TextAlign.center,
+        ),
+        Spacer(),
 
         CustomTextField(
           title: "Adresse e-mail",
@@ -205,7 +225,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           },
         ),
 
-        SizedBox(height: 36),
+        SizedBox(height: 6),
 
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
@@ -217,6 +237,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ? CupertinoActivityIndicator()
                   : Text("Envoyer le code de vérification"),
         ),
+
+        Spacer(flex: 3),
       ],
     );
   }
@@ -226,11 +248,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Spacer(),
         Text(
-          "Veuillez entrer le code envoyé à l'adresse '${emailController.text}@eduvaud.ch'",
+          "Code de vérification",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: CupertinoTheme.of(context).primaryColor.withBrightness(.075),
+          ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 36),
+        SizedBox(height: 12),
+        Text(
+          "veuillez entrer le code envoyé à l'adresse '${emailController.text}@eduvaud.ch'",
+          textAlign: TextAlign.center,
+        ),
+
+        Spacer(),
 
         CustomTextField(
           title: "Code de vérification",
@@ -248,7 +282,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           },
         ),
 
-        SizedBox(height: 36),
+        SizedBox(height: 6),
 
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
@@ -263,16 +297,27 @@ class _RegistrationPageState extends State<RegistrationPage> {
         CupertinoButton(
           onPressed:
               canResendCode && !isWaitingForResponse ? () => sendEmail() : null,
-          child: Text(
-            canResendCode
-                ? "Renvoyer le code"
-                : "Renvoyer le code ${resendSecondsLeft}s",
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 6,
+            children: [
+              Icon(CupertinoIcons.refresh),
+              Text(
+                canResendCode
+                    ? "Renvoyer le code"
+                    : "Renvoyer le code ${resendSecondsLeft}s",
+              ),
+            ],
           ),
         ),
         CupertinoButton(
           onPressed: isWaitingForResponse ? null : () => goToPage(0),
+          padding: EdgeInsets.symmetric(vertical: 12),
           child: Text("Changer d'adresse e-mail"),
         ),
+
+        Spacer(flex: 3),
       ],
     );
   }
@@ -282,11 +327,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Spacer(),
         Text(
-          "Vérification réussite!\nChoississez maintenant un mot de passe pour accéder à votre compte.",
+          "Mot de passe",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: CupertinoTheme.of(context).primaryColor.withBrightness(.075),
+          ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 36),
+        SizedBox(height: 12),
+        Text(
+          "vérification réussite!\ncréez maintenant un mot de passe pour accéder à votre compte.",
+          textAlign: TextAlign.center,
+        ),
+
+        Spacer(),
 
         CustomTextField(
           title: "Mot de passe",
@@ -337,6 +394,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ? CupertinoActivityIndicator()
                   : Text("Créer le compte"),
         ),
+
+        Spacer(flex: 3),
       ],
     );
   }
