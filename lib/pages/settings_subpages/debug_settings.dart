@@ -110,6 +110,34 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 ),
               ],
             ),
+            SettingsSection(
+              title: Text("Logs de l'application"),
+              tiles: [
+                SettingsTile(
+                  title:
+                      data.appLogs.isNotEmpty
+                          ? ListView.builder(
+                            itemBuilder: (context, index) {
+                              final logIndex = data.appLogs.length - 1 - index;
+                              return Text(data.appLogs[logIndex]);
+                            },
+                            itemCount: data.appLogs.length,
+                            reverse: true,
+                            shrinkWrap: true,
+                          )
+                          : Row(
+                            spacing: 8,
+                            children: [
+                              Icon(
+                                CupertinoIcons.exclamationmark_triangle_fill,
+                                color: CupertinoColors.systemYellow,
+                              ),
+                              Text("Aucun log disponible."),
+                            ],
+                          ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

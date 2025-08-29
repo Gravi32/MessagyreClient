@@ -17,6 +17,14 @@ import 'package:messagyre_client/utility/subjects.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
+  final originalDebugPrint = debugPrint;
+
+  debugPrint = (String? message, {int? wrapWidth}) {
+    Data().log(message);
+
+    originalDebugPrint(message, wrapWidth: wrapWidth);
+  };
+
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
@@ -29,9 +37,9 @@ void main() async {
   await Hive.openBox<Chat>("Chats");
   await Hive.openBox<Homework>("Homework");
   await Hive.openBox<Grade>("Grades");
-  
+
   // Box per salvare l'ordine dei subject
-  await Hive.openBox<List>("SubjectOrder");  
+  await Hive.openBox<List>("SubjectOrder");
 
   final miscBox = await Hive.openBox("Misc");
 
@@ -176,14 +184,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         onTap: (_) {
           setState(() {});
         },
-        items: App.pages.map((page) {
-          final index = App.pages.indexOf(page);
-          final isSelected = MainPage.tabController.index == index;
-          return BottomNavigationBarItem(
-            icon: Icon(isSelected ? page.selectedIcon : page.idleIcon),
-            label: page.name,
-          );
-        }).toList(),
+        items:
+            App.pages.map((page) {
+              final index = App.pages.indexOf(page);
+              final isSelected = MainPage.tabController.index == index;
+              return BottomNavigationBarItem(
+                icon: Icon(isSelected ? page.selectedIcon : page.idleIcon),
+                label: page.name,
+              );
+            }).toList(),
       ),
       tabBuilder: (BuildContext context, int currentPage) {
         return CupertinoTabView(

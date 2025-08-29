@@ -31,6 +31,21 @@ class Data {
   // Accounts
   Map<String, ValueNotifier<String?>> pfpNotifiersCache = {};
 
+  // Debug
+  List<String> appLogs = [];
+
+  void log(String? message) {
+    final timestamp = DateTime.now();
+    final logEntry =
+        "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
+
+    appLogs.add(logEntry);
+
+    if (appLogs.length > 1000) {
+      appLogs.removeAt(0);
+    }
+  }
+
   ValueNotifier<String?> getPfpNotifier(String accountUsername) {
     // Getting the cached URL notifier
     var cachedURL = pfpNotifiersCache[accountUsername];
