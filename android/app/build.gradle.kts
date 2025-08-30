@@ -11,19 +11,19 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "11"
-        apiVersion = "1.8" 
-        languageVersion = "1.8"
+        jvmTarget = "17"
+        apiVersion = "2.1" 
+        languageVersion = "2.1"
     }
 
     dependencies {
         // Import the Firebase BoM
-        implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
+        implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
 
 
         // TODO: Add the dependencies for Firebase products you want to use
@@ -40,7 +40,7 @@ android {
         applicationId = "com.graviware.messagyre"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
