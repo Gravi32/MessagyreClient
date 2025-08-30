@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:messagyre_client/api/firebase_api.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -35,6 +36,7 @@ class ConnectionController {
 
   late final data = Data();
   late final secureStorage = FlutterSecureStorage();
+  late final firebaseApi = FirebaseApi();
 
   WebSocketChannel? _channel;
 
@@ -115,7 +117,11 @@ class ConnectionController {
 
       debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
 
-      if (!await isAuthorized()) return;
+      if (!await isAuthorized()) {
+        print("sa");
+        data.isConnecting.value = false;
+        return;
+      }
 
       final socket = await WebSocket.connect(
         serverWebSocketAddress,
@@ -126,8 +132,6 @@ class ConnectionController {
 
       data.isConnecting.value = false;
       data.isConnected.value = true;
-
-      debugPrint("[WebSocket] Connected");
 
       _channel!.stream.listen(
         (stringMessage) {
@@ -162,6 +166,10 @@ class ConnectionController {
       );
 
       _connectionStatusController.add(null);
+
+      debugPrint("[WebSocket] Connected");
+
+      firebaseApi.sendTokenToServer();
     } catch (errorData) {
       final error = errorData.toString();
       data.isConnecting.value = false;

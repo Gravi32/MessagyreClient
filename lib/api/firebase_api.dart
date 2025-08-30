@@ -1,15 +1,21 @@
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/singletons/connection_controller.dart';
 
 class FirebaseApi {
-  final _firebaseMessaging = FirebaseMessaging.instance;
+  static final _instance = FirebaseApi._internal();
+  factory FirebaseApi() => _instance;
+  FirebaseApi._internal();
+
+  final router = ConnectionController();
+  final firebaseMessaging = FirebaseMessaging.instance;
+
+  String? token;
 
   Future<void> initialize() async {
-    await _firebaseMessaging.requestPermission();
+    await firebaseMessaging.requestPermission();
 
-    final token = await getDeviceToken();
-    debugPrint("[Firebase] Device token: $token");
+    token = await firebaseMessaging.getToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("[Firebase] Message received: ${message.messageId}");
@@ -23,14 +29,31 @@ class FirebaseApi {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint("[Firebase] Message opened: ${message.messageId}");
     });
+
+    firebaseMessaging.onTokenRefresh.listen((newToken) {
+      token = newToken;
+      sendTokenToServer();
+    });
   }
 
-  Future<String?> getDeviceToken() async {
-    try {
-      return await _firebaseMessaging.getToken();
-    } catch (e) {
-      debugPrint("Erreur lors de la récupération du token FCM : $e");
-      return null;
-    }
+  void sendTokenToServer() {
+    if (token == null) return;
+
+    debugPrint("[Firebase] Sending FCM Token to the server...");
+
+    router
+        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token})
+        .then((response) {
+          if (response.statusCode == 200) {
+            debugPrint("[Firebase] Token sent to server successfully.");
+          } else {
+            debugPrint(
+              "[Firebase] Failed to send token to server. Status code: ${response.statusCode}, body: ${response.body}",
+            );
+          }
+        })
+        .catchError((error) {
+          debugPrint("[Firebase] Error sending token to server: $error");
+        });
   }
 }
