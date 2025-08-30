@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/access.dart';
+import 'package:messagyre_client/api/firebase_api.dart';
 import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -17,14 +19,16 @@ import 'package:messagyre_client/utility/subjects.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
+
+  // Overriding debugPrint
   final originalDebugPrint = debugPrint;
 
   debugPrint = (String? message, {int? wrapWidth}) {
     Data().log(message);
-
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
 
+  // Initializing Hive and other stuff
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
@@ -37,8 +41,6 @@ void main() async {
   await Hive.openBox<Chat>("Chats");
   await Hive.openBox<Homework>("Homework");
   await Hive.openBox<Grade>("Grades");
-
-  // Box per salvare l'ordine dei subject
   await Hive.openBox<List>("SubjectOrder");
 
   final miscBox = await Hive.openBox("Misc");
@@ -47,6 +49,11 @@ void main() async {
   data.username = miscBox.get("Username")?.toString();
   data.appBrightnessNotifier.value = Brightness.dark;
 
+  // Initializing Firebase Messaging
+  await Firebase.initializeApp();
+  await FirebaseApi().initialize();
+
+  // Initializing visual stuff
   await initializeDateFormatting('fr_CH', null);
 
   SystemChrome.setSystemUIOverlayStyle(
