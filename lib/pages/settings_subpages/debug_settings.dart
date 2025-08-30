@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class DebugSettingsPage extends StatefulWidget {
   const DebugSettingsPage({super.key});
@@ -16,6 +17,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
   final secureStorage = FlutterSecureStorage();
 
   bool isRefreshTokenStored = false;
+  String appVersion = "?";
 
   Future<void> checkRefreshToken() async {
     final token = await secureStorage.read(key: "RefreshToken");
@@ -24,11 +26,19 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
     });
   }
 
+  Future<void> loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      appVersion = info.version;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
 
     checkRefreshToken();
+    loadVersion();
   }
 
   @override
@@ -48,6 +58,10 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 SettingsTile(
                   title: Text("Nom d'utilisateur"),
                   value: Text(data.username ?? "-"),
+                ),
+                SettingsTile(
+                  title: Text("Version"),
+                  value: Text(appVersion),
                 ),
                 SettingsTile(
                   title: Text("Photos de profil en cache"),
@@ -117,6 +131,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                   title:
                       data.appLogs.isNotEmpty
                           ? ListView.builder(
+                            
                             itemBuilder: (context, index) {
                               final logIndex = data.appLogs.length - 1 - index;
                               return Text(data.appLogs[logIndex]);
@@ -124,6 +139,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                             itemCount: data.appLogs.length,
                             reverse: true,
                             shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
                           )
                           : Row(
                             spacing: 8,

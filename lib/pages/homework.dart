@@ -25,7 +25,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   void showNewHomeworkPopup({Homework? toEdit}) async {
     final newHomework = await showCupertinoSheet<Homework?>(
       context: context,
-      pageBuilder: (context) => NewHomework(toEdit: toEdit),
+      builder: (context) => NewHomework(toEdit: toEdit),
     );
 
     if (newHomework == null) return;
@@ -38,7 +38,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   void showViewHomeworkPopup(Homework homework) async {
     final action = await showCupertinoSheet<int>(
       context: context,
-      pageBuilder: (context) => ViewHomework(homework: homework),
+      builder: (context) => ViewHomework(homework: homework),
     );
 
     if (action == 1) {

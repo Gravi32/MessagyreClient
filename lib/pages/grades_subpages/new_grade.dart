@@ -48,7 +48,6 @@ class _NewGradeState extends State<NewGrade> {
   late List<String> groupNames = List.from(widget.existingGroupNames);
 
   void confirmGrade() {
-    print("Confirming grade");
 
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
@@ -80,8 +79,6 @@ class _NewGradeState extends State<NewGrade> {
       ..groupName = groupName;
 
     Navigator.of(context).pop(gradeData);
-
-    print("window popped");
   }
 
   void showSubjectPicker() {

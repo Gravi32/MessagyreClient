@@ -118,7 +118,7 @@ class ConnectionController {
       debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
 
       if (!await isAuthorized()) {
-        print("sa");
+        debugPrint("isAuthorized() returned false !");
         data.isConnecting.value = false;
         return;
       }

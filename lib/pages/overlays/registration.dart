@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -229,7 +228,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
-          minSize: 0,
+          minimumSize: Size.zero,
           onPressed:
               isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
           child:
@@ -382,7 +381,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         SizedBox(height: 36),
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
-          minSize: 0,
+          minimumSize: Size.zero,
           onPressed:
               (isPasswordValid &&
                       isConfirmPasswordValid &&

@@ -180,7 +180,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
                             CupertinoButton.filled(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              minSize: 0,
+                              minimumSize: Size.zero,
                               onPressed:
                                   (!fieldsAreEmpty && !isDisabled)
                                       ? tryToLogin

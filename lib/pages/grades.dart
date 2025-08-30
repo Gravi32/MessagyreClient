@@ -100,8 +100,7 @@ class _GradesPageState extends State<GradesPage> {
 
   void showNewHomeworkPopup({Grade? toEdit}) async {
     final newGrade = await showCupertinoSheet<Grade?>(
-      context: context,
-      pageBuilder: (context) => NewGrade(),
+      context: context, builder: (context) => NewGrade(),
     );
 
     if (newGrade == null) return;

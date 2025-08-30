@@ -231,8 +231,6 @@ class _SubjectPageState extends State<SubjectPage> {
   Widget buildList() {
     loadGrades();
 
-    print("rebuilding list");
-
     int barsToBuild = 0;
 
     // Reading group names from grades
@@ -288,7 +286,7 @@ class _SubjectPageState extends State<SubjectPage> {
   void showNewGradePopup({Grade? toEdit}) async {
     final newGrade = await showCupertinoSheet<Grade?>(
       context: context,
-      pageBuilder:
+      builder:
           (context) => NewGrade(
             subject: widget.subject,
             toEdit: toEdit,

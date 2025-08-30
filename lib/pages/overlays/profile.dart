@@ -106,7 +106,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
     showCupertinoSheet(
       context: context,
-      pageBuilder: (context) {
+      builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return CupertinoPageScaffold(
@@ -187,7 +187,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
     showCupertinoSheet(
       context: context,
-      pageBuilder:
+      builder:
           (context) => StatefulBuilder(
             builder:
                 (context, setSheetState) => CupertinoPageScaffold(
