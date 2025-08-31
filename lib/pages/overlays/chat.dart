@@ -139,11 +139,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                GestureDetector(
-                  child: Row(
-                    children: [Icon(CupertinoIcons.back), SizedBox(width: 15)],
-                  ),
-                  onTap: () => Navigator.of(context).pop(),
+                CupertinoButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  padding: EdgeInsets.zero,
+                  child: Icon(CupertinoIcons.back, size: 26,),
                 ),
                 ProfilePictureDisplay(
                   accountUsername: widget.recipientUsername,
