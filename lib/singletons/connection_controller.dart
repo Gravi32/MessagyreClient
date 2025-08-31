@@ -131,6 +131,7 @@ class ConnectionController {
       debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
 
       if (!await isAuthorized()) {
+        debugPrint("[WebSocket] Connection canceled, user is unauthorized.");
         data.isConnecting.value = false;
         return;
       }
