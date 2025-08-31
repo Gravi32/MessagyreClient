@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
@@ -18,12 +19,15 @@ class NotificationController {
   }
 
   void spawn(String sender, String message) {
+    if ((Data().openChatUsername ?? "") == sender) return;
+
     _currentOverlay?.remove();
     _currentOverlay = OverlayEntry(
-      builder: (context) => NotificationPopup(
-        senderUsername: sender,
-        messageContent: message,
-      ),
+      builder:
+          (context) => NotificationPopup(
+            senderUsername: sender,
+            messageContent: message,
+          ),
     );
     _overlayState?.insert(_currentOverlay!);
   }
@@ -168,8 +172,9 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                       height: 4,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: CupertinoColors.quaternaryLabel
-                            .resolveFrom(context),
+                        color: CupertinoColors.quaternaryLabel.resolveFrom(
+                          context,
+                        ),
                       ),
                     ),
                   ],

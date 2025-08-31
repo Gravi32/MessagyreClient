@@ -27,6 +27,7 @@ class Data {
 
   // Chats
   bool isChatOpen = false;
+  String? openChatUsername;
 
   // Accounts
   Map<String, ValueNotifier<String?>> pfpNotifiersCache = {};

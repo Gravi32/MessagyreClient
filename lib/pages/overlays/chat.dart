@@ -83,6 +83,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
     super.initState();
 
     data.isChatOpen = true;
+    data.openChatUsername = widget.recipientUsername;
 
     messageFieldController.addListener(() {
       setState(() {});
@@ -122,6 +123,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   @override
   void dispose() {
     data.isChatOpen = false;
+    data.openChatUsername = null;
     messageFieldController.dispose();
     chatScrollController.dispose();
     super.dispose();
