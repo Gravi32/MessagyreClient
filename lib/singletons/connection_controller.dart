@@ -71,20 +71,33 @@ class ConnectionController {
     final refreshToken = await secureStorage.read(key: "RefreshToken");
     if (refreshToken == null) return false;
 
-    final response = await post("/Auth/Refresh", {
-      "RefreshToken": refreshToken,
-    });
+    try {
+      final response = await post("/Auth/Refresh", {
+        "RefreshToken": refreshToken,
+      });
 
-    if (response.statusCode != 200) return false;
+      if (response.statusCode == 200) {
+        final results = jsonDecode(response.body);
+        data.token = results["AccessToken"];
+        await secureStorage.write(key: "AccessToken", value: data.token);
+        await secureStorage.write(
+          key: "RefreshToken",
+          value: results["RefreshToken"],
+        );
+        return true;
+      }
 
-    final results = jsonDecode(response.body);
-    data.token = results["AccessToken"];
-    await secureStorage.write(key: "AccessToken", value: data.token);
-    await secureStorage.write(
-      key: "RefreshToken",
-      value: results["RefreshToken"],
-    );
-    return true;
+      // Token is unauthorized or invalid
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        return false;
+      }
+
+      debugPrint("[RefreshToken] Network/server error, retry later");
+      return true;
+    } catch (e) {
+      debugPrint("[RefreshToken] Exception: $e");
+      return true;
+    }
   }
 
   Future<bool> isAuthorized() async {
@@ -96,10 +109,10 @@ class ConnectionController {
       return false;
     }
 
-    final response = refreshAccessToken();
+    final response = await refreshAccessToken();
 
     // The server refused to refresh access, user was kicked out or banned
-    if (!await response) {
+    if (!response) {
       onUnauthorized!();
       return false;
     }
@@ -118,7 +131,6 @@ class ConnectionController {
       debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
 
       if (!await isAuthorized()) {
-        debugPrint("isAuthorized() returned false !");
         data.isConnecting.value = false;
         return;
       }
