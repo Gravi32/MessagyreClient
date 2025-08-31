@@ -19,7 +19,6 @@ import 'package:messagyre_client/utility/subjects.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-
   // Overriding debugPrint
   final originalDebugPrint = debugPrint;
 
@@ -58,7 +57,7 @@ void main() async {
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.black,
+      systemNavigationBarColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.light,
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
@@ -187,7 +186,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return CupertinoTabScaffold(
       controller: MainPage.tabController,
       tabBar: CupertinoTabBar(
-        iconSize: 25,
+        iconSize: 26,
+        height: 50,
         onTap: (_) {
           setState(() {});
         },
