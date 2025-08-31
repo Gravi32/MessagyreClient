@@ -13,6 +13,7 @@ import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
 import 'package:messagyre_client/pages/settings.dart';
 import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/singletons/notifications_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 
@@ -169,6 +170,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     router.start();
     WidgetsBinding.instance.addObserver(this);
     ConnectionController().onUnauthorized = _switchToAccess;
+
+    NotificationController().init(context);
 
     MainPage.tabController.addListener(() => setState(() {}));
   }

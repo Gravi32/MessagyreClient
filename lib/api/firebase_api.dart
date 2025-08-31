@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/singletons/notifications_controller.dart';
 
 class FirebaseApi {
   static final _instance = FirebaseApi._internal();
@@ -20,6 +21,8 @@ class FirebaseApi {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("[Firebase] Message received: ${message.messageId}");
       if (message.notification != null) {
+        NotificationController().spawn(message.notification?.title ?? "", message.notification?.body ?? "Une erreur est survenue." );
+
         debugPrint(
           "[Firebase] Notification: ${message.notification!.title} - ${message.notification!.body}",
         );
