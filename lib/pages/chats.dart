@@ -60,7 +60,7 @@ class _ChatsPageState extends State<ChatsPage> {
                         data.content.last.content.trim(),
                         maxLines: 2,
                         overflow: TextOverflow.fade,
-                        softWrap: true,
+                        softWrap: false,
                         style: TextStyle(
                           fontWeight:
                               hasUnreadMessages
