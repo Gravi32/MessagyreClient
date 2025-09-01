@@ -28,6 +28,7 @@ class Data {
   // Chats
   bool isChatOpen = false;
   String? openChatUsername;
+  String? fcmToken;
 
   // Accounts
   Map<String, ValueNotifier<String?>> pfpNotifiersCache = {};
