@@ -130,18 +130,27 @@ class ConnectionController {
 
       debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
 
-      if (!await isAuthorized()) {
-        debugPrint("[WebSocket] Connection canceled, user is unauthorized.");
-        data.isConnecting.value = false;
-        return;
+      try {
+        if (!await isAuthorized()) {
+          debugPrint("[WebSocket] Connection canceled, user is unauthorized.");
+          data.isConnecting.value = false;
+          return;
+        }
+      } catch (e) {
+        print("A $e");
       }
 
-      final socket = await WebSocket.connect(
-        serverWebSocketAddress,
-        headers: {'Authorization': 'Bearer ${data.token}'},
-      ).timeout(const Duration(seconds: 40));
+      try {
+        final socket = await WebSocket.connect(
+          serverWebSocketAddress,
+          headers: {'Authorization': 'Bearer ${data.token}'},
+        ).timeout(const Duration(seconds: 40));
 
-      _channel = IOWebSocketChannel(socket);
+        _channel = IOWebSocketChannel(socket);
+      } catch (e) {
+        print("B $e");
+      }
+      print("AAA");
 
       data.isConnecting.value = false;
       data.isConnected.value = true;

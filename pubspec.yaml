@@ -2,7 +2,15 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none" 
 
-version: 1.8.99+99
+version: 1.8.114+114
+# 1.1 Added Settings page
+# 1.2 Added Homework page
+# 1.3 Added Grades page
+# 1.4 Automatic login
+# 1.5 Added profile pictures
+# 1.6 Added profile page
+# 1.7 Revamped Grades page
+# 1.8 Added notifications
 
 environment:
   sdk: ^3.7.2
@@ -27,6 +35,7 @@ dependencies:
   firebase_core: ^4.0.0
   firebase_messaging: ^16.0.0
   package_info_plus: ^8.3.1
+  modal_bottom_sheet: ^3.0.0
 
 dev_dependencies:
   flutter_test:
