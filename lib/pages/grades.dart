@@ -9,6 +9,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesPage extends StatefulWidget {
   const GradesPage({super.key});
@@ -99,7 +100,7 @@ class _GradesPageState extends State<GradesPage> {
   }
 
   void showNewHomeworkPopup({Grade? toEdit}) async {
-    final newGrade = await showCupertinoSheet<Grade?>(
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(
       context: context, builder: (context) => NewGrade(),
     );
 
