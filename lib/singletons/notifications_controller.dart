@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -98,6 +99,16 @@ class _NotificationPopupsState extends State<NotificationPopup> {
       left: 10,
       right: 10,
       child: GestureDetector(
+        onTap: () {
+          _dismiss();
+          Navigator.of(context, rootNavigator: true).push(
+            CupertinoPageRoute(
+              builder:
+                  (builder) =>
+                      ChatOverlay(recipientUsername: widget.senderUsername),
+            ),
+          );
+        },
         onVerticalDragStart: (_) {
           _isDragging = true;
           _timer?.cancel();
@@ -120,7 +131,6 @@ class _NotificationPopupsState extends State<NotificationPopup> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                height: 90,
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 color: CupertinoColors.secondarySystemBackground
                     .resolveFrom(context)
@@ -128,12 +138,13 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  spacing: 8,
                   children: [
                     Row(
                       children: [
                         ProfilePictureDisplay(
                           accountUsername: widget.senderUsername,
-                          radius: 26,
+                          radius: 20,
                         ),
                         SizedBox(width: 10),
                         Expanded(
@@ -149,7 +160,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                                   fontWeight: FontWeight.w500,
                                   color: CupertinoColors.tertiaryLabel
                                       .resolveFrom(context),
-                                  fontSize: 15,
+                                  fontSize: 14,
                                 ),
                               ),
                               Text(
