@@ -137,6 +137,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 SettingsTile.navigation(
                   onPressed:
                       (context) => showLogoutDialog(context, () async {
+                        router.get("/Auth/Logout"); // Notifies the server 
+
                         data.username = null;
                         data.token = null;
                         await secureStorage.delete(key: "AccessToken");
