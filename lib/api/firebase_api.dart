@@ -1,5 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/singletons/notifications_controller.dart';
@@ -25,15 +27,21 @@ class FirebaseApi {
           message.notification?.title ?? "",
           message.notification?.body ?? "Une erreur est survenue.",
         );
-
-        debugPrint(
-          "[Firebase] Notification: ${message.notification!.title} - ${message.notification!.body}",
-        );
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint("[Firebase] Message opened: ${message.messageId}");
+      if (message.notification?.title == null) return;
+      
+      navigatorKey.currentState?.push(
+        CupertinoPageRoute(
+          builder:
+              (_) => ChatOverlay(
+                recipientUsername:
+                    message.notification!.title!
+              ),
+        ),
+      );
     });
 
     firebaseMessaging.onTokenRefresh.listen((newToken) {
@@ -48,7 +56,9 @@ class FirebaseApi {
     debugPrint("[Firebase] Sending FCM Token to the server...");
 
     router
-        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": data.fcmToken})
+        .post("/Accounts/Me/UploadFirebaseToken", {
+          "FirebaseToken": data.fcmToken,
+        })
         .then((response) {
           if (response.statusCode == 200) {
             debugPrint("[Firebase] Token sent to server successfully.");
