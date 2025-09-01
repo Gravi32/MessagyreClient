@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/singletons/notifications_controller.dart';
 
 class FirebaseApi {
@@ -8,20 +9,22 @@ class FirebaseApi {
   factory FirebaseApi() => _instance;
   FirebaseApi._internal();
 
+  final data = Data();
   final router = ConnectionController();
   final firebaseMessaging = FirebaseMessaging.instance;
-
-  String? token;
 
   Future<void> initialize() async {
     await firebaseMessaging.requestPermission();
 
-    token = await firebaseMessaging.getToken();
+    data.fcmToken = await firebaseMessaging.getToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("[Firebase] Message received: ${message.messageId}");
       if (message.notification != null) {
-        NotificationController().spawn(message.notification?.title ?? "", message.notification?.body ?? "Une erreur est survenue." );
+        NotificationController().spawn(
+          message.notification?.title ?? "",
+          message.notification?.body ?? "Une erreur est survenue.",
+        );
 
         debugPrint(
           "[Firebase] Notification: ${message.notification!.title} - ${message.notification!.body}",
@@ -34,18 +37,18 @@ class FirebaseApi {
     });
 
     firebaseMessaging.onTokenRefresh.listen((newToken) {
-      token = newToken;
+      data.fcmToken = newToken;
       sendTokenToServer();
     });
   }
 
   void sendTokenToServer() {
-    if (token == null) return;
+    if (data.fcmToken == null) return;
 
     debugPrint("[Firebase] Sending FCM Token to the server...");
 
     router
-        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token})
+        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": data.fcmToken})
         .then((response) {
           if (response.statusCode == 200) {
             debugPrint("[Firebase] Token sent to server successfully.");
