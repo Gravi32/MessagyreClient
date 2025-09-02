@@ -1,16 +1,32 @@
-# messagyre_client
+# Messagyre Client
 
-A new Flutter project.
+Messagyre Client is the official application for connecting to the **Messagyre** server, a fast and lightweight messaging platform.  
+The project is developed in **Flutter** and is designed to work across multiple platforms (iOS, Android, Desktop).
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Main Features
+- Secure authentication with JWT  
+- Real-time messaging via WebSocket  
+- Profile picture management  
+- Push notifications with Firebase Cloud Messaging (FCM)  
+- Modular and extensible architecture  
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Technologies
+- [Flutter](https://flutter.dev/) – cross-platform framework  
+- [Firebase Messaging](https://firebase.google.com/docs/cloud-messaging) – push notifications  
+- [WebSocket](https://pub.dev/packages/web_socket_channel) – real-time communication  
+- [Provider](https://pub.dev/packages/provider) – state management  
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## License
+This project is released under the **MIT License**.  
+See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Author
+Developed by **Graviware**.
