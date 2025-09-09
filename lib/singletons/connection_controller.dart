@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/api/firebase_api.dart';
@@ -11,33 +13,32 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
+import 'package:uuid/uuid.dart';
 
 class ConnectionController {
   // Configuration
   static const String localIP = "192.168.1.230:5066";
 
-  static final bool useLocalhost = false; //!kReleaseMode;
+  static final bool useLocalhost = true;
 
   static final String serverWebSocketAddress =
-      useLocalhost
-          ? "ws://$localIP"
-          : "wss://messagyre.fly.dev"; // "wss://messagyre.up.railway.app";
+      useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev";
 
   static final String serverHTTPAddress =
-      useLocalhost
-          ? "http://$localIP"
-          : "https://messagyre.fly.dev"; // "https://messagyre.up.railway.app";
+      useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev";
 
-  // Singletons
-
+  // Declaring this singleton
   static final _instance = ConnectionController._internal();
   factory ConnectionController() => _instance;
   ConnectionController._internal();
 
+  // Singletons
   late final data = Data();
   late final secureStorage = FlutterSecureStorage();
   late final firebaseApi = FirebaseApi();
 
+  final connectionState = ValueNotifier(ConnectionState.NotConnected);
+  int connectionAttempts = 0;
   WebSocketChannel? _channel;
 
   // Events
@@ -67,144 +68,123 @@ class ConnectionController {
     connect();
   }
 
-  Future<bool> refreshAccessToken() async {
+  Future<int> refreshAccessToken() async {
     final refreshToken = await secureStorage.read(key: "RefreshToken");
-    if (refreshToken == null) return false;
+    if (refreshToken == null) return 401;
 
-    try {
-      final response = await post("/Auth/Refresh", {
-        "RefreshToken": refreshToken,
-      });
+    final response = await post("/Auth/Refresh", {
+      "RefreshToken": refreshToken,
+    });
 
-      if (response.statusCode == 200) {
-        final results = jsonDecode(response.body);
-        data.token = results["AccessToken"];
-        await secureStorage.write(key: "AccessToken", value: data.token);
-        await secureStorage.write(
-          key: "RefreshToken",
-          value: results["RefreshToken"],
-        );
-        return true;
-      }
+    if (response.statusCode == 200) {
+      final results = jsonDecode(response.body);
+      data.token = results["AccessToken"];
 
-      // Token is unauthorized or invalid
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        return false;
-      }
+      await secureStorage.write(key: "AccessToken", value: data.token);
+      await secureStorage.write(
+        key: "RefreshToken",
+        value: results["RefreshToken"],
+      );
 
-      debugPrint("[RefreshToken] Network/server error, retry later");
-      return true;
-    } catch (e) {
-      debugPrint("[RefreshToken] Exception: $e");
-      return true;
-    }
-  }
-
-  Future<bool> isAuthorized() async {
-    if (onUnauthorized == null) return false;
-
-    // No token stored, either the first time on the app or logged out
-    if (data.token == null) {
-      onUnauthorized!();
-      return false;
+      return 200;
     }
 
-    final response = await refreshAccessToken();
-
-    // The server refused to refresh access, user was kicked out or banned
-    if (!response) {
-      onUnauthorized!();
-      return false;
-    }
-
-    return response;
+    return response.statusCode;
   }
 
   // WebSocket Requests
+  void _scheduleReconnect() {
+    if (isConnected) return;
+
+    connectionState.value = ConnectionState.WaitingToReconnect;
+
+    connectionAttempts++;
+    final delay = min(15 * connectionAttempts, 300);
+    debugPrint("[WebSocket] Reconnecting in $delay seconds...");
+
+    Future.delayed(Duration(seconds: delay), () {
+      if (!isConnected) connect();
+    });
+  }
+
   void connect() async {
     if (isConnected) return;
 
+    // Asking the server to refresh the token
     try {
-      data.isConnected.value = false;
-      data.isConnecting.value = true;
+      connectionState.value = ConnectionState.WaitingForAuthorization;
+      debugPrint("[WebSocket 1/2] Attempting to refresh the access tokens...");
 
-      debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
-
-      try {
-        if (!await isAuthorized()) {
-          debugPrint("[WebSocket] Connection canceled, user is unauthorized.");
-          data.isConnecting.value = false;
-          return;
-        }
-      } catch (e) {
-        print("A $e");
+      if (onUnauthorized == null) {
+        throw Exception("onUnauthorized was not declared.");
       }
 
-      try {
-        final socket = await WebSocket.connect(
-          serverWebSocketAddress,
-          headers: {'Authorization': 'Bearer ${data.token}'},
-        ).timeout(const Duration(seconds: 40));
-
-        _channel = IOWebSocketChannel(socket);
-      } catch (e) {
-        print("B $e");
+      // No token stored, either the first time on the app or logged out
+      if (data.token == null) {
+        debugPrint("[WebSocket 1/2][!] No token found in local storage.");
+        onUnauthorized!();
+        return;
       }
-      print("AAA");
 
-      data.isConnecting.value = false;
-      data.isConnected.value = true;
+      final responseCode = await refreshAccessToken();
+
+      // The server refused to refresh access, user was kicked out or banned
+      if (responseCode == 401) {
+        debugPrint("[WebSocket 1/2][!] Server refused to refresh the tokens.");
+        onUnauthorized!();
+        return;
+      } else if (responseCode != 200) {
+        throw Exception(responseCode);
+      }
+
+      debugPrint("[WebSocket 1/2] Tokens successfully refreshed.");
+    } catch (e) {
+      debugPrint("[WebSocket 1/2][!] Token refresh failed: $e");
+      connectionState.value = ConnectionState.NotConnected;
+      _scheduleReconnect();
+      return;
+    }
+
+    // Attemping a connection
+    try {
+      connectionState.value = ConnectionState.Connecting;
+
+      debugPrint("[WebSocket 2/2] Connecting...");
+
+      final socket = await WebSocket.connect(
+        serverWebSocketAddress,
+        headers: {'Authorization': 'Bearer ${data.token}'},
+      ).timeout(const Duration(seconds: 40));
+
+      _channel = IOWebSocketChannel(socket);
+
+      connectionAttempts = 0;
 
       _channel!.stream.listen(
-        (stringMessage) {
-          try {
-            final decoded = jsonDecode(stringMessage);
-
-            if (decoded is List) {
-              for (final rawMessageData in decoded) {
-                _handleMessage(rawMessageData);
-              }
-            } else if (decoded is Map<String, dynamic>) {
-              _handleMessage(decoded);
-            } else {
-              throw FormatException("Unexpected message format");
-            }
-          } catch (e) {
-            debugPrint("[WebSocket] Received invalid message data: $e");
-          }
-        },
+        (msg) => _handleMessage(jsonDecode(msg)),
         onDone: () {
-          debugPrint("[WebSocket] Connection closed by server");
-          data.isConnected.value = false;
+          debugPrint("[WebSocket] Closed by server");
           _channel = null;
-          connect();
+          connectionState.value = ConnectionState.NotConnected;
+          _scheduleReconnect();
         },
-        onError: (error) {
-          debugPrint("[WebSocket] Error: $error");
-          data.isConnected.value = false;
+        onError: (err) {
+          debugPrint("[WebSocket] Error: $err");
           _channel = null;
-          connect();
+          connectionState.value = ConnectionState.NotConnected;
+          _scheduleReconnect();
         },
       );
 
-      _connectionStatusController.add(null);
+      debugPrint("[WebSocket 2/2] Connected!");
+      connectionState.value = ConnectionState.Connected;
 
-      debugPrint("[WebSocket] Connected");
+    } catch (e) {
+      debugPrint("[WebSocket 2/2][!] Connection failed: $e");
 
-      firebaseApi.sendTokenToServer();
-    } catch (errorData) {
-      final error = errorData.toString();
-      data.isConnecting.value = false;
-      data.isConnected.value = false;
-
-      debugPrint(
-        "[WebSocket] Could not connect to $serverWebSocketAddress \n\t($error). \t\nRetrying...",
-      );
-
-      // Reconnecting after 3 seconds
+      connectionState.value = ConnectionState.NotConnected;
       _channel = null;
-      await Future.delayed(const Duration(seconds: 3));
-      connect();
+      _scheduleReconnect();
     }
   }
 
@@ -234,6 +214,7 @@ class ConnectionController {
 
   void send(String recipientUsername, String messageContent) {
     final message = jsonEncode({
+      "MessageID": Uuid().v4(),
       "RecipientUsername": recipientUsername,
       "Content": messageContent,
     });
@@ -244,6 +225,7 @@ class ConnectionController {
   void disconnect() {
     _channel?.sink.close();
     _channel = null;
+    connectionState.value = ConnectionState.NotConnected;
     debugPrint("[WebSocket] Connection closed manually");
   }
 
@@ -376,3 +358,5 @@ class ConnectionController {
     return result;
   }
 }
+
+enum ConnectionState { NotConnected, WaitingForAuthorization, Connecting, WaitingToReconnect, Connected }

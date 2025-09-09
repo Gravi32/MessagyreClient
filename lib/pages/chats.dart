@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' hide ConnectionState;
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/main.dart';
@@ -166,11 +166,11 @@ class _ChatsPageState extends State<ChatsPage> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             ValueListenableBuilder(
-              valueListenable: data.isConnecting,
+              valueListenable: router.connectionState,
               builder:
-                  (context, isConnecting, _) => CupertinoSliverNavigationBar(
+                  (context, connectionState, _) => CupertinoSliverNavigationBar(
                     leading:
-                        isConnecting
+                        connectionState != ConnectionState.Connected
                             ? Row(
                               spacing: 8,
                               children: [

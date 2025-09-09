@@ -14,6 +14,7 @@ class DebugSettingsPage extends StatefulWidget {
 
 class _DebugSettingsPageState extends State<DebugSettingsPage> {
   final data = Data();
+  final router = ConnectionController();
   final secureStorage = FlutterSecureStorage();
 
   bool isRefreshTokenStored = false;
@@ -87,25 +88,11 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 ),
 
                 SettingsTile(
-                  title: Text("Dernière requête HTTP"),
-                  value: Text(data.token != null ? "Oui" : "Non"),
-                ),
-
-                SettingsTile(
                   title: Text("État du WebSocket"),
-                  value: ValueListenableBuilder<bool>(
-                    valueListenable: data.isConnecting,
-                    builder: (context, isConnecting, _) {
-                      if (isConnecting) {
-                        return Text("Connexion en cours...");
-                      }
-
-                      return ValueListenableBuilder<bool>(
-                        valueListenable: data.isConnected,
-                        builder: (context, isConnected, _) {
-                          return Text(isConnected ? "Connecté" : "Déconnecté");
-                        },
-                      );
+                  value: ValueListenableBuilder(
+                    valueListenable: router.connectionState,
+                    builder: (context, connectionState, _) {
+                      return Text(connectionState.name);
                     },
                   ),
                 ),

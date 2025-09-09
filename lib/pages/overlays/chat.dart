@@ -144,7 +144,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 CupertinoButton(
                   onPressed: () => Navigator.of(context).pop(),
                   padding: EdgeInsets.zero,
-                  child: Icon(CupertinoIcons.back, size: 26,),
+                  child: Icon(CupertinoIcons.back, size: 26),
                 ),
                 ProfilePictureDisplay(
                   accountUsername: widget.recipientUsername,
@@ -197,7 +197,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
   }
 
-  Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned) {
+  Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, int? state) {
+    // States: 0-Sending 1-Sent to server 2-Received 3-Read
+
     BorderRadius getBubbleShape(bool isOwned) {
       const Radius max = Radius.circular(14);
       var isAlone =
@@ -245,7 +247,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         margin: EdgeInsets.only(
           bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2,
         ),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.only(left: 12, right: 8, bottom: 6, top: 5),
         decoration: BoxDecoration(
           color: getBubbleColor(data.isOwned),
           borderRadius: getBubbleShape(data.isOwned),
@@ -264,9 +266,22 @@ class _ChatOverlayState extends State<ChatOverlay> {
           runSpacing: 4,
           children: [
             Text(data.content, style: TextStyle(color: CupertinoColors.white)),
-            Text(
-              DateFormat('HH:mm').format(data.sentAt),
-              style: TextStyle(color: CupertinoColors.white, fontSize: 10),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              spacing: 2,
+              children: [
+                Text(
+                  DateFormat('HH:mm').format(data.sentAt),
+                  style: TextStyle(color: CupertinoColors.white, fontSize: 10),
+                ),
+                if (data.isOwned)
+                  Icon(
+                    Icons.done_all_rounded,
+                    color: CupertinoColors.label.resolveFrom(context),
+                    size: 14,
+                  ),
+              ],
             ),
           ],
         ),
@@ -298,7 +313,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
           var next =
               (index < sliced.length - 1) ? sliced[index + 1].isOwned : null;
 
-          return messageBubble(data, previous, next);
+          return messageBubble(data, previous, next, 0);
         },
       ),
     );

@@ -56,35 +56,42 @@ class _AccessOverlayState extends State<AccessOverlay> {
       "Password": password,
     });
 
+    print("[Access] server response: ${response.statusCode}. ${response.body}");
+
     isWaitingForResponse.value = false;
-    final responseData = jsonDecode(response.body);
+    try {
+      final responseData = jsonDecode(response.body);
+      // Handling failure
+      if (response.statusCode != 200) {
+        debugPrint(
+          "[Login failed] Error ${response.statusCode}: $responseData",
+        );
 
-    // Handling failure
-    if (response.statusCode != 200) {
-      debugPrint("[Login failed] Error ${response.statusCode}: $responseData");
+        setState(() {
+          switch (responseData) {
+            case "NotFound":
+              usernameError = "Ce compte n'existe pas !";
+            case "WrongPassword":
+              passwordError = "Mot de passe incorrect !";
+            default:
+              usernameError = "Une erreur s'est produite, veuillez reéssayer.";
+          }
+        });
 
-      setState(() {
-        switch (responseData) {
-          case "NotFound":
-            usernameError = "Ce compte n'existe pas !";
-          case "WrongPassword":
-            passwordError = "Mot de passe incorrect !";
-          default:
-            usernameError = "Une erreur s'est produite, veuillez reéssayer.";
-        }
-      });
+        return;
+      }
 
-      return;
+      // Saving the received AccessToken
+      final accessToken = responseData["AccessToken"];
+      final refreshToken = responseData["RefreshToken"];
+      data.token = accessToken;
+      data.username = username;
+      await secureStorage.write(key: "AccessToken", value: accessToken);
+      await secureStorage.write(key: "RefreshToken", value: refreshToken);
+      await Hive.box("Misc").put("Username", username);
+    } catch (e) {
+      print("[Access] Error decoding response: $e");
     }
-
-    // Saving the received AccessToken
-    final accessToken = responseData["AccessToken"];
-    final refreshToken = responseData["RefreshToken"];
-    data.token = accessToken;
-    data.username = username;
-    await secureStorage.write(key: "AccessToken", value: accessToken);
-    await secureStorage.write(key: "RefreshToken", value: refreshToken);
-    await Hive.box("Misc").put("Username", username);
 
     // Closing the page
     if (mounted) Navigator.of(context).pop();
@@ -265,7 +272,6 @@ class _AccessOverlayState extends State<AccessOverlay> {
           ),
         ),
       ),
-      
     );
   }
 
