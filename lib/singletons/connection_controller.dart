@@ -68,9 +68,9 @@ class ConnectionController {
     connect();
   }
 
-  Future<int> refreshAccessToken() async {
+  Future<http.Response> refreshAccessToken() async {
     final refreshToken = await secureStorage.read(key: "RefreshToken");
-    if (refreshToken == null) return 401;
+    if (refreshToken == null) return http.Response("No refresh token found in SecureStorage.", 401);
 
     final response = await post("/Auth/Refresh", {
       "RefreshToken": refreshToken,
@@ -86,10 +86,10 @@ class ConnectionController {
         value: results["RefreshToken"],
       );
 
-      return 200;
+      return http.Response("OK", 200);
     }
 
-    return response.statusCode;
+    return response;
   }
 
   // WebSocket Requests
@@ -126,20 +126,20 @@ class ConnectionController {
         return;
       }
 
-      final responseCode = await refreshAccessToken();
+      final response = await refreshAccessToken();
 
       // The server refused to refresh access, user was kicked out or banned
-      if (responseCode == 401) {
-        debugPrint("[WebSocket 1/2][!] Server refused to refresh the tokens.");
+      if (response.statusCode == 401) {
+        debugPrint("[WebSocket 1/2][!] Could not refresh the access token. ${response.body}");
         onUnauthorized!();
         return;
-      } else if (responseCode != 200) {
-        throw Exception(responseCode);
+      } else if (response.statusCode != 200) {
+        throw Exception(response);
       }
 
       debugPrint("[WebSocket 1/2] Tokens successfully refreshed.");
-    } catch (e) {
-      debugPrint("[WebSocket 1/2][!] Token refresh failed: $e");
+    } catch (e, s) {
+      debugPrint("[WebSocket 1/2][!] Token refresh failed: $e, StackTrace:\n$s");
       connectionState.value = ConnectionState.NotConnected;
       _scheduleReconnect();
       return;
