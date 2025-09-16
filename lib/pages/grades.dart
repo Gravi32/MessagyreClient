@@ -158,19 +158,20 @@ class _GradesPageState extends State<GradesPage> {
                     return subjectGradeList.isEmpty
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 10,
                           children: [
                             Icon(
                               CupertinoIcons.sparkles,
-                              size: 40,
+                              size: 36,
                               color: CupertinoColors.separator.resolveFrom(
                                 context,
                               ),
                             ),
-                            SizedBox(height: 8),
                             Text(
                               "Ajoutez une note !",
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
+                                fontSize: 20,
                                 color: CupertinoColors.separator.resolveFrom(
                                   context,
                                 ),
@@ -237,7 +238,7 @@ class _GradesPageState extends State<GradesPage> {
                   SizedBox(width: 8),
                   Text(
                     "Ajouter une note",
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
                   ),
                 ],
               ),

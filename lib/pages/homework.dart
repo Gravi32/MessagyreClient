@@ -97,7 +97,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                           children: [
                             Icon(
                               CupertinoIcons.sparkles,
-                              size: 40,
+                              size: 36,
                               color: CupertinoColors.separator.resolveFrom(
                                 context,
                               ),
@@ -106,6 +106,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               "Pas de devoirs !",
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
+                                fontSize: 20,
                                 color: CupertinoColors.separator.resolveFrom(
                                   context,
                                 ),
@@ -257,7 +258,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
               sizeStyle: CupertinoButtonSize.medium,
               child: Row(
                 spacing: 8,
-                children: [Icon(CupertinoIcons.add), Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w500),)],
+                children: [Icon(CupertinoIcons.add), Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),)],
               ),
             ),
           ),

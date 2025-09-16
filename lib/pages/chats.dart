@@ -32,13 +32,11 @@ class _ChatsPageState extends State<ChatsPage> {
         CupertinoButton(
           padding: EdgeInsets.zero,
           child: SizedBox(
-            height: 55,
+            height: 50,
             child: Row(
               children: [
-                ProfilePictureDisplay(
-                  accountUsername: data.recipientUsername,
-                  radius: 24,
-                ),
+                ProfilePictureDisplay(accountUsername: data.recipientUsername, radius: 25),
+
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -47,13 +45,9 @@ class _ChatsPageState extends State<ChatsPage> {
                       Text(
                         Account.getDisplayableUsername(data.recipientUsername),
                         style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: adaptiveColor(
-                            context,
-                            CupertinoColors.black,
-                            CupertinoColors.white,
-                          ),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
                         ),
                       ),
                       Text(
@@ -62,12 +56,9 @@ class _ChatsPageState extends State<ChatsPage> {
                         overflow: TextOverflow.fade,
                         softWrap: false,
                         style: TextStyle(
-                          fontWeight:
-                              hasUnreadMessages
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
+                          fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400,
                           color: Theme.of(context).dividerColor,
-                          fontSize: 15,
+                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -76,35 +67,17 @@ class _ChatsPageState extends State<ChatsPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    SizedBox(height: 4,),
                     Text(
                       DateFormat('HH:mm').format(data.content.last.sentAt),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: CupertinoColors.systemGrey,
-                        fontWeight:
-                            hasUnreadMessages
-                                ? FontWeight.w400
-                                : FontWeight.w400,
-                      ),
+                      style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: FontWeight.w400),
                     ),
                     if (hasUnreadMessages)
                       Container(
                         margin: EdgeInsets.only(top: 4),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemBlue,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          data.unreadMessages.toString(),
-                          style: TextStyle(
-                            color: CupertinoColors.white,
-                            fontSize: 12,
-                          ),
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: CupertinoColors.systemBlue, borderRadius: BorderRadius.circular(12)),
+                        child: Text(data.unreadMessages.toString(), style: TextStyle(color: CupertinoColors.white, fontSize: 12)),
                       ),
                   ],
                 ),
@@ -112,20 +85,11 @@ class _ChatsPageState extends State<ChatsPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(
-              CupertinoPageRoute(
-                builder:
-                    (builder) =>
-                        ChatOverlay(recipientUsername: data.recipientUsername),
-              ),
-            );
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: data.recipientUsername)));
           },
         ),
 
-        Divider(
-          indent: 60,
-          color: Theme.of(context).dividerColor.withAlpha(30),
-        ),
+        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
@@ -144,7 +108,7 @@ class _ChatsPageState extends State<ChatsPage> {
       var senderUsername = messageData["SenderUsername"]!.toString();
       var receivedMessage = Message.fromMessageData(messageData);
       var targetChat = allChats.get(senderUsername);
-      
+
       if (targetChat == null) {
         targetChat = Chat(recipientUsername: senderUsername);
         targetChat.content.add(receivedMessage);
@@ -176,22 +140,13 @@ class _ChatsPageState extends State<ChatsPage> {
                                 CupertinoActivityIndicator(),
                                 Text(
                                   "Connexion en cours...",
-                                  style: TextStyle(
-                                    color: adaptiveColor(
-                                      context,
-                                      CupertinoColors.systemGrey2,
-                                      CupertinoColors.systemGrey,
-                                    ),
-                                  ),
+                                  style: TextStyle(color: adaptiveColor(context, CupertinoColors.systemGrey2, CupertinoColors.systemGrey)),
                                 ),
                               ],
                             )
                             : null,
                     largeTitle: Text("Conversations"),
-                    trailing: GestureDetector(
-                      child: Icon(CupertinoIcons.add),
-                      onTap: () => MainPage.tabController.index = 3,
-                    ),
+                    trailing: GestureDetector(child: Icon(CupertinoIcons.add), onTap: () => MainPage.tabController.index = 3),
                   ),
             ),
           ];
@@ -204,29 +159,17 @@ class _ChatsPageState extends State<ChatsPage> {
               valueListenable: allChats.listenable(),
               builder: (context, Box<Chat> box, _) {
                 final chatsList = box.values.toList();
-                chatsList.sort(
-                  (a, b) =>
-                      b.content.last.sentAt.compareTo(a.content.last.sentAt),
-                );
+                chatsList.sort((a, b) => b.content.last.sentAt.compareTo(a.content.last.sentAt));
 
                 return chatsList.isEmpty
                     ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 10,
                       children: [
-                        Icon(
-                          CupertinoIcons.sparkles,
-                          size: 40,
-                          color: CupertinoColors.separator.resolveFrom(context),
-                        ),
+                        Icon(CupertinoIcons.sparkles, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
                         Text(
                           "Entamez une conversation !",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: CupertinoColors.separator.resolveFrom(
-                              context,
-                            ),
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
                         ),
                       ],
                     )

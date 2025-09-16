@@ -173,7 +173,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   Widget topBar(BuildContext context) {
-    final unreadChats = getUnreadChats();
+    final unreadChats = 10;// getUnreadChats();
 
     return ClipRect(
       child: BackdropFilter(
@@ -193,7 +193,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Icon(CupertinoIcons.left_chevron, size: 26),
-                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 13, color: CupertinoTheme.of(context).primaryColor)),
+                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 22, color: CupertinoTheme.of(context).primaryColor)),
                     ],
                   ),
                 ),
@@ -206,8 +206,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.recipientUsername.replaceAll('.', ' ').capitalize(), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                        Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 10)),
+                        Text(widget.recipientUsername.replaceAll('.', ' ').capitalize(), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
+                        Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 14)),
                       ],
                     ),
                     onTap: () async {
@@ -288,18 +288,18 @@ class _ChatOverlayState extends State<ChatOverlay> {
           spacing: 9,
           runSpacing: 4,
           children: [
-            Padding(padding: EdgeInsetsGeometry.only(bottom: 3.5), child: Text(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 11))),
+            Padding(padding: EdgeInsetsGeometry.only(bottom: 3.5), child: Text(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 17))),
             Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
               spacing: 1,
               children: [
-                Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: CupertinoColors.white, fontSize: 7)),
+                Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: CupertinoColors.white, fontSize: 12)),
                 if (data.isOwned)
                   ValueListenableBuilder(
                     valueListenable: data.statusNotifier,
-                    builder: (context, status, _) => Icon(getStatusIcon(status), color: CupertinoColors.white, size: 12),
+                    builder: (context, status, _) => Icon(getStatusIcon(status), color: CupertinoColors.white, size: 15, applyTextScaling: true,),
                   ),
               ],
             ),
@@ -337,7 +337,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(200),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 11, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                  child: Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
                 ),
                 bubble,
               ],
@@ -372,7 +372,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             minLines: 1,
                             maxLines: 3,
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 18),
                             controller: messageFieldController,
                             focusNode: messageFieldFocusNode,
                             scrollPhysics: BouncingScrollPhysics(),
