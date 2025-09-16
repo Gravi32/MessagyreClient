@@ -1,34 +1,24 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
 extension StringCasingExtension on String {
   String capitalize() {
-    return split(' ')
-        .map(
-          (word) =>
-              word.isNotEmpty
-                  ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-                  : '',
-        )
-        .join(' ');
+    return split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1).toLowerCase() : '').join(' ');
   }
 }
 
 extension ColorExtension on Color {
   Color withBrightness(double brightness) {
     final hsl = HSLColor.fromColor(this);
-    final adjustedHsl = hsl.withLightness(
-      (hsl.lightness + brightness).clamp(0.0, 1.0),
-    );
+    final adjustedHsl = hsl.withLightness((hsl.lightness + brightness).clamp(0.0, 1.0));
     return adjustedHsl.toColor();
   }
 }
 
 Color adaptiveColor(BuildContext context, Color light, Color dark) {
-  return CupertinoTheme.of(context).brightness == Brightness.dark
-      ? dark
-      : light;
+  return CupertinoTheme.of(context).brightness == Brightness.dark ? dark : light;
 }
 
 String formatDate(DateTime targetDate, {bool includeTime = false}) {
@@ -52,7 +42,7 @@ String formatDate(DateTime targetDate, {bool includeTime = false}) {
   } else if (difference >= 7 && difference <= 13) {
     result = "$dayName prochain";
   } else if (difference < -1 && difference >= -13) {
-    result = "$dayName dernier";
+    result = "$dayName passé";
   } else {
     result = DateFormat("d MMMM", 'fr_CH').format(targetDate);
   }
@@ -106,4 +96,12 @@ double calculateAverage(List<Grade> grades) {
   }
 
   return totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
+}
+
+void initMessageNotifiers() {
+  for (var chat in Hive.box<Chat>("Chats").values) {
+    for (var message in chat.content) {
+      message.initNotifier();
+    }
+  }
 }
