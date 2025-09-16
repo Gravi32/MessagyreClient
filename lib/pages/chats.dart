@@ -138,14 +138,13 @@ class _ChatsPageState extends State<ChatsPage> {
 
     allChats = Hive.box<Chat>("Chats");
 
-    router.onMessageDataReceived.listen((messageData) {
+    router.onMessageReceived.listen((messageData) {
       if (!mounted || data.isChatOpen) return;
 
       var senderUsername = messageData["SenderUsername"]!.toString();
       var receivedMessage = Message.fromMessageData(messageData);
-
       var targetChat = allChats.get(senderUsername);
-
+      
       if (targetChat == null) {
         targetChat = Chat(recipientUsername: senderUsername);
         targetChat.content.add(receivedMessage);

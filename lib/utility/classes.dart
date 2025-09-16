@@ -18,29 +18,56 @@ class Message extends HiveObject {
   @HiveField(2)
   bool isOwned;
 
-  Message({required this.content, required this.sentAt, required this.isOwned});
+  @HiveField(4)
+  int _status;
+
+  late ValueNotifier<int> statusNotifier;
+
+  Message({
+    required this.content,
+    required this.sentAt,
+    required this.isOwned,
+    int status = 0,
+  }) : _status = status {
+    statusNotifier = ValueNotifier<int>(_status);
+  }
+
+  set status(int value) {
+    _status = value;
+    statusNotifier.value = value;
+    if (isInBox) {
+      save();
+    }
+  }
+
+  int get status => _status;
 
   factory Message.fromMessageData(Map<String, dynamic> messageData) {
-    return Message(
-      content: messageData["Content"],
-      sentAt: messageData["SentAt"],
-      isOwned: false,
-    );
+    try {
+      return Message(
+        content: messageData["Content"],
+        sentAt: messageData["SentAt"],
+        isOwned: false,
+      );
+    } catch (e) {
+      debugPrint("[Classes.dart] Message could not be created: $e");
+      throw Exception();
+    }
+  }
+
+  void initNotifier() {
+    statusNotifier = ValueNotifier<int>(_status);
   }
 
   String pack(String recipientUsername) {
-    var data = {
+    final data = {
       "RecipientUsername": recipientUsername,
       "Content": content,
-      "SentAt": sentAt,
+      "SentAt": sentAt.toIso8601String(),
+      "Status": status
     };
-
     return jsonEncode(data);
   }
-
-  @override
-  String toString() =>
-      "[Message] $content (${sentAt.hour}:${sentAt.minute}, owned: $isOwned)";
 }
 
 @HiveType(typeId: 1)
@@ -57,8 +84,7 @@ class Chat extends HiveObject {
   Chat({required this.recipientUsername});
 
   @override
-  String toString() =>
-      "[$recipientUsername's chat] messages: ${content.length}";
+  String toString() => "[$recipientUsername's chat] messages: ${content.length}";
 }
 
 @HiveType(typeId: 2)
@@ -129,10 +155,7 @@ class Account {
       }
       return fromMap(decoded);
     } catch (e, stack) {
-      debugPrintStack(
-        stackTrace: stack,
-        label: "Account.fromJson error: $e\nsource: $source",
-      );
+      debugPrintStack(stackTrace: stack, label: "Account.fromJson error: $e\nsource: $source");
       return null;
     }
   }

@@ -5,7 +5,6 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/api/firebase_api.dart';
@@ -13,7 +12,6 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:uuid/uuid.dart';
 
 class ConnectionController {
   // Configuration
@@ -21,11 +19,9 @@ class ConnectionController {
 
   static final bool useLocalhost = true;
 
-  static final String serverWebSocketAddress =
-      useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev";
+  static final String serverWebSocketAddress = useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev";
 
-  static final String serverHTTPAddress =
-      useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev";
+  static final String serverHTTPAddress = useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev";
 
   // Declaring this singleton
   static final _instance = ConnectionController._internal();
@@ -43,11 +39,15 @@ class ConnectionController {
 
   // Events
 
-  final _messageDataController =
-      StreamController<Map<String, Object>>.broadcast();
+  /* Stream for the received WebSocket messages */
+  final _messagesController = StreamController<Map<String, Object>>.broadcast();
+  Stream<Map<String, Object>> get onMessageReceived => _messagesController.stream;
+
+  /* Stream for the received WebSocket read receipts */
+  final _readReceiptsController = StreamController<Map<String, Object>>.broadcast();
+  Stream<Map<String, Object>> get onReadReceiptReceived => _readReceiptsController.stream;
+
   final _connectionStatusController = StreamController<void>.broadcast();
-  Stream<Map<String, Object>> get onMessageDataReceived =>
-      _messageDataController.stream;
   Stream<void> get onConnected => _connectionStatusController.stream;
   void Function()? onUnauthorized;
 
@@ -56,11 +56,8 @@ class ConnectionController {
   Future<void> start() async {
     data.token = await secureStorage.read(key: "AccessToken");
 
-    if ((data.token == null || data.username == null) &&
-        onUnauthorized != null) {
-      debugPrint(
-        "[ConnectionController] No token or username found in storage. Switching to AccessOverlay.",
-      );
+    if ((data.token == null || data.username == null) && onUnauthorized != null) {
+      debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
       onUnauthorized!();
       return;
     }
@@ -70,21 +67,18 @@ class ConnectionController {
 
   Future<http.Response> refreshAccessToken() async {
     final refreshToken = await secureStorage.read(key: "RefreshToken");
-    if (refreshToken == null) return http.Response("No refresh token found in SecureStorage.", 401);
+    if (refreshToken == null) {
+      return http.Response("No refresh token found in SecureStorage.", 401);
+    }
 
-    final response = await post("/Auth/Refresh", {
-      "RefreshToken": refreshToken,
-    });
+    final response = await post("/Auth/Refresh", {"RefreshToken": refreshToken});
 
     if (response.statusCode == 200) {
       final results = jsonDecode(response.body);
       data.token = results["AccessToken"];
 
       await secureStorage.write(key: "AccessToken", value: data.token);
-      await secureStorage.write(
-        key: "RefreshToken",
-        value: results["RefreshToken"],
-      );
+      await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
 
       return http.Response("OK", 200);
     }
@@ -151,17 +145,37 @@ class ConnectionController {
 
       debugPrint("[WebSocket 2/2] Connecting...");
 
-      final socket = await WebSocket.connect(
-        serverWebSocketAddress,
-        headers: {'Authorization': 'Bearer ${data.token}'},
-      ).timeout(const Duration(seconds: 40));
+      final socket = await WebSocket.connect(serverWebSocketAddress, headers: {'Authorization': 'Bearer ${data.token}'}).timeout(const Duration(seconds: 40));
+      print("[WebSocket 2/2] await WebSocket.connect() finished");
+
+      socket.done.catchError((e) {
+        debugPrint("[WebSocket] Socket done with error: $e");
+      });
 
       _channel = IOWebSocketChannel(socket);
+      print("[WebSocket] Channel created.");
 
       connectionAttempts = 0;
 
+      print("[WebSocket] Adding listeners");
       _channel!.stream.listen(
-        (msg) => _handleMessage(jsonDecode(msg)),
+        (message) {
+          try {
+            final receivedData = jsonDecode(message);
+
+            if (receivedData is List) {
+              print("$receivedData ${receivedData.runtimeType} ${receivedData[0]} ${receivedData[0].runtimeType}");
+              for (var element in receivedData) {
+                _handleMessage(element);
+              }
+            } else {
+              _handleMessage(receivedData);
+            }
+          } catch (e) {
+            debugPrint("[WebSocket] Message received by server could not be decoded: $e. Message content: $message");
+          }
+        },
+
         onDone: () {
           debugPrint("[WebSocket] Closed by server");
           _channel = null;
@@ -178,7 +192,6 @@ class ConnectionController {
 
       debugPrint("[WebSocket 2/2] Connected!");
       connectionState.value = ConnectionState.Connected;
-
     } catch (e) {
       debugPrint("[WebSocket 2/2][!] Connection failed: $e");
 
@@ -191,35 +204,39 @@ class ConnectionController {
   void _handleMessage(Map<String, dynamic> rawMessageData) {
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
-      final content = rawMessageData["Content"]?.toString();
-      final rawSentAt = rawMessageData["SentAt"]?.toString();
+      final isReadReceipt = rawMessageData.containsKey("ReadAt");
 
-      if (sender == null || content == null || rawSentAt == null) {
-        throw FormatException("Missing fields");
+      if (sender == null) throw FormatException("Missing SenderUsername");
+
+      if (isReadReceipt) {
+        final readAt = DateTime.parse(rawMessageData["ReadAt"].toString()).toLocal();
+        final readReceipt = {"SenderUsername": sender, "ReadAt": readAt};
+        _readReceiptsController.add(readReceipt);
+      } else {
+        final content = rawMessageData["Content"]?.toString();
+        final rawSentAt = rawMessageData["SentAt"]?.toString();
+
+        if (content == null || rawSentAt == null) {
+          throw FormatException("Missing Content or SentAt");
+        }
+        final sentAt = DateTime.parse(rawSentAt).toLocal();
+        final messageData = {"SenderUsername": sender, "Content": content, "SentAt": sentAt};
+
+        _messagesController.add(messageData);
       }
-
-      final sentAt = DateTime.parse(rawSentAt).toLocal();
-
-      final messageData = {
-        "SenderUsername": sender,
-        "Content": content,
-        "SentAt": sentAt,
-      };
-
-      _messageDataController.add(messageData);
     } catch (e) {
       debugPrint("[WebSocket] Invalid message format: $e");
     }
   }
 
   void send(String recipientUsername, String messageContent) {
-    final message = jsonEncode({
-      "MessageID": Uuid().v4(),
-      "RecipientUsername": recipientUsername,
-      "Content": messageContent,
-    });
+    final message = jsonEncode({"RecipientUsername": recipientUsername, "Content": messageContent});
 
     _channel?.sink.add(message);
+  }
+
+  void sendReadReceipt(String forUsername) {
+    _channel?.sink.add(jsonEncode({"RecipientUsername": forUsername, "IsReadReceipt": true}));
   }
 
   void disconnect() {
@@ -231,19 +248,12 @@ class ConnectionController {
 
   // HTTP Shorthands
 
-  Future<http.Response> post(
-    String route,
-    Object body, {
-    int timeout = 30,
-  }) async {
+  Future<http.Response> post(String route, Object body, {int timeout = 30}) async {
     try {
       final response = await http
           .post(
             Uri.parse(serverHTTPAddress + route),
-            headers: {
-              "Content-Type": "application/json",
-              if (data.token != null) "Authorization": "Bearer ${data.token!}",
-            },
+            headers: {"Content-Type": "application/json", if (data.token != null) "Authorization": "Bearer ${data.token!}"},
             body: jsonEncode(body),
           )
           .timeout(Duration(seconds: timeout));
@@ -263,10 +273,7 @@ class ConnectionController {
       final response = await http
           .get(
             Uri.parse(serverHTTPAddress + route),
-            headers: {
-              "Content-Type": "application/json",
-              if (data.token != null) "Authorization": "Bearer ${data.token!}",
-            },
+            headers: {"Content-Type": "application/json", if (data.token != null) "Authorization": "Bearer ${data.token!}"},
           )
           .timeout(Duration(seconds: timeout));
 
@@ -282,11 +289,7 @@ class ConnectionController {
 
   // HTTP Requests
 
-  Future<bool> uploadProfile(
-    Map<String, dynamic> profileObject, {
-    String? imagePath,
-    bool removeProfilePicture = false,
-  }) async {
+  Future<bool> uploadProfile(Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
     final uri = Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfile');
     final request = http.MultipartRequest('POST', uri);
 
@@ -325,15 +328,11 @@ class ConnectionController {
   }
 
   Future<String?> getProfilePicture(String accountUsername) async {
-    final response = await get(
-      "/Accounts/GetProfilePictureURL?Username=$accountUsername",
-    );
+    final response = await get("/Accounts/GetProfilePictureURL?Username=$accountUsername");
 
     if (response.statusCode != 200) {
       if (response.statusCode != 404) {
-        debugPrint(
-          "[PFP Get Failed] Error ${response.statusCode} (${response.body})",
-        );
+        debugPrint("[PFP Get Failed] Error ${response.statusCode} (${response.body})");
       }
       return null;
     }
@@ -347,9 +346,7 @@ class ConnectionController {
     final response = await get("/Accounts/Get?Username=$accountUsername");
 
     if (response.statusCode != 200) {
-      debugPrint(
-        "[Account Get Failed] Error ${response.statusCode}: ${response.body}",
-      );
+      debugPrint("[Account Get Failed] Error ${response.statusCode}: ${response.body}");
       return null;
     }
 

@@ -37,6 +37,7 @@ dependencies:
   package_info_plus: ^8.3.1
   modal_bottom_sheet: ^3.0.0
   uuid: ^4.5.1
+  flutter_keyboard_visibility: ^6.0.0
 
 dev_dependencies:
   flutter_test:

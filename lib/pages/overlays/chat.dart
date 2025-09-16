@@ -1,7 +1,8 @@
+import 'dart:math';
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' hide ConnectionState;
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
@@ -10,6 +11,7 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 class ChatOverlay extends StatefulWidget {
   final String recipientUsername;
@@ -31,22 +33,20 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final messageFieldController = TextEditingController();
   final messageFieldFocusNode = FocusNode();
 
-  /// Configurations \\\
-  int visibleMessageCount = 50;
-  double blurAmount = 15;
+  // Configurations
+  int visibleMessageCount = 150;
+  double blurAmount = 6;
   Color barLightColor = CupertinoColors.systemGrey5.withAlpha(150);
   Color barDarkColor = CupertinoColors.darkBackgroundGray.withAlpha(150);
 
   Account? lastAccountCache;
+  bool showScrollDownButton = false;
 
   void scrollDown() {
     Future.delayed(Duration(milliseconds: 100), () {
+      setState(() => showScrollDownButton = false);
       if (chatScrollController.hasClients) {
-        chatScrollController.animateTo(
-          chatScrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
+        chatScrollController.animateTo(chatScrollController.position.maxScrollExtent, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
       }
     });
   }
@@ -54,20 +54,23 @@ class _ChatOverlayState extends State<ChatOverlay> {
   void sendMessage(String input) async {
     if (input.isEmpty) return;
 
+    // Creating a new chat if it doesn't already exist
     if (chatData == null) {
       chatData = Chat(recipientUsername: widget.recipientUsername);
       saveChatData();
     }
 
+    final message = Message(content: input, sentAt: DateTime.now(), isOwned: true);
+
     setState(() {
-      chatData!.content.add(
-        Message(content: input, sentAt: DateTime.now(), isOwned: true),
-      );
+      chatData!.content.add(message);
     });
 
-    router.send(widget.recipientUsername, input);
+    if (router.isConnected) {
+      router.send(widget.recipientUsername, input);
+      message.statusNotifier.value = 1;
+    }
     saveChatData();
-
     messageFieldController.clear();
     messageFieldFocusNode.requestFocus();
     scrollDown();
@@ -89,35 +92,65 @@ class _ChatOverlayState extends State<ChatOverlay> {
       setState(() {});
     });
 
-    Future.delayed(Duration(milliseconds: 300), () {
-      if (chatScrollController.hasClients) {
-        chatScrollController.jumpTo(
-          chatScrollController.position.maxScrollExtent + 1000,
-        );
+    messageFieldFocusNode.addListener(
+      () => Future.delayed(Duration(milliseconds: 400), () {
+        scrollDown();
+      }),
+    );
+
+    KeyboardVisibilityController().onChange.listen((bool visible) {
+      if (visible) {
+        scrollDown();
+      } else {
+        messageFieldFocusNode.unfocus();
       }
     });
 
-    chatScrollController.addListener(() {
-      if (chatScrollController.offset <= 100 && chatData != null) {
-        if (visibleMessageCount < chatData!.content.length) {
-          setState(() {
-            visibleMessageCount += 20;
-          });
-        }
-      }
-    });
+    router.onMessageReceived.listen((messageData) {
+      debugPrint("[Chat] Message received $messageData");
+      if (chatData == null || messageData["SenderUsername"] != chatData?.recipientUsername) return;
 
-    router.onMessageDataReceived.listen((messageData) {
-      debugPrint("[chat.dart] message received $messageData");
       final newMessage = Message.fromMessageData(messageData);
 
       setState(() {
-        chatData?.content.add(newMessage);
+        chatData!.content.add(newMessage);
       });
+
+      router.sendReadReceipt(chatData!.recipientUsername);
 
       saveChatData();
       scrollDown();
     });
+
+    router.onReadReceiptReceived.listen((readReceipt) {
+      debugPrint("[Chat] Read receipt received $readReceipt");
+
+      if (chatData == null || readReceipt["SenderUsername"] != chatData?.recipientUsername) return;
+      DateTime readAt = readReceipt["ReadAt"] as DateTime;
+
+      chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt)).map((readMessage) => readMessage.status = 2);
+
+      for (var readMessage in chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt))) {
+        if (readMessage.status == 1) readMessage.status = 2;
+      }
+
+      setState(() {});
+      return;
+    });
+
+    chatScrollController.addListener(() {
+      if (showScrollDownButton) {
+        if (chatScrollController.offset > chatScrollController.position.maxScrollExtent - 20) {
+          setState(() => showScrollDownButton = false);
+        }
+      } else {
+        if (chatScrollController.offset < chatScrollController.position.maxScrollExtent - 100) {
+          setState(() => showScrollDownButton = true);
+        }
+      }
+    });
+
+    scrollDown();
   }
 
   @override
@@ -129,7 +162,19 @@ class _ChatOverlayState extends State<ChatOverlay> {
     super.dispose();
   }
 
+  int getUnreadChats() {
+    int count = 0;
+
+    for (var chat in chats.values) {
+      count += chat.unreadMessages;
+    }
+
+    return count;
+  }
+
   Widget topBar(BuildContext context) {
+    final unreadChats = getUnreadChats();
+
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
@@ -137,58 +182,47 @@ class _ChatOverlayState extends State<ChatOverlay> {
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
           color: adaptiveColor(context, barLightColor, barDarkColor),
           child: Container(
-            height: 72,
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
+              mainAxisSize: MainAxisSize.max,
               children: [
                 CupertinoButton(
                   onPressed: () => Navigator.of(context).pop(),
                   padding: EdgeInsets.zero,
-                  child: Icon(CupertinoIcons.back, size: 26),
-                ),
-                ProfilePictureDisplay(
-                  accountUsername: widget.recipientUsername,
-                ),
-                SizedBox(width: 12),
-                GestureDetector(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.recipientUsername
-                            .replaceAll('.', ' ')
-                            .capitalize(),
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        widget.recipientUsername,
-                        style: TextStyle(
-                          color: CupertinoColors.systemGrey,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Icon(CupertinoIcons.left_chevron, size: 26),
+                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 13, color: CupertinoTheme.of(context).primaryColor)),
                     ],
                   ),
-                  onTap: () async {
-                    var recipientAccount =
-                        widget.recipientUsername == lastAccountCache?.username
-                            ? lastAccountCache
-                            : await router.getAccount(widget.recipientUsername);
-
-                    if (recipientAccount == null || !context.mounted) return;
-                    lastAccountCache = recipientAccount;
-
-                    Navigator.push(
-                      context,
-                      CupertinoPageRoute(
-                        builder: (context) => ProfileOverlay(recipientAccount),
-                      ),
-                    );
-                  },
                 ),
-                Spacer(),
-                Icon(CupertinoIcons.phone, size: 22),
+                SizedBox(width: 16),
+                ProfilePictureDisplay(accountUsername: widget.recipientUsername),
+                SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.recipientUsername.replaceAll('.', ' ').capitalize(), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 10)),
+                      ],
+                    ),
+                    onTap: () async {
+                      var recipientAccount =
+                          widget.recipientUsername == lastAccountCache?.username ? lastAccountCache : await router.getAccount(widget.recipientUsername);
+
+                      if (recipientAccount == null || !context.mounted) return;
+                      lastAccountCache = recipientAccount;
+
+                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfileOverlay(recipientAccount)));
+                    },
+                  ),
+                ),
+                Icon(CupertinoIcons.phone, size: 22, color: CupertinoColors.systemGrey.resolveFrom(context)),
+                SizedBox(width: 10),
               ],
             ),
           ),
@@ -197,29 +231,27 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
   }
 
-  Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, int? state) {
-    // States: 0-Sending 1-Sent to server 2-Received 3-Read
-
+  Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned) {
+    /* Possible status values: 
+    0 Queued
+    1 Sent 
+    2 Read
+    */
     BorderRadius getBubbleShape(bool isOwned) {
-      const Radius max = Radius.circular(14);
-      var isAlone =
-          (isPreviousOwned ?? !isOwned) == !isOwned &&
-          (isNextOwned ?? !isOwned) == !isOwned;
+      const double maxPx = 11;
+      const Radius max = Radius.circular(maxPx);
+      var isAlone = (isPreviousOwned ?? !isOwned) == !isOwned && (isNextOwned ?? !isOwned) == !isOwned;
 
       var owned = BorderRadius.only(
-        topRight: Radius.circular(isPreviousOwned ?? false ? 4 : 14),
-        bottomRight: Radius.circular(
-          isAlone || (isNextOwned ?? false) ? 4 : 14,
-        ),
+        topRight: Radius.circular(isPreviousOwned ?? false ? 4 : maxPx),
+        bottomRight: Radius.circular(isAlone || (isNextOwned ?? false) ? 4 : maxPx),
         topLeft: max,
         bottomLeft: max,
       );
 
       var received = BorderRadius.only(
-        topLeft: Radius.circular(isPreviousOwned ?? true ? 14 : 4),
-        bottomLeft: Radius.circular(
-          isAlone || !(isNextOwned ?? false) ? 4 : 14,
-        ),
+        topLeft: Radius.circular(isPreviousOwned ?? true ? maxPx : 4),
+        bottomLeft: Radius.circular(isAlone || !(isNextOwned ?? false) ? 4 : maxPx),
         topRight: max,
         bottomRight: max,
       );
@@ -228,58 +260,46 @@ class _ChatOverlayState extends State<ChatOverlay> {
     }
 
     Color getBubbleColor(bool isOwned) {
-      final isDarkMode =
-          CupertinoTheme.brightnessOf(context) == Brightness.dark;
+      final isDarkMode = CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
-      return isOwned
-          ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF))
-          : (isDarkMode
-              ? const Color(0xFF3D3D3D)
-              : CupertinoColors.systemGrey3);
+      return isOwned ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF)) : (isDarkMode ? const Color(0xFF3D3D3D) : CupertinoColors.systemGrey3);
+    }
+
+    IconData getStatusIcon(int status) {
+      if (status == 0) return Icons.close_rounded;
+      if (status == 1) return Icons.done_rounded;
+      return Icons.done_all_rounded;
     }
 
     return Align(
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        margin: EdgeInsets.only(
-          bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2,
-        ),
-        padding: EdgeInsets.only(left: 12, right: 8, bottom: 6, top: 5),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
+        padding: EdgeInsets.only(left: 9, right: 8, bottom: 2, top: 5),
         decoration: BoxDecoration(
           color: getBubbleColor(data.isOwned),
           borderRadius: getBubbleShape(data.isOwned),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(30),
-              offset: Offset(3, 5),
-              blurRadius: 10,
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10)],
         ),
         child: Wrap(
           alignment: WrapAlignment.end,
           crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 6,
+          spacing: 9,
           runSpacing: 4,
           children: [
-            Text(data.content, style: TextStyle(color: CupertinoColors.white)),
+            Padding(padding: EdgeInsetsGeometry.only(bottom: 3.5), child: Text(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 11))),
             Row(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
-              spacing: 2,
+              spacing: 1,
               children: [
-                Text(
-                  DateFormat('HH:mm').format(data.sentAt),
-                  style: TextStyle(color: CupertinoColors.white, fontSize: 10),
-                ),
+                Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: CupertinoColors.white, fontSize: 7)),
                 if (data.isOwned)
-                  Icon(
-                    Icons.done_all_rounded,
-                    color: CupertinoColors.label.resolveFrom(context),
-                    size: 14,
+                  ValueListenableBuilder(
+                    valueListenable: data.statusNotifier,
+                    builder: (context, status, _) => Icon(getStatusIcon(status), color: CupertinoColors.white, size: 12),
                   ),
               ],
             ),
@@ -290,32 +310,40 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   Widget messageList() {
-    return SafeArea(
-      child: ListView.builder(
-        controller: chatScrollController,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        clipBehavior: Clip.none,
-        itemCount:
-            chatData == null
-                ? 0
-                : (chatData!.content.length < visibleMessageCount
-                    ? chatData!.content.length
-                    : visibleMessageCount),
-        itemBuilder: (context, index) {
-          if (chatData == null) return SizedBox.shrink();
+    return ListView.builder(
+      controller: chatScrollController,
+      padding: EdgeInsets.symmetric(horizontal: 10),
 
-          var list = chatData!.content;
-          int start = (list.length - visibleMessageCount).clamp(0, list.length);
-          var sliced = list.sublist(start);
+      itemCount: chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount),
+      itemBuilder: (context, index) {
+        if (chatData == null) return SizedBox.shrink();
 
-          var data = sliced[index];
-          var previous = (index > 0) ? sliced[index - 1].isOwned : null;
-          var next =
-              (index < sliced.length - 1) ? sliced[index + 1].isOwned : null;
+        var allMessagesList = chatData!.content;
+        var visibleMessagesList = allMessagesList.sublist((allMessagesList.length - visibleMessageCount).clamp(0, allMessagesList.length));
 
-          return messageBubble(data, previous, next, 0);
-        },
-      ),
+        var currentMessage = visibleMessagesList[index];
+        var previousMessage = visibleMessagesList[max(index - 1, 0)];
+        var nextMessage = visibleMessagesList[min(index + 1, visibleMessagesList.length - 1)];
+
+        final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned);
+
+        return currentMessage.sentAt.difference(previousMessage.sentAt).inDays > 0 || index == 0
+            ? Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(bottom: 12, top: 30),
+                  padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(200),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 11, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                ),
+                bubble,
+              ],
+            )
+            : Container(margin: EdgeInsets.only(top: (index == 0) ? 12 : 0, bottom: (index == visibleMessagesList.length - 1) ? 12 : 0), child: bubble);
+      },
     );
   }
 
@@ -325,40 +353,55 @@ class _ChatOverlayState extends State<ChatOverlay> {
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
           color: adaptiveColor(context, barLightColor, barDarkColor),
-          child: Padding(
-            padding: EdgeInsets.only(
-              right: 12,
-              left: 12,
-              bottom: MediaQuery.of(context).padding.bottom + 10,
-              top: 8,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                GestureDetector(child: Icon(CupertinoIcons.paperclip)),
-                SizedBox(width: 16),
-                Expanded(
-                  child: CupertinoTextField(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                    minLines: 1,
-                    maxLines: 3,
-                    controller: messageFieldController,
-                    focusNode: messageFieldFocusNode,
-                    scrollPhysics: BouncingScrollPhysics(),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).hoverColor,
-                      borderRadius: BorderRadius.circular(20),
+
+          padding: EdgeInsets.only(right: 12, left: 12, bottom: MediaQuery.of(context).padding.bottom),
+          child: ValueListenableBuilder(
+            valueListenable: router.connectionState,
+            builder: (context, connectionState, _) {
+              return connectionState == ConnectionState.Connected
+                  ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    spacing: 8,
+                    children: [
+                      GestureDetector(child: Icon(CupertinoIcons.add, color: CupertinoColors.systemGrey.resolveFrom(context))),
+
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsetsGeometry.symmetric(vertical: 6),
+                          child: CupertinoTextField(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            minLines: 1,
+                            maxLines: 3,
+                            style: TextStyle(fontSize: 12),
+                            controller: messageFieldController,
+                            focusNode: messageFieldFocusNode,
+                            scrollPhysics: BouncingScrollPhysics(),
+                            decoration: BoxDecoration(color: Theme.of(context).hoverColor, borderRadius: BorderRadius.circular(20)),
+                            onSubmitted: sendMessage,
+                          ),
+                        ),
+                      ),
+
+                      GestureDetector(
+                        onTap: () => sendMessage(messageFieldController.text),
+                        child: Container(
+                          height: 30,
+                          width: 30,
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoTheme.of(context).primaryColor),
+                          child: Padding(padding: EdgeInsetsGeometry.only(left: 2), child: Icon(Icons.send_rounded, size: 18, color: CupertinoColors.white)),
+                        ),
+                      ),
+                    ],
+                  )
+                  : SizedBox(
+                    height: 40,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 8,
+                      children: [CupertinoActivityIndicator(), Text("Connexion en cours...", style: TextStyle(fontSize: 12))],
                     ),
-                    onSubmitted: sendMessage,
-                  ),
-                ),
-                SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () => sendMessage(messageFieldController.text),
-                  child: Icon(CupertinoIcons.paperplane),
-                ),
-              ],
-            ),
+                  );
+            },
           ),
         ),
       ),
@@ -367,7 +410,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    chatData?.unreadMessages = 0;
+    if ((chatData?.unreadMessages ?? 0) > 0) {
+      chatData!.unreadMessages = 0;
+      router.sendReadReceipt(chatData!.recipientUsername);
+    }
     saveChatData();
 
     return CupertinoPageScaffold(
@@ -378,26 +424,44 @@ class _ChatOverlayState extends State<ChatOverlay> {
             repeat: ImageRepeat.repeat,
             scale: 3,
             opacity: .1,
-            colorFilter:
-                data.appBrightness == Brightness.dark
-                    ? null
-                    : ColorFilter.mode(
-                      Colors.black.withAlpha(100),
-                      BlendMode.srcIn,
-                    ),
+            colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(100), BlendMode.srcIn),
           ),
         ),
-        child: Stack(
+        child: Column(
           children: [
-            Column(
-              children: [
-                SizedBox(height: MediaQuery.of(context).padding.top + 50),
-                Expanded(child: messageList()),
-                SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
-              ],
+            topBar(context),
+            Expanded(
+              child: Stack(
+                children: [
+                  messageList(),
+                  Positioned(
+                    bottom: 8,
+                    right: 12,
+                    child: AnimatedSlide(
+                      offset: showScrollDownButton ? Offset(0, 0) : Offset(0, 1),
+                      duration: Duration(milliseconds: 300),
+                      child: AnimatedOpacity(
+                        opacity: showScrollDownButton ? 1.0 : 0.0,
+                        duration: Duration(milliseconds: 300),
+                        child: GestureDetector(
+                          onTap: scrollDown,
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context).withAlpha(200),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(CupertinoIcons.down_arrow, color: CupertinoColors.label.resolveFrom(context)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            Positioned(top: 0, left: 0, right: 0, child: topBar(context)),
-            Positioned(bottom: 0, left: 0, right: 0, child: bottomBar()),
+            bottomBar(),
           ],
         ),
       ),

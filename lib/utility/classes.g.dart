@@ -20,19 +20,21 @@ class MessageAdapter extends TypeAdapter<Message> {
       content: fields[0] as String,
       sentAt: fields[1] as DateTime,
       isOwned: fields[2] as bool,
-    );
+    ).._status = fields[4] as int;
   }
 
   @override
   void write(BinaryWriter writer, Message obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.content)
       ..writeByte(1)
       ..write(obj.sentAt)
       ..writeByte(2)
-      ..write(obj.isOwned);
+      ..write(obj.isOwned)
+      ..writeByte(4)
+      ..write(obj._status);
   }
 
   @override

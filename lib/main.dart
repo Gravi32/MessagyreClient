@@ -16,6 +16,7 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/singletons/notifications_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -42,6 +43,8 @@ void main() async {
   await Hive.openBox<Homework>("Homework");
   await Hive.openBox<Grade>("Grades");
   await Hive.openBox<List>("SubjectOrder");
+
+  initMessageNotifiers();
 
   final miscBox = await Hive.openBox("Misc");
 
