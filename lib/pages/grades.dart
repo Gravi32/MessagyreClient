@@ -46,11 +46,7 @@ class _GradesPageState extends State<GradesPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 20,
-                          color: adaptiveColor(
-                            context,
-                            CupertinoColors.black,
-                            CupertinoColors.white,
-                          ),
+                          color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
                         ),
                       ),
                       Text(
@@ -58,10 +54,7 @@ class _GradesPageState extends State<GradesPage> {
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(
-                          color: Theme.of(context).dividerColor,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
                       ),
                     ],
                   ),
@@ -72,37 +65,61 @@ class _GradesPageState extends State<GradesPage> {
 
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Icon(
-                      CupertinoIcons.line_horizontal_3,
-                      size: 20,
-                      color: CupertinoColors.systemGrey,
-                    ),
+                    child: Icon(CupertinoIcons.line_horizontal_3, size: 20, color: CupertinoColors.systemGrey),
                   ),
                 ),
               ],
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(
-              CupertinoPageRoute(
-                builder:
-                    (builder) => SubjectPage(subject: subject),
-              ),
-            );
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
           },
         ),
-        Divider(
-          indent: 60,
-          color: Theme.of(context).dividerColor.withAlpha(30),
-        ),
+        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
 
-  void showNewHomeworkPopup({Grade? toEdit}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(
-      context: context, builder: (context) => NewGrade(),
+  Widget buildAverageBar() {
+    final average = calculateAverage(allGrades.values.toList());
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.5), borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2,
+            children: [
+              Text(
+                "Moyenne générale",
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)),
+              ),
+              Row(
+                spacing: 10,
+                children: [
+                  Text(
+                    "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
+                    maxLines: 2,
+                    overflow: TextOverflow.fade,
+                    softWrap: true,
+                    style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
+                  ),
+                ],
+              ),
+              
+            ],
+          ),
+          GradeDisplay(grade: average, size: 64),
+        ],
+      ),
     );
+  }
+
+  void showNewHomeworkPopup({Grade? toEdit}) async {
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(context: context, builder: (context) => NewGrade());
 
     if (newGrade == null) return;
 
@@ -155,70 +172,49 @@ class _GradesPageState extends State<GradesPage> {
                 child: ValueListenableBuilder(
                   valueListenable: allGrades.listenable(),
                   builder: (context, Box<Grade> box, _) {
+                    loadSubjects();
+
                     return subjectGradeList.isEmpty
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 10,
                           children: [
-                            Icon(
-                              CupertinoIcons.sparkles,
-                              size: 36,
-                              color: CupertinoColors.separator.resolveFrom(
-                                context,
-                              ),
-                            ),
+                            Icon(CupertinoIcons.sparkles, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
                             Text(
                               "Ajoutez une note !",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 20,
-                                color: CupertinoColors.separator.resolveFrom(
-                                  context,
-                                ),
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
                             ),
                           ],
                         )
-                        : ReorderableListView.builder(
-                          buildDefaultDragHandles: false,
-                          itemCount: subjectGradeList.length,
-                          padding: EdgeInsets.only(top: 8),
-                          onReorder: (oldIndex, newIndex) {
-                            if (newIndex > oldIndex) newIndex--;
-                            final subjectGrades = subjectGradeList.removeAt(
-                              oldIndex,
-                            );
-                            subjectGradeList.insert(newIndex, subjectGrades);
+                        : SingleChildScrollView(
+                          child: Column(
+                            spacing: 8,
+                            children: [
+                              buildAverageBar(),
+                              ReorderableListView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                buildDefaultDragHandles: false,
+                                itemCount: subjectGradeList.length,
+                                padding: EdgeInsets.only(top: 8),
+                                onReorder: (oldIndex, newIndex) {
+                                  if (newIndex > oldIndex) newIndex--;
+                                  final subjectGrades = subjectGradeList.removeAt(oldIndex);
+                                  subjectGradeList.insert(newIndex, subjectGrades);
 
-                            final order =
-                                subjectGradeList
-                                    .map((e) => e.key.index)
-                                    .toList();
-                            subjectOrderBox.put('order', order);
-                          },
-                          proxyDecorator: (
-                            Widget child,
-                            int index,
-                            Animation<double> animation,
-                          ) {
-                            return Material(
-                              color: CupertinoColors.systemBackground
-                                  .resolveFrom(context)
-                                  .withAlpha(150),
-                              child: child,
-                            );
-                          },
-                          itemBuilder: (context, index) {
-                            final subjectGrades = subjectGradeList[index];
-                            return Container(
-                              key: ValueKey(subjectGrades.key),
-                              child: buildSubjectBar(
-                                subjectGrades.key,
-                                subjectGrades.value,
-                                index,
+                                  final order = subjectGradeList.map((e) => e.key.index).toList();
+                                  subjectOrderBox.put('order', order);
+                                },
+                                proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                                  return Material(color: CupertinoColors.systemBackground.resolveFrom(context).withAlpha(150), child: child);
+                                },
+                                itemBuilder: (context, index) {
+                                  final subjectGrades = subjectGradeList[index];
+                                  return Container(key: ValueKey(subjectGrades.key), child: buildSubjectBar(subjectGrades.key, subjectGrades.value, index));
+                                },
                               ),
-                            );
-                          },
+                            ],
+                          ),
                         );
                   },
                 ),
@@ -233,14 +229,7 @@ class _GradesPageState extends State<GradesPage> {
               sizeStyle: CupertinoButtonSize.medium,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(CupertinoIcons.add),
-                  SizedBox(width: 8),
-                  Text(
-                    "Ajouter une note",
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
-                  ),
-                ],
+                children: [Icon(CupertinoIcons.add), SizedBox(width: 8), Text("Ajouter une note", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20))],
               ),
             ),
           ),

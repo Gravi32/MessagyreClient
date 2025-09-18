@@ -105,3 +105,14 @@ void initMessageNotifiers() {
     }
   }
 }
+
+Map<double, String> fractions = {0.0: "0", 0.25: "¼", 0.33: "⅓", 0.5: "½", 0.66: "⅔", 0.75: "¾", 1.0: "1"};
+
+String getFractionString(double value) {
+  for (var fraction in fractions.keys) {
+    if ((value - fraction).abs() < 0.01) {
+      return fractions[fraction]!;
+    }
+  }
+  return value.toStringAsFixed(2);
+}

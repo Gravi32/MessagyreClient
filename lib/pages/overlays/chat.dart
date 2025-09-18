@@ -173,7 +173,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   Widget topBar(BuildContext context) {
-    final unreadChats = 10;// getUnreadChats();
+    final unreadChats = getUnreadChats();
 
     return ClipRect(
       child: BackdropFilter(
@@ -193,7 +193,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Icon(CupertinoIcons.left_chevron, size: 26),
-                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 22, color: CupertinoTheme.of(context).primaryColor)),
+                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 20, color: CupertinoTheme.of(context).primaryColor)),
                     ],
                   ),
                 ),

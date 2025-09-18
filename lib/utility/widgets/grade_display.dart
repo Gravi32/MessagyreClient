@@ -75,7 +75,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                 ? widget.grade.toInt().toString()
                 : widget.grade.toStringAsFixed(1),
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: CupertinoColors.label.resolveFrom(context),
             ),
@@ -98,7 +98,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Text(
-                    "${(widget.weight * 100).toInt()}%",
+                    getFractionString(widget.weight),
+                    
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
