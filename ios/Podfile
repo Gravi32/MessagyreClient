@@ -3,6 +3,8 @@ platform :ios, '15.0'
 use_frameworks!
 use_modular_headers!
 
+pod 'FirebaseCore', :modular_headers => true
+
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
