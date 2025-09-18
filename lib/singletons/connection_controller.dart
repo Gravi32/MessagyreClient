@@ -17,7 +17,7 @@ class ConnectionController {
   // Configuration
   static const String localIP = "192.168.1.230:5066";
 
-  static final bool useLocalhost = true;
+  static final bool useLocalhost = false;
 
   static final String serverWebSocketAddress = useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev";
 

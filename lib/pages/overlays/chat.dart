@@ -394,11 +394,11 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     ],
                   )
                   : SizedBox(
-                    height: 40,
+                    height: 50,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 8,
-                      children: [CupertinoActivityIndicator(), Text("Connexion en cours...", style: TextStyle(fontSize: 12))],
+                      children: [CupertinoActivityIndicator(), Text("Connexion en cours...")],
                     ),
                   );
             },

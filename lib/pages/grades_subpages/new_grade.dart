@@ -195,33 +195,30 @@ class _NewGradeState extends State<NewGrade> {
                       children: [
                         Text("Valeur", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
 
-                        // CupertinoSlider(
-                        //   value: weight,
-                        //   divisions: fractions.length,
-                        //   onChanged:
-                        //       (newWeight) => setState(() => weight = newWeight),
-                        // ),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             spacing: 6,
                             children:
-                                fractions.keys.map((key) {
-                                  final isSelected = weight == key;
+                                fractions.keys
+                                    .map((key) {
+                                      final isSelected = weight == key;
 
-                                  return CupertinoButton(
-                                    color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
-                                    foregroundColor:
-                                        isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                    padding: EdgeInsets.zero,
-                                    child: Text(fractions[key] ?? "?", style: TextStyle(fontWeight: FontWeight.w600)),
-                                    onPressed:
-                                        () => setState(() {
-                                          print("a");
-                                          weight = key;
-                                        }),
-                                  );
-                                }).toList(),
+                                      return CupertinoButton(
+                                        color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
+                                        foregroundColor:
+                                            isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                        padding: EdgeInsets.zero,
+                                        child: Text(fractions[key] ?? "?", style: const TextStyle(fontWeight: FontWeight.w600)),
+                                        onPressed:
+                                            () => setState(() {
+                                              weight = key;
+                                            }),
+                                      );
+                                    })
+                                    .toList()
+                                    .reversed
+                                    .toList(),
                           ),
                         ),
                       ],
