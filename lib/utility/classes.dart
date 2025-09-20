@@ -76,12 +76,12 @@ class Chat extends HiveObject {
   String recipientUsername;
 
   @HiveField(1)
-  List<Message> content = [];
+  List<Message> content;
 
   @HiveField(2)
-  int unreadMessages = 0;
+  int unreadMessages;
 
-  Chat({required this.recipientUsername});
+  Chat({required this.recipientUsername, this.content = const [], this.unreadMessages = 0});
 
   @override
   String toString() => "[$recipientUsername's chat] messages: ${content.length}";

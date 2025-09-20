@@ -265,12 +265,6 @@ class _ChatOverlayState extends State<ChatOverlay> {
       return isOwned ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF)) : (isDarkMode ? const Color(0xFF3D3D3D) : CupertinoColors.systemGrey3);
     }
 
-    IconData getStatusIcon(int status) {
-      if (status == 0) return Icons.close_rounded;
-      if (status == 1) return Icons.done_rounded;
-      return Icons.done_all_rounded;
-    }
-
     return Align(
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(

@@ -50,15 +50,30 @@ class _ChatsPageState extends State<ChatsPage> {
                           color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
                         ),
                       ),
-                      Text(
-                        data.content.last.content.trim(),
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: false,
-                        style: TextStyle(
-                          fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400,
-                          color: Theme.of(context).dividerColor,
-                          fontSize: 16,
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              if (data.content.last.isOwned)
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Icon(getStatusIcon(data.content.last.status), color: CupertinoColors.systemGrey.resolveFrom(context)),
+                                  ),
+                                ),
+                              TextSpan(
+                                text: data.content.last.content.trim(),
+                                style: TextStyle(
+                                  fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
+                                  color: CupertinoColors.systemGrey.resolveFrom(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                         ),
                       ),
                     ],
@@ -67,17 +82,17 @@ class _ChatsPageState extends State<ChatsPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    SizedBox(height: 4,),
+                    SizedBox(height: 4),
                     Text(
                       DateFormat('HH:mm').format(data.content.last.sentAt),
-                      style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: FontWeight.w400),
+                      style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                     ),
                     if (hasUnreadMessages)
                       Container(
                         margin: EdgeInsets.only(top: 4),
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: CupertinoColors.systemBlue, borderRadius: BorderRadius.circular(12)),
-                        child: Text(data.unreadMessages.toString(), style: TextStyle(color: CupertinoColors.white, fontSize: 12)),
+                        decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
+                        child: Text(data.unreadMessages.toString(), style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
                       ),
                   ],
                 ),
