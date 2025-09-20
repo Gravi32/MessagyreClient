@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "15971680919",
+    "project_id": "messagyre-ac0fe",
+    "storage_bucket": "messagyre-ac0fe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:15971680919:android:c3a400037fc7151c399fd2",
+        "android_client_info": {
+          "package_name": "com.graviware.messagyre"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANK1ifqGRb4fay5teQoliF2M6Ni-cMCJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
