@@ -32,6 +32,10 @@ target 'Runner' do
   pod 'FirebaseFirestore', '~> 10.15'
   pod 'FirebaseAuth', '~> 10.15'
 
+  # Blocchiamo gRPC a una versione compatibile con Xcode 16
+  pod 'gRPC-Core', '1.48.0'
+  pod 'gRPC-C++', '1.48.0'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   target 'RunnerTests' do
@@ -44,12 +48,18 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
+      # Fix per TOOLCHAIN_DIR
       xcconfig_path = config.base_configuration_reference.real_path
       text = File.read(xcconfig_path)
       text.gsub!("${DT_TOOLCHAIN_DIR}", "$(TOOLCHAIN_DIR)")
       File.open(xcconfig_path, "w") { |file| file.puts text }
+
+      # Forziamo C++17 e libc++
+      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
     end
 
+    # Fix per BoringSSL-GRPC (rimuoviamo flag problematici)
     if target.name == 'BoringSSL-GRPC'
       target.source_build_phase.files.each do |file|
         if file.settings && file.settings['COMPILER_FLAGS']
