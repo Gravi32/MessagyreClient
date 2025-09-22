@@ -35,7 +35,8 @@ class _GradesPageState extends State<GradesPage> {
             height: 55,
             child: Row(
               children: [
-                GradeDisplay(grade: calculateAverage(grades), size: 56),
+                SizedBox(width: 4),
+                GradeDisplay(grade: calculateAverage(grades), size: 52),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -45,7 +46,7 @@ class _GradesPageState extends State<GradesPage> {
                         SubjectHelper.toFrench(subject),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
-                          fontSize: 20,
+                          fontSize: 22,
                           color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
                         ),
                       ),
@@ -54,7 +55,7 @@ class _GradesPageState extends State<GradesPage> {
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
+                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 18),
                       ),
                     ],
                   ),
@@ -95,7 +96,7 @@ class _GradesPageState extends State<GradesPage> {
             children: [
               Text(
                 "Moyenne générale",
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)),
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)),
               ),
               Row(
                 spacing: 10,
@@ -105,11 +106,10 @@ class _GradesPageState extends State<GradesPage> {
                     maxLines: 2,
                     overflow: TextOverflow.fade,
                     softWrap: true,
-                    style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
+                    style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 18),
                   ),
                 ],
               ),
-              
             ],
           ),
           GradeDisplay(grade: average, size: 64),
