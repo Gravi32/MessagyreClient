@@ -11,7 +11,7 @@ project 'Runner', {
 def flutter_root
   generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
   unless File.exist?(generated_xcode_build_settings_path)
-    raise "#{generated_xcode_build_settings_path} must exist. Run flutter pub get first"
+    raise "#{generated_xcode_build_settings_path} must exist. Run 'flutter pub get' first"
   end
 
   File.foreach(generated_xcode_build_settings_path) do |line|
@@ -28,6 +28,13 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
 
+  # Firebase base
+  pod 'FirebaseCore'
+  pod 'FirebaseFirestore'
+  pod 'FirebaseAuth'
+
+  # Non serve aggiungere cloud_firestore qui: Flutter lo gestisce come plugin
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   target 'RunnerTests' do
@@ -40,14 +47,14 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
-      # Forza deployment target iOS 15
+      # Forza iOS 15
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
 
-      # C++17 e libc++
+      # C++17 + libc++
       config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
       config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
 
-      # Allow non-modular includes (risolve l’errore degli header)
+      # Permetti header non modulari (risolve problema Firebase + plugin)
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
 
       # Fix TOOLCHAIN_DIR
@@ -57,7 +64,7 @@ post_install do |installer|
       File.open(xcconfig_path, "w") { |file| file.puts text }
     end
 
-    # Fix BoringSSL-GRPC
+    # Fix per BoringSSL-GRPC
     if target.name == 'BoringSSL-GRPC'
       target.source_build_phase.files.each do |file|
         if file.settings && file.settings['COMPILER_FLAGS']
@@ -65,6 +72,15 @@ post_install do |installer|
           flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
           file.settings['COMPILER_FLAGS'] = flags.join(' ')
         end
+      end
+    end
+  end
+
+  # Forza header non modulari anche per il target Runner
+  installer.aggregate_targets.each do |agg|
+    agg.user_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
       end
     end
   end
