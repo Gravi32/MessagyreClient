@@ -33,10 +33,14 @@ class Data {
 
   void log(String? message) {
     final timestamp = DateTime.now();
-    final logEntry =
-        "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
+    String? logEntry;
 
-    appLogs.add(logEntry);
+    try {
+      logEntry =
+          "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
+    } catch (_) {}
+
+    appLogs.add(logEntry ?? message ?? "null");
 
     if (appLogs.length > 1000) {
       appLogs.removeAt(0);
@@ -56,4 +60,3 @@ class Data {
     return pfpNotifiersCache[accountUsername]!;
   }
 }
-

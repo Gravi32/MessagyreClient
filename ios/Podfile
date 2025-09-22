@@ -1,7 +1,5 @@
-# Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
 
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -30,7 +28,12 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
 
+  pod 'FirebaseCore', '~> 10.15'
+  pod 'FirebaseFirestore', '~> 10.15'
+  pod 'FirebaseAuth', '~> 10.15'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
@@ -38,10 +41,8 @@ end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    # Mantieni le impostazioni Flutter
     flutter_additional_ios_build_settings(target)
 
-    # Correzione DT_TOOLCHAIN_DIR -> TOOLCHAIN_DIR
     target.build_configurations.each do |config|
       xcconfig_path = config.base_configuration_reference.real_path
       text = File.read(xcconfig_path)

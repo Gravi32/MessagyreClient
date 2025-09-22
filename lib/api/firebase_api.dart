@@ -18,7 +18,11 @@ class FirebaseApi {
   Future<void> initialize() async {
     await firebaseMessaging.requestPermission();
 
-    data.fcmToken = await firebaseMessaging.getToken();
+    try {
+      data.fcmToken = await firebaseMessaging.getToken();
+    } catch (e) {
+      debugPrint("[Firebase] Could not fetch FCM Token: $e");
+    }
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("[Firebase] Message received: ${message.messageId}");
@@ -32,14 +36,12 @@ class FirebaseApi {
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (message.notification?.title == null) return;
-      
+
       navigatorKey.currentState?.push(
         CupertinoPageRoute(
           builder:
-              (_) => ChatOverlay(
-                recipientUsername:
-                    message.notification!.title!
-              ),
+              (_) =>
+                  ChatOverlay(recipientUsername: message.notification!.title!),
         ),
       );
     });
