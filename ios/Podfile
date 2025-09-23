@@ -1,14 +1,87 @@
 platform :ios, '15.0'
 
-use_frameworks!
-use_modular_headers!
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
-pod 'FirebaseCore', :modular_headers => true
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. Run 'flutter pub get' first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-  use_modular_headers!
 
-  flutter_application_path = '../'
-  eval(File.read(File.join(flutter_application_path, '.flutter-plugins-dependencies')), binding)
+  # Firebase base
+  pod 'FirebaseCore'
+  pod 'FirebaseFirestore'
+  pod 'FirebaseAuth'
+
+  # Non serve aggiungere cloud_firestore qui: Flutter lo gestisce come plugin
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # Forza iOS 15
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+
+      # C++17 + libc++
+      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+
+      # Permetti header non modulari (risolve problema Firebase + plugin)
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+
+      # Fix TOOLCHAIN_DIR
+      xcconfig_path = config.base_configuration_reference.real_path
+      text = File.read(xcconfig_path)
+      text.gsub!("${DT_TOOLCHAIN_DIR}", "$(TOOLCHAIN_DIR)")
+      File.open(xcconfig_path, "w") { |file| file.puts text }
+    end
+
+    # Fix per BoringSSL-GRPC
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+        end
+      end
+    end
+  end
+
+  # Forza header non modulari anche per il target Runner
+  installer.aggregate_targets.each do |agg|
+    agg.user_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+  end
 end
