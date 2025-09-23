@@ -88,7 +88,7 @@ void main() async {
     ),
   );
   print("System UI overlay style set");
-  
+
   runApp(App());
 }
 

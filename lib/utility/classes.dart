@@ -23,12 +23,7 @@ class Message extends HiveObject {
 
   late ValueNotifier<int> statusNotifier;
 
-  Message({
-    required this.content,
-    required this.sentAt,
-    required this.isOwned,
-    int status = 0,
-  }) : _status = status {
+  Message({required this.content, required this.sentAt, required this.isOwned, int status = 0}) : _status = status {
     statusNotifier = ValueNotifier<int>(_status);
   }
 
@@ -44,11 +39,7 @@ class Message extends HiveObject {
 
   factory Message.fromMessageData(Map<String, dynamic> messageData) {
     try {
-      return Message(
-        content: messageData["Content"],
-        sentAt: messageData["SentAt"],
-        isOwned: false,
-      );
+      return Message(content: messageData["Content"], sentAt: messageData["SentAt"], isOwned: false);
     } catch (e) {
       debugPrint("[Classes.dart] Message could not be created: $e");
       throw Exception();
@@ -60,12 +51,7 @@ class Message extends HiveObject {
   }
 
   String pack(String recipientUsername) {
-    final data = {
-      "RecipientUsername": recipientUsername,
-      "Content": content,
-      "SentAt": sentAt.toIso8601String(),
-      "Status": status
-    };
+    final data = {"RecipientUsername": recipientUsername, "Content": content, "SentAt": sentAt.toIso8601String(), "Status": status};
     return jsonEncode(data);
   }
 }
@@ -76,12 +62,12 @@ class Chat extends HiveObject {
   String recipientUsername;
 
   @HiveField(1)
-  List<Message> content;
+  List<Message> content = [];
 
   @HiveField(2)
-  int unreadMessages;
+  int unreadMessages = 0;
 
-  Chat({required this.recipientUsername, this.content = const [], this.unreadMessages = 0});
+  Chat({required this.recipientUsername});
 
   @override
   String toString() => "[$recipientUsername's chat] messages: ${content.length}";
