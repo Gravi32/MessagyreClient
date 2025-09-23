@@ -21,19 +21,21 @@ import 'package:messagyre_client/utility/utility.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  print("main() started");
 
-  // Overriding debugPrint to log even in release
+  // Overriding debugPrint
   final originalDebugPrint = debugPrint;
+
   debugPrint = (String? message, {int? wrapWidth}) {
-    // You can also send logs to Hive or Firebase Crashlytics
+    Data().log(message);
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
+  print("debugPrint overridden");
 
-  // Hive initialization
+  // Initializing Hive and other stuff
+  WidgetsFlutterBinding.ensureInitialized();
   try {
     await Hive.initFlutter();
-
     Hive.registerAdapter(MessageAdapter());
     Hive.registerAdapter(ChatAdapter());
     Hive.registerAdapter(HomeworkAdapter());
@@ -44,57 +46,49 @@ void main() async {
     await Hive.openBox<Homework>("Homework");
     await Hive.openBox<Grade>("Grades");
     await Hive.openBox<List>("SubjectOrder");
-
-    final miscBox = await Hive.openBox("Misc");
-    final data = Data();
-    data.username = miscBox.get("Username")?.toString();
-    data.appBrightnessNotifier.value = Brightness.dark;
-
-    print("Hive initialized successfully");
-  } catch (e, s) {
-    print("HIVE ERROR: $e\n$s");
+  } catch (e) {
+    debugPrint("Hive could not be initialized: $e");
   }
+  print("Hive initialized");
 
-  // Firebase initialization
+  initMessageNotifiers();
+  print("Message notifiers initialized");
+
+  final data = Data();
+
+  try {
+    final miscBox = await Hive.openBox("Misc");
+    data.username = miscBox.get("Username")?.toString();
+  } catch (e) {
+    debugPrint("Misc box could not be opened: $e");
+  }
+  print("Misc box opened");
+
+  data.appBrightnessNotifier.value = Brightness.dark;
+
+  // Initializing Firebase Messaging
   try {
     await Firebase.initializeApp();
     await FirebaseApi().initialize();
-    print("Firebase initialized successfully");
-  } catch (e, s) {
-    print("FIREBASE ERROR: $e\n$s");
+  } catch (e) {
+    debugPrint("Firebase could not be initialized: $e");
   }
+  print("Firebase initialized");
 
-  // Date formatting
-  try {
-    await initializeDateFormatting('fr_CH', null);
-    print("Date formatting initialized successfully");
-  } catch (e, s) {
-    print("DATE FORMATTING ERROR: $e\n$s");
-  }
+  // Initializing visual stuff
+  await initializeDateFormatting('fr_CH', null);
+  print("Date formatting initialized");
 
-  // System overlay style
-  try {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.light,
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
-  } catch (e, s) {
-    print("SYSTEMCHROME ERROR: $e\n$s");
-  }
-
-  // Initialize notifiers
-  try {
-    initMessageNotifiers();
-    NotificationController().init(null); // if context is needed, move it to build
-    print("Notifiers initialized successfully");
-  } catch (e, s) {
-    print("NOTIFIERS ERROR: $e\n$s");
-  }
-
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
+  print("System UI overlay style set");
+  
   runApp(App());
 }
 
@@ -104,36 +98,11 @@ class App extends StatelessWidget {
   final data = Data();
 
   static List<Page> pages = [
-    Page(
-      name: "Notes",
-      idleIcon: CupertinoIcons.table,
-      selectedIcon: CupertinoIcons.table_fill,
-      build: () => GradesPage(),
-    ),
-    Page(
-      name: "Dévoirs",
-      idleIcon: CupertinoIcons.checkmark_square,
-      selectedIcon: CupertinoIcons.checkmark_square_fill,
-      build: () => HomeworkPage(),
-    ),
-    Page(
-      name: "Conversations",
-      idleIcon: CupertinoIcons.chat_bubble_2,
-      selectedIcon: CupertinoIcons.chat_bubble_2_fill,
-      build: () => ChatsPage(),
-    ),
-    Page(
-      name: "Récherche",
-      idleIcon: CupertinoIcons.person_2,
-      selectedIcon: CupertinoIcons.person_2_fill,
-      build: () => SearchPage(),
-    ),
-    Page(
-      name: "Réglages",
-      idleIcon: CupertinoIcons.gear,
-      selectedIcon: CupertinoIcons.gear_solid,
-      build: () => SettingsPage(),
-    ),
+    Page(name: "Notes", idleIcon: CupertinoIcons.table, selectedIcon: CupertinoIcons.table_fill, build: () => GradesPage()),
+    Page(name: "Dévoirs", idleIcon: CupertinoIcons.checkmark_square, selectedIcon: CupertinoIcons.checkmark_square_fill, build: () => HomeworkPage()),
+    Page(name: "Conversations", idleIcon: CupertinoIcons.chat_bubble_2, selectedIcon: CupertinoIcons.chat_bubble_2_fill, build: () => ChatsPage()),
+    Page(name: "Récherche", idleIcon: CupertinoIcons.person_2, selectedIcon: CupertinoIcons.person_2_fill, build: () => SearchPage()),
+    Page(name: "Réglages", idleIcon: CupertinoIcons.gear, selectedIcon: CupertinoIcons.gear_solid, build: () => SettingsPage()),
   ];
 
   @override
@@ -143,15 +112,8 @@ class App extends StatelessWidget {
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
-          theme: CupertinoThemeData(
-            brightness: brightness,
-            primaryColor: Color.fromRGBO(100, 25, 104, 1),
-          ),
-          localizationsDelegates: [
-            DefaultMaterialLocalizations.delegate,
-            DefaultCupertinoLocalizations.delegate,
-            DefaultWidgetsLocalizations.delegate,
-          ],
+          theme: CupertinoThemeData(brightness: brightness, primaryColor: Color.fromRGBO(100, 25, 104, 1)),
+          localizationsDelegates: [DefaultMaterialLocalizations.delegate, DefaultCupertinoLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
           home: MainPage(),
         );
       },
@@ -165,20 +127,13 @@ class Page {
   final IconData selectedIcon;
   final Widget Function() build;
 
-  const Page({
-    required this.name,
-    required this.idleIcon,
-    required this.selectedIcon,
-    required this.build,
-  });
+  const Page({required this.name, required this.idleIcon, required this.selectedIcon, required this.build});
 }
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
-  static final CupertinoTabController tabController = CupertinoTabController(
-    initialIndex: 2,
-  );
+  static final CupertinoTabController tabController = CupertinoTabController(initialIndex: 2);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -189,9 +144,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final data = Data();
 
   void _switchToAccess() {
-    navigatorKey.currentState?.push(
-      CupertinoPageRoute(builder: (_) => AccessOverlay()),
-    );
+    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => AccessOverlay()));
   }
 
   @override
@@ -228,10 +181,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             App.pages.map((page) {
               final index = App.pages.indexOf(page);
               final isSelected = MainPage.tabController.index == index;
-              return BottomNavigationBarItem(
-                icon: Icon(isSelected ? page.selectedIcon : page.idleIcon),
-                label: page.name,
-              );
+              return BottomNavigationBarItem(icon: Icon(isSelected ? page.selectedIcon : page.idleIcon), label: page.name);
             }).toList(),
       ),
       tabBuilder: (BuildContext context, int currentPage) {
