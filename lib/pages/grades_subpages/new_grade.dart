@@ -40,10 +40,10 @@ class _NewGradeState extends State<NewGrade> {
       showCupertinoDialog(
         context: context,
         builder:
-            (_) => CupertinoAlertDialog(
+            (dialogContext) => CupertinoAlertDialog(
               title: Text("Titre requis"),
               content: Text("Veuillez entrer un titre pour la note."),
-              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(context))],
+              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
             ),
       );
       return;
