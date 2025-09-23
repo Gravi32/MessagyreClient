@@ -119,7 +119,7 @@ class _GradesPageState extends State<GradesPage> {
   }
 
   void showNewHomeworkPopup({Grade? toEdit}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(context: context, builder: (context) => NewGrade());
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGrade());
 
     if (newGrade == null) return;
 

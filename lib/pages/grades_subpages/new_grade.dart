@@ -263,22 +263,26 @@ class _NewGradeState extends State<NewGrade> {
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
-                            builder: (_) {
+                            builder: (dialogContext) {
                               final controller = TextEditingController();
                               return CupertinoAlertDialog(
-                                title: Text("Nouveau groupe"),
+                                title: Row(spacing: 4, children: [Icon(CupertinoIcons.add), Text("Nouveau groupe")]),
                                 content: Column(
                                   children: [
                                     SizedBox(height: 10),
-                                    CupertinoTextField(
-                                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                      controller: controller,
-                                      placeholder: "Nom du groupe",
+                                    SizedBox(
+                                      height: 40,
+                                      child: CupertinoTextField(
+                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                        decoration: BoxDecoration(color: CupertinoColors.systemGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                                        controller: controller,
+                                        placeholder: "Nom du groupe",
+                                      ),
                                     ),
                                   ],
                                 ),
                                 actions: [
-                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(dialogContext)),
                                   CupertinoDialogAction(
                                     isDefaultAction: true,
                                     child: Text("Ajouter"),
@@ -294,7 +298,7 @@ class _NewGradeState extends State<NewGrade> {
                                       } catch (e) {
                                         debugPrint("Error adding group: $e");
                                       }
-                                      Navigator.pop(context);
+                                      Navigator.pop(dialogContext);
                                     },
                                   ),
                                 ],

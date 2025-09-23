@@ -202,7 +202,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
                                   children: [
                                     isDisabled
                                         ? const CupertinoActivityIndicator()
-                                        : const Text("Accéder"),
+                                        : const Text("Connexion"),
                                   ],
                                 ),
                               ),
