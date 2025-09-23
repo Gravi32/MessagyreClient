@@ -54,7 +54,7 @@ class _ChatsPageState extends State<ChatsPage> {
                         child: Text.rich(
                           TextSpan(
                             children: [
-                              if (data.content.last.isOwned)
+                              if (data.content.isNotEmpty && data.content.last.isOwned)
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
                                   child: Padding(

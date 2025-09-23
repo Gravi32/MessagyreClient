@@ -55,25 +55,29 @@ class _ChatOverlayState extends State<ChatOverlay> {
     if (input.isEmpty) return;
 
     // Creating a new chat if it doesn't already exist
-    if (chatData == null) {
-      chatData = Chat(recipientUsername: widget.recipientUsername);
+    try {
+      if (chatData == null) {
+        chatData = Chat(recipientUsername: widget.recipientUsername);
+        saveChatData();
+      }
+
+      final message = Message(content: input, sentAt: DateTime.now(), isOwned: true);
+
+      setState(() {
+        chatData!.content.add(message);
+      });
+
+      if (router.isConnected) {
+        router.send(widget.recipientUsername, input);
+        message.statusNotifier.value = 1;
+      }
       saveChatData();
+      messageFieldController.clear();
+      messageFieldFocusNode.requestFocus();
+      scrollDown();
+    } catch (e) {
+      print("Error sending message: $e");
     }
-
-    final message = Message(content: input, sentAt: DateTime.now(), isOwned: true);
-
-    setState(() {
-      chatData!.content.add(message);
-    });
-
-    if (router.isConnected) {
-      router.send(widget.recipientUsername, input);
-      message.statusNotifier.value = 1;
-    }
-    saveChatData();
-    messageFieldController.clear();
-    messageFieldFocusNode.requestFocus();
-    scrollDown();
   }
 
   void saveChatData() {
@@ -293,7 +297,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 if (data.isOwned)
                   ValueListenableBuilder(
                     valueListenable: data.statusNotifier,
-                    builder: (context, status, _) => Icon(getStatusIcon(status), color: CupertinoColors.white, size: 15, applyTextScaling: true,),
+                    builder: (context, status, _) => Icon(getStatusIcon(status), color: CupertinoColors.white, size: 15, applyTextScaling: true),
                   ),
               ],
             ),
