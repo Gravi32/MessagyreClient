@@ -21,52 +21,79 @@ import 'package:messagyre_client/utility/utility.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  // Overriding debugPrint
-  final originalDebugPrint = debugPrint;
+  WidgetsFlutterBinding.ensureInitialized();
 
+  // Overriding debugPrint to log even in release
+  final originalDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
-    Data().log(message);
+    // You can also send logs to Hive or Firebase Crashlytics
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
 
-  // Initializing Hive and other stuff
-  WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
+  // Hive initialization
+  try {
+    await Hive.initFlutter();
 
-  Hive.registerAdapter(MessageAdapter());
-  Hive.registerAdapter(ChatAdapter());
-  Hive.registerAdapter(HomeworkAdapter());
-  Hive.registerAdapter(SubjectAdapter());
-  Hive.registerAdapter(GradeAdapter());
+    Hive.registerAdapter(MessageAdapter());
+    Hive.registerAdapter(ChatAdapter());
+    Hive.registerAdapter(HomeworkAdapter());
+    Hive.registerAdapter(SubjectAdapter());
+    Hive.registerAdapter(GradeAdapter());
 
-  await Hive.openBox<Chat>("Chats");
-  await Hive.openBox<Homework>("Homework");
-  await Hive.openBox<Grade>("Grades");
-  await Hive.openBox<List>("SubjectOrder");
+    await Hive.openBox<Chat>("Chats");
+    await Hive.openBox<Homework>("Homework");
+    await Hive.openBox<Grade>("Grades");
+    await Hive.openBox<List>("SubjectOrder");
 
-  initMessageNotifiers();
+    final miscBox = await Hive.openBox("Misc");
+    final data = Data();
+    data.username = miscBox.get("Username")?.toString();
+    data.appBrightnessNotifier.value = Brightness.dark;
 
-  final miscBox = await Hive.openBox("Misc");
+    print("Hive initialized successfully");
+  } catch (e, s) {
+    print("HIVE ERROR: $e\n$s");
+  }
 
-  final data = Data();
-  data.username = miscBox.get("Username")?.toString();
-  data.appBrightnessNotifier.value = Brightness.dark;
+  // Firebase initialization
+  try {
+    await Firebase.initializeApp();
+    await FirebaseApi().initialize();
+    print("Firebase initialized successfully");
+  } catch (e, s) {
+    print("FIREBASE ERROR: $e\n$s");
+  }
 
-  // Initializing Firebase Messaging
-  await Firebase.initializeApp();
-  await FirebaseApi().initialize();
+  // Date formatting
+  try {
+    await initializeDateFormatting('fr_CH', null);
+    print("Date formatting initialized successfully");
+  } catch (e, s) {
+    print("DATE FORMATTING ERROR: $e\n$s");
+  }
 
-  // Initializing visual stuff
-  await initializeDateFormatting('fr_CH', null);
+  // System overlay style
+  try {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+  } catch (e, s) {
+    print("SYSTEMCHROME ERROR: $e\n$s");
+  }
 
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
+  // Initialize notifiers
+  try {
+    initMessageNotifiers();
+    NotificationController().init(null); // if context is needed, move it to build
+    print("Notifiers initialized successfully");
+  } catch (e, s) {
+    print("NOTIFIERS ERROR: $e\n$s");
+  }
 
   runApp(App());
 }
