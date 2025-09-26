@@ -19,9 +19,9 @@ class ConnectionController {
 
   static final bool useLocalhost = false;
 
-  static final String serverWebSocketAddress = useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev";
+  static final String serverWebSocketAddress = useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev"; // "wss://152.228.173.250:5066";
 
-  static final String serverHTTPAddress = useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev";
+  static final String serverHTTPAddress = useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev"; //"http://152.228.173.250:5066";
 
   // Declaring this singleton
   static final _instance = ConnectionController._internal();
