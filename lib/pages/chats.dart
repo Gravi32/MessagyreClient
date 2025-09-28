@@ -17,7 +17,7 @@ class ChatsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ChatsPageState();
 }
 
-class _ChatsPageState extends State<ChatsPage> {
+class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixin {
   final router = ConnectionController();
   final data = Data();
 
@@ -110,6 +110,8 @@ class _ChatsPageState extends State<ChatsPage> {
   }
 
   // Overrides
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -139,6 +141,8 @@ class _ChatsPageState extends State<ChatsPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return CupertinoPageScaffold(
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -161,7 +165,7 @@ class _ChatsPageState extends State<ChatsPage> {
                             )
                             : null,
                     largeTitle: Text("Conversations"),
-                    trailing: GestureDetector(child: Icon(CupertinoIcons.add), onTap: () => MainPage.tabController.index = 3),
+                    trailing: GestureDetector(child: Icon(CupertinoIcons.add), onTap: () => MainPage.pageIndex.value = 3),
                   ),
             ),
           ];

@@ -20,7 +20,7 @@ class SettingsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClientMixin {
   final data = Data();
   final router = ConnectionController();
   final secureStorage = FlutterSecureStorage();
@@ -68,6 +68,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  @override bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +79,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     if (account == null) getAccount();
 
     return CupertinoPageScaffold(

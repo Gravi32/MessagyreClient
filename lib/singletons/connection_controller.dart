@@ -15,13 +15,25 @@ import 'package:web_socket_channel/io.dart';
 
 class ConnectionController {
   // Configuration
-  static const String localIP = "192.168.1.230:5066";
+  static const String localhostAddress = "192.168.1.230:5066";
+  static const String linuxServerAddress = "152.228.173.250:5066";
 
   static final bool useLocalhost = false;
+  static final bool useLinuxServer = true;
 
-  static final String serverWebSocketAddress = useLocalhost ? "ws://$localIP" : "wss://messagyre.fly.dev"; // "wss://152.228.173.250:5066";
+  static final String serverWebSocketAddress =
+      useLocalhost
+          ? "ws://$localhostAddress"
+          : useLinuxServer
+          ? "ws://$linuxServerAddress"
+          : "wss://messagyre.fly.dev";
 
-  static final String serverHTTPAddress = useLocalhost ? "http://$localIP" : "https://messagyre.fly.dev"; //"http://152.228.173.250:5066";
+  static final String serverHTTPAddress =
+      useLocalhost
+          ? "http://$localhostAddress"
+          : useLinuxServer
+          ? "http://$linuxServerAddress"
+          : "https://messagyre.fly.dev";
 
   // Declaring this singleton
   static final _instance = ConnectionController._internal();

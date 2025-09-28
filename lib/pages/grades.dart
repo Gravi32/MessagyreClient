@@ -18,7 +18,7 @@ class GradesPage extends StatefulWidget {
   State<StatefulWidget> createState() => _GradesPageState();
 }
 
-class _GradesPageState extends State<GradesPage> {
+class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMixin {
   final router = ConnectionController();
   final data = Data();
 
@@ -64,10 +64,7 @@ class _GradesPageState extends State<GradesPage> {
                 ReorderableDragStartListener(
                   index: index,
 
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Icon(CupertinoIcons.line_horizontal_3, size: 20, color: CupertinoColors.systemGrey),
-                  ),
+                  child: Padding(padding: const EdgeInsets.all(8.0), child: Icon(Icons.drag_handle_rounded, color: CupertinoColors.systemGrey)),
                 ),
               ],
             ),
@@ -76,43 +73,48 @@ class _GradesPageState extends State<GradesPage> {
             Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
           },
         ),
-        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
+        Divider(indent: 60, color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.75)),
       ],
     );
   }
 
   Widget buildAverageBar() {
     final average = calculateAverage(allGrades.values.toList());
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.5), borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Padding(
+      padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Column(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 2,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Moyenne générale",
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)),
-              ),
-              Row(
-                spacing: 10,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 2,
                 children: [
                   Text(
-                    "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
-                    maxLines: 2,
-                    overflow: TextOverflow.fade,
-                    softWrap: true,
-                    style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 18),
+                    "Moyenne générale",
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)),
+                  ),
+                  Row(
+                    spacing: 10,
+                    children: [
+                      Text(
+                        "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
+                        maxLines: 2,
+                        overflow: TextOverflow.fade,
+                        softWrap: true,
+                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 18),
+                      ),
+                    ],
                   ),
                 ],
               ),
+              GradeDisplay(grade: average, size: 64),
             ],
           ),
-          GradeDisplay(grade: average, size: 64),
+          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.75)),
         ],
       ),
     );
@@ -127,6 +129,9 @@ class _GradesPageState extends State<GradesPage> {
 
     allGrades.add(newGrade);
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -156,6 +161,7 @@ class _GradesPageState extends State<GradesPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     loadSubjects();
 
     return CupertinoPageScaffold(
@@ -168,7 +174,7 @@ class _GradesPageState extends State<GradesPage> {
             body: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 10),
                 child: ValueListenableBuilder(
                   valueListenable: allGrades.listenable(),
                   builder: (context, Box<Grade> box, _) {
@@ -224,12 +230,12 @@ class _GradesPageState extends State<GradesPage> {
           Positioned(
             bottom: MediaQuery.paddingOf(context).bottom + 20,
             right: 20,
-            child: CupertinoButton.tinted(
-              onPressed: showNewHomeworkPopup,
-              sizeStyle: CupertinoButtonSize.medium,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [Icon(CupertinoIcons.add), SizedBox(width: 8), Text("Ajouter une note", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20))],
+            child: GestureDetector(
+              onTap: showNewHomeworkPopup,
+              child: Container(
+                padding: EdgeInsets.all(14),
+                decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
+                child: Icon(CupertinoIcons.add, color: CupertinoColors.label.resolveFrom(context)),
               ),
             ),
           ),

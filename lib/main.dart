@@ -1,3 +1,4 @@
+import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -97,12 +98,12 @@ class App extends StatelessWidget {
 
   final data = Data();
 
-  static List<Page> pages = [
-    Page(name: "Notes", idleIcon: CupertinoIcons.table, selectedIcon: CupertinoIcons.table_fill, build: () => GradesPage()),
-    Page(name: "Dévoirs", idleIcon: CupertinoIcons.checkmark_square, selectedIcon: CupertinoIcons.checkmark_square_fill, build: () => HomeworkPage()),
-    Page(name: "Conversations", idleIcon: CupertinoIcons.chat_bubble_2, selectedIcon: CupertinoIcons.chat_bubble_2_fill, build: () => ChatsPage()),
-    Page(name: "Récherche", idleIcon: CupertinoIcons.person_2, selectedIcon: CupertinoIcons.person_2_fill, build: () => SearchPage()),
-    Page(name: "Réglages", idleIcon: CupertinoIcons.gear, selectedIcon: CupertinoIcons.gear_solid, build: () => SettingsPage()),
+  static List<AppPage> pages = [
+    AppPage(name: "Notes", idleIcon: CupertinoIcons.chart_bar, selectedIcon: CupertinoIcons.chart_bar_fill, build: () => GradesPage()),
+    AppPage(name: "Dévoirs", idleIcon: CupertinoIcons.checkmark_square, selectedIcon: CupertinoIcons.checkmark_square_fill, build: () => HomeworkPage()),
+    AppPage(name: "Conversations", idleIcon: CupertinoIcons.chat_bubble_2, selectedIcon: CupertinoIcons.chat_bubble_2_fill, build: () => ChatsPage()),
+    AppPage(name: "Récherche", idleIcon: CupertinoIcons.search, selectedIcon: CupertinoIcons.search, build: () => SearchPage()),
+    AppPage(name: "Réglages", idleIcon: CupertinoIcons.gear, selectedIcon: CupertinoIcons.gear_solid, build: () => SettingsPage()),
   ];
 
   @override
@@ -121,19 +122,19 @@ class App extends StatelessWidget {
   }
 }
 
-class Page {
+class AppPage {
   final String name;
   final IconData idleIcon;
   final IconData selectedIcon;
   final Widget Function() build;
 
-  const Page({required this.name, required this.idleIcon, required this.selectedIcon, required this.build});
+  const AppPage({required this.name, required this.idleIcon, required this.selectedIcon, required this.build});
 }
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
-  static final CupertinoTabController tabController = CupertinoTabController(initialIndex: 2);
+  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(2);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -156,41 +157,50 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     NotificationController().init(context);
 
-    MainPage.tabController.addListener(() => setState(() {}));
+    MainPage.pageIndex.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    MainPage.tabController.dispose();
+    MainPage.pageIndex.dispose();
     router.disconnect();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
-      controller: MainPage.tabController,
-      tabBar: CupertinoTabBar(
-        iconSize: 26,
-        height: 50,
-        onTap: (_) {
-          setState(() {});
-        },
-        items:
-            App.pages.map((page) {
-              final index = App.pages.indexOf(page);
-              final isSelected = MainPage.tabController.index == index;
-              return BottomNavigationBarItem(icon: Icon(isSelected ? page.selectedIcon : page.idleIcon), label: page.name);
-            }).toList(),
-      ),
-      tabBuilder: (BuildContext context, int currentPage) {
-        return CupertinoTabView(
-          builder: (context) {
-            return App.pages[currentPage].build();
-          },
-        );
-      },
+    return ValueListenableBuilder<int>(
+      valueListenable: MainPage.pageIndex,
+      builder:
+          (context, currentIndex, _) => Scaffold(
+            extendBody: true,
+            body: IndexedStack(index: currentIndex, children: App.pages.map((page) => page.build()).toList()),
+            bottomNavigationBar: CustomNavigationBar(
+              isFloating: true,
+              borderRadius: const Radius.circular(8),
+              backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+              selectedColor: CupertinoTheme.of(context).primaryColor,
+              strokeColor: CupertinoColors.transparent,
+              currentIndex: currentIndex,
+              onTap: (index) => MainPage.pageIndex.value = index,
+              items:
+                  App.pages
+                      .map(
+                        (page) => CustomNavigationBarItem(
+                          icon: Icon(page.idleIcon),
+                          selectedIcon: Icon(page.selectedIcon),
+                          // title: Text(
+                          //   page.name,
+                          //   overflow: TextOverflow.fade,
+                          //   softWrap: false,
+                          //   style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          // ),
+                        ),
+                      )
+                      .toList(),
+            ),
+          ),
     );
   }
 }

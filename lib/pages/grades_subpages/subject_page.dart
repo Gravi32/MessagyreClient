@@ -9,6 +9,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SubjectPage extends StatefulWidget {
   final Subject subject;
@@ -38,10 +39,7 @@ class _SubjectPageState extends State<SubjectPage> {
 
     subjectGrades.clear();
 
-    subjectGrades =
-        allGrades.values
-            .where((grade) => grade.subject == widget.subject)
-            .toList();
+    subjectGrades = allGrades.values.where((grade) => grade.subject == widget.subject).toList();
   }
 
   Widget buildGradeBar(Grade gradeData) {
@@ -71,23 +69,15 @@ class _SubjectPageState extends State<SubjectPage> {
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 18,
-                              color: adaptiveColor(
-                                context,
-                                CupertinoColors.black,
-                                CupertinoColors.white,
-                              ),
+                              color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
                             ),
                           ),
-                          if (gradeData.details != null &&
-                              gradeData.details!.isNotEmpty) ...[
+                          if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
                             Text(
                               gradeData.details!,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Theme.of(context).dividerColor,
-                                fontSize: 15,
-                              ),
+                              style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
                             ),
                           ],
                         ],
@@ -97,10 +87,7 @@ class _SubjectPageState extends State<SubjectPage> {
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(
-                          color: Theme.of(context).dividerColor,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
                       ),
                     ],
                   ),
@@ -111,17 +98,13 @@ class _SubjectPageState extends State<SubjectPage> {
           onPressed: () => showNewGradePopup(toEdit: gradeData),
         ),
 
-        Divider(
-          indent: 60,
-          color: Theme.of(context).dividerColor.withAlpha(30),
-        ),
+        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
 
   Widget buildGroupBar(String groupName) {
-    final gradesInGroup =
-        subjectGrades.where((grade) => grade.groupName == groupName).toList();
+    final gradesInGroup = subjectGrades.where((grade) => grade.groupName == groupName).toList();
 
     return Column(
       children: [
@@ -153,49 +136,30 @@ class _SubjectPageState extends State<SubjectPage> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 20,
-                                  color: adaptiveColor(
-                                    context,
-                                    CupertinoColors.black,
-                                    CupertinoColors.white,
-                                  ),
+                                  color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
                                 ),
                               ),
 
                               Text(
-                                gradesInGroup.length == 1
-                                    ? "1 note"
-                                    : "${gradesInGroup.length} notes",
+                                gradesInGroup.length == 1 ? "1 note" : "${gradesInGroup.length} notes",
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: CupertinoColors.secondaryLabel
-                                      .resolveFrom(context),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
 
                           gradesInGroup.map((data) => data.title).isNotEmpty
                               ? Text(
-                                gradesInGroup
-                                    .map((data) => "- ${data.title}")
-                                    .join("\n"),
+                                gradesInGroup.map((data) => "- ${data.title}").join("\n"),
                                 maxLines: 2,
                                 overflow: TextOverflow.fade,
-                                style: TextStyle(
-                                  color: CupertinoColors.tertiaryLabel
-                                      .resolveFrom(context),
-                                  fontSize: 15,
-                                ),
+                                style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
                               )
                               : const SizedBox.shrink(),
                         ],
                       ),
-                      Icon(
-                        CupertinoIcons.chevron_right,
-                        color: CupertinoColors.systemGrey,
-                      ),
+                      Icon(CupertinoIcons.chevron_right, color: CupertinoColors.systemGrey),
                     ],
                   ),
                 ),
@@ -203,27 +167,17 @@ class _SubjectPageState extends State<SubjectPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true)
-                .push(
-                  CupertinoPageRoute(
-                    builder:
-                        (context) => GroupPage(
-                          grades: gradesInGroup,
-                          existingGroupNames: groupNames,
-                        ),
-                  ),
-                )
-                .then((_) {
-                  loadGrades();
-                  setState(() {});
-                });
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).push(CupertinoPageRoute(builder: (context) => GroupPage(grades: gradesInGroup, existingGroupNames: groupNames))).then((_) {
+              loadGrades();
+              setState(() {});
+            });
           },
         ),
 
-        Divider(
-          indent: 60,
-          color: Theme.of(context).dividerColor.withAlpha(30),
-        ),
+        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
@@ -256,18 +210,8 @@ class _SubjectPageState extends State<SubjectPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            Icon(
-              CupertinoIcons.sparkles,
-              size: 40,
-              color: CupertinoColors.separator.resolveFrom(context),
-            ),
-            Text(
-              "Ajoutez une note !",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: CupertinoColors.separator.resolveFrom(context),
-              ),
-            ),
+            Icon(CupertinoIcons.sparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
+            Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
           ],
         )
         : ListView.builder(
@@ -276,15 +220,13 @@ class _SubjectPageState extends State<SubjectPage> {
           itemBuilder: (context, index) {
             return index + 1 <= barsToBuild - groupNames.length
                 ? buildGradeBar(subjectGrades.elementAt(index))
-                : buildGroupBar(
-                  groupNames[index - (barsToBuild - groupNames.length)],
-                );
+                : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
           },
         );
   }
 
   void showNewGradePopup({Grade? toEdit}) async {
-    final newGrade = await showCupertinoSheet<Grade?>(
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(
       context: context,
       builder:
           (context) => NewGrade(
@@ -327,37 +269,20 @@ class _SubjectPageState extends State<SubjectPage> {
         children: [
           NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                CupertinoSliverNavigationBar(
-                  largeTitle: Text(SubjectHelper.toFrench(widget.subject)),
-                  previousPageTitle: "Retour",
-                ),
-              ];
+              return [CupertinoSliverNavigationBar(largeTitle: Text(SubjectHelper.toFrench(widget.subject)), previousPageTitle: "Retour")];
             },
-            body: SafeArea(
-              top: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: buildList(),
-              ),
-            ),
+            body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
           ),
 
           Positioned(
             bottom: MediaQuery.paddingOf(context).bottom + 20,
             right: 20,
-            child: CupertinoButton.tinted(
-              onPressed: showNewGradePopup,
-              sizeStyle: CupertinoButtonSize.medium,
-              child: Row(
-                spacing: 8,
-                children: [
-                  Icon(CupertinoIcons.add),
-                  Text(
-                    "Ajouter une note",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ],
+            child: GestureDetector(
+              onTap: showNewGradePopup,
+              child: Container(
+                padding: EdgeInsets.all(14),
+                decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
+                child: Icon(CupertinoIcons.add, color: CupertinoColors.label.resolveFrom(context)),
               ),
             ),
           ),

@@ -34,7 +34,7 @@ class SearchPage extends StatefulWidget {
   State<StatefulWidget> createState() => SearchPageState();
 }
 
-class SearchPageState extends State<SearchPage> {
+class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMixin {
   final router = ConnectionController();
   final data = Data();
   final searchBarController = TextEditingController();
@@ -295,6 +295,8 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
+  @override bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -310,6 +312,8 @@ class SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(

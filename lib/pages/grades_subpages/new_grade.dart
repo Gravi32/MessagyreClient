@@ -154,13 +154,13 @@ class _NewGradeState extends State<NewGrade> {
       navigationBar: CupertinoNavigationBar(
         border: null,
         leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: Navigator.of(context).pop, child: Text("Annuler")),
-        middle: Text(editMode ? widget.toEdit!.title : "Nouvelle note"),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: confirmGrade,
           child: Text(editMode ? "Terminé" : "Ajouter", style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ),
+      backgroundColor: CupertinoColors.transparent,
       child: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -169,6 +169,7 @@ class _NewGradeState extends State<NewGrade> {
             sections: [
               SettingsSection(
                 title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CupertinoTextField(
                       controller: titleController,
@@ -178,7 +179,7 @@ class _NewGradeState extends State<NewGrade> {
                       style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w700),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 20),
                   ],
                 ),
                 tiles: [
