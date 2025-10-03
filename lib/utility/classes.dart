@@ -92,6 +92,9 @@ class Homework extends HiveObject {
 
   @HiveField(5)
   bool isGraded = false;
+
+  @HiveField(6)
+  bool isTest = false;
 }
 
 // Subject uses HiveType 3

@@ -98,19 +98,21 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
+    
     return Homework()
       ..title = fields[0] as String
       ..subject = fields[1] as Subject
       ..dueDate = fields[2] as DateTime
       ..description = fields[3] as String?
       ..creationDate = fields[4] as DateTime
-      ..isGraded = fields[5] as bool;
+      ..isGraded = fields[5] as bool
+      ..isTest = (fields[6] ?? false) as bool;
   }
 
   @override
   void write(BinaryWriter writer, Homework obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -122,7 +124,9 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..writeByte(4)
       ..write(obj.creationDate)
       ..writeByte(5)
-      ..write(obj.isGraded);
+      ..write(obj.isGraded)
+      ..writeByte(6)
+      ..write(obj.isTest);
   }
 
   @override

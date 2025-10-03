@@ -14,11 +14,14 @@ class Data {
   String? username;
 
   // Settings
-  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(
-    Brightness.light,
-  );
+  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(Brightness.light);
   Brightness get appBrightness => appBrightnessNotifier.value;
   set appBrightness(Brightness value) => appBrightnessNotifier.value = value;
+
+  // School year
+  final _now = DateTime.now();
+  DateTime get schoolStart => DateTime(_now.year, 8, 18);
+  DateTime get schoolEnd => _now.isBefore(schoolStart) ? DateTime(_now.year, 6, 6) : DateTime(_now.year + 1, 6, 6);
 
   // Chats
   bool isChatOpen = false;
@@ -33,8 +36,7 @@ class Data {
 
   void log(String? message) {
     final timestamp = DateTime.now();
-    final logEntry =
-        "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
+    final logEntry = "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
 
     appLogs.add(logEntry);
 
@@ -56,4 +58,3 @@ class Data {
     return pfpNotifiersCache[accountUsername]!;
   }
 }
-
