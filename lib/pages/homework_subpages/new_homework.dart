@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -11,8 +10,9 @@ import 'package:settings_ui/settings_ui.dart';
 
 class NewHomework extends StatefulWidget {
   final Homework? toEdit;
+  final DateTime? dueDateOverride;
 
-  const NewHomework({super.key, this.toEdit});
+  const NewHomework({super.key, this.toEdit, this.dueDateOverride});
 
   @override
   State<StatefulWidget> createState() => _NewHomeworkState();
@@ -27,7 +27,7 @@ class _NewHomeworkState extends State<NewHomework> {
   late final descriptionController = TextEditingController(text: widget.toEdit?.description);
 
   late Subject subject = widget.toEdit?.subject ?? Subject.Maths;
-  late DateTime dueDate = widget.toEdit?.dueDate ?? DateTime.now().add(Duration(days: 1));
+  late DateTime dueDate = widget.toEdit?.dueDate ?? widget.dueDateOverride ?? DateTime.now().add(Duration(days: 1));
   late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool isTest = widget.toEdit?.isTest ?? false;
 

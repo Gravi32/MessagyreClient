@@ -188,7 +188,7 @@ class Account {
   }
 
   static String getDisplayableUsername(String username) {
-    return username.replaceAll('.', ' ').capitalize();
+    return username.replaceAll('.', ' ').capitalize(everyWord: true);
   }
 
   @override

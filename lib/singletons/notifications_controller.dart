@@ -7,8 +7,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class NotificationController {
-  static final NotificationController _instance =
-      NotificationController._internal();
+  static final NotificationController _instance = NotificationController._internal();
   factory NotificationController() => _instance;
   NotificationController._internal();
 
@@ -23,13 +22,7 @@ class NotificationController {
     if ((Data().openChatUsername ?? "") == sender) return;
 
     _currentOverlay?.remove();
-    _currentOverlay = OverlayEntry(
-      builder:
-          (context) => NotificationPopup(
-            senderUsername: sender,
-            messageContent: message,
-          ),
-    );
+    _currentOverlay = OverlayEntry(builder: (context) => NotificationPopup(senderUsername: sender, messageContent: message));
     _overlayState?.insert(_currentOverlay!);
   }
 
@@ -44,11 +37,7 @@ class NotificationPopup extends StatefulWidget {
   final String messageContent;
   final double outScreenOffset = -150;
 
-  const NotificationPopup({
-    super.key,
-    required this.senderUsername,
-    required this.messageContent,
-  });
+  const NotificationPopup({super.key, required this.senderUsername, required this.messageContent});
 
   @override
   State<NotificationPopup> createState() => _NotificationPopupsState();
@@ -101,13 +90,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
       child: GestureDetector(
         onTap: () {
           _dismiss();
-          Navigator.of(context, rootNavigator: true).push(
-            CupertinoPageRoute(
-              builder:
-                  (builder) =>
-                      ChatOverlay(recipientUsername: widget.senderUsername),
-            ),
-          );
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: widget.senderUsername)));
         },
         onVerticalDragStart: (_) {
           _isDragging = true;
@@ -132,9 +115,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                color: CupertinoColors.secondarySystemBackground
-                    .resolveFrom(context)
-                    .withOpacity(0.75),
+                color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(0.75),
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -142,10 +123,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                   children: [
                     Row(
                       children: [
-                        ProfilePictureDisplay(
-                          accountUsername: widget.senderUsername,
-                          radius: 20,
-                        ),
+                        ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 20),
                         SizedBox(width: 10),
                         Expanded(
                           child: Column(
@@ -153,25 +131,15 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.senderUsername
-                                    .replaceAll(".", " ")
-                                    .capitalize(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.tertiaryLabel
-                                      .resolveFrom(context),
-                                  fontSize: 14,
-                                ),
+                                widget.senderUsername.replaceAll(".", " ").capitalize(everyWord: true),
+                                style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 14),
                               ),
                               Text(
                                 widget.messageContent.trim(),
                                 maxLines: 2,
                                 overflow: TextOverflow.fade,
                                 softWrap: true,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 14,
-                                ),
+                                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
                               ),
                             ],
                           ),
@@ -181,12 +149,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                     Container(
                       width: 100,
                       height: 4,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: CupertinoColors.quaternaryLabel.resolveFrom(
-                          context,
-                        ),
-                      ),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: CupertinoColors.quaternaryLabel.resolveFrom(context)),
                     ),
                   ],
                 ),

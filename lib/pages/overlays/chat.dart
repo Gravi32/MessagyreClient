@@ -210,7 +210,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.recipientUsername.replaceAll('.', ' ').capitalize(), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
+                        Text(widget.recipientUsername.replaceAll('.', ' ').capitalize(everyWord: true), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
                         Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 14)),
                       ],
                     ),

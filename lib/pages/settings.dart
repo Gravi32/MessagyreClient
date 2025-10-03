@@ -47,14 +47,9 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
       builder:
           (context) => CupertinoAlertDialog(
             title: Text("Déconnexion"),
-            content: Text(
-              "Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion.",
-            ),
+            content: Text("Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion."),
             actions: [
-              CupertinoDialogAction(
-                child: Text("Non"),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+              CupertinoDialogAction(child: Text("Non"), onPressed: () => Navigator.of(context).pop()),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () {
@@ -68,7 +63,8 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
     );
   }
 
-  @override bool get wantKeepAlive => true;
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -87,12 +83,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
       backgroundColor: CupertinoColors.systemGroupedBackground,
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            CupertinoSliverNavigationBar(
-              largeTitle: Text("Réglages"),
-              stretch: true,
-            ),
-          ];
+          return [CupertinoSliverNavigationBar(largeTitle: Text("Réglages"), stretch: true)];
         },
         body: SettingsList(
           platform: DevicePlatform.iOS,
@@ -101,47 +92,23 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
               title: Text("Votre compte"),
               tiles: [
                 (account == null || data.username == null)
-                    ? SettingsTile(
-                      title: SizedBox(
-                        height: 39,
-                        child: CupertinoActivityIndicator(),
-                      ),
-                    )
+                    ? SettingsTile(title: SizedBox(height: 39, child: CupertinoActivityIndicator()))
                     : SettingsTile.navigation(
-                      leading: ProfilePictureDisplay(
-                        accountUsername: data.username!,
-                      ),
+                      leading: ProfilePictureDisplay(accountUsername: data.username!),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            data.username!.split('.')[0].capitalize(),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            data.username!,
-                            style: TextStyle(
-                              color: Theme.of(context).dividerColor,
-                              fontSize: 15,
-                            ),
-                          ),
+                          Text(data.username!.split('.')[0].capitalize(everyWord: true), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                          Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15)),
                         ],
                       ),
-                      onPressed:
-                          (context) => Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (context) => ProfileOverlay(account!),
-                            ),
-                          ),
+                      onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))),
                     ),
 
                 SettingsTile.navigation(
                   onPressed:
                       (context) => showLogoutDialog(context, () async {
-                        router.get("/Auth/Logout"); // Notifies the server 
+                        router.get("/Auth/Logout"); // Notifies the server
 
                         data.username = null;
                         data.token = null;
@@ -166,8 +133,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                   onToggle: (value) {
                     setState(() {
                       isDarkMode = value;
-                      data.appBrightness =
-                          value ? Brightness.dark : Brightness.light;
+                      data.appBrightness = value ? Brightness.dark : Brightness.light;
                     });
                   },
                   initialValue: isDarkMode,
@@ -181,33 +147,18 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
               title: Text("Stockage"),
               tiles: [
                 SettingsTile.navigation(
-                  onPressed:
-                      (context) => Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => StorageSettingsPage(),
-                        ),
-                      ),
+                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
                   leading: Icon(CupertinoIcons.delete),
                   title: Text("Effacer les données"),
                 ),
                 SettingsTile(
-                  onPressed:
-                      (context) => Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => StorageSettingsPage(),
-                        ),
-                      ),
+                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
                   leading: Icon(CupertinoIcons.square_arrow_up),
                   title: Text("Exporter les données"),
                   enabled: false, // Placeholder for future implementation
                 ),
                 SettingsTile(
-                  onPressed:
-                      (context) => Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => StorageSettingsPage(),
-                        ),
-                      ),
+                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
                   leading: Icon(CupertinoIcons.square_arrow_down),
                   title: Text("Importer les données"),
                   enabled: false, // Placeholder for future implementation
@@ -219,22 +170,12 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
               title: Text("Autres"),
               tiles: [
                 SettingsTile.navigation(
-                  onPressed:
-                      (context) => Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => FeedbackSettingsPage(),
-                        ),
-                      ),
+                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
                   leading: Icon(CupertinoIcons.bubble_right),
                   title: Text("Envoyez un commentaire"),
                 ),
                 SettingsTile.navigation(
-                  onPressed:
-                      (context) => Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (context) => DebugSettingsPage(),
-                        ),
-                      ),
+                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
                   leading: Icon(CupertinoIcons.ant),
                   title: Text("Débogage"),
                 ),

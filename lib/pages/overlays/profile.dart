@@ -42,12 +42,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
           (dialogContext) => CupertinoAlertDialog(
             title: Text("Copié"),
             content: Text("Copié dans le presse-papiers."),
-            actions: [
-              CupertinoDialogAction(
-                child: Text("OK"),
-                onPressed: () => Navigator.of(dialogContext).pop(),
-              ),
-            ],
+            actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.of(dialogContext).pop())],
           ),
     );
   }
@@ -149,9 +144,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             maxLength: 100,
                             onChanged: (_) => setSheetState(() {}),
                           ),
-                          description: Text(
-                            "Votre bio est visible par tout le monde (même les profs !).",
-                          ),
+                          description: Text("Votre bio est visible par tout le monde (même les profs !)."),
                         ),
                       ],
                     ),
@@ -166,18 +159,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   }
 
   void changeContacts() {
-    final phoneNumberController = TextEditingController(
-      text: profile["PhoneNumber"],
-    );
-    final instagramUsernameController = TextEditingController(
-      text: profile["InstagramUsername"],
-    );
-    final snapchatUsernameController = TextEditingController(
-      text: profile["SnapchatUsername"],
-    );
-    final discordUsernameController = TextEditingController(
-      text: profile["DiscordUsername"],
-    );
+    final phoneNumberController = TextEditingController(text: profile["PhoneNumber"]);
+    final instagramUsernameController = TextEditingController(text: profile["InstagramUsername"]);
+    final snapchatUsernameController = TextEditingController(text: profile["SnapchatUsername"]);
+    final discordUsernameController = TextEditingController(text: profile["DiscordUsername"]);
 
     bool checkChanges() =>
         profile["PhoneNumber"] != phoneNumberController.text ||
@@ -206,22 +191,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                           checkChanges()
                               ? () {
                                 changesMade = true;
-                                profile["PhoneNumber"] =
-                                    phoneNumberController.text.isEmpty
-                                        ? null
-                                        : phoneNumberController.text;
-                                profile["InstagramUsername"] =
-                                    instagramUsernameController.text.isEmpty
-                                        ? null
-                                        : instagramUsernameController.text;
-                                profile["SnapchatUsername"] =
-                                    snapchatUsernameController.text.isEmpty
-                                        ? null
-                                        : snapchatUsernameController.text;
-                                profile["DiscordUsername"] =
-                                    discordUsernameController.text.isEmpty
-                                        ? null
-                                        : discordUsernameController.text;
+                                profile["PhoneNumber"] = phoneNumberController.text.isEmpty ? null : phoneNumberController.text;
+                                profile["InstagramUsername"] = instagramUsernameController.text.isEmpty ? null : instagramUsernameController.text;
+                                profile["SnapchatUsername"] = snapchatUsernameController.text.isEmpty ? null : snapchatUsernameController.text;
+                                profile["DiscordUsername"] = discordUsernameController.text.isEmpty ? null : discordUsernameController.text;
                                 Navigator.of(context).pop();
                               }
                               : null,
@@ -244,13 +217,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                                 if (formatted != phoneNumberController.text) {
                                   final cursorPos = formatted.length;
-                                  phoneNumberController
-                                      .value = TextEditingValue(
-                                    text: formatted,
-                                    selection: TextSelection.collapsed(
-                                      offset: cursorPos,
-                                    ),
-                                  );
+                                  phoneNumberController.value = TextEditingValue(text: formatted, selection: TextSelection.collapsed(offset: cursorPos));
                                 }
 
                                 setSheetState(() {});
@@ -312,12 +279,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
           placeholder: placeholder ?? "Ajouter",
           onChanged: onChanged,
         ),
-        description:
-            description
-                ? Text(
-                  "Ces informations ne sont visibles que par les utilisateurs de Messagyre.",
-                )
-                : null,
+        description: description ? Text("Ces informations ne sont visibles que par les utilisateurs de Messagyre.") : null,
       );
     } else {
       return SettingsTile(
@@ -326,15 +288,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
           value ?? "Ajouter",
           overflow: TextOverflow.fade,
           softWrap: false,
-          style:
-              value == null
-                  ? TextStyle(color: CupertinoColors.inactiveGray)
-                  : null,
+          style: value == null ? TextStyle(color: CupertinoColors.inactiveGray) : null,
         ),
-        description:
-            description
-                ? Text("Appuyez pour copier dans le presse-papiers.")
-                : null,
+        description: description ? Text("Appuyez pour copier dans le presse-papiers.") : null,
         onPressed: value != null ? (_) => copy(value) : null,
       );
     }
@@ -355,16 +311,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                         builder:
                             (dialogContext) => CupertinoAlertDialog(
                               title: Text("Annuler les changements ?"),
-                              content: Text(
-                                "Tout changement sera annulé. Cette action est irréversible !",
-                              ),
+                              content: Text("Tout changement sera annulé. Cette action est irréversible !"),
                               actions: [
-                                CupertinoDialogAction(
-                                  isDefaultAction: true,
-                                  onPressed:
-                                      () => Navigator.of(dialogContext).pop(),
-                                  child: Text("Non"),
-                                ),
+                                CupertinoDialogAction(isDefaultAction: true, onPressed: () => Navigator.of(dialogContext).pop(), child: Text("Non")),
                                 CupertinoDialogAction(
                                   isDestructiveAction: true,
                                   onPressed: () {
@@ -380,29 +329,17 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                       Navigator.of(context).pop();
                     }
                   },
-          child: Icon(
-            CupertinoIcons.back,
-            color: isUploading ? CupertinoColors.inactiveGray : null,
-          ),
+          child: Icon(CupertinoIcons.back, color: isUploading ? CupertinoColors.inactiveGray : null),
         ),
         middle: Text(editMode ? "Mon profil" : account.username),
         trailing:
             changesMade
                 ? CupertinoButton(
                   padding: EdgeInsets.zero,
-                  child:
-                      isUploading
-                          ? CupertinoActivityIndicator()
-                          : Text(
-                            "Appliquer",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
+                  child: isUploading ? CupertinoActivityIndicator() : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
                   onPressed: () async {
                     setState(() => isUploading = true);
-                    bool success = await router.uploadProfile(
-                      profile,
-                      imagePath: chosenPicturePath,
-                    );
+                    bool success = await router.uploadProfile(profile, imagePath: chosenPicturePath);
                     setState(() => isUploading = false);
 
                     if (context.mounted) {
@@ -410,14 +347,8 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                         context: context,
                         builder:
                             (dialogContext) => CupertinoAlertDialog(
-                              title: Text(
-                                success ? "Profil actualisé!" : "Erreur",
-                              ),
-                              content: Text(
-                                success
-                                    ? "Le profil a été mis a jour avec succès!"
-                                    : "Une erreur s'est produite, veuillez reéssayer.",
-                              ),
+                              title: Text(success ? "Profil actualisé!" : "Erreur"),
+                              content: Text(success ? "Le profil a été mis a jour avec succès!" : "Une erreur s'est produite, veuillez reéssayer."),
                               actions: [
                                 CupertinoDialogAction(
                                   isDefaultAction: true,
@@ -450,18 +381,8 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 3,
                         children: [
-                          Text(
-                            account.username.replaceAll(".", " ").capitalize(),
-                            style: TextStyle(fontSize: 20),
-                          ),
-                          if (account.classOrRole != null)
-                            Text(
-                              account.classOrRole!,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: CupertinoColors.inactiveGray,
-                              ),
-                            ),
+                          Text(account.username.replaceAll(".", " ").capitalize(everyWord: true), style: TextStyle(fontSize: 20)),
+                          if (account.classOrRole != null) Text(account.classOrRole!, style: TextStyle(fontSize: 14, color: CupertinoColors.inactiveGray)),
                         ],
                       ),
                     ],
@@ -469,15 +390,12 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   trailing: Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
                     child: ProfilePictureDisplay(
-                      accountUsername:
-                          chosenPicturePath != null ? null : account.username,
+                      accountUsername: chosenPicturePath != null ? null : account.username,
                       picturePath: chosenPicturePath,
                       radius: 40,
                     ),
                   ),
-                  description: Text(
-                    "${editMode ? "Vous avez" : "A"} rejoint le ${formatDate(account.creationDate ?? DateTime.now())}.",
-                  ),
+                  description: Text("${editMode ? "Vous avez" : "A"} rejoint le ${formatDate(account.creationDate ?? DateTime.now())}."),
                   onPressed: editMode ? (_) => changeProfilePicture() : null,
                 ),
               ],
@@ -485,12 +403,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
             SettingsSection(
               title: Text(editMode ? "Votre bio" : "Bio"),
-              tiles: [
-                SettingsTile(
-                  title: Text(profile["Bio"] ?? "-"),
-                  onPressed: editMode ? (_) => changeBio() : null,
-                ),
-              ],
+              tiles: [SettingsTile(title: Text(profile["Bio"] ?? "-"), onPressed: editMode ? (_) => changeBio() : null)],
             ),
 
             SettingsSection(
@@ -498,36 +411,18 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
               tiles: [
                 // Email address
                 SettingsTile(
-                  title: Text(
-                    account.emailAddress,
-                    overflow: TextOverflow.fade,
-                    softWrap: false,
-                  ),
+                  title: Text(account.emailAddress, overflow: TextOverflow.fade, softWrap: false),
                   leading: Icon(CupertinoIcons.mail),
-                  onPressed:
-                      editMode
-                          ? null
-                          : (context) =>
-                              editMode
-                                  ? changeContacts()
-                                  : copy(account.emailAddress),
+                  onPressed: editMode ? null : (context) => editMode ? changeContacts() : copy(account.emailAddress),
                 ),
 
-                if (profile["PhoneNumber"] != null || editMode)
-                  contactTile("PhoneNumber", CupertinoIcons.phone),
+                if (profile["PhoneNumber"] != null || editMode) contactTile("PhoneNumber", CupertinoIcons.phone),
 
-                if (profile["InstagramUsername"] != null || editMode)
-                  contactTile("InstagramUsername", FontAwesomeIcons.instagram),
+                if (profile["InstagramUsername"] != null || editMode) contactTile("InstagramUsername", FontAwesomeIcons.instagram),
 
-                if (profile["SnapchatUsername"] != null || editMode)
-                  contactTile("SnapchatUsername", FontAwesomeIcons.snapchat),
+                if (profile["SnapchatUsername"] != null || editMode) contactTile("SnapchatUsername", FontAwesomeIcons.snapchat),
 
-                if (profile["DiscordUsername"] != null || editMode)
-                  contactTile(
-                    "DiscordUsername",
-                    CupertinoIcons.game_controller,
-                    description: true,
-                  ),
+                if (profile["DiscordUsername"] != null || editMode) contactTile("DiscordUsername", CupertinoIcons.game_controller, description: true),
               ],
             ),
 
@@ -538,42 +433,23 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     leading: Icon(CupertinoIcons.bubble_left),
                     title: Text("Envoyer un message"),
                     onPressed:
-                        (context) => Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder:
-                                (context) => ChatOverlay(
-                                  recipientUsername: account.username,
-                                ),
-                          ),
-                        ),
+                        (context) =>
+                            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username))),
                   ),
 
-                  SettingsTile.navigation(
-                    leading: Icon(CupertinoIcons.phone),
-                    title: Text("Appeler"),
-                    enabled: false,
-                  ),
+                  SettingsTile.navigation(leading: Icon(CupertinoIcons.phone), title: Text("Appeler"), enabled: false),
 
                   if (Hive.box<Chat>("Chats").containsKey(account.username))
                     SettingsTile(
-                      leading: Icon(
-                        CupertinoIcons.trash,
-                        color: CupertinoColors.destructiveRed,
-                      ),
-                      title: Text(
-                        "Supprimer la conversation",
-                        style: TextStyle(color: CupertinoColors.destructiveRed),
-                      ),
+                      leading: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
+                      title: Text("Supprimer la conversation", style: TextStyle(color: CupertinoColors.destructiveRed)),
                       onPressed:
                           (context) => showCupertinoDialog(
                             context: context,
                             builder: (BuildContext dialogContext) {
                               return CupertinoAlertDialog(
                                 title: Text("Supprimer la conversation"),
-                                content: Text(
-                                  "Voulez-vous vraiment supprimer la conversation avec ${account.username} ? Cette action est irréversible.",
-                                ),
+                                content: Text("Voulez-vous vraiment supprimer la conversation avec ${account.username} ? Cette action est irréversible."),
                                 actions: [
                                   CupertinoDialogAction(
                                     isDestructiveAction: true,
@@ -581,9 +457,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                       Navigator.of(dialogContext).pop();
 
                                       if (Hive.isBoxOpen("Chats")) {
-                                        await Hive.box<Chat>(
-                                          "Chats",
-                                        ).delete(account.username);
+                                        await Hive.box<Chat>("Chats").delete(account.username);
                                       }
 
                                       if (dialogContext.mounted) {
@@ -592,18 +466,8 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                             builder:
                                                 (_) => CupertinoAlertDialog(
                                                   title: Text("Supprimée"),
-                                                  content: Text(
-                                                    "La conversation avec ${account.username} a été supprimée du téléphone.",
-                                                  ),
-                                                  actions: [
-                                                    CupertinoDialogAction(
-                                                      child: Text("OK"),
-                                                      onPressed:
-                                                          () => Navigator.pop(
-                                                            context,
-                                                          ),
-                                                    ),
-                                                  ],
+                                                  content: Text("La conversation avec ${account.username} a été supprimée du téléphone."),
+                                                  actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(context))],
                                                 ),
                                             context: context,
                                           ),

@@ -27,14 +27,14 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   int get tomorrowPageIndex => DateTime.now().difference(data.schoolStart).inDays + 1;
 
-  void showNewHomeworkPopup({Homework? toEdit}) async {
+  void showNewHomeworkPopup({Homework? toEdit, DateTime? dueDateOverride}) async {
     final newHomework = await showCupertinoModalBottomSheet<Homework?>(
       expand: false,
       enableDrag: false,
       clipBehavior: Clip.none,
       backgroundColor: CupertinoColors.transparent,
       context: context,
-      builder: (context) => NewHomework(toEdit: toEdit),
+      builder: (context) => NewHomework(toEdit: toEdit, dueDateOverride: dueDateOverride,),
     );
 
     if (newHomework == null) return;
@@ -144,7 +144,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                           Padding(padding: EdgeInsets.only(bottom: 12), child: HomeworkCard(homework: homework, onTap: showNewHomeworkPopup)),
                                     ),
                                     GestureDetector(
-                                      onTap: showNewHomeworkPopup,
+                                      onTap: () => showNewHomeworkPopup(dueDateOverride: date),
                                       behavior: HitTestBehavior.opaque,
                                       child: DottedBorder(
                                         options: RoundedRectDottedBorderOptions(
@@ -164,29 +164,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                   ],
                                 ),
                               ),
-
-                              // Container(
-                              //   decoration: BoxDecoration(
-                              //     color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                              //     borderRadius: BorderRadius.circular(12),
-                              //   ),
-                              //   padding: EdgeInsets.all(12),
-                              //   child: Column(
-                              //     children: [
-                              //       Text(
-                              //         "Pour ${formatDate(date)}",
-                              //         style: TextStyle(
-                              //           fontSize: 18,
-                              //           color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
-                              //           fontWeight: FontWeight.w500,
-                              //           decoration: isPassed ? TextDecoration.lineThrough : null,
-                              //         ),
-                              //       ),
-                              //       SizedBox(height: 8),
-                              //       Text("Ex 1,2,3 pag 94"),
-                              //     ],
-                              //   ),
-                              // ),
                             ],
                           ),
                         );
@@ -195,104 +172,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   },
                 ),
               ),
-
-              // return Column(
-              //   spacing: 20,
-              //   children: [
-              //     Expanded(child: CustomTimelineCalendar(onDateSelected: (value) => print(value))),
-
-              //     homeworkList.isEmpty
-              //         ? Column(
-              //           mainAxisAlignment: MainAxisAlignment.center,
-              //           spacing: 10,
-              //           children: [
-              //             Icon(CupertinoIcons.sparkles, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
-              //             Text(
-              //               "Pas de devoirs !",
-              //               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
-              //             ),
-              //           ],
-              //         )
-              //         : ListView.builder(
-              //           padding: EdgeInsets.only(top: 8),
-              //           itemCount: homeworkList.length,
-              //           itemBuilder: (context, index) {
-              //             final homework = homeworkList[index];
-              //             final previousHomework = index > 0 ? homeworkList[index - 1] : null;
-
-              //             final isOnSameDay =
-              //                 previousHomework != null &&
-              //                 homework.dueDate.year == previousHomework.dueDate.year &&
-              //                 homework.dueDate.month == previousHomework.dueDate.month &&
-              //                 homework.dueDate.day == previousHomework.dueDate.day;
-
-              //             return Column(
-              //               crossAxisAlignment: CrossAxisAlignment.stretch,
-              //               children: [
-              //                 if (!isOnSameDay) ...[
-              //                   Row(
-              //                     children: [
-              //                       Text("Pour ${formatDate(homework.dueDate)}", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
-              //                       Spacer(),
-              //                       Text(
-              //                         DateFormat("d MMMM y", 'fr_CH').format(homework.dueDate),
-              //                         style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
-              //                       ),
-              //                     ],
-              //                   ),
-              //                   SizedBox(height: 12),
-              //                 ],
-
-              //                 GestureDetector(
-              //                   child: Container(
-              //                     decoration: BoxDecoration(
-              //                       color: adaptiveColor(
-              //                         context,
-              //                         CupertinoColors.systemGroupedBackground.resolveFrom(context),
-              //                         CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
-              //                       ),
-              //                       borderRadius: BorderRadius.all(Radius.circular(8)),
-              //                     ),
-              //                     child: Padding(
-              //                       padding: EdgeInsets.all(12),
-              //                       child: Column(
-              //                         crossAxisAlignment: CrossAxisAlignment.stretch,
-              //                         children: [
-              //                           Row(
-              //                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //                             children: [
-              //                               Text(
-              //                                 SubjectHelper.toFrench(homework.subject),
-              //                                 style: TextStyle(color: CupertinoTheme.of(context).primaryColor, fontWeight: FontWeight.w500, fontSize: 18),
-              //                               ),
-              //                               if (homework.isGraded) Icon(CupertinoIcons.chart_bar),
-              //                             ],
-              //                           ),
-              //                           SizedBox(height: 5),
-              //                           Text(homework.title, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
-              //                           if (homework.description != null && homework.description!.isNotEmpty)
-              //                             Padding(padding: EdgeInsets.only(top: 16, bottom: 28), child: Text(homework.description!)),
-
-              //                           Text(
-              //                             "Ajouté ${formatDate(homework.creationDate)}",
-              //                             textAlign: TextAlign.end,
-              //                             style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
-              //                           ),
-              //                         ],
-              //                       ),
-              //                     ),
-              //                   ),
-
-              //                   onTap: () => showViewHomeworkPopup(homework),
-              //                 ),
-
-              //                 SizedBox(height: 16),
-              //               ],
-              //             );
-              //           },
-              //         ),
-              //   ],
-              // );
             ),
           ),
 
