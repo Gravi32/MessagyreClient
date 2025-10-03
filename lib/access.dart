@@ -71,10 +71,13 @@ class _AccessOverlayState extends State<AccessOverlay> {
           switch (responseData) {
             case "NotFound":
               usernameError = "Ce compte n'existe pas !";
+              break;
             case "WrongPassword":
               passwordError = "Mot de passe incorrect !";
+              break;
             default:
               usernameError = "Une erreur s'est produite, veuillez reéssayer.";
+              break;
           }
         });
 
@@ -89,8 +92,8 @@ class _AccessOverlayState extends State<AccessOverlay> {
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
       await Hive.box("Misc").put("Username", username);
-    } catch (e) {
-      print("[Access] Error decoding response: $e");
+    } catch (e, s) {
+      print("[Access] Error decoding response: '$e'. Stack trace: $s");
     }
 
     // Closing the page
