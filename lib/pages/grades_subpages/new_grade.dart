@@ -163,7 +163,7 @@ class _NewGradeState extends State<NewGrade> {
       backgroundColor: CupertinoColors.transparent,
       child: SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.zero,
           child: SettingsList(
             platform: DevicePlatform.iOS,
             sections: [
@@ -173,13 +173,16 @@ class _NewGradeState extends State<NewGrade> {
                   children: [
                     CupertinoTextField(
                       controller: titleController,
-                      decoration: BoxDecoration(),
+                      decoration: const BoxDecoration(),
                       padding: EdgeInsets.zero,
-                      placeholder: "Test de Cryptographie 1",
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
-                      placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w700),
+                      placeholder: "Titre",
+
+                      suffix: Icon(CupertinoIcons.pencil, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      suffixMode: OverlayVisibilityMode.notEditing,
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
+                      placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 16),
                   ],
                 ),
                 tiles: [
