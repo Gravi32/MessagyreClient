@@ -178,7 +178,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             body: IndexedStack(index: currentIndex, children: App.pages.map((page) => page.build()).toList()),
             bottomNavigationBar: CustomNavigationBar(
               isFloating: true,
-              borderRadius: const Radius.circular(8),
+              borderRadius: const Radius.circular(12),
               backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
               selectedColor: CupertinoTheme.of(context).primaryColor,
               strokeColor: CupertinoColors.transparent,
