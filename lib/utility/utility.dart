@@ -127,3 +127,22 @@ IconData getStatusIcon(int status) {
   if (status == 1) return Icons.done_rounded;
   return Icons.done_all_rounded;
 }
+
+List<TextSpan> highlightSearchMatch(String fullText, String query) {
+  if (query.isEmpty) {
+    return [TextSpan(text: fullText)];
+  }
+
+  final startIndex = fullText.toLowerCase().indexOf(query.toLowerCase());
+  if (startIndex == -1) {
+    return [TextSpan(text: fullText)];
+  }
+
+  final endIndex = startIndex + query.length;
+
+  return [
+    TextSpan(text: fullText.substring(0, startIndex)),
+    TextSpan(text: fullText.substring(startIndex, endIndex), style: TextStyle(fontWeight: FontWeight.bold)),
+    TextSpan(text: fullText.substring(endIndex)),
+  ];
+}

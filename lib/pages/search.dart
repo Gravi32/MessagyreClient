@@ -5,6 +5,7 @@ import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class SearchResult {
@@ -84,28 +85,6 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
     setState(() {
       searchResults = results;
     });
-  }
-
-  List<TextSpan> highlightSearchMatch(String fullText, String query) {
-    if (query.isEmpty) {
-      return [TextSpan(text: fullText)];
-    }
-
-    final startIndex = fullText.toLowerCase().indexOf(query.toLowerCase());
-    if (startIndex == -1) {
-      return [TextSpan(text: fullText)];
-    }
-
-    final endIndex = startIndex + query.length;
-
-    return [
-      TextSpan(text: fullText.substring(0, startIndex)),
-      TextSpan(
-        text: fullText.substring(startIndex, endIndex),
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      TextSpan(text: fullText.substring(endIndex)),
-    ];
   }
 
   Widget buildSearchBar() {
