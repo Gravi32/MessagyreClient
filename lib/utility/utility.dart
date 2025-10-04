@@ -6,7 +6,11 @@ import 'package:messagyre_client/utility/classes.dart';
 
 extension StringCasingExtension on String {
   String capitalize({bool everyWord = false}) {
-    return everyWord ? split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1).toLowerCase() : '').join(' ') : this[0].toUpperCase() + substring(1);
+    if (everyWord) {
+      return split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1).toLowerCase() : '').join(' ');
+    } else {
+      return isEmpty ? "" : (this[0].toUpperCase() + substring(1));
+    }
   }
 }
 
