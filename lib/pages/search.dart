@@ -96,6 +96,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
         padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
         controller: searchBarController,
         onChanged: search,
+        autocorrect: false,
       ),
     );
   }
@@ -294,37 +295,41 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
   Widget build(BuildContext context) {
     super.build(context);
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(
-          "Nouvelle conversation",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          middle: Text(
+            "Nouvelle conversation",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+          ),
         ),
-      ),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 8),
-            buildSearchBar(),
-            SizedBox(height: 8),
-            Expanded(
-              child: AnimatedOpacity(
-                opacity: backgroundFigureAnimation,
-                duration: Duration(milliseconds: 200),
-                curve: Curves.easeOutSine,
-                child:
-                    searchResults.isNotEmpty
-                        ? ListView.builder(
-                          itemCount: searchResults.length,
-                          itemBuilder:
-                              (context, index) =>
-                                  buildResult(searchResults[index]),
-                        )
-                        : buildDecoration(),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 8),
+              buildSearchBar(),
+              SizedBox(height: 8),
+              Expanded(
+                child: AnimatedOpacity(
+                  opacity: backgroundFigureAnimation,
+                  duration: Duration(milliseconds: 200),
+                  curve: Curves.easeOutSine,
+                  child:
+                      searchResults.isNotEmpty
+                          ? ListView.builder(
+                            itemCount: searchResults.length,
+                            itemBuilder:
+                                (context, index) =>
+                                    buildResult(searchResults[index]),
+                          )
+                          : buildDecoration(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
