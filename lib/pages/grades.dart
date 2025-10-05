@@ -44,11 +44,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                     children: [
                       Text(
                         SubjectHelper.toFrench(subject),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 22,
-                          color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                       ),
                       Text(
                         "${grades.length} note${grades.length > 1 ? 's' : ''}",
@@ -95,7 +91,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                 children: [
                   Text(
                     "Moyenne générale",
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white)),
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                   ),
                   Row(
                     spacing: 10,

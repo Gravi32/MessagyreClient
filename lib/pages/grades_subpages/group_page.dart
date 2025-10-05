@@ -10,11 +10,7 @@ class GroupPage extends StatefulWidget {
   final List<Grade> grades;
   final List<String> existingGroupNames;
 
-  const GroupPage({
-    super.key,
-    required this.grades,
-    required this.existingGroupNames,
-  });
+  const GroupPage({super.key, required this.grades, required this.existingGroupNames});
 
   @override
   State<StatefulWidget> createState() => _GroupPageState();
@@ -47,26 +43,14 @@ class _GroupPageState extends State<GroupPage> {
                         children: [
                           Text(
                             gradeData.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18,
-                              color: adaptiveColor(
-                                context,
-                                CupertinoColors.black,
-                                CupertinoColors.white,
-                              ),
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                           ),
-                          if (gradeData.details != null &&
-                              gradeData.details!.isNotEmpty) ...[
+                          if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
                             Text(
                               gradeData.details!,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Theme.of(context).dividerColor,
-                                fontSize: 15,
-                              ),
+                              style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
                             ),
                           ],
                         ],
@@ -76,10 +60,7 @@ class _GroupPageState extends State<GroupPage> {
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(
-                          color: Theme.of(context).dividerColor,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
                       ),
                     ],
                   ),
@@ -90,10 +71,7 @@ class _GroupPageState extends State<GroupPage> {
           onPressed: () => showNewGradePopup(toEdit: gradeData),
         ),
 
-        Divider(
-          indent: 60,
-          color: Theme.of(context).dividerColor.withAlpha(30),
-        ),
+        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
@@ -109,25 +87,14 @@ class _GroupPageState extends State<GroupPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            Icon(
-              CupertinoIcons.sparkles,
-              size: 40,
-              color: CupertinoColors.separator.resolveFrom(context),
-            ),
-            Text(
-              "Ajoutez une note !",
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: CupertinoColors.separator.resolveFrom(context),
-              ),
-            ),
+            Icon(CupertinoIcons.sparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
+            Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
           ],
         )
         : ListView.builder(
           padding: EdgeInsets.only(top: 8),
           itemCount: widget.grades.length,
-          itemBuilder:
-              (context, index) => buildGradeBar(widget.grades.elementAt(index)),
+          itemBuilder: (context, index) => buildGradeBar(widget.grades.elementAt(index)),
         );
   }
 
@@ -183,11 +150,7 @@ class _GroupPageState extends State<GroupPage> {
                   largeTitle: Row(
                     spacing: 10,
                     children: [
-                      Icon(
-                        CupertinoIcons.folder_fill,
-                        color: CupertinoColors.label.resolveFrom(context),
-                        size: 28,
-                      ),
+                      Icon(CupertinoIcons.folder_fill, color: CupertinoColors.label.resolveFrom(context), size: 28),
                       Text(widget.grades.first.groupName ?? "Groupe"),
                     ],
                   ),
@@ -195,13 +158,7 @@ class _GroupPageState extends State<GroupPage> {
                 ),
               ];
             },
-            body: SafeArea(
-              top: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: buildList(),
-              ),
-            ),
+            body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
           ),
 
           Positioned(
@@ -210,16 +167,7 @@ class _GroupPageState extends State<GroupPage> {
             child: CupertinoButton.tinted(
               onPressed: showNewGradePopup,
               sizeStyle: CupertinoButtonSize.medium,
-              child: Row(
-                spacing: 8,
-                children: [
-                  Icon(CupertinoIcons.add),
-                  Text(
-                    "Ajouter une note au groupe",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
+              child: Row(spacing: 8, children: [Icon(CupertinoIcons.add), Text("Ajouter une note au groupe", style: TextStyle(fontWeight: FontWeight.w500))]),
             ),
           ),
         ],

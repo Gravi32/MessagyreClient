@@ -53,19 +53,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
           placeholder: widget.placeholder,
           enabled: !widget.disabled,
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-          style: TextStyle(
-            color:
-                widget.disabled
-                    ? CupertinoColors.inactiveGray
-                    : adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
-          ),
+          style: TextStyle(color: widget.disabled ? CupertinoColors.inactiveGray : adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
           decoration: BoxDecoration(
             color:
                 widget.disabled
-                    ? adaptiveColor(context, CupertinoColors.systemGrey5, CupertinoColors.darkBackgroundGray) 
-                    : adaptiveColor(context, CupertinoColors.white, CupertinoColors.darkBackgroundGray),
+                    ? adaptiveColor(CupertinoColors.systemGrey5, CupertinoColors.darkBackgroundGray)
+                    : adaptiveColor(CupertinoColors.white, CupertinoColors.darkBackgroundGray),
             borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: adaptiveColor(context, CupertinoColors.systemGrey5, Colors.transparent))
+            border: Border.all(color: adaptiveColor(CupertinoColors.systemGrey5, Colors.transparent)),
           ),
           suffix:
               widget.suffix ??
@@ -81,13 +76,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                                 isPasswordHidden = !isPasswordHidden;
                               });
                             },
-                    child: Icon(
-                      isPasswordHidden
-                          ? CupertinoIcons.eye
-                          : CupertinoIcons.eye_slash,
-                      color:
-                          widget.disabled ? CupertinoColors.inactiveGray : null,
-                    ),
+                    child: Icon(isPasswordHidden ? CupertinoIcons.eye : CupertinoIcons.eye_slash, color: widget.disabled ? CupertinoColors.inactiveGray : null),
                   )
                   : null),
 
@@ -96,14 +85,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         ),
 
         SizedBox(height: 5),
-        if (widget.error != null)
-          Text(
-            widget.error!,
-            style: TextStyle(
-              fontSize: 12,
-              color: CupertinoColors.destructiveRed,
-            ),
-          ),
+        if (widget.error != null) Text(widget.error!, style: TextStyle(fontSize: 12, color: CupertinoColors.destructiveRed)),
       ],
     );
   }

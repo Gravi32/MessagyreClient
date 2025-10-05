@@ -44,11 +44,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                     children: [
                       Text(
                         Account.getDisplayableUsername(data.recipientUsername),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                          color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                       ),
                       Expanded(
                         child: Text.rich(
@@ -157,10 +153,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                               spacing: 8,
                               children: [
                                 CupertinoActivityIndicator(),
-                                Text(
-                                  "Connexion en cours...",
-                                  style: TextStyle(color: adaptiveColor(context, CupertinoColors.systemGrey2, CupertinoColors.systemGrey)),
-                                ),
+                                Text("Connexion en cours...", style: TextStyle(color: adaptiveColor(CupertinoColors.systemGrey2, CupertinoColors.systemGrey))),
                               ],
                             )
                             : null,

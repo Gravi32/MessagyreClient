@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
 extension StringCasingExtension on String {
@@ -14,6 +15,18 @@ extension StringCasingExtension on String {
   }
 }
 
+extension StringNormalizeExtension on String {
+  String normalize() {
+    return toLowerCase()
+        .replaceAll(RegExp(r'[àâä]'), 'a')
+        .replaceAll(RegExp(r'[éèêë]'), 'e')
+        .replaceAll(RegExp(r'[ïî]'), 'i')
+        .replaceAll(RegExp(r'[ôö]'), 'o')
+        .replaceAll(RegExp(r'[ùûü]'), 'u')
+        .replaceAll('ç', 'c');
+  }
+}
+
 extension ColorExtension on Color {
   Color withBrightness(double brightness) {
     final hsl = HSLColor.fromColor(this);
@@ -22,8 +35,8 @@ extension ColorExtension on Color {
   }
 }
 
-Color adaptiveColor(BuildContext context, Color light, Color dark) {
-  return CupertinoTheme.of(context).brightness == Brightness.dark ? dark : light;
+Color adaptiveColor(Color light, Color dark) {
+  return Data().appBrightness == Brightness.dark ? dark : light;
 }
 
 String formatDate(DateTime targetDate, {bool includeTime = false}) {
@@ -61,25 +74,11 @@ String formatDate(DateTime targetDate, {bool includeTime = false}) {
 }
 
 String formatSwissPhoneNumber(String input) {
-  // Removing everything but digits
   String digits = input.replaceAll(RegExp(r'\D'), '');
+  if (digits.startsWith('0')) digits = '41${digits.substring(1)}';
+  if (!digits.startsWith('41')) digits = '41$digits';
+  if (digits.length > 11) digits = digits.substring(0, 11);
 
-  // Replacing initial "0" with prefix
-  if (digits.startsWith('0')) {
-    digits = '41${digits.substring(1)}';
-  }
-
-  // Adding prefix if missing
-  if (!digits.startsWith('41')) {
-    digits = '41$digits';
-  }
-
-  // Limiting to 11 digits
-  if (digits.length > 11) {
-    digits = digits.substring(0, 11);
-  }
-
-  // Adding whitespaces
   final buffer = StringBuffer('+${digits.substring(0, 2)}');
   if (digits.length > 2) buffer.write(' ${digits.substring(2, 4)}');
   if (digits.length > 4) buffer.write(' ${digits.substring(4, 7)}');
@@ -128,21 +127,43 @@ IconData getStatusIcon(int status) {
   return Icons.done_all_rounded;
 }
 
-List<TextSpan> highlightSearchMatch(String fullText, String query) {
+final Map<String, List<TextSpan>> _highlightSearchCache = {};
+
+List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCache = false}) {
+  final key = '$fullText::$query';
+  if (useCache && _highlightSearchCache.containsKey(key)) return _highlightSearchCache[key]!;
+
   if (query.isEmpty) {
-    return [TextSpan(text: fullText)];
+    final span = [TextSpan(text: fullText)];
+    if (useCache) _highlightSearchCache[key] = span;
+    return span;
   }
 
-  final startIndex = fullText.toLowerCase().indexOf(query.toLowerCase());
-  if (startIndex == -1) {
-    return [TextSpan(text: fullText)];
+  final normalizedText = fullText.toLowerCase();
+  final normalizedQuery = query.toLowerCase();
+
+  if (!normalizedText.contains(normalizedQuery)) {
+    final span = [TextSpan(text: fullText)];
+    if (useCache) _highlightSearchCache[key] = span;
+    return span;
   }
 
-  final endIndex = startIndex + query.length;
+  final spans = <TextSpan>[];
+  int lastIndex = 0;
+  final matches = RegExp(RegExp.escape(normalizedQuery)).allMatches(normalizedText);
 
-  return [
-    TextSpan(text: fullText.substring(0, startIndex)),
-    TextSpan(text: fullText.substring(startIndex, endIndex), style: TextStyle(fontWeight: FontWeight.bold)),
-    TextSpan(text: fullText.substring(endIndex)),
-  ];
+  for (final m in matches) {
+    if (m.start > lastIndex) {
+      spans.add(TextSpan(text: fullText.substring(lastIndex, m.start)));
+    }
+    spans.add(TextSpan(text: fullText.substring(m.start, m.end), style: const TextStyle(fontWeight: FontWeight.bold)));
+    lastIndex = m.end;
+  }
+
+  if (lastIndex < fullText.length) {
+    spans.add(TextSpan(text: fullText.substring(lastIndex)));
+  }
+
+  if (useCache) _highlightSearchCache[key] = spans;
+  return spans;
 }

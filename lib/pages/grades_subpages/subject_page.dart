@@ -66,11 +66,7 @@ class _SubjectPageState extends State<SubjectPage> {
                         children: [
                           Text(
                             gradeData.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18,
-                              color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                           ),
                           if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
                             Text(
@@ -133,11 +129,7 @@ class _SubjectPageState extends State<SubjectPage> {
                             children: [
                               Text(
                                 groupName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 20,
-                                  color: adaptiveColor(context, CupertinoColors.black, CupertinoColors.white),
-                                ),
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                               ),
 
                               Text(

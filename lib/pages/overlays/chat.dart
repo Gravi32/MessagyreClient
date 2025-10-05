@@ -184,7 +184,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-          color: adaptiveColor(context, barLightColor, barDarkColor),
+          color: adaptiveColor(barLightColor, barDarkColor),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
@@ -210,7 +210,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.recipientUsername.replaceAll('.', ' ').capitalize(everyWord: true), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
+                        Text(
+                          widget.recipientUsername.replaceAll('.', ' ').capitalize(everyWord: true),
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+                        ),
                         Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 14)),
                       ],
                     ),
@@ -350,7 +353,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
         child: Container(
-          color: adaptiveColor(context, barLightColor, barDarkColor),
+          color: adaptiveColor(barLightColor, barDarkColor),
 
           padding: EdgeInsets.only(right: 12, left: 12, bottom: MediaQuery.of(context).padding.bottom),
           child: ValueListenableBuilder(
