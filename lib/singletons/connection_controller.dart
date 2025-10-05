@@ -83,7 +83,12 @@ class ConnectionController {
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
 
-    final response = await post("/Auth/Refresh", {"RefreshToken": refreshToken});
+    final response = await post("/Auth/Refresh", {"RefreshToken": refreshToken}).timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        throw Exception("Refresh token request timed out");
+      },
+    );
 
     if (response.statusCode == 200) {
       final results = jsonDecode(response.body);
