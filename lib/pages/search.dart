@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -144,8 +145,8 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
         radius: 40,
       ),
       leadingSize: 50,
-      additionalInfo: Icon(
-        CupertinoIcons.chevron_forward,
+      additionalInfo: HugeIcon(icon: 
+        HugeIcons.strokeRoundedArrowRight01,
         color: CupertinoColors.systemGrey,
       ),
       onTap: () async {
@@ -259,8 +260,8 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    CupertinoIcons.person_crop_circle_badge_xmark,
+                  HugeIcon(icon: 
+                    HugeIcons.strokeRoundedUserQuestion01,
                     color: CupertinoColors.systemGrey,
                     size: 40,
                   ),

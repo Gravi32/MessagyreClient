@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
 
 class ProfilePictureDisplay extends StatefulWidget {
@@ -74,7 +75,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
               width: diameter,
               height: diameter,
               fit: BoxFit.cover,
-              errorWidget: (context, url, error) => Icon(Icons.error),
+              errorWidget: (context, url, error) => HugeIcon(icon: HugeIcons.strokeRoundedWifiError02),
             ),
           ),
         );
@@ -97,7 +98,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                   width: diameter,
                   height: diameter,
                   fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Icon(Icons.error),
+                  errorWidget: (context, url, error) => HugeIcon(icon: HugeIcons.strokeRoundedWifiError02),
                 ),
               ),
             );

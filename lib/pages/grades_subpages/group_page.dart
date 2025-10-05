@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -87,7 +88,7 @@ class _GroupPageState extends State<GroupPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            Icon(CupertinoIcons.sparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
+            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
             Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
           ],
         )
@@ -150,7 +151,7 @@ class _GroupPageState extends State<GroupPage> {
                   largeTitle: Row(
                     spacing: 10,
                     children: [
-                      Icon(CupertinoIcons.folder_fill, color: CupertinoColors.label.resolveFrom(context), size: 28),
+                      HugeIcon(icon: HugeIcons.strokeRoundedFolder01, color: CupertinoColors.label.resolveFrom(context), size: 28),
                       Text(widget.grades.first.groupName ?? "Groupe"),
                     ],
                   ),
@@ -160,14 +161,17 @@ class _GroupPageState extends State<GroupPage> {
             },
             body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
           ),
-
+          
           Positioned(
             bottom: MediaQuery.paddingOf(context).bottom + 20,
             right: 20,
-            child: CupertinoButton.tinted(
-              onPressed: showNewGradePopup,
-              sizeStyle: CupertinoButtonSize.medium,
-              child: Row(spacing: 8, children: [Icon(CupertinoIcons.add), Text("Ajouter une note au groupe", style: TextStyle(fontWeight: FontWeight.w500))]),
+            child: GestureDetector(
+              onTap: showNewGradePopup,
+              child: Container(
+                padding: EdgeInsets.all(14),
+                decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+              ),
             ),
           ),
         ],

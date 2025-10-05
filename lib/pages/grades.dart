@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -60,7 +61,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                 ReorderableDragStartListener(
                   index: index,
 
-                  child: Padding(padding: const EdgeInsets.all(8.0), child: Icon(Icons.drag_handle_rounded, color: CupertinoColors.systemGrey)),
+                  child: Padding(padding: const EdgeInsets.all(8.0), child: HugeIcon(icon: HugeIcons.strokeRoundedUnfoldMore, color: CupertinoColors.systemGrey)),
                 ),
               ],
             ),
@@ -181,7 +182,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 10,
                           children: [
-                            Icon(CupertinoIcons.sparkles, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
+                            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
                             Text(
                               "Ajoutez une note !",
                               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
@@ -231,7 +232,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
               child: Container(
                 padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
-                child: Icon(CupertinoIcons.add, color: CupertinoColors.label.resolveFrom(context)),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
               ),
             ),
           ),

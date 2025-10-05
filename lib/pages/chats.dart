@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hive_flutter/adapters.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
@@ -55,7 +56,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                   alignment: PlaceholderAlignment.middle,
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 4),
-                                    child: Icon(getStatusIcon(data.content.last.status), color: CupertinoColors.systemGrey.resolveFrom(context)),
+                                    child: HugeIcon(icon: getStatusIcon(data.content.last.status), color: CupertinoColors.systemGrey.resolveFrom(context)),
                                   ),
                                 ),
                               TextSpan(

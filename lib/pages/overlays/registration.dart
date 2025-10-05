@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -299,7 +300,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 6,
             children: [
-              Icon(CupertinoIcons.refresh),
+              HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
               Text(
                 canResendCode
                     ? "Renvoyer le code"
@@ -436,7 +437,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: GestureDetector(
-          child: Icon(CupertinoIcons.clear),
+          child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
           onTap: () => askClosingConfirmation(),
         ),
         middle: Text("Création de compte"),
@@ -450,14 +451,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
               spacing: 20,
               children: [
                 currentPage == 0
-                    ? Icon(CupertinoIcons.mail_solid)
-                    : Icon(CupertinoIcons.circle_fill, size: 8),
+                    ? HugeIcon(icon: HugeIcons.strokeRoundedMailAdd01)
+                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
                 currentPage == 1
-                    ? Icon(CupertinoIcons.checkmark_rectangle_fill)
-                    : Icon(CupertinoIcons.circle_fill, size: 8),
+                    ? HugeIcon(icon: HugeIcons.strokeRoundedSmsCode)
+                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
                 currentPage == 2
-                    ? Icon(CupertinoIcons.padlock_solid)
-                    : Icon(CupertinoIcons.circle_fill, size: 8),
+                    ? HugeIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
+                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
               ],
             ),
             Expanded(

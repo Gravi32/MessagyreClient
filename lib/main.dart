@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/access.dart';
 import 'package:messagyre_client/api/firebase_api.dart';
@@ -99,11 +100,11 @@ class App extends StatelessWidget {
   final data = Data();
 
   static List<AppPage> pages = [
-    AppPage(name: "Notes", idleIcon: CupertinoIcons.chart_bar, selectedIcon: CupertinoIcons.chart_bar_fill, build: () => GradesPage()),
-    AppPage(name: "Dévoirs", idleIcon: CupertinoIcons.checkmark_square, selectedIcon: CupertinoIcons.checkmark_square_fill, build: () => HomeworkPage()),
-    AppPage(name: "Conversations", idleIcon: CupertinoIcons.chat_bubble_2, selectedIcon: CupertinoIcons.chat_bubble_2_fill, build: () => ChatsPage()),
-    AppPage(name: "Récherche", idleIcon: CupertinoIcons.search, selectedIcon: CupertinoIcons.search, build: () => SearchPage()),
-    AppPage(name: "Réglages", idleIcon: CupertinoIcons.gear, selectedIcon: CupertinoIcons.gear_solid, build: () => SettingsPage()),
+    AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
+    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage()),
+    AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsPage()),
+    AppPage(name: "Récherche", icon: HugeIcons.strokeRoundedUserGroup, build: () => SearchPage()),
+    AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),
   ];
 
   @override
@@ -124,11 +125,10 @@ class App extends StatelessWidget {
 
 class AppPage {
   final String name;
-  final IconData idleIcon;
-  final IconData selectedIcon;
+  final List<List<dynamic>> icon;
   final Widget Function() build;
 
-  const AppPage({required this.name, required this.idleIcon, required this.selectedIcon, required this.build});
+  const AppPage({required this.name, required this.icon, required this.build});
 }
 
 class MainPage extends StatefulWidget {
@@ -188,8 +188,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                   App.pages
                       .map(
                         (page) => CustomNavigationBarItem(
-                          icon: Icon(page.idleIcon),
-                          selectedIcon: Icon(page.selectedIcon),
+                          icon: HugeIcon(icon: page.icon), //Icon(page.idleIcon),
+                          selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
                           // title: Text(
                           //   page.name,
                           //   overflow: TextOverflow.fade,

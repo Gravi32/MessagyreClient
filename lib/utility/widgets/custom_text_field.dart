@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -76,7 +77,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                                 isPasswordHidden = !isPasswordHidden;
                               });
                             },
-                    child: Icon(isPasswordHidden ? CupertinoIcons.eye : CupertinoIcons.eye_slash, color: widget.disabled ? CupertinoColors.inactiveGray : null),
+                    child: HugeIcon(icon: isPasswordHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff, color: widget.disabled ? CupertinoColors.inactiveGray : null),
                   )
                   : null),
 

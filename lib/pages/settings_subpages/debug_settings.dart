@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -131,8 +132,8 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                           : Row(
                             spacing: 8,
                             children: [
-                              Icon(
-                                CupertinoIcons.exclamationmark_triangle_fill,
+                              HugeIcon(icon: 
+                                HugeIcons.strokeRoundedAlert02,
                                 color: CupertinoColors.systemYellow,
                               ),
                               Text("Aucun log disponible."),

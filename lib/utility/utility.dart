@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -121,10 +122,10 @@ String getFractionString(double value) {
   return value.toStringAsFixed(2);
 }
 
-IconData getStatusIcon(int status) {
-  if (status == 0) return Icons.close_rounded;
-  if (status == 1) return Icons.done_rounded;
-  return Icons.done_all_rounded;
+List<List<dynamic>> getStatusIcon(int status) {
+  if (status == 0) return HugeIcons.strokeRoundedCancel01;
+  if (status == 1) return HugeIcons.strokeRoundedTick02;
+  return HugeIcons.strokeRoundedTickDouble02;
 }
 
 final Map<String, List<TextSpan>> _highlightSearchCache = {};

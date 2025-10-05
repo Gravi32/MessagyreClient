@@ -1,6 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -170,7 +171,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     ),
                                     child: SizedBox(
                                       height: 100,
-                                      child: Center(child: Icon(CupertinoIcons.add, color: CupertinoColors.secondarySystemBackground.resolveFrom(context))),
+                                      child: Center(
+                                        child: HugeIcon(
+                                          icon: HugeIcons.strokeRoundedAdd01,
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 );
@@ -190,7 +196,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
             builder: (context, _) {
               final currentPage =
                   (timelineController.hasClients ? timelineController.page ?? timelineController.initialPage : timelineController.initialPage).round();
-              final isAtTomorrow = (currentPage - tomorrowPageIndex).abs() < 0.1;
+              final dayDistance = currentPage - tomorrowPageIndex;
+              final isAtTomorrow = dayDistance.abs() < 0.1;
 
               return Positioned(
                 bottom: MediaQuery.paddingOf(context).bottom + 20,
@@ -209,7 +216,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
                           BoxShadow(color: CupertinoColors.black.withAlpha(isAtTomorrow ? 0 : 30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
                         ],
                       ),
-                      child: Icon(CupertinoIcons.calendar_today, color: CupertinoColors.label.resolveFrom(context).withOpacity(isAtTomorrow ? 0 : 1)),
+                      child:
+                          isAtTomorrow
+                              ? SizedBox.shrink()
+                              : HugeIcon(
+                                icon: dayDistance > 0 ? HugeIcons.strokeRoundedCalendarCheckIn01 : HugeIcons.strokeRoundedCalendarCheckOut01,
+                                color: CupertinoColors.label.resolveFrom(context),
+                              ),
                     ),
                     SizedBox(height: 10),
                     CupertinoPressable(
@@ -221,7 +234,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                       ),
-                      child: Icon(CupertinoIcons.add, color: CupertinoColors.label.resolveFrom(context)),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
                     ),
                   ],
                 ),

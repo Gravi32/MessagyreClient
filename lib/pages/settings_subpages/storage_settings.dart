@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -53,10 +54,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
       if (name == "Chats") {
         box = isOpen ? Hive.box<Chat>(name) : await Hive.openBox<Chat>(name);
       } else if (name == "Homework") {
-        box =
-            isOpen
-                ? Hive.box<Homework>(name)
-                : await Hive.openBox<Homework>(name);
+        box = isOpen ? Hive.box<Homework>(name) : await Hive.openBox<Homework>(name);
       } else if (name == "Grades") {
         box = isOpen ? Hive.box<Grade>(name) : await Hive.openBox<Grade>(name);
       }
@@ -69,11 +67,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 
   String formatBytes(int bytes) => "${(bytes / 1024).toStringAsFixed(1)} Ko";
 
-  Future<void> confirmDeleteBox(
-    String boxName,
-    String title,
-    String message,
-  ) async {
+  Future<void> confirmDeleteBox(String boxName, String title, String message) async {
     showCupertinoDialog(
       context: context,
       builder:
@@ -81,10 +75,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             title: Text(title),
             content: Text(message),
             actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text("Annuler"),
-              ),
+              CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text("Annuler")),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () async {
@@ -106,14 +97,9 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
       builder:
           (dialogContext) => CupertinoAlertDialog(
             title: Text("Effacer toutes les données"),
-            content: Text(
-              "Toutes les notes, tous les devoirs et toutes les conversations seront supprimés de manière irréversible.",
-            ),
+            content: Text("Toutes les notes, tous les devoirs et toutes les conversations seront supprimés de manière irréversible."),
             actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text("Annuler"),
-              ),
+              CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text("Annuler")),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () async {
@@ -133,10 +119,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        previousPageTitle: "Réglages",
-        middle: Text("Effacer les données"),
-      ),
+      navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Effacer les données")),
       child: SafeArea(
         child: SettingsList(
           platform: DevicePlatform.iOS,
@@ -144,66 +127,32 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             SettingsSection(
               tiles: [
                 SettingsTile(
-                  leading: Icon(
-                    CupertinoIcons.chat_bubble_2,
-                    color: CupertinoColors.destructiveRed,
-                  ),
-                  title: Text(
-                    "Effacer les conversations (${formatBytes(chatsSize)})",
-                    style: TextStyle(color: CupertinoColors.destructiveRed),
-                  ),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedMessageMultiple02, color: CupertinoColors.destructiveRed),
+                  title: Text("Effacer les conversations", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  trailing: Text(formatBytes(chatsSize)),
                   onPressed:
-                      (_) => confirmDeleteBox(
-                        "Chats",
-                        "Effacer les conversations",
-                        "Toutes les conversations seront effacées, cette action est irréversible.",
-                      ),
+                      (_) => confirmDeleteBox("Chats", "Effacer les conversations", "Toutes les conversations seront effacées, cette action est irréversible."),
                 ),
                 SettingsTile(
-                  leading: Icon(
-                    CupertinoIcons.table,
-                    color: CupertinoColors.destructiveRed,
-                  ),
-                  title: Text(
-                    "Effacer les notes (${formatBytes(gradesSize)})",
-                    style: TextStyle(color: CupertinoColors.destructiveRed),
-                  ),
-                  onPressed:
-                      (_) => confirmDeleteBox(
-                        "Grades",
-                        "Effacer les notes",
-                        "Toutes les notes seront effacées, cette action est irréversible.",
-                      ),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: CupertinoColors.destructiveRed),
+                  title: Text("Effacer les notes", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  trailing: Text(formatBytes(gradesSize)),
+                  onPressed: (_) => confirmDeleteBox("Grades", "Effacer les notes", "Toutes les notes seront effacées, cette action est irréversible."),
                 ),
                 SettingsTile(
-                  leading: Icon(
-                    CupertinoIcons.checkmark_square,
-                    color: CupertinoColors.destructiveRed,
-                  ),
-                  title: Text(
-                    "Effacer les devoirs (${formatBytes(homeworkSize)})",
-                    style: TextStyle(color: CupertinoColors.destructiveRed),
-                  ),
-                  onPressed:
-                      (_) => confirmDeleteBox(
-                        "Homework",
-                        "Effacer les devoirs",
-                        "Tous les devoirs seront effacés, cette action est irréversible.",
-                      ),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedWork, color: CupertinoColors.destructiveRed),
+                  title: Text("Effacer les devoirs", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  trailing: Text(formatBytes(homeworkSize)),
+                  onPressed: (_) => confirmDeleteBox("Homework", "Effacer les devoirs", "Tous les devoirs seront effacés, cette action est irréversible."),
                 ),
               ],
             ),
             SettingsSection(
               tiles: [
                 SettingsTile(
-                  leading: Icon(
-                    CupertinoIcons.trash,
-                    color: CupertinoColors.destructiveRed,
-                  ),
-                  title: Text(
-                    "Tout effacer (${formatBytes(chatsSize + homeworkSize + gradesSize)})",
-                    style: TextStyle(color: CupertinoColors.destructiveRed),
-                  ),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed),
+                  title: Text("Tout effacer", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  trailing: Text(formatBytes(chatsSize + homeworkSize + gradesSize)),
                   onPressed: (_) => confirmDeleteAll(),
                 ),
               ],

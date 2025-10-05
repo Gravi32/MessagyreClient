@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/feedback_settings.dart';
@@ -120,7 +121,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                           router.onUnauthorized!();
                         }
                       }),
-                  leading: Icon(CupertinoIcons.square_arrow_left),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
                   title: Text("Se déconnecter"),
                 ),
               ],
@@ -137,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     });
                   },
                   initialValue: isDarkMode,
-                  leading: Icon(CupertinoIcons.moon),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedMoon02),
                   title: Text('Mode sombre'),
                 ),
               ],
@@ -148,18 +149,18 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
               tiles: [
                 SettingsTile.navigation(
                   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  leading: Icon(CupertinoIcons.delete),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
                   title: Text("Effacer les données"),
                 ),
                 SettingsTile(
                   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  leading: Icon(CupertinoIcons.square_arrow_up),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
                   title: Text("Exporter les données"),
                   enabled: false, // Placeholder for future implementation
                 ),
                 SettingsTile(
                   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  leading: Icon(CupertinoIcons.square_arrow_down),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
                   title: Text("Importer les données"),
                   enabled: false, // Placeholder for future implementation
                 ),
@@ -171,12 +172,12 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
               tiles: [
                 SettingsTile.navigation(
                   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
-                  leading: Icon(CupertinoIcons.bubble_right),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
                   title: Text("Envoyez un commentaire"),
                 ),
                 SettingsTile.navigation(
                   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
-                  leading: Icon(CupertinoIcons.ant),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
                   title: Text("Débogage"),
                 ),
               ],

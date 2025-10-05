@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -46,7 +47,7 @@ class _HomeworkCardState extends State<HomeworkCard> {
     }
   }
 
-  Widget buildButton(int popupOrderIndex, IconData icon, Color color, VoidCallback onTap) {
+  Widget buildButton(int popupOrderIndex, List<List> icon, Color color, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -59,7 +60,7 @@ class _HomeworkCardState extends State<HomeworkCard> {
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
           padding: EdgeInsets.only(top: isExpanded ? (mainContainerHeight?.abs() ?? 10) + 10 : 10, bottom: 10),
-          child: Icon(icon, color: color),
+          child: HugeIcon(icon: icon, color: color),
         ),
       ),
     );
@@ -82,14 +83,14 @@ class _HomeworkCardState extends State<HomeworkCard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            buildButton(0, CupertinoIcons.delete, buttonsColor, () {
+            buildButton(0, HugeIcons.strokeRoundedDelete04, buttonsColor, () {
               if (widget.onDeleteButtonClicked != null) widget.onDeleteButtonClicked!();
             }),
-            buildButton(1, CupertinoIcons.pen, buttonsColor, () {
+            buildButton(1, HugeIcons.strokeRoundedPencilEdit02, buttonsColor, () {
               if (widget.onEditButtonClicked != null) widget.onEditButtonClicked!();
             }),
             if (!isTest)
-              buildButton(2, CupertinoIcons.check_mark, buttonsColor, () {
+              buildButton(2, HugeIcons.strokeRoundedCheckmarkSquare04, buttonsColor, () {
                 setState(() => widget.homework.isMarkedAsDone = !widget.homework.isMarkedAsDone);
               }),
           ],
@@ -123,8 +124,8 @@ class _HomeworkCardState extends State<HomeworkCard> {
                               textBaseline: TextBaseline.alphabetic,
                               spacing: 2,
                               children: [
-                                Icon(
-                                  CupertinoIcons.chart_bar_alt_fill,
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedTextCheck,
                                   color: isTest ? CupertinoColors.systemRed : adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
                                   size: 20,
                                 ),
@@ -139,7 +140,11 @@ class _HomeworkCardState extends State<HomeworkCard> {
                                         widget.homework.isMarkedAsDone = !widget.homework.isMarkedAsDone;
                                       }),
 
-                              child: Icon(isMarkedAsDone ? CupertinoIcons.checkmark_square : CupertinoIcons.square, size: 30),
+                              child: HugeIcon(
+                                icon: isMarkedAsDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
+                                size: 30,
+                                color: isMarkedAsDone ? CupertinoColors.activeGreen : CupertinoColors.tertiaryLabel.resolveFrom(context),
+                              ),
                             ),
                   ),
 
@@ -149,19 +154,25 @@ class _HomeworkCardState extends State<HomeworkCard> {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(
-                          SubjectHelper.toFrench(widget.homework.subject).capitalize(),
-                          style: TextStyle(
-                            color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
-                            fontWeight: FontWeight.w700,
-                            decoration: isMarkedAsDone ? TextDecoration.lineThrough : null,
-                            fontSize: 20,
+                        Expanded(
+                          child: Text(
+                            SubjectHelper.toFrench(widget.homework.subject).capitalize(),
+                            style: TextStyle(
+                              color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
+                              fontWeight: FontWeight.w700,
+                              decoration: isMarkedAsDone ? TextDecoration.lineThrough : null,
+                              fontSize: 20,
+                            ),
+                            softWrap: true,
+                            overflow: TextOverflow.fade,
                           ),
-                          softWrap: true,
-                          overflow: TextOverflow.fade,
                         ),
                         if (isGraded)
-                          Icon(CupertinoIcons.chart_bar_alt_fill, color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white), size: 20),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                            color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
+                            size: 20,
+                          ),
                       ],
                     ),
                   ),

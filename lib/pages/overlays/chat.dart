@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -196,7 +197,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Icon(CupertinoIcons.left_chevron, size: 26),
+                      HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 30),
                       if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 20, color: CupertinoTheme.of(context).primaryColor)),
                     ],
                   ),
@@ -228,7 +229,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     },
                   ),
                 ),
-                Icon(CupertinoIcons.phone, size: 22, color: CupertinoColors.systemGrey.resolveFrom(context)),
+                HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22, color: CupertinoColors.systemGrey.resolveFrom(context)),
                 SizedBox(width: 10),
               ],
             ),
@@ -300,7 +301,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 if (data.isOwned)
                   ValueListenableBuilder(
                     valueListenable: data.statusNotifier,
-                    builder: (context, status, _) => Icon(getStatusIcon(status), color: CupertinoColors.white, size: 15, applyTextScaling: true),
+                    builder: (context, status, _) => HugeIcon(icon: getStatusIcon(status), color: CupertinoColors.white, size: 13),
                   ),
               ],
             ),
@@ -338,7 +339,14 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(200),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 6,
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                    ],
+                  ),
                 ),
                 bubble,
               ],
@@ -364,7 +372,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 8,
                     children: [
-                      GestureDetector(child: Icon(CupertinoIcons.add, color: CupertinoColors.systemGrey.resolveFrom(context))),
+                      GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedAddSquare, color: CupertinoColors.systemGrey.resolveFrom(context))),
 
                       Expanded(
                         child: Padding(

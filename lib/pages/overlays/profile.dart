@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -209,7 +209,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                           tiles: [
                             contactTile(
                               "PhoneNumber",
-                              CupertinoIcons.phone,
+                              HugeIcons.strokeRoundedCall02,
                               placeholder: "Numéro de téléphone",
                               controller: phoneNumberController,
                               onChanged: (value) {
@@ -226,7 +226,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                             contactTile(
                               "InstagramUsername",
-                              FontAwesomeIcons.instagram,
+                              HugeIcons.strokeRoundedInstagram,
                               placeholder: "Nom d'utilisateur sur Instagram",
                               controller: instagramUsernameController,
                               onChanged: (_) => setSheetState(() {}),
@@ -234,7 +234,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                             contactTile(
                               "SnapchatUsername",
-                              FontAwesomeIcons.snapchat,
+                              HugeIcons.strokeRoundedSnapchat,
                               placeholder: "Nom d'utilisateur sur Snapchat",
                               controller: snapchatUsernameController,
                               onChanged: (_) => setSheetState(() {}),
@@ -242,7 +242,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                             contactTile(
                               "DiscordUsername",
-                              CupertinoIcons.game_controller,
+                              HugeIcons.strokeRoundedDiscord,
                               placeholder: "Nom d'utilisateur sur Discord",
                               controller: discordUsernameController,
                               onChanged: (_) => setSheetState(() {}),
@@ -260,7 +260,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   SettingsTile contactTile(
     String contact,
-    IconData? icon, {
+    List<List>? icon, {
     bool description = false,
     String? placeholder,
     TextEditingController? controller,
@@ -271,7 +271,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     if (editMode) {
       controller ??= TextEditingController(text: value);
       return SettingsTile(
-        leading: Icon(icon ?? CupertinoIcons.mail),
+        leading: HugeIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
         title: CupertinoTextField(
           controller: controller,
           decoration: BoxDecoration(),
@@ -283,7 +283,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
       );
     } else {
       return SettingsTile(
-        leading: Icon(icon ?? CupertinoIcons.mail),
+        leading: HugeIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
         title: Text(
           value ?? "Ajouter",
           overflow: TextOverflow.fade,
@@ -329,7 +329,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                       Navigator.of(context).pop();
                     }
                   },
-          child: Icon(CupertinoIcons.back, color: isUploading ? CupertinoColors.inactiveGray : null),
+          child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isUploading ? CupertinoColors.inactiveGray : null, size: 30,),
         ),
         middle: Text(editMode ? "Mon profil" : account.username),
         trailing:
@@ -412,17 +412,17 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 // Email address
                 SettingsTile(
                   title: Text(account.emailAddress, overflow: TextOverflow.fade, softWrap: false),
-                  leading: Icon(CupertinoIcons.mail),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedMailAccount01),
                   onPressed: editMode ? null : (context) => editMode ? changeContacts() : copy(account.emailAddress),
                 ),
 
-                if (profile["PhoneNumber"] != null || editMode) contactTile("PhoneNumber", CupertinoIcons.phone),
+                if (profile["PhoneNumber"] != null || editMode) contactTile("PhoneNumber", HugeIcons.strokeRoundedCall02),
 
-                if (profile["InstagramUsername"] != null || editMode) contactTile("InstagramUsername", FontAwesomeIcons.instagram),
+                if (profile["InstagramUsername"] != null || editMode) contactTile("InstagramUsername", HugeIcons.strokeRoundedInstagram),
 
-                if (profile["SnapchatUsername"] != null || editMode) contactTile("SnapchatUsername", FontAwesomeIcons.snapchat),
+                if (profile["SnapchatUsername"] != null || editMode) contactTile("SnapchatUsername", HugeIcons.strokeRoundedSnapchat),
 
-                if (profile["DiscordUsername"] != null || editMode) contactTile("DiscordUsername", CupertinoIcons.game_controller, description: true),
+                if (profile["DiscordUsername"] != null || editMode) contactTile("DiscordUsername", HugeIcons.strokeRoundedDiscord, description: true),
               ],
             ),
 
@@ -430,18 +430,18 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
               SettingsSection(
                 tiles: [
                   SettingsTile.navigation(
-                    leading: Icon(CupertinoIcons.bubble_left),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedSent),
                     title: Text("Envoyer un message"),
                     onPressed:
                         (context) =>
                             Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username))),
                   ),
 
-                  SettingsTile.navigation(leading: Icon(CupertinoIcons.phone), title: Text("Appeler"), enabled: false),
+                  SettingsTile.navigation(leading: HugeIcon(icon: HugeIcons.strokeRoundedCall02), title: Text("Appeler"), enabled: false),
 
                   if (Hive.box<Chat>("Chats").containsKey(account.username))
                     SettingsTile(
-                      leading: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed),
                       title: Text("Supprimer la conversation", style: TextStyle(color: CupertinoColors.destructiveRed)),
                       onPressed:
                           (context) => showCupertinoDialog(

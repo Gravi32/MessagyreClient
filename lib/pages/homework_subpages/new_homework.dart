@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -127,9 +128,9 @@ class _NewHomeworkState extends State<NewHomework> {
 
                     prefix: Padding(
                       padding: EdgeInsetsGeometry.only(right: 10),
-                      child: Icon(CupertinoIcons.book, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                     ),
-                    suffix: Icon(CupertinoIcons.pen, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                    suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                     suffixMode: OverlayVisibilityMode.notEditing,
                     style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                     placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
@@ -156,7 +157,8 @@ class _NewHomeworkState extends State<NewHomework> {
               header: Text("Date de remise"),
               children: [
                 CupertinoListTile(
-                  leading: Icon(CupertinoIcons.calendar, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                  trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context),),
                   title: Text(formatDate(dueDate).capitalize()),
                   onTap: showDatePicker,
                 ),
@@ -167,8 +169,8 @@ class _NewHomeworkState extends State<NewHomework> {
               header: Text("Évaluation"),
               children: [
                 CupertinoListTile(
-                  leading: Icon(
-                    CupertinoIcons.chart_bar_alt_fill,
+                  leading: HugeIcon(icon: 
+                    HugeIcons.strokeRoundedCheckmarkBadge04,
                     color: isTest ? CupertinoColors.inactiveGray.resolveFrom(context) : adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
                   ),
                   title: Text(
@@ -178,7 +180,7 @@ class _NewHomeworkState extends State<NewHomework> {
                   trailing: CupertinoSwitch(value: isGraded, onChanged: isTest ? null : (value) => setState(() => isGraded = value)),
                 ),
                 CupertinoListTile(
-                  leading: Icon(CupertinoIcons.chart_bar_alt_fill, color: CupertinoColors.systemRed.resolveFrom(context)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedTextCheck,  color: CupertinoColors.label.resolveFrom(context)),
                   title: const Text("Test"),
                   trailing: CupertinoSwitch(
                     value: isTest,

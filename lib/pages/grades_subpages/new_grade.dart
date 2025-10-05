@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -177,7 +178,7 @@ class _NewGradeState extends State<NewGrade> {
                       padding: EdgeInsets.zero,
                       placeholder: "Titre",
 
-                      suffix: Icon(CupertinoIcons.pencil, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                       suffixMode: OverlayVisibilityMode.notEditing,
                       style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
@@ -257,20 +258,20 @@ class _NewGradeState extends State<NewGrade> {
                                 groupName = name;
                               }),
                         ),
-                        trailing: groupName == name ? Icon(CupertinoIcons.check_mark, size: 18) : null,
+                        trailing: groupName == name ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 18) : null,
                       );
                     }),
 
                     SettingsTile(
                       title: GestureDetector(
-                        child: Row(children: [Icon(CupertinoIcons.add_circled, size: 20), const SizedBox(width: 10), Text("Ajouter un groupe")]),
+                        child: Row(children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, size: 20), const SizedBox(width: 10), Text("Ajouter un groupe")]),
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
                             builder: (dialogContext) {
                               final controller = TextEditingController();
                               return CupertinoAlertDialog(
-                                title: Row(spacing: 4, children: [Icon(CupertinoIcons.add), Text("Nouveau groupe")]),
+                                title: Row(spacing: 8, crossAxisAlignment: CrossAxisAlignment.center, children: [HugeIcon(icon:HugeIcons.strokeRoundedSelect01), Text("Nouveau groupe")]),
                                 content: Column(
                                   children: [
                                     SizedBox(height: 10),
@@ -339,7 +340,7 @@ class _NewGradeState extends State<NewGrade> {
                       placeholder: "Ajoutez des informations supplémentaires...",
                     ),
                   ),
-                  SettingsTile.navigation(leading: Icon(CupertinoIcons.photo_on_rectangle), title: Text("Ajouter des photos")),
+                  SettingsTile.navigation(leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02), title: Text("Ajouter des photos")),
                 ],
               ),
 
@@ -347,7 +348,7 @@ class _NewGradeState extends State<NewGrade> {
                 SettingsSection(
                   tiles: [
                     SettingsTile(
-                      leading: Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed.resolveFrom(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
                       title: Text("Supprimer la note", style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
                       onPressed: (context) {
                         showCupertinoDialog(

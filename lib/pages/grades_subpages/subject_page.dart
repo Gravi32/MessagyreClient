@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/grades_subpages/group_page.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -116,42 +117,47 @@ class _SubjectPageState extends State<SubjectPage> {
 
                 Expanded(
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4,
-                        children: [
-                          Row(
-                            spacing: 10,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                groupName,
-                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
-                              ),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 4,
+                          children: [
+                            Row(
+                              spacing: 10,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  groupName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 20,
+                                    color: adaptiveColor(CupertinoColors.black, CupertinoColors.white),
+                                  ),
+                                ),
 
-                              Text(
-                                gradesInGroup.length == 1 ? "1 note" : "${gradesInGroup.length} notes",
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontWeight: FontWeight.w500),
-                              ),
-                            ],
-                          ),
+                                Text(
+                                  gradesInGroup.length == 1 ? "1 note" : "${gradesInGroup.length} notes",
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
 
-                          gradesInGroup.map((data) => data.title).isNotEmpty
-                              ? Text(
-                                gradesInGroup.map((data) => "- ${data.title}").join("\n"),
-                                maxLines: 2,
-                                overflow: TextOverflow.fade,
-                                style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
-                              )
-                              : const SizedBox.shrink(),
-                        ],
+                            gradesInGroup.map((data) => data.title).isNotEmpty
+                                ? Text(
+                                  gradesInGroup.map((data) => "- ${data.title}").join("\n"),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.fade,
+                                  style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
+                                )
+                                : const SizedBox.shrink(),
+                          ],
+                        ),
                       ),
-                      Icon(CupertinoIcons.chevron_right, color: CupertinoColors.systemGrey),
+                      HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.systemGrey),
                     ],
                   ),
                 ),
@@ -202,7 +208,7 @@ class _SubjectPageState extends State<SubjectPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            Icon(CupertinoIcons.sparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
+            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
             Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
           ],
         )
@@ -274,7 +280,7 @@ class _SubjectPageState extends State<SubjectPage> {
               child: Container(
                 padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
-                child: Icon(CupertinoIcons.add, color: CupertinoColors.label.resolveFrom(context)),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
               ),
             ),
           ),
