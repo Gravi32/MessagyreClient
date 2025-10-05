@@ -114,10 +114,10 @@ class _NewHomeworkState extends State<NewHomework> {
           physics: ClampingScrollPhysics(),
           children: [
             // Preview HomeworkCard
-            Padding(padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 18), child: HomeworkCard(homework: previewHomework, isPreview: true)),
+            Padding(padding: EdgeInsetsGeometry.symmetric(horizontal: 10, vertical: 18), child: HomeworkCard(homework: previewHomework, isPreview: true)),
 
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Column(
                 spacing: 10,
                 children: [
@@ -155,6 +155,7 @@ class _NewHomeworkState extends State<NewHomework> {
 
             CupertinoListSection.insetGrouped(
               header: Text("Date de remise"),
+              margin: EdgeInsets.symmetric(horizontal: 10),
               children: [
                 CupertinoListTile(
                   leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
@@ -167,6 +168,7 @@ class _NewHomeworkState extends State<NewHomework> {
 
             CupertinoListSection.insetGrouped(
               header: Text("Évaluation"),
+              margin: EdgeInsets.symmetric(horizontal: 10),
               children: [
                 CupertinoListTile(
                   leading: HugeIcon(icon: 
