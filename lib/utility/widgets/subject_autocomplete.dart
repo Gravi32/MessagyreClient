@@ -93,8 +93,6 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return RawAutocomplete<Subject>(
@@ -115,8 +113,8 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           prefix: widget.prefix,
           suffix: widget.suffix,
           suffixMode: widget.suffixMode,
-          style: widget.style ?? const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
+          style: widget.style,
+          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
           onSubmitted: (value) {
@@ -132,7 +130,12 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         return Container(
           margin: const EdgeInsets.only(top: 8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
-          decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(150), blurRadius: 10)],
+          ),
+
           child: ListView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
