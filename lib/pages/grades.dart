@@ -37,7 +37,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
             child: Row(
               children: [
                 SizedBox(width: 4),
-                GradeDisplay(grade: calculateAverage(grades), size: 52),
+                GradeDisplay(grade: calculateAverage(grades), size: 48),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -45,7 +45,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                     children: [
                       Text(
                         SubjectHelper.toFrench(subject),
-                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                       ),
                       Text(
                         "${grades.length} note${grades.length > 1 ? 's' : ''}",
@@ -70,7 +70,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
             Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
           },
         ),
-        Divider(indent: 60, color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.75)),
+        Divider(indent: 60, color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
       ],
     );
   }
@@ -92,7 +92,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                 children: [
                   Text(
                     "Moyenne générale",
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                   ),
                   Row(
                     spacing: 10,
@@ -111,7 +111,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
               GradeDisplay(grade: average, size: 64),
             ],
           ),
-          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.75)),
+          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
         ],
       ),
     );
@@ -191,7 +191,6 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                         )
                         : SingleChildScrollView(
                           child: Column(
-                            spacing: 8,
                             children: [
                               buildAverageBar(),
                               ReorderableListView.builder(
