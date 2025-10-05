@@ -76,25 +76,25 @@ class Chat extends HiveObject {
 @HiveType(typeId: 2)
 class Homework extends HiveObject {
   @HiveField(0)
-  String title = "Nouveau devoir";
-
-  @HiveField(1)
   Subject subject = Subject.Maths;
+  
+  @HiveField(1)
+  String content = "Exercices";
 
   @HiveField(2)
   DateTime dueDate = DateTime.now().add(Duration(days: 1));
 
   @HiveField(3)
-  String? description;
-
-  @HiveField(4)
   DateTime creationDate = DateTime.now();
 
-  @HiveField(5)
+  @HiveField(4)
   bool isGraded = false;
 
-  @HiveField(6)
+  @HiveField(5)
   bool isTest = false;
+
+  @HiveField(6)
+  bool isMarkedAsDone = false;
 }
 
 // Subject uses HiveType 3

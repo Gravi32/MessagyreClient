@@ -1,0 +1,66 @@
+import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/utility/utility.dart';
+
+class CupertinoPressable extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final BorderRadius? borderRadius;
+  final Duration duration;
+  final Color? highlightColor;
+
+  // proprietà simili a Container
+  final BoxConstraints? constraints;
+  final BoxDecoration? decoration;
+  final EdgeInsetsGeometry? padding;
+
+  const CupertinoPressable({
+    super.key,
+    required this.child,
+    required this.onTap,
+    this.borderRadius,
+    this.duration = const Duration(milliseconds: 120),
+    this.highlightColor,
+    this.constraints,
+    this.decoration,
+    this.padding,
+  });
+
+  @override
+  State<CupertinoPressable> createState() => _CupertinoPressableState();
+}
+
+class _CupertinoPressableState extends State<CupertinoPressable> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final defaultHighlight = adaptiveColor(CupertinoColors.white.withAlpha(50), CupertinoColors.black.withAlpha(25));
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+
+      onTap:
+          widget.onTap == null
+              ? null
+              : () {
+                widget.onTap!();
+
+                setState(() => _pressed = true);
+                Future.delayed(widget.duration, () => setState(() => _pressed = false));
+              },
+
+      child: AnimatedContainer(
+        duration: _pressed ? Duration.zero : widget.duration,
+        constraints: widget.constraints,
+        padding: widget.padding,
+        decoration: widget.decoration,
+
+        foregroundDecoration: BoxDecoration(
+          color: _pressed ? (widget.highlightColor ?? defaultHighlight) : null,
+          borderRadius: widget.borderRadius ?? widget.decoration?.borderRadius,
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
