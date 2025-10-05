@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGrade extends StatefulWidget {
   final Grade? toEdit;
@@ -24,6 +25,7 @@ class _NewGradeState extends State<NewGrade> {
   late final editMode = widget.toEdit != null;
 
   late final titleController = TextEditingController(text: widget.toEdit?.title);
+  late final subjectController = TextEditingController(text: SubjectHelper.toFrench(widget.toEdit?.subject ?? Subject.Maths));
   late final detailsController = TextEditingController(text: widget.toEdit?.details);
 
   late Subject subject = widget.toEdit?.subject ?? widget.subject ?? Subject.Maths;
@@ -144,6 +146,7 @@ class _NewGradeState extends State<NewGrade> {
   @override
   void dispose() {
     titleController.dispose();
+    subjectController.dispose();
     detailsController.dispose();
     super.dispose();
   }
@@ -161,117 +164,159 @@ class _NewGradeState extends State<NewGrade> {
           child: Text(editMode ? "Terminé" : "Ajouter", style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ),
-      backgroundColor: CupertinoColors.transparent,
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: SettingsList(
-            platform: DevicePlatform.iOS,
-            sections: [
-              SettingsSection(
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CupertinoTextField(
-                      controller: titleController,
-                      decoration: const BoxDecoration(),
-                      padding: EdgeInsets.zero,
-                      placeholder: "Titre",
 
-                      suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
-                      suffixMode: OverlayVisibilityMode.notEditing,
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-                      placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          children: [
+            Column(
+              spacing: 10,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                CupertinoTextField(
+                  controller: titleController,
+                  decoration: const BoxDecoration(),
+                  padding: EdgeInsets.zero,
+                  placeholder: "Titre",
+                  prefix: Padding(
+                    padding: EdgeInsetsGeometry.only(right: 10),
+                    child: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                  ),
+                  suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                  suffixMode: OverlayVisibilityMode.notEditing,
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
+                  placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
+                ),
+
+                Container(
+                  decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
+                  margin: EdgeInsets.only(top: 10),
+                  padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 10),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      buildGradePicker(),
+
+                      Divider(thickness: .25, color: CupertinoColors.separator.resolveFrom(context)),
+
+                      Text("Valeur", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                      SingleChildScrollView(
+                        padding: EdgeInsets.only(top: 6),
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          spacing: 6,
+                          children:
+                              fractions.keys
+                                  .map((key) {
+                                    final isSelected = weight == key;
+
+                                    return CupertinoButton(
+                                      color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
+                                      foregroundColor:
+                                          isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                      padding: EdgeInsets.zero,
+                                      child: Text(fractions[key] ?? "?", style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      onPressed:
+                                          () => setState(() {
+                                            weight = key;
+                                          }),
+                                    );
+                                  })
+                                  .toList()
+                                  .reversed
+                                  .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                CupertinoListSection.insetGrouped(
+                  header: Text("Branche"),
+                  margin: EdgeInsets.zero,
+                  children: [
+                    CupertinoListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      title: SubjectAutocomplete(
+                        controller: subjectController,
+                        decoration: const BoxDecoration(),
+                        padding: EdgeInsets.zero,
+                        placeholder: "Entrez une branche",
+                        onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+                        forceValid: true,
+                      ),
                     ),
-                    SizedBox(height: 16),
                   ],
                 ),
-                tiles: [
-                  SettingsTile(title: buildGradePicker()),
-                  SettingsTile(
-                    title: Text("Branche", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                    value: Text(SubjectHelper.toFrench(subject), style: TextStyle(fontSize: 16)),
-                    onPressed: (context) => showSubjectPicker(),
-                  ),
-                  SettingsTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      spacing: 6,
-                      children: [
-                        Text("Valeur", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
 
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            spacing: 6,
-                            children:
-                                fractions.keys
-                                    .map((key) {
-                                      final isSelected = weight == key;
-
-                                      return CupertinoButton(
-                                        color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
-                                        foregroundColor:
-                                            isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                        padding: EdgeInsets.zero,
-                                        child: Text(fractions[key] ?? "?", style: const TextStyle(fontWeight: FontWeight.w600)),
-                                        onPressed:
-                                            () => setState(() {
-                                              weight = key;
-                                            }),
-                                      );
-                                    })
-                                    .toList()
-                                    .reversed
-                                    .toList(),
-                          ),
-                        ),
-                      ],
+                CupertinoListSection.insetGrouped(
+                  header: Text("Groupe"),
+                  margin: EdgeInsets.zero,
+                  footer: Padding(
+                    padding: EdgeInsetsGeometry.only(top: 6),
+                    child: Text(
+                      "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
+                      style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                     ),
                   ),
-                ],
-              ),
+                  children: [
+                    CupertinoListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      title: Text("Fait partie d'un groupe"),
 
-              SettingsSection(
-                tiles: [
-                  SettingsTile.switchTile(
-                    title: Text("Fait partie d'un groupe", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                    initialValue: isInGroup,
-                    description: !isInGroup ? Text("Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.") : null,
-                    onToggle: (value) {
-                      setState(() {
-                        isInGroup = value;
-                        if (!value) {
-                          groupName = null;
-                        }
-                      });
-                    },
-                  ),
+                      trailing: CupertinoSwitch(
+                        value: isInGroup,
+                        onChanged: (value) {
+                          setState(() {
+                            isInGroup = value;
+                            if (!value) {
+                              groupName = null;
+                            }
+                          });
+                        },
+                      ),
+                    ),
 
-                  if (isInGroup) ...[
-                    ...groupNames.map((name) {
-                      return SettingsTile(
-                        title: GestureDetector(
-                          child: Text(name),
+                    if (isInGroup) ...[
+                      ...groupNames.map((name) {
+                        return CupertinoListTile(
+                          title: Text(name),
                           onTap:
                               () => setState(() {
                                 groupName = name;
                               }),
-                        ),
-                        trailing: groupName == name ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 18) : null,
-                      );
-                    }),
 
-                    SettingsTile(
-                      title: GestureDetector(
-                        child: Row(children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, size: 20), const SizedBox(width: 10), Text("Ajouter un groupe")]),
+                          trailing:
+                              groupName == name
+                                  ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))
+                                  : null,
+                        );
+                      }),
+
+                      CupertinoListTile(
+                        title: Row(
+                          children: [
+                            HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                            const SizedBox(width: 10),
+                            Text("Ajouter un groupe"),
+                          ],
+                        ),
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
                             builder: (dialogContext) {
                               final controller = TextEditingController();
                               return CupertinoAlertDialog(
-                                title: Row(spacing: 8, crossAxisAlignment: CrossAxisAlignment.center, children: [HugeIcon(icon:HugeIcons.strokeRoundedSelect01), Text("Nouveau groupe")]),
+                                title: Row(
+                                  spacing: 8,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5)),
+                                    Text("Nouveau groupe"),
+                                  ],
+                                ),
                                 content: Column(
                                   children: [
                                     SizedBox(height: 10),
@@ -287,10 +332,13 @@ class _NewGradeState extends State<NewGrade> {
                                   ],
                                 ),
                                 actions: [
-                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(dialogContext)),
+                                  CupertinoDialogAction(
+                                    child: Text("Annuler", style: TextStyle(color: CupertinoColors.label.resolveFrom(context))),
+                                    onPressed: () => Navigator.pop(dialogContext),
+                                  ),
                                   CupertinoDialogAction(
                                     isDefaultAction: true,
-                                    child: Text("Ajouter"),
+                                    child: Text("Ajouter", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))),
                                     onPressed: () {
                                       final newName = controller.text.trim();
                                       try {
@@ -312,72 +360,82 @@ class _NewGradeState extends State<NewGrade> {
                           );
                         },
                       ),
-                    ),
+                    ],
                   ],
-                ],
-              ),
+                ),
 
-              SettingsSection(
-                tiles: [
-                  SettingsTile(
-                    title: Text("Date de réception", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                    value: Text(formatDate(date)[0].toUpperCase() + formatDate(date).substring(1), style: TextStyle(fontSize: 16)),
-                    onPressed: (context) => showDatePicker(),
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: Text("Informations facultatives"),
-                tiles: [
-                  SettingsTile(
-                    title: CupertinoTextField(
-                      controller: detailsController,
-                      decoration: BoxDecoration(),
-                      padding: EdgeInsets.zero,
-                      textAlignVertical: TextAlignVertical.top,
-                      minLines: 1,
-                      maxLines: 15,
-                      placeholder: "Ajoutez des informations supplémentaires...",
-                    ),
-                  ),
-                  SettingsTile.navigation(leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02), title: Text("Ajouter des photos")),
-                ],
-              ),
-
-              if (editMode)
-                SettingsSection(
-                  tiles: [
-                    SettingsTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
-                      title: Text("Supprimer la note", style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
-                      onPressed: (context) {
-                        showCupertinoDialog(
-                          context: context,
-                          builder:
-                              (_) => CupertinoAlertDialog(
-                                title: Text("Supprimer la note"),
-                                content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
-                                actions: [
-                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                                  CupertinoDialogAction(
-                                    isDestructiveAction: true,
-                                    child: Text("Supprimer"),
-                                    onPressed: () {
-                                      widget.toEdit?.delete();
-                                      widget.onDelete?.call();
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop(widget.toEdit);
-                                    },
-                                  ),
-                                ],
-                              ),
-                        );
-                      },
+                CupertinoListSection.insetGrouped(
+                  header: Text("Date de reception"),
+                  margin: EdgeInsets.zero,
+                  children: [
+                    CupertinoListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      title: Text("Reçu ${formatDate(date)}"),
+                      onTap: showDatePicker,
                     ),
                   ],
                 ),
-            ],
-          ),
+
+                CupertinoListSection.insetGrouped(
+                  header: Text("Informations facultatives"),
+                  margin: EdgeInsets.zero,
+                  children: [
+                    CupertinoListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      title: CupertinoTextField(
+                        controller: detailsController,
+                        decoration: BoxDecoration(),
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        textAlignVertical: TextAlignVertical.top,
+                        minLines: 1,
+                        maxLines: 15,
+                        placeholder: "Notes supplémentaires...",
+                      ),
+                    ),
+                    CupertinoListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      title: Text("Ajouter des photos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                    ),
+                  ],
+                ),
+
+                if (editMode)
+                  CupertinoListSection.insetGrouped(
+                    children: [
+                      CupertinoListTile(
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
+                        title: Text("Supprimer la note", style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
+                        onTap: () {
+                          showCupertinoDialog(
+                            context: context,
+                            builder:
+                                (_) => CupertinoAlertDialog(
+                                  title: Text("Supprimer la note"),
+                                  content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
+                                  actions: [
+                                    CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                                    CupertinoDialogAction(
+                                      isDestructiveAction: true,
+                                      child: Text("Supprimer"),
+                                      onPressed: () {
+                                        widget.toEdit?.delete();
+                                        widget.onDelete?.call();
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pop(widget.toEdit);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
