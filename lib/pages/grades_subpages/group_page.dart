@@ -151,7 +151,7 @@ class _GroupPageState extends State<GroupPage> {
                   largeTitle: Row(
                     spacing: 10,
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedFolder01, color: CupertinoColors.label.resolveFrom(context), size: 28),
+                      HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.label.resolveFrom(context), size: 28),
                       Text(widget.grades.first.groupName ?? "Groupe"),
                     ],
                   ),
