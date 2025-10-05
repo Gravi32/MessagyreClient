@@ -1,3 +1,4 @@
+import 'package:animated_line_through/animated_line_through.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -155,16 +156,21 @@ class _HomeworkCardState extends State<HomeworkCard> {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Expanded(
-                          child: Text(
-                            SubjectHelper.toFrench(widget.homework.subject).capitalize(),
-                            style: TextStyle(
-                              color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
-                              fontWeight: FontWeight.w700,
-                              decoration: isMarkedAsDone ? TextDecoration.lineThrough : null,
-                              fontSize: 20,
+                          child: AnimatedLineThrough(
+                            duration: const Duration(milliseconds: 150),
+                            isCrossed: isMarkedAsDone,
+                            strokeWidth: 1,
+
+                            child: Text(
+                              SubjectHelper.toFrench(widget.homework.subject).capitalize(),
+                              style: TextStyle(
+                                color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                              ),
+                              softWrap: true,
+                              overflow: TextOverflow.fade,
                             ),
-                            softWrap: true,
-                            overflow: TextOverflow.fade,
                           ),
                         ),
                         if (isGraded)
@@ -181,16 +187,18 @@ class _HomeworkCardState extends State<HomeworkCard> {
 
               Padding(
                 padding: const EdgeInsets.only(top: 8, bottom: 6),
-                child: Text(
-                  isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
+                child: AnimatedLineThrough(
+                  duration: const Duration(milliseconds: 150),
+                  isCrossed: isMarkedAsDone,
+                  strokeWidth: .5,
+                  child: Text(
+                    isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
 
-                  style: TextStyle(
-                    color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
-                    decoration: isMarkedAsDone ? TextDecoration.lineThrough : null,
+                    style: TextStyle(color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9)),
+
+                    overflow: TextOverflow.fade,
+                    maxLines: isPreview ? 3 : null,
                   ),
-
-                  overflow: TextOverflow.fade,
-                  maxLines: isPreview ? 3 : null,
                 ),
               ),
             ],
