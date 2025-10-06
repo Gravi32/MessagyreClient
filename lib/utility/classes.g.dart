@@ -1,10 +1,18 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'classes.dart';
 
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
+extension FieldsHelper on Map<int, dynamic> {
+  T get<T>(int key, T defaultValue) {
+    final value = this[key];
+    if (value is T) return value;
+    return defaultValue;
+  }
+
+  List<T> getList<T>(int key, [List<T> defaultValue = const []]) {
+    final value = this[key];
+    if (value is List) return value.cast<T>();
+    return defaultValue;
+  }
+}
 
 class MessageAdapter extends TypeAdapter<Message> {
   @override
@@ -13,14 +21,10 @@ class MessageAdapter extends TypeAdapter<Message> {
   @override
   Message read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return Message(
-      content: fields[0] as String,
-      sentAt: fields[1] as DateTime,
-      isOwned: fields[2] as bool,
-    ).._status = fields[4] as int;
+    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
+
+    return Message(content: fields.get(0, "Une erreur s'est produite."), sentAt: fields.get(1, DateTime(0)), isOwned: fields.get(2, false))
+      .._status = fields.get(4, 0);
   }
 
   @override
@@ -41,11 +45,7 @@ class MessageAdapter extends TypeAdapter<Message> {
   int get hashCode => typeId.hashCode;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MessageAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+  bool operator ==(Object other) => identical(this, other) || other is MessageAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class ChatAdapter extends TypeAdapter<Chat> {
@@ -55,14 +55,11 @@ class ChatAdapter extends TypeAdapter<Chat> {
   @override
   Chat read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return Chat(
-      recipientUsername: fields[0] as String,
-    )
-      ..content = (fields[1] as List).cast<Message>()
-      ..unreadMessages = fields[2] as int;
+    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
+
+    return Chat(recipientUsername: fields.get(0, "Unknown"))
+      ..content = fields.getList<Message>(1)
+      ..unreadMessages = fields.get(2, 0);
   }
 
   @override
@@ -81,11 +78,7 @@ class ChatAdapter extends TypeAdapter<Chat> {
   int get hashCode => typeId.hashCode;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ChatAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+  bool operator ==(Object other) => identical(this, other) || other is ChatAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class HomeworkAdapter extends TypeAdapter<Homework> {
@@ -95,17 +88,16 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
   @override
   Homework read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
+    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
+
     return Homework()
-      ..subject = fields[0] as Subject
-      ..content = fields[1] as String
-      ..dueDate = fields[2] as DateTime
-      ..creationDate = fields[3] as DateTime
-      ..isGraded = fields[4] as bool
-      ..isTest = fields[5] as bool
-      ..isMarkedAsDone = fields[6] as bool;
+      ..subject = fields.get(0, Subject.Other)
+      ..content = fields.get(1, "")
+      ..dueDate = fields.get(2, DateTime(0))
+      ..creationDate = fields.get(3, DateTime(0))
+      ..isGraded = fields.get(4, false)
+      ..isTest = fields.get(5, false)
+      ..isMarkedAsDone = fields.get(6, false);
   }
 
   @override
@@ -132,11 +124,7 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
   int get hashCode => typeId.hashCode;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is HomeworkAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+  bool operator ==(Object other) => identical(this, other) || other is HomeworkAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class GradeAdapter extends TypeAdapter<Grade> {
@@ -146,17 +134,16 @@ class GradeAdapter extends TypeAdapter<Grade> {
   @override
   Grade read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
+    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
+
     return Grade()
-      ..subject = fields[0] as Subject
-      ..title = fields[1] as String
-      ..grade = fields[2] as double
-      ..date = fields[3] as DateTime
-      ..details = fields[4] as String?
-      ..weight = fields[5] as double
-      ..groupName = fields[6] as String?;
+      ..subject = fields.get(0, Subject.Other)
+      ..title = fields.get(1, "")
+      ..grade = fields.get(2, 0)
+      ..date = fields.get(3, DateTime(0))
+      ..details = fields.get<String?>(4, null)
+      ..weight = fields.get(5, 0)
+      ..groupName = fields.get<String?>(6, null);
   }
 
   @override
@@ -183,9 +170,5 @@ class GradeAdapter extends TypeAdapter<Grade> {
   int get hashCode => typeId.hashCode;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GradeAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+  bool operator ==(Object other) => identical(this, other) || other is GradeAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
