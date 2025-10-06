@@ -403,6 +403,8 @@ class _NewGradeState extends State<NewGrade> {
 
                 if (editMode)
                   CupertinoListSection.insetGrouped(
+                    header: Text("Autres"),
+                    margin: EdgeInsets.zero,
                     children: [
                       CupertinoListTile(
                         leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
