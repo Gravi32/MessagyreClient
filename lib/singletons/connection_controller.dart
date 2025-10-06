@@ -78,7 +78,9 @@ class ConnectionController {
   }
 
   Future<http.Response> refreshAccessToken() async {
+    print("refreshAccessToken called");
     final refreshToken = await secureStorage.read(key: "RefreshToken");
+    debugPrint("[WebSocket 1/2] RefreshToken read from storage: $refreshToken");
     if (refreshToken == null) {
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
@@ -89,17 +91,25 @@ class ConnectionController {
         throw Exception("Refresh token request timed out");
       },
     );
+    print("[WebSocket 1/2] Refresh done. Output: ${response.statusCode}, ${response.body}");
 
     if (response.statusCode == 200) {
-      final results = jsonDecode(response.body);
-      data.token = results["AccessToken"];
+      try {
+        final results = jsonDecode(response.body);
+        data.token = results["AccessToken"];
+        print("[WebSocket 2/2] Body decoded.");
 
-      await secureStorage.write(key: "AccessToken", value: data.token);
-      await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
-
+        await secureStorage.write(key: "AccessToken", value: data.token);
+        print("[WebSocket 2/2] AccessToken stored.");
+        await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+        print("[WebSocket 2/2] RefreshToken stored.");
+      } catch (e) {
+        print("[WebSocket 2/2] Failed decoding result: ${response.body} -> $e");
+      }
+      print("[WebSocket 2/2] Successfully refreshed. Returning OK");
       return http.Response("OK", 200);
     }
-
+    print("[WebSocket] Not 200!!! ${response.statusCode}, ${response.body}");
     return response;
   }
 
@@ -138,6 +148,7 @@ class ConnectionController {
       }
 
       final response = await refreshAccessToken();
+      print("Call done ${response.statusCode}, ${response.body}");
 
       // The server refused to refresh access, user was kicked out or banned
       if (response.statusCode == 401) {
@@ -145,6 +156,7 @@ class ConnectionController {
         onUnauthorized!();
         return;
       } else if (response.statusCode != 200) {
+        print("not 200! ${response.statusCode}, ${response.body}");
         throw Exception(response);
       }
 
