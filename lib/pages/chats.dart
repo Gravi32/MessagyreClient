@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hive_flutter/adapters.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -153,8 +154,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                             ? Row(
                               spacing: 8,
                               children: [
-                                CupertinoActivityIndicator(),
-                                Text("Connexion en cours...", style: TextStyle(color: adaptiveColor(CupertinoColors.systemGrey2, CupertinoColors.systemGrey))),
+                                Text("Connexion en cours", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                                LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
                               ],
                             )
                             : null,
