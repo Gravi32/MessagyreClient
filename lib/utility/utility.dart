@@ -40,7 +40,7 @@ Color adaptiveColor(Color light, Color dark) {
   return Data().appBrightness == Brightness.dark ? dark : light;
 }
 
-String formatDate(DateTime targetDate, {bool includeTime = false}) {
+String formatDate(DateTime targetDate, {bool includeTime = false, bool includeArticle = false}) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final date = DateTime(targetDate.year, targetDate.month, targetDate.day);
@@ -63,7 +63,7 @@ String formatDate(DateTime targetDate, {bool includeTime = false}) {
   } else if (difference < -1 && difference >= -13) {
     result = "$dayName passé";
   } else {
-    result = DateFormat("d MMMM", 'fr_CH').format(targetDate);
+    result = (includeArticle ? "le " : "") + DateFormat("d MMMM", 'fr_CH').format(targetDate);
   }
 
   if (includeTime) {
