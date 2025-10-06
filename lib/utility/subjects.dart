@@ -10,29 +10,44 @@ enum Subject {
 
   Maths,
   MathsOS,
+  MathsOC,
   Biology,
   BiologyOS,
+  BiologyOC,
   Chemistry,
   ChemistryOS,
+  ChemistryOC,
   Physics,
   PhysicsOS,
+  PhysicsOC,
 
   IT,
+  ITOC,
 
   History,
+  HistoryOC,
   Geography,
+  GeographyOC,
   Philosophy,
   PhilosophyOS,
   Psychology,
   PsychologyOS,
+  HistoryAndReligionsOC,
 
   Music,
+  MusicOC,
   Art,
+  ArtOC,
 
   EconomicsAndLaw,
   EconomicsAndLawOS,
+  EconomicsAndLawOC,
 
   TM,
+
+  SportOC,
+
+  Other,
 }
 
 class SubjectHelper {
@@ -55,26 +70,44 @@ class SubjectHelper {
         return "Mathématiques";
       case Subject.MathsOS:
         return "Mathématiques OS";
+      case Subject.MathsOC:
+        return "Application des mathématiques OC";
+
       case Subject.Biology:
         return "Biologie";
       case Subject.BiologyOS:
         return "Biologie OS";
+      case Subject.BiologyOC:
+        return "Biologie OC";
+
       case Subject.Chemistry:
         return "Chimie";
       case Subject.ChemistryOS:
         return "Chimie OS";
+      case Subject.ChemistryOC:
+        return "Chimie OC";
+
       case Subject.Physics:
         return "Physique";
       case Subject.PhysicsOS:
         return "Physique OS";
+      case Subject.PhysicsOC:
+        return "Physique OC";
 
       case Subject.IT:
         return "Informatique";
+      case Subject.ITOC:
+        return "Informatique OC";
 
       case Subject.History:
         return "Histoire";
+      case Subject.HistoryOC:
+        return "Histoire OC";
       case Subject.Geography:
         return "Géographie";
+      case Subject.GeographyOC:
+        return "Géographie OC";
+
       case Subject.Philosophy:
         return "Philosophie";
       case Subject.PhilosophyOS:
@@ -84,18 +117,34 @@ class SubjectHelper {
       case Subject.PsychologyOS:
         return "Psychologie OS";
 
+      case Subject.HistoryAndReligionsOC:
+        return "Histoire et sciences des religions OC";
+
       case Subject.Music:
         return "Musique";
+      case Subject.MusicOC:
+        return "Musique OC";
+
       case Subject.Art:
         return "Art";
+      case Subject.ArtOC:
+        return "Arts visuels OC";
 
       case Subject.EconomicsAndLaw:
         return "Économie et Droit";
       case Subject.EconomicsAndLawOS:
         return "Économie et Droit OS";
+      case Subject.EconomicsAndLawOC:
+        return "Économie et Droit OC";
 
       case Subject.TM:
         return "Travail de Maturité";
+
+      case Subject.SportOC:
+        return "Sport OC";
+
+      case Subject.Other:
+        return "Autre";
     }
   }
 
