@@ -1,4 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime initialDate;
@@ -20,27 +23,40 @@ class CustomDatePicker extends StatefulWidget {
 
 class _CustomDatePickerState extends State<CustomDatePicker> {
   late DateTime tempDate;
+  late PageController monthController;
+  late DateTime minDate;
+  late DateTime maxDate;
 
   @override
   void initState() {
     super.initState();
     tempDate = widget.initialDate;
+
+    final now = DateTime.now();
+    final schoolStart = DateTime(now.year, 8, 18);
+    final schoolEnd = now.isBefore(schoolStart)
+        ? DateTime(now.year, 6, 6)
+        : DateTime(now.year + 1, 6, 6);
+
+    minDate = widget.allowPast ? schoolStart : now;
+    maxDate = widget.allowFuture ? schoolEnd : now;
+
+    // Calcolo differenza in mesi fra minDate e initialDate
+    final monthDiff =
+        (widget.initialDate.year - minDate.year) * 12 + (widget.initialDate.month - minDate.month);
+
+    monthController = PageController(initialPage: monthDiff.clamp(0, 11));
+  }
+
+  List<DateTime> daysInMonth(int year, int month) {
+    int daysCount = DateUtils.getDaysInMonth(year, month);
+    return List.generate(daysCount, (i) => DateTime(year, month, i + 1));
   }
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final schoolStart = DateTime(now.year, 8, 18);
-    final schoolEnd =
-        now.isBefore(schoolStart)
-            ? DateTime(now.year, 6, 6)
-            : DateTime(now.year + 1, 6, 6);
-
-    final minDate = widget.allowPast ? schoolStart : now;
-    final maxDate = widget.allowFuture ? schoolEnd : now;
-
     return Container(
-      height: 250,
+      height: 350,
       decoration: BoxDecoration(
         color: CupertinoColors.systemBackground.resolveFrom(context),
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -73,14 +89,104 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             ),
           ),
           Expanded(
-            child: CupertinoDatePicker(
-              mode: CupertinoDatePickerMode.date,
-              initialDateTime: tempDate,
-              minimumDate: minDate,
-              maximumDate: maxDate,
-              minimumYear: minDate.year,
-              maximumYear: maxDate.year,
-              onDateTimeChanged: (value) => tempDate = value,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: PageView.builder(
+                  controller: monthController,
+                  itemCount: 12,
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  physics: PageScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final date = DateTime(minDate.year, minDate.month + index, 1);
+                    final days = daysInMonth(date.year, date.month);
+                    final firstWeekday = DateTime(date.year, date.month, 1).weekday; // 1=lun
+                    final totalCells = days.length + (firstWeekday - 1);
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: CupertinoColors.label.resolveFrom(context),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+                                .map(
+                                  (d) => Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        d,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                          SizedBox(height: 6),
+                          Expanded(
+                            child: GridView.builder(
+                              padding: EdgeInsets.zero,
+                              physics: ClampingScrollPhysics(),
+                              shrinkWrap: true,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 7,
+                                crossAxisSpacing: 4,
+                                mainAxisSpacing: 4,
+                              ),
+                              itemCount: totalCells,
+                              itemBuilder: (context, i) {
+                                if (i < firstWeekday - 1) return SizedBox();
+
+                                final dayNumber = i - (firstWeekday - 2);
+                                final dayDate = DateTime(date.year, date.month, dayNumber);
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() => tempDate = dayDate);
+                                  },
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: tempDate.day == dayNumber &&
+                                              tempDate.month == date.month &&
+                                              tempDate.year == date.year
+                                          ? CupertinoTheme.of(context).primaryColor
+                                          : CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      dayNumber.toString(),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: CupertinoColors.label.resolveFrom(context),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ],
