@@ -34,7 +34,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   bool isUploading = false;
   String? chosenPicturePath;
 
-  
   void copy(String content) async {
     await Clipboard.setData(ClipboardData(text: content));
     if (!mounted) return;
@@ -51,29 +50,23 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   void changeProfilePicture() {
     void pickImage(ImageSource source) async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: source);
-  if (pickedFile == null) return;
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: source);
+      if (pickedFile == null) return;
 
-  final croppedFile = await ImageCropper().cropImage(
-    sourcePath: pickedFile.path,
-    aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-    uiSettings: [
-      IOSUiSettings(
-        title: "Retailler l'image",
-        aspectRatioLockEnabled: true,
-      ),
-    ],
-  );
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: pickedFile.path,
+        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [IOSUiSettings(title: "Retailler l'image", aspectRatioLockEnabled: true)],
+      );
 
-  if (croppedFile != null) {
-    setState(() {
-      changesMade = true;
-      chosenPicturePath = croppedFile.path; // non l'originale, ma il croppato
-    });
-  }
-}
-
+      if (croppedFile != null) {
+        setState(() {
+          changesMade = true;
+          chosenPicturePath = croppedFile.path;
+        });
+      }
+    }
 
     showCupertinoModalPopup(
       context: context,
