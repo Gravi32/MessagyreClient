@@ -80,7 +80,7 @@ class Chat extends HiveObject {
 class Homework extends HiveObject {
   @HiveField(0)
   Subject subject = Subject.Maths;
-  
+
   @HiveField(1)
   String content = "Exercices";
 
@@ -126,6 +126,13 @@ class Grade extends HiveObject {
   String? groupName;
 }
 
+@HiveType(typeId: 5)
+class Settings {
+  // Homework page
+  @HiveType(typeId: 0)
+  bool includeWeekends = false;
+}
+
 class Account {
   late String username;
   late String? displayName;
@@ -163,7 +170,7 @@ class Account {
     try {
       return Account()
         ..username = map["Username"] ?? "unknown"
-        ..displayName = map["DisplayName"] 
+        ..displayName = map["DisplayName"]
         ..emailAddress = map["EmailAddress"] ?? "unknown"
         ..classOrRole = map["ClassOrRole"]
         ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")

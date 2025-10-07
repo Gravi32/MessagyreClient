@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/singletons/data.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime initialDate;
@@ -10,13 +11,21 @@ class CustomDatePicker extends StatefulWidget {
   final bool allowPast;
   final ValueChanged<DateTime> onDateSelected;
 
-  const CustomDatePicker({super.key, required this.initialDate, required this.onDateSelected, this.allowFuture = true, this.allowPast = true});
+  const CustomDatePicker({
+    super.key,
+    required this.initialDate,
+    required this.onDateSelected,
+    this.allowFuture = true,
+    this.allowPast = true,
+  });
 
   @override
   State<CustomDatePicker> createState() => _CustomDatePickerState();
 }
 
 class _CustomDatePickerState extends State<CustomDatePicker> {
+  final data = Data();
+
   late DateTime tempDate;
   late PageController monthController;
   late DateTime minDate;
@@ -46,6 +55,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final includeWeekends = data.settings.includeWeekends;
+    final daysOfTheWeek = includeWeekends
+        ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+        : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
+
     return Container(
       height: 450,
       decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
@@ -82,9 +96,27 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                   physics: PageScrollPhysics(),
                   itemBuilder: (context, index) {
                     final date = DateTime(minDate.year, minDate.month + index, 1);
-                    final days = daysInMonth(date.year, date.month);
-                    final firstWeekday = DateTime(date.year, date.month, 1).weekday;
-                    final totalCells = days.length + (firstWeekday - 1);
+                    final allDays = daysInMonth(date.year, date.month);
+
+                    // giorni visibili (filtra weekend se richiesto)
+                    final visibleDays = includeWeekends ? allDays : allDays.where((d) => d.weekday >= DateTime.monday && d.weekday <= DateTime.friday).toList();
+
+                    // calcola offset: numero di celle vuote prima del primo giorno visibile
+                    int offset;
+                    if (visibleDays.isEmpty) {
+                      offset = 0;
+                    } else {
+                      if (includeWeekends) {
+                        // se includiamo weekend, offset è basato sul primo giorno del mese (lun=1 -> 0)
+                        offset = DateTime(date.year, date.month, 1).weekday - 1;
+                      } else {
+                        // se non includiamo weekend, il primo giorno visibile è sempre un weekday (1..5)
+                        offset = visibleDays.first.weekday - 1; // 0..4
+                      }
+                    }
+
+                    final totalCells = offset + visibleDays.length;
+                    final crossAxisCount = includeWeekends ? 7 : 5;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 7),
@@ -98,19 +130,18 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                           SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children:
-                                ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-                                    .map(
-                                      (d) => Expanded(
-                                        child: Center(
-                                          child: Text(
-                                            d,
-                                            style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                                          ),
-                                        ),
+                            children: daysOfTheWeek
+                                .map(
+                                  (d) => Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        d,
+                                        style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                                       ),
-                                    )
-                                    .toList(),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                           ),
                           SizedBox(height: 6),
                           Expanded(
@@ -118,16 +149,24 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                               padding: EdgeInsets.zero,
                               physics: ClampingScrollPhysics(),
                               shrinkWrap: true,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 4, mainAxisSpacing: 4),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 4,
+                                mainAxisSpacing: 4,
+                              ),
                               itemCount: totalCells,
                               itemBuilder: (context, i) {
-                                if (i < firstWeekday - 1) return SizedBox();
+                                if (i < offset) return SizedBox();
 
-                                final dayNumber = i - (firstWeekday - 2);
-                                final dayDate = DateTime(date.year, date.month, dayNumber);
+                                final dayIndex = i - offset;
+                                if (dayIndex >= visibleDays.length) return SizedBox();
+
+                                final dayDate = visibleDays[dayIndex];
+                                final dayNumber = dayDate.day;
+
                                 final today = DateTime.now();
-                                final isSelected = tempDate.day == dayNumber && tempDate.month == date.month && tempDate.year == date.year;
-                                final isToday = today.day == dayNumber && today.month == date.month && today.year == date.year;
+                                final isSelected = tempDate.year == dayDate.year && tempDate.month == dayDate.month && tempDate.day == dayDate.day;
+                                final isToday = today.year == dayDate.year && today.month == dayDate.month && today.day == dayDate.day;
 
                                 return GestureDetector(
                                   onTap: () {
@@ -138,15 +177,17 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                       Container(
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          color:
-                                              isSelected
-                                                  ? CupertinoTheme.of(context).primaryColor
-                                                  : CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          color: isSelected ? CupertinoTheme.of(context).primaryColor : CupertinoColors.secondarySystemBackground.resolveFrom(context),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(dayNumber.toString(), style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
                                       ),
-                                      if(isToday) Positioned(top: 5, left: 5, child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 10, color: CupertinoColors.label.resolveFrom(context),)),
+                                      if (isToday)
+                                        Positioned(
+                                          top: 5,
+                                          left: 5,
+                                          child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 10, color: CupertinoColors.label.resolveFrom(context)),
+                                        ),
                                     ],
                                   ),
                                 );

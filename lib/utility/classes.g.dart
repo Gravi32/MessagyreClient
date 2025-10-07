@@ -175,3 +175,31 @@ class GradeAdapter extends TypeAdapter<Grade> {
   @override
   bool operator ==(Object other) => identical(this, other) || other is GradeAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
+
+class SettingsAdapter extends TypeAdapter<Settings> {
+  @override
+  final int typeId = 5;
+
+  @override
+  Settings read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
+
+    return Settings()
+      ..includeWeekends = fields.get(0, false);
+  }
+
+  @override
+  void write(BinaryWriter writer, Settings obj) {
+    writer
+      ..writeByte(1)
+      ..writeByte(0)
+      ..write(obj.includeWeekends); 
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is GradeAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+}

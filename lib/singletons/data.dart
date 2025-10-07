@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/utility/classes.dart';
 
 class Data {
   static final Data _instance = Data._internal();
@@ -8,15 +9,16 @@ class Data {
   Data._internal();
 
   late final ConnectionController router = ConnectionController();
+  late final Settings settings = Settings();
+
+  // General app appearance
+  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(Brightness.light);
+  Brightness get appBrightness => appBrightnessNotifier.value;
+  set appBrightness(Brightness value) => appBrightnessNotifier.value = value;
 
   // Main
   String? token;
   String? username;
-
-  // Settings
-  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(Brightness.light);
-  Brightness get appBrightness => appBrightnessNotifier.value;
-  set appBrightness(Brightness value) => appBrightnessNotifier.value = value;
 
   // School year
   final _now = DateTime.now();

@@ -27,7 +27,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   late Map<DateTime, List<Homework>> homeworkByDate;
 
-  int get tomorrowPageIndex => DateTime.now().difference(data.schoolStart).inDays + 1;
+  List<DateTime> get allDays {
+    final rawList = List<DateTime>.generate(data.schoolEnd.difference(data.schoolStart).inDays, (i) => data.schoolStart.add(Duration(days: i)));
+
+    return data.settings.includeWeekends ? rawList : rawList.where((d) => d.weekday != DateTime.saturday && d.weekday != DateTime.sunday).toList();
+  }
+
+  int get tomorrowPageIndex {
+    final tomorrow = DateTime.now().add(Duration(days: 1));
+    return allDays.indexWhere((d) => d.year == tomorrow.year && d.month == tomorrow.month && d.day == tomorrow.day);
+  }
 
   @override
   void initState() {
@@ -77,7 +86,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   @override
   Widget build(BuildContext context) {
-    final days = data.schoolEnd.difference(data.schoolStart).inDays;
     final now = DateTime.now();
 
     return CupertinoPageScaffold(
@@ -90,12 +98,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
               child: SizedBox(
                 child: PageView.builder(
                   controller: timelineController,
-                  itemCount: days,
+                  itemCount: allDays.length,
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
                   physics: PageScrollPhysics(),
                   itemBuilder: (context, index) {
-                    final date = data.schoolStart.add(Duration(days: index));
+                    final date = allDays[index];
                     final isPassed = date.isBefore(now);
                     final opacity = isPassed ? 0.5 : 1.0;
 
@@ -108,9 +116,23 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            "Pour ${formatDate(date, includeArticle: true)}",
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                "Pour ${formatDate(date, includeArticle: true)}",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
+                                ),
+                              ),
+                              // Text(
+                              //   DateFormat(", d MMMM", "fr_CH").format(date),
+                              //   style: TextStyle(fontSize: 22, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                              // ),
+                            ],
                           ),
 
                           Expanded(

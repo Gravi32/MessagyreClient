@@ -43,11 +43,13 @@ void main() async {
     Hive.registerAdapter(HomeworkAdapter());
     Hive.registerAdapter(SubjectAdapter());
     Hive.registerAdapter(GradeAdapter());
+    Hive.registerAdapter(SettingsAdapter());
 
     await Hive.openBox<Chat>("Chats");
     await Hive.openBox<Homework>("Homework");
     await Hive.openBox<Grade>("Grades");
     await Hive.openBox<List>("SubjectOrder");
+    await Hive.openBox<Settings>("Settings");
   } catch (e) {
     debugPrint("Hive could not be initialized: $e");
   }
