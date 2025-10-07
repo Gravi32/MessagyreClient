@@ -56,8 +56,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
                                   child: Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: HugeIcon(icon: getStatusIcon(data.content.last.status), color: CupertinoColors.systemGrey.resolveFrom(context)),
+                                    padding: const EdgeInsets.only(right: 2),
+                                    child: HugeIcon(icon: getStatusIcon(data.content.last.status), size: 20, color: CupertinoColors.systemGrey.resolveFrom(context)),
                                   ),
                                 ),
                               TextSpan(
