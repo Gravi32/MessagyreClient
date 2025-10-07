@@ -2,6 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -116,9 +117,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
                                 "Pour ${formatDate(date, includeArticle: true)}",
@@ -128,10 +128,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                   color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
                                 ),
                               ),
-                              // Text(
-                              //   DateFormat(", d MMMM", "fr_CH").format(date),
-                              //   style: TextStyle(fontSize: 22, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                              // ),
+                              if (int.tryParse(formatDate(date)[0]) == null) Text(
+                                DateFormat("d MMMM", "fr_CH").format(date),
+                                style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                              ),
                             ],
                           ),
 
