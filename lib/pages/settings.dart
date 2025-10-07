@@ -99,14 +99,14 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                   (account == null || data.username == null)
                       ? SettingsTile(title: SizedBox(height: 39, child: CupertinoActivityIndicator()))
                       : SettingsTile.navigation(
-                        leading: ProfilePictureDisplay(accountUsername: data.username!),
-                        title: Column(
+                        leading: ProfilePictureDisplay(accountUsername: data.username!, radius: 28,),
+                        title: Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 8), child:  Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                            Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15)),
+                            Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                            Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 16)),
                           ],
-                        ),
+                        ),), 
                         onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))),
                       ),
 
