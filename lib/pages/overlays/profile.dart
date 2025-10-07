@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -50,14 +51,29 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   void changeProfilePicture() {
     void pickImage(ImageSource source) async {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: source);
-      if (pickedFile == null) return;
-      setState(() {
-        changesMade = true;
-        chosenPicturePath = pickedFile.path;
-      });
-    }
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: source);
+  if (pickedFile == null) return;
+
+  final croppedFile = await ImageCropper().cropImage(
+    sourcePath: pickedFile.path,
+    aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+    uiSettings: [
+      IOSUiSettings(
+        title: "Retailler l'image",
+        aspectRatioLockEnabled: true,
+      ),
+    ],
+  );
+
+  if (croppedFile != null) {
+    setState(() {
+      changesMade = true;
+      chosenPicturePath = croppedFile.path; // non l'originale, ma il croppato
+    });
+  }
+}
+
 
     showCupertinoModalPopup(
       context: context,
