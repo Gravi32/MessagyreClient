@@ -34,6 +34,38 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final messageFieldController = TextEditingController();
   final messageFieldFocusNode = FocusNode();
 
+   void messagesListener(Map<String, Object> messageData) {
+    debugPrint("[Chat] Message received $messageData");
+    if (chatData == null || messageData["SenderUsername"] != chatData?.recipientUsername) return;
+
+    final newMessage = Message.fromMessageData(messageData);
+
+    setState(() {
+      chatData!.content.add(newMessage);
+    });
+
+    router.sendReadReceipt(chatData!.recipientUsername);
+
+    saveChatData();
+    scrollDown();
+  }
+
+  void readReceiptListener(Map<String, Object> readReceipt) {
+      debugPrint("[Chat] Read receipt received $readReceipt");
+
+      if (chatData == null || readReceipt["SenderUsername"] != chatData?.recipientUsername) return;
+      DateTime readAt = readReceipt["ReadAt"] as DateTime;
+
+      chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt)).map((readMessage) => readMessage.status = 2);
+
+      for (var readMessage in chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt))) {
+        if (readMessage.status == 1) readMessage.status = 2;
+      }
+
+      setState(() {});
+      return;
+    }
+
   // Configurations
   int visibleMessageCount = 150;
   double blurAmount = 6;
@@ -111,37 +143,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
       }
     });
 
-    router.onMessageReceived.listen((messageData) {
-      debugPrint("[Chat] Message received $messageData");
-      if (chatData == null || messageData["SenderUsername"] != chatData?.recipientUsername) return;
+    router.onMessageReceived.listen(messagesListener);
 
-      final newMessage = Message.fromMessageData(messageData);
-
-      setState(() {
-        chatData!.content.add(newMessage);
-      });
-
-      router.sendReadReceipt(chatData!.recipientUsername);
-
-      saveChatData();
-      scrollDown();
-    });
-
-    router.onReadReceiptReceived.listen((readReceipt) {
-      debugPrint("[Chat] Read receipt received $readReceipt");
-
-      if (chatData == null || readReceipt["SenderUsername"] != chatData?.recipientUsername) return;
-      DateTime readAt = readReceipt["ReadAt"] as DateTime;
-
-      chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt)).map((readMessage) => readMessage.status = 2);
-
-      for (var readMessage in chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt))) {
-        if (readMessage.status == 1) readMessage.status = 2;
-      }
-
-      setState(() {});
-      return;
-    });
+    router.onReadReceiptReceived.listen(readReceiptListener);
 
     chatScrollController.addListener(() {
       if (showScrollDownButton) {
