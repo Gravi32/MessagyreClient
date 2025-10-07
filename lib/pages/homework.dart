@@ -98,7 +98,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     final date = data.schoolStart.add(Duration(days: index));
                     final isPassed = date.isBefore(now);
                     final opacity = isPassed ? 0.5 : 1.0;
-                    final formattedDate = formatDate(date);
 
                     final thisDaysHomework = homeworkByDate[DateTime(date.year, date.month, date.day)] ?? [];
 
@@ -110,7 +109,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            "Pour${int.tryParse(formattedDate[0]) != null ? " le" : ""} $formattedDate",
+                            "Pour ${formatDate(date, includeArticle: true)}",
                             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
                           ),
 

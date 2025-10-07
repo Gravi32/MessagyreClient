@@ -371,7 +371,7 @@ class _NewGradeState extends State<NewGrade> {
                     CupertinoListTile(
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                       trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                      title: Text("Reçu ${formatDate(date)}"),
+                      title: Text("Reçu ${formatDate(date, includeArticle: true)}"),
                       onTap: showDatePicker,
                     ),
                   ],
