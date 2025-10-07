@@ -10,6 +10,7 @@ class CustomDatePicker extends StatefulWidget {
   final bool allowFuture;
   final bool allowPast;
   final ValueChanged<DateTime> onDateSelected;
+  final bool isPreviewMode;
 
   const CustomDatePicker({
     super.key,
@@ -17,6 +18,7 @@ class CustomDatePicker extends StatefulWidget {
     required this.onDateSelected,
     this.allowFuture = true,
     this.allowPast = true,
+    this.isPreviewMode = false
   });
 
   @override
@@ -61,11 +63,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(
-      height: 450,
+      height: 400,
       decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       child: Column(
         children: [
-          Container(
+          if (!widget.isPreviewMode) Container(
             color: CupertinoColors.systemBackground.resolveFrom(context),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -98,19 +100,15 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                     final date = DateTime(minDate.year, minDate.month + index, 1);
                     final allDays = daysInMonth(date.year, date.month);
 
-                    // giorni visibili (filtra weekend se richiesto)
                     final visibleDays = includeWeekends ? allDays : allDays.where((d) => d.weekday >= DateTime.monday && d.weekday <= DateTime.friday).toList();
 
-                    // calcola offset: numero di celle vuote prima del primo giorno visibile
                     int offset;
                     if (visibleDays.isEmpty) {
                       offset = 0;
                     } else {
                       if (includeWeekends) {
-                        // se includiamo weekend, offset è basato sul primo giorno del mese (lun=1 -> 0)
                         offset = DateTime(date.year, date.month, 1).weekday - 1;
                       } else {
-                        // se non includiamo weekend, il primo giorno visibile è sempre un weekday (1..5)
                         offset = visibleDays.first.weekday - 1; // 0..4
                       }
                     }

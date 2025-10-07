@@ -4,9 +4,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
+import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/feedback_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/storage_settings.dart';
+import 'package:messagyre_client/pages/settings_subpages/subjects_settings.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -85,103 +87,123 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [CupertinoSliverNavigationBar(largeTitle: Text("Réglages"), stretch: true)];
         },
-        body: SettingsList(
-          platform: DevicePlatform.iOS,
-          sections: [
-            SettingsSection(
-              title: Text("Votre compte"),
-              tiles: [
-                (account == null || data.username == null)
-                    ? SettingsTile(title: SizedBox(height: 39, child: CupertinoActivityIndicator()))
-                    : SettingsTile.navigation(
-                      leading: ProfilePictureDisplay(accountUsername: data.username!),
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                          Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15)),
-                        ],
+        body: SafeArea(
+          top: false,
+          child: SettingsList(
+            shrinkWrap: true,
+            platform: DevicePlatform.iOS,
+            sections: [
+              SettingsSection(
+                title: Text("Votre compte"),
+                tiles: [
+                  (account == null || data.username == null)
+                      ? SettingsTile(title: SizedBox(height: 39, child: CupertinoActivityIndicator()))
+                      : SettingsTile.navigation(
+                        leading: ProfilePictureDisplay(accountUsername: data.username!),
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                            Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15)),
+                          ],
+                        ),
+                        onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))),
                       ),
-                      onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))),
-                    ),
 
-                SettingsTile.navigation(
-                  onPressed:
-                      (context) => showLogoutDialog(context, () async {
-                        router.get("/Auth/Logout"); // Notifies the server
+                  SettingsTile.navigation(
+                    onPressed:
+                        (context) => showLogoutDialog(context, () async {
+                          router.get("/Auth/Logout"); // Notifies the server
 
-                        data.username = null;
-                        data.token = null;
-                        await secureStorage.delete(key: "AccessToken");
-                        await secureStorage.delete(key: "RefreshToken");
-                        await Hive.box("Misc").delete("Username");
+                          data.username = null;
+                          data.token = null;
+                          await secureStorage.delete(key: "AccessToken");
+                          await secureStorage.delete(key: "RefreshToken");
+                          await Hive.box("Misc").delete("Username");
 
-                        if (router.onUnauthorized != null) {
-                          router.onUnauthorized!();
-                        }
-                      }),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
-                  title: Text("Se déconnecter"),
-                ),
-              ],
-            ),
+                          if (router.onUnauthorized != null) {
+                            router.onUnauthorized!();
+                          }
+                        }),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
+                    title: Text("Se déconnecter"),
+                  ),
+                ],
+              ),
 
-            SettingsSection(
-              title: Text("Apparence"),
-              tiles: [
-                SettingsTile.switchTile(
-                  onToggle: (value) {
-                    setState(() {
-                      isDarkMode = value;
-                      data.appBrightness = value ? Brightness.dark : Brightness.light;
-                    });
-                  },
-                  initialValue: isDarkMode,
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedMoon02),
-                  title: Text('Mode sombre'),
-                ),
-              ],
-            ),
+              SettingsSection(
+                title: Text("Apparence"),
+                tiles: [
+                  SettingsTile.switchTile(
+                    onToggle: (value) {
+                      setState(() {
+                        isDarkMode = value;
+                        data.appBrightness = value ? Brightness.dark : Brightness.light;
+                      });
+                    },
+                    initialValue: isDarkMode,
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedMoon02),
+                    title: Text('Mode sombre'),
+                  ),
+                ],
+              ),
 
-            SettingsSection(
-              title: Text("Stockage"),
-              tiles: [
-                SettingsTile.navigation(
-                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
-                  title: Text("Effacer les données"),
-                ),
-                SettingsTile(
-                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
-                  title: Text("Exporter les données"),
-                  enabled: false, // Placeholder for future implementation
-                ),
-                SettingsTile(
-                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
-                  title: Text("Importer les données"),
-                  enabled: false, // Placeholder for future implementation
-                ),
-              ],
-            ),
+              SettingsSection(
+                title: Text("Options"),
+                tiles: [
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04),
+                    title: Text("Calendrier"),
+                  ),
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
+                    title: Text("Vos branches"),
+                  ),
+                ],
+              ),
 
-            SettingsSection(
-              title: Text("Autres"),
-              tiles: [
-                SettingsTile.navigation(
-                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
-                  title: Text("Envoyez un commentaire"),
-                ),
-                SettingsTile.navigation(
-                  onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
-                  title: Text("Débogage"),
-                ),
-              ],
-            ),
-          ],
+              SettingsSection(
+                title: Text("Stockage"),
+                tiles: [
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
+                    title: Text("Effacer les données"),
+                  ),
+                  SettingsTile(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
+                    title: Text("Exporter les données"),
+                    enabled: false, // Placeholder for future implementation
+                  ),
+                  SettingsTile(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
+                    title: Text("Importer les données"),
+                    enabled: false, // Placeholder for future implementation
+                  ),
+                ],
+              ),
+
+              SettingsSection(
+                title: Text("Autres"),
+                tiles: [
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
+                    title: Text("Envoyez un commentaire"),
+                  ),
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
+                    title: Text("Débogage"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

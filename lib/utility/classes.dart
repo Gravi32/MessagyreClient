@@ -127,7 +127,7 @@ class Grade extends HiveObject {
 }
 
 @HiveType(typeId: 5)
-class Settings {
+class Settings extends HiveObject {
   // Homework page
   @HiveType(typeId: 0)
   bool includeWeekends = false;

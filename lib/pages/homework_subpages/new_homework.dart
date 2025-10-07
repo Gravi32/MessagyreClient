@@ -159,6 +159,7 @@ class _NewHomeworkState extends State<NewHomework> {
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
                       onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
                     ),
+                    SizedBox(height: 12,),
                     CupertinoTextField(
                       controller: contentController,
                       focusNode: contentFocus,
