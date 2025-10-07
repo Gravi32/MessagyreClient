@@ -51,10 +51,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
     debugPrint("[Access] Logging in as $username...");
     isWaitingForResponse.value = true;
 
-    var response = await router.post("/Auth/Login", {
-      "Username": username,
-      "Password": password,
-    });
+    var response = await router.post("/Auth/Login", {"Username": username, "Password": password});
 
     print("[Access] server response: ${response.statusCode}. ${response.body}");
 
@@ -63,9 +60,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
       final responseData = jsonDecode(response.body);
       // Handling failure
       if (response.statusCode != 200) {
-        debugPrint(
-          "[Login failed] Error ${response.statusCode}: $responseData",
-        );
+        debugPrint("[Login failed] Error ${response.statusCode}: $responseData");
 
         setState(() {
           switch (responseData) {
@@ -96,18 +91,17 @@ class _AccessOverlayState extends State<AccessOverlay> {
       print("[Access] Error decoding response: '$e'. Stack trace: $s");
     }
 
-    // Closing the page
-    if (mounted) Navigator.of(context).pop();
-    debugPrint("[Login successful] Token received and stored.");
-
     // Connecting to the WebSocket
     router.connect();
+
+    // Closing the page
+    debugPrint("[Login successful] Token received and stored.");
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final fieldsAreEmpty =
-        usernameController.text.isEmpty || passwordController.text.isEmpty;
+    final fieldsAreEmpty = usernameController.text.isEmpty || passwordController.text.isEmpty;
 
     return PopScope(
       canPop: false,
@@ -127,23 +121,14 @@ class _AccessOverlayState extends State<AccessOverlay> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Image.asset(
-                                "assets/icons/logo_purple.png",
-                                height: 100,
-                              ),
+                              Image.asset("assets/icons/logo_purple.png", height: 100),
 
                               const SizedBox(height: 10),
 
                               Text(
                                 "Bienvenue sur Messagyre",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  color: CupertinoColors.label.resolveFrom(
-                                    context,
-                                  ),
-                                ),
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
                               ),
 
                               const SizedBox(height: 6),
@@ -151,12 +136,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
                               Text(
                                 "connectez-vous pour continuer",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: CupertinoColors.label
-                                      .resolveFrom(context)
-                                      .withOpacity(.7),
-                                ),
+                                style: TextStyle(fontSize: 15, color: CupertinoColors.label.resolveFrom(context).withOpacity(.7)),
                               ),
 
                               const SizedBox(height: 40),
@@ -169,10 +149,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
                                 disabled: isDisabled,
                                 onChanged:
                                     (_) => setState(() {
-                                      usernameController
-                                          .text = usernameController.text
-                                          .toLowerCase()
-                                          .replaceAll(' ', '');
+                                      usernameController.text = usernameController.text.toLowerCase().replaceAll(' ', '');
                                     }),
                               ),
 
@@ -191,22 +168,13 @@ class _AccessOverlayState extends State<AccessOverlay> {
                               const SizedBox(height: 36),
 
                               CupertinoButton.filled(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 minimumSize: Size.zero,
-                                onPressed:
-                                    (!fieldsAreEmpty && !isDisabled)
-                                        ? tryToLogin
-                                        : null,
+                                onPressed: (!fieldsAreEmpty && !isDisabled) ? tryToLogin : null,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    isDisabled
-                                        ? const CupertinoActivityIndicator()
-                                        : const Text("Connexion"),
-                                  ],
+                                  children: [isDisabled ? const CupertinoActivityIndicator() : const Text("Connexion")],
                                 ),
                               ),
 
@@ -214,56 +182,23 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: Divider(
-                                      color: CupertinoColors.systemGrey
-                                          .withOpacity(.25),
-                                      indent: 30,
-                                      endIndent: 10,
-                                    ),
-                                  ),
-                                  const Text(
-                                    "ou",
-                                    style: TextStyle(
-                                      color: CupertinoColors.systemGrey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Divider(
-                                      color: CupertinoColors.systemGrey
-                                          .withOpacity(.25),
-                                      indent: 10,
-                                      endIndent: 30,
-                                    ),
-                                  ),
+                                  Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 30, endIndent: 10)),
+                                  const Text("ou", style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12)),
+                                  Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 10, endIndent: 30)),
                                 ],
                               ),
 
                               const SizedBox(height: 30),
 
                               CupertinoButton.filled(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 onPressed:
                                     isDisabled
                                         ? null
                                         : () {
-                                          Navigator.of(context).push(
-                                            CupertinoPageRoute(
-                                              builder:
-                                                  (context) =>
-                                                      const RegistrationPage(),
-                                            ),
-                                          );
+                                          Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const RegistrationPage()));
                                         },
-                                child: const Text(
-                                  "Créer un compte",
-                                  style: TextStyle(
-                                    color: CupertinoColors.white,
-                                  ),
-                                ),
+                                child: const Text("Créer un compte", style: TextStyle(color: CupertinoColors.white)),
                               ),
                             ],
                           ),

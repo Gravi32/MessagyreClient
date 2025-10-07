@@ -66,6 +66,7 @@ class ConnectionController {
   bool get isConnected => _channel != null;
 
   Future<void> start() async {
+    print("[Router] Starting up...");
     data.token = await secureStorage.read(key: "AccessToken");
 
     if ((data.token == null || data.username == null) && onUnauthorized != null) {
@@ -74,6 +75,7 @@ class ConnectionController {
       return;
     }
 
+    print("[Router] Startup successful, credentials found. Starting WebSocket connection...");
     connect();
   }
 
@@ -129,7 +131,11 @@ class ConnectionController {
   }
 
   void connect() async {
-    if (isConnected) return;
+    if (isConnected) {
+      print("[WebSocket] connect() called while already connected!");
+      return;
+    }
+    print("[WebSocket 1/2] Starting up...");
 
     // Asking the server to refresh the token
     try {
@@ -151,13 +157,17 @@ class ConnectionController {
       print("Call done ${response.statusCode}, ${response.body}");
 
       // The server refused to refresh access, user was kicked out or banned
-      if (response.statusCode == 401) {
-        debugPrint("[WebSocket 1/2][!] Could not refresh the access token. ${response.body}");
-        onUnauthorized!();
-        return;
-      } else if (response.statusCode != 200) {
-        print("not 200! ${response.statusCode}, ${response.body}");
-        throw Exception(response);
+      try {
+        if (response.statusCode == 401) {
+          debugPrint("[WebSocket 1/2][!] Could not refresh the access token. ${response.body}");
+          onUnauthorized!();
+          return;
+        } else if (response.statusCode != 200) {
+          print("not 200! ${response.statusCode}, ${response.body}");
+          throw Exception(response);
+        }
+      } catch (e) {
+        print("[WebSocket] Failed to process connection refusal: $e");
       }
 
       debugPrint("[WebSocket 1/2] Tokens successfully refreshed.");

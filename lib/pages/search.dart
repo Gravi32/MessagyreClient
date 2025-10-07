@@ -11,18 +11,18 @@ import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class SearchResult {
   final String username;
+  final String? displayName;
   final String? classOrRole;
   final String? profilePictureURL;
 
-  SearchResult({
-    required this.username,
-    this.classOrRole,
-    this.profilePictureURL,
-  });
+  SearchResult({required this.username, this.displayName, this.classOrRole, this.profilePictureURL});
 
   factory SearchResult.fromJson(Map<String, dynamic> json) {
+    print(json);
+
     return SearchResult(
       username: json["Username"],
+      displayName: json["DisplayName"],
       classOrRole: json["ClassOrRole"],
       profilePictureURL: json["ProfilePictureURL"],
     );
@@ -73,10 +73,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
     } else {
       try {
         final list = jsonDecode(response.body) as List;
-        results =
-            list
-                .map((jsonResult) => SearchResult.fromJson(jsonResult))
-                .toList();
+        results = list.map((jsonResult) => SearchResult.fromJson(jsonResult)).toList();
       } catch (e) {
         debugPrint("[Search Failed] Invalid JSON: $e");
         return;
@@ -109,47 +106,33 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text.rich(
-                TextSpan(
-                  children: highlightSearchMatch(
-                    Account.getDisplayableUsername(result.username),
-                    searchBarController.text,
+              Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20)),
+
+              Row(
+                spacing: 6,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: highlightSearchMatch(result.username, searchBarController.text),
+                      style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                    ),
                   ),
-                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 18),
-                ),
+
+                  if (result.classOrRole != null)
+                    Text(result.classOrRole ?? "", style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14, fontWeight: FontWeight.w400)),
+                ],
               ),
-
-              if (result.classOrRole != null) ...[
-                SizedBox(width: 2),
-
-                Text(
-                  result.classOrRole ?? "",
-                  style: TextStyle(
-                    color: CupertinoColors.systemGrey2,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
             ],
           ),
 
-          if (usernameBeingLoaded == result.username) ...[
-            SizedBox(width: 10),
-            CupertinoActivityIndicator(),
-          ],
+          if (usernameBeingLoaded == result.username) ...[SizedBox(width: 10), CupertinoActivityIndicator()],
         ],
       ),
-      leading: ProfilePictureDisplay(
-        accountUsername: result.username,
-        pictureURL: result.profilePictureURL,
-        radius: 40,
-      ),
+      leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 40),
       leadingSize: 50,
-      additionalInfo: HugeIcon(icon: 
-        HugeIcons.strokeRoundedArrowRight01,
-        color: CupertinoColors.systemGrey,
-      ),
+      additionalInfo: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.systemGrey),
       onTap: () async {
         setState(() {
           usernameBeingLoaded = result.username;
@@ -162,27 +145,16 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
         });
 
         if (account != null && mounted) {
-          Navigator.of(context, rootNavigator: true).push(
-            CupertinoPageRoute(builder: (context) => ProfileOverlay(account)),
-          );
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account)));
         }
       },
-          
     );
   }
 
   Widget buildDecoration() {
     Decoration? getDecoration() {
       return data.appBrightness == Brightness.dark
-          ? BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: CupertinoColors.black.withAlpha(75),
-                blurRadius: 12,
-                spreadRadius: 2,
-              ),
-            ],
-          )
+          ? BoxDecoration(boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(75), blurRadius: 12, spreadRadius: 2)])
           : null;
     }
 
@@ -202,10 +174,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                           return RadialGradient(
                             center: Alignment.center,
                             radius: radius,
-                            colors: [
-                              CupertinoColors.white.withAlpha(200),
-                              CupertinoColors.transparent,
-                            ],
+                            colors: [CupertinoColors.white.withAlpha(200), CupertinoColors.transparent],
                             stops: [0.7, 1.0],
                           ).createShader(bounds);
                         },
@@ -220,12 +189,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                               scale: 3,
                               opacity: 0.15,
                               colorFilter:
-                                  data.appBrightness == Brightness.dark
-                                      ? null
-                                      : ColorFilter.mode(
-                                        CupertinoColors.black.withAlpha(100),
-                                        BlendMode.srcIn,
-                                      ),
+                                  data.appBrightness == Brightness.dark ? null : ColorFilter.mode(CupertinoColors.black.withAlpha(100), BlendMode.srcIn),
                             ),
                           ),
                         ),
@@ -237,21 +201,10 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                     children: [
                       Container(
                         decoration: getDecoration(),
-                        child: Text(
-                          "Récherchez vos amis !",
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        child: Text("Récherchez vos amis !", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
                       ),
                       SizedBox(height: 15),
-                      Container(
-                        width: 200,
-                        decoration: getDecoration(),
-                        child: Image.asset("assets/MessagyreGuy.png"),
-                      ),
+                      Container(width: 200, decoration: getDecoration(), child: Image.asset("assets/MessagyreGuy.png")),
                     ],
                   ),
                 ],
@@ -261,22 +214,16 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HugeIcon(icon: 
-                    HugeIcons.strokeRoundedUserQuestion01,
-                    color: CupertinoColors.systemGrey,
-                    size: 40,
-                  ),
+                  HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: CupertinoColors.systemGrey, size: 40),
                   SizedBox(height: 10),
-                  Text(
-                    "Aucun utilisateur trouvé.",
-                    style: TextStyle(color: CupertinoColors.systemGrey),
-                  ),
+                  Text("Aucun utilisateur trouvé.", style: TextStyle(color: CupertinoColors.systemGrey)),
                 ],
               ),
     );
   }
 
-  @override bool get wantKeepAlive => true;
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -299,12 +246,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.translucent,
       child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: Text(
-            "Nouvelle conversation",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-          ),
-        ),
+        navigationBar: CupertinoNavigationBar(middle: Text("Nouvelle conversation", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500))),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -319,12 +261,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                   curve: Curves.easeOutSine,
                   child:
                       searchResults.isNotEmpty
-                          ? ListView.builder(
-                            itemCount: searchResults.length,
-                            itemBuilder:
-                                (context, index) =>
-                                    buildResult(searchResults[index]),
-                          )
+                          ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))
                           : buildDecoration(),
                 ),
               ),

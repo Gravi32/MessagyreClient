@@ -67,6 +67,9 @@ class Chat extends HiveObject {
   @HiveField(2)
   int unreadMessages = 0;
 
+  @HiveField(3)
+  String? recipientDisplayUsername;
+
   Chat({required this.recipientUsername});
 
   @override
@@ -125,13 +128,18 @@ class Grade extends HiveObject {
 
 class Account {
   late String username;
+  late String? displayName;
   late String emailAddress;
   late String? classOrRole;
   late DateTime? creationDate;
   late DateTime? lastLogin;
   late Map<String, dynamic>? profile;
 
-  void format() {}
+  String get defaultDisplayName => getDefaultDisplayName(username);
+
+  static String getDefaultDisplayName(String fromUsername) {
+    return fromUsername.replaceAll('.', ' ').capitalize(everyWord: true);
+  }
 
   static Account? fromJson(String? source) {
     if (source == null || source.trim().isEmpty) return null;
@@ -155,6 +163,7 @@ class Account {
     try {
       return Account()
         ..username = map["Username"] ?? "unknown"
+        ..displayName = map["DisplayName"] 
         ..emailAddress = map["EmailAddress"] ?? "unknown"
         ..classOrRole = map["ClassOrRole"]
         ..creationDate = DateTime.tryParse(map["CreationDate"] ?? "")
@@ -185,10 +194,6 @@ class Account {
     }
 
     return {};
-  }
-
-  static String getDisplayableUsername(String username) {
-    return username.replaceAll('.', ' ').capitalize(everyWord: true);
   }
 
   @override

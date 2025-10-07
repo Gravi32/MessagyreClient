@@ -45,7 +45,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        Account.getDisplayableUsername(data.recipientUsername),
+                        data.recipientDisplayUsername ?? Account.getDefaultDisplayName(data.recipientUsername),
                         style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                       ),
                       Expanded(

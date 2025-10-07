@@ -112,6 +112,7 @@ class App extends StatelessWidget {
     return ValueListenableBuilder<Brightness>(
       valueListenable: data.appBrightnessNotifier,
       builder: (context, brightness, _) {
+        print("App built");
         return CupertinoApp(
           navigatorKey: navigatorKey,
           theme: CupertinoThemeData(brightness: brightness, primaryColor: Color.fromRGBO(100, 25, 104, 1)),
@@ -153,7 +154,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     super.initState();
     router.start();
     WidgetsBinding.instance.addObserver(this);
-    ConnectionController().onUnauthorized = _switchToAccess;
+    router.onUnauthorized = _switchToAccess;
 
     NotificationController().init(context);
 
