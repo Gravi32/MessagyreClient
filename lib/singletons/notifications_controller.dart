@@ -5,6 +5,7 @@ import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class NotificationController {
   static final NotificationController _instance = NotificationController._internal();
@@ -16,11 +17,24 @@ class NotificationController {
 
   void init(BuildContext context) {
     _overlayState = Overlay.of(context);
+    _setupFirebaseMessaging();
+  }
+
+  void _setupFirebaseMessaging() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    await messaging.getAPNSToken();
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((token) {});
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final sender = message.data['sender'] ?? "";
+      final content = message.data['content'] ?? "";
+      if (sender.isNotEmpty && content.isNotEmpty) spawn(sender, content);
+    });
   }
 
   void spawn(String sender, String message) {
     if ((Data().openChatUsername ?? "") == sender) return;
-
     _currentOverlay?.remove();
     _currentOverlay = OverlayEntry(builder: (context) => NotificationPopup(senderUsername: sender, messageContent: message));
     _overlayState?.insert(_currentOverlay!);
@@ -52,9 +66,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() => _top = 8);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() => _top = 8));
     _startAutoDismissTimer();
   }
 
@@ -68,9 +80,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
   void _dismiss() {
     _timer?.cancel();
     setState(() => _top = widget.outScreenOffset);
-    Future.delayed(Duration(milliseconds: 400), () {
-      NotificationController().remove();
-    });
+    Future.delayed(Duration(milliseconds: 400), () => NotificationController().remove());
   }
 
   @override
@@ -90,20 +100,18 @@ class _NotificationPopupsState extends State<NotificationPopup> {
       child: GestureDetector(
         onTap: () {
           _dismiss();
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: widget.senderUsername)));
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: widget.senderUsername)));
         },
         onVerticalDragStart: (_) {
           _isDragging = true;
           _timer?.cancel();
         },
-        onVerticalDragUpdate: (details) {
-          setState(() => _dragOffset += details.delta.dy);
-        },
+        onVerticalDragUpdate: (details) => setState(() => _dragOffset += details.delta.dy),
         onVerticalDragEnd: (details) {
           _isDragging = false;
-          if (_dragOffset < -30) {
+          if (_dragOffset < -30)
             _dismiss();
-          } else {
+          else {
             setState(() => _dragOffset = 0);
             _startAutoDismissTimer();
           }
@@ -116,7 +124,6 @@ class _NotificationPopupsState extends State<NotificationPopup> {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(0.75),
-                alignment: Alignment.center,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   spacing: 8,
