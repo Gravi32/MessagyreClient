@@ -114,95 +114,102 @@ class _NewHomeworkState extends State<NewHomework> {
       backgroundColor: CupertinoColors.systemGroupedBackground,
       child: SafeArea(
         child: ListView(
-            physics: const ClampingScrollPhysics(),
-            children: [
-              // Preview HomeworkCard
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18), child: HomeworkCard(homework: previewHomework, isPreview: true)),
+          physics: const ClampingScrollPhysics(),
+          children: [
+            // Preview HomeworkCard
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18), child: HomeworkCard(homework: previewHomework, isPreview: true)),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                child: Column(
-                  children: [
-                    SubjectAutocomplete(
-                      decoration: const BoxDecoration(),
-                      padding: EdgeInsets.zero,
-                      controller: subjectController,
-                      placeholder: "Branche",
-                      prefix: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.placeholderText.resolveFrom(context)),
-                      ),
-                      suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
-                      suffixMode: OverlayVisibilityMode.notEditing,
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-                      placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
-                      onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Column(
+                children: [
+                  SubjectAutocomplete(
+                    decoration: const BoxDecoration(),
+                    padding: EdgeInsets.zero,
+                    controller: subjectController,
+                    placeholder: "Branche",
+                    prefix: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                     ),
-                    SizedBox(height: 12),
-                    CupertinoTextField(
-                      controller: contentController,
-                      focusNode: contentFocus,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        border: Border.all(width: 0, color: CupertinoColors.separator.resolveFrom(context)),
-                      ),
-                      placeholder: isTest ? "Nom ou description du test..." : "Ce que je dois faire...",
-                      minLines: 5,
-                      maxLines: 10,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                      placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w400),
-                      onTapOutside: (event) => contentFocus.unfocus(),
+                    suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                    suffixMode: OverlayVisibilityMode.notEditing,
+                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
+                    placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
+                    onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+                  ),
+                  SizedBox(height: 12),
+                  CupertinoTextField(
+                    controller: contentController,
+                    focusNode: contentFocus,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      border: Border.all(width: 0, color: CupertinoColors.separator.resolveFrom(context)),
                     ),
-                  ],
+                    placeholder: isTest ? "Nom ou description du test..." : "Ce que je dois faire...",
+                    minLines: 5,
+                    maxLines: 10,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                    placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w400),
+                    onTapOutside: (event) => contentFocus.unfocus(),
+                  ),
+                  SizedBox(height: 6),
+                  Padding(
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 6),
+                    child: Text(
+                      "Écrivez les mots entre astérisques pour les mettre en gras *",
+                      style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            CupertinoListSection.insetGrouped(
+              header: const Text("Date de remise"),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              children: [
+                CupertinoListTile(
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                  trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                  title: Text(formatDate(dueDate).capitalize()),
+                  onTap: showDatePicker,
                 ),
-              ),
+              ],
+            ),
 
-              CupertinoListSection.insetGrouped(
-                header: const Text("Date de remise"),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                children: [
-                  CupertinoListTile(
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                    title: Text(formatDate(dueDate).capitalize()),
-                    onTap: showDatePicker,
+            CupertinoListSection.insetGrouped(
+              header: const Text("Évaluation"),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              children: [
+                CupertinoListTile(
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                    color: isTest ? CupertinoColors.inactiveGray.resolveFrom(context) : adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
                   ),
-                ],
-              ),
-
-              CupertinoListSection.insetGrouped(
-                header: const Text("Évaluation"),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                children: [
-                  CupertinoListTile(
-                    leading: HugeIcon(
-                      icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                      color: isTest ? CupertinoColors.inactiveGray.resolveFrom(context) : adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
-                    ),
-                    title: Text(
-                      "Devoir noté",
-                      style: TextStyle(color: isTest ? CupertinoColors.inactiveGray.resolveFrom(context) : CupertinoColors.label.resolveFrom(context)),
-                    ),
-                    trailing: CupertinoSwitch(value: isGraded, onChanged: isTest ? null : (value) => setState(() => isGraded = value)),
+                  title: Text(
+                    "Devoir noté",
+                    style: TextStyle(color: isTest ? CupertinoColors.inactiveGray.resolveFrom(context) : CupertinoColors.label.resolveFrom(context)),
                   ),
-                  CupertinoListTile(
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.label.resolveFrom(context)),
-                    title: const Text("Test"),
-                    trailing: CupertinoSwitch(
-                      value: isTest,
-                      onChanged:
-                          (value) => setState(() {
-                            isTest = value;
-                            isGraded = false;
-                          }),
-                    ),
+                  trailing: CupertinoSwitch(value: isGraded, onChanged: isTest ? null : (value) => setState(() => isGraded = value)),
+                ),
+                CupertinoListTile(
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.label.resolveFrom(context)),
+                  title: const Text("Test"),
+                  trailing: CupertinoSwitch(
+                    value: isTest,
+                    onChanged:
+                        (value) => setState(() {
+                          isTest = value;
+                          isGraded = false;
+                        }),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
-      
+      ),
     );
   }
 }

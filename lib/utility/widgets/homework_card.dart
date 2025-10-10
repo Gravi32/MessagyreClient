@@ -6,6 +6,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
 class HomeworkCard extends StatefulWidget {
   final Homework homework;
@@ -191,10 +192,11 @@ class _HomeworkCardState extends State<HomeworkCard> {
                   duration: const Duration(milliseconds: 150),
                   isCrossed: isMarkedAsDone,
                   strokeWidth: .5,
-                  child: Text(
+                  child: CustomText(
                     isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
 
                     style: TextStyle(color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9)),
+                    boldWeight: FontWeight.w800,
 
                     overflow: TextOverflow.fade,
                     maxLines: isPreview ? 3 : null,
