@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,6 +12,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/homework_card.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -29,7 +32,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   late Map<DateTime, List<Homework>> homeworkByDate;
 
-  Homework? nearbyTest;
+  List<Homework> nearbyTests = [];
+  bool isNearbyTestsNotifierHidden = false;
 
   List<DateTime> get allDays {
     final rawList = List<DateTime>.generate(data.schoolEnd.difference(data.schoolStart).inDays, (i) => data.schoolStart.add(Duration(days: i)));
@@ -57,24 +61,21 @@ class _HomeworkPageState extends State<HomeworkPage> {
     allHomework = Hive.box<Homework>("Homework");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 
-    _groupHomeworkByDate();
-    allHomework.listenable().addListener(_groupHomeworkByDate);
-
-    for (var homework in allHomework.values) {
-      final difference = homework.dueDate.difference(DateTime.now());
-
-      if (!difference.isNegative && difference.inDays < 5) {
-        nearbyTest = homework;
-        break;
-      }
-    }
+    groupHomeworkByDate();
+    allHomework.listenable().addListener(groupHomeworkByDate);
   }
 
-  void _groupHomeworkByDate() {
+  void groupHomeworkByDate() {
     final grouped = <DateTime, List<Homework>>{};
+    nearbyTests.clear();
+
     for (var hw in allHomework.values) {
+      final daysLeft = hw.dueDate.difference(DateTime.now()).inDays;
+
+      if (hw.isTest && daysLeft > 0 && daysLeft < 7) nearbyTests.add(hw);
       grouped.putIfAbsent(hw.dueDate, () => []).add(hw);
     }
+
     for (var list in grouped.values) {
       list.sort((a, b) => b.dueDate.compareTo(a.dueDate));
     }
@@ -99,6 +100,101 @@ class _HomeworkPageState extends State<HomeworkPage> {
     allHomework.add(newHomework);
   }
 
+  Widget buildNearbyTestsNotifier() {
+    return Stack(
+      children: [
+        Container(
+          constraints: BoxConstraints(minHeight: 80),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
+              stops: [0, 0.7, 1],
+              center: AlignmentGeometry.bottomRight,
+              radius: 5,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                bottom: -20,
+                right: -10,
+                child: Transform.rotate(
+                  angle: pi / 15,
+                  child: Opacity(
+                    opacity: .15,
+                    child: HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.white.withAlpha(50), strokeWidth: 2, size: 100),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsetsGeometry.all(6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      nearbyTests.length > 1
+                          ? "*Plusieurs* tests approchent !"
+                          : "*Test* de *${SubjectHelper.toFrench(nearbyTests.first.subject)}* ce ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                      boldWeight: FontWeight.w800,
+                    ),
+                    nearbyTests.length > 1
+                        ? Padding(
+                          padding: EdgeInsetsGeometry.symmetric(vertical: 6),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            spacing: 2,
+                            children:
+                                nearbyTests
+                                    .map(
+                                      (test) => CustomText(
+                                        "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)}",
+                                        style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(160)),
+                                        boldWeight: FontWeight.w600,
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        )
+                        : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 4,
+                          children: [
+                            Opacity(
+                              opacity: .6,
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: CupertinoColors.white.withAlpha(160), size: 16),
+                            ),
+                            Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(160))),
+                          ],
+                        ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 0,
+          right: 10,
+          child: GestureDetector(
+            onTap: () => setState(() => isNearbyTestsNotifierHidden = true),
+            child: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: CupertinoColors.label.resolveFrom(context), size: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     timelineController.dispose();
@@ -119,40 +215,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (nearbyTest != null)
-                    Container(
-                      height: 60,
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      padding: EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
-                          stops: [0, 0.7, 1],
-                          center: AlignmentGeometry.bottomRight,
-                          radius: 5,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        spacing: 6,
-                        children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.white, size: 40),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Le test de ${SubjectHelper.toFrench(nearbyTest!.subject)} approche !",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                              ),
-                              Text(
-                                "Prévu pour ${formatDate(nearbyTest!.dueDate)}",
-                                style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(180)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                  if (nearbyTests.isNotEmpty && !isNearbyTestsNotifierHidden) buildNearbyTestsNotifier(),
+
                   SizedBox(height: 6),
                   Expanded(
                     child: PageView.builder(
@@ -167,7 +231,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         final opacity = isPassed ? 0.5 : 1.0;
 
                         final thisDaysHomework = homeworkByDate[DateTime(date.year, date.month, date.day)] ?? [];
-                        
+
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 7),
                           child: Column(
