@@ -88,7 +88,7 @@ class _GroupPageState extends State<GroupPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 10,
           children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 40, color: CupertinoColors.separator.resolveFrom(context)),
+            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 40, strokeWidth: .5, color: CupertinoColors.separator.resolveFrom(context)),
             Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
           ],
         )

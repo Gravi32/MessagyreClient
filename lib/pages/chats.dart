@@ -180,7 +180,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 10,
                       children: [
-                        HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
+                        HugeIcon(icon: HugeIcons.strokeRoundedSparkles, strokeWidth: .5, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
                         Text(
                           "Entamez une conversation !",
                           style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
