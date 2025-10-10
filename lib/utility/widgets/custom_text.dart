@@ -4,8 +4,10 @@ class CustomText extends StatelessWidget {
   final String text;
   final TextStyle? style;
   final FontWeight? boldWeight;
+  final bool softWrap;
+  final TextOverflow overflow;
 
-  const CustomText(this.text, {super.key, this.style, this.boldWeight});
+  const CustomText(this.text, {super.key, this.style, this.boldWeight, this.softWrap = true, this.overflow = TextOverflow.clip});
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,6 @@ class CustomText extends StatelessWidget {
       spans.add(TextSpan(text: text.substring(lastMatchEnd), style: style));
     }
 
-    return RichText(text: TextSpan(children: spans));
+    return RichText(text: TextSpan(children: spans), overflow: overflow, softWrap: softWrap,);
   }
 }
