@@ -53,8 +53,6 @@ class _AccessOverlayState extends State<AccessOverlay> {
 
     var response = await router.post("/Auth/Login", {"Username": username, "Password": password});
 
-    print("[Access] server response: ${response.statusCode}. ${response.body}");
-
     isWaitingForResponse.value = false;
     try {
       final responseData = jsonDecode(response.body);
@@ -88,7 +86,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
       await Hive.box("Misc").put("Username", username);
     } catch (e, s) {
-      print("[Access] Error decoding response: '$e'. Stack trace: $s");
+      debugPrint("[Access] Error decoding response: '$e'. Stack trace: $s");
     }
 
     // Connecting to the WebSocket

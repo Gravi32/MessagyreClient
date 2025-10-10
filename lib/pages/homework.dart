@@ -7,6 +7,7 @@ import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/homework_card.dart';
@@ -28,6 +29,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   late Map<DateTime, List<Homework>> homeworkByDate;
 
+  Homework? nearbyTest;
+
   List<DateTime> get allDays {
     final rawList = List<DateTime>.generate(data.schoolEnd.difference(data.schoolStart).inDays, (i) => data.schoolStart.add(Duration(days: i)));
 
@@ -35,8 +38,17 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   int get tomorrowPageIndex {
-    final tomorrow = DateTime.now().add(Duration(days: 1));
-    return allDays.indexWhere((d) => d.year == tomorrow.year && d.month == tomorrow.month && d.day == tomorrow.day);
+    DateTime tomorrow = DateTime.now().add(Duration(days: 1));
+
+    if (tomorrow.weekday == DateTime.saturday) {
+      tomorrow = tomorrow.add(Duration(days: 2));
+    } else if (tomorrow.weekday == DateTime.sunday) {
+      tomorrow = tomorrow.add(Duration(days: 1));
+    }
+
+    final index = allDays.indexWhere((d) => d.year == tomorrow.year && d.month == tomorrow.month && d.day == tomorrow.day);
+
+    return index >= 0 ? index : 0;
   }
 
   @override
@@ -47,13 +59,21 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
     _groupHomeworkByDate();
     allHomework.listenable().addListener(_groupHomeworkByDate);
+
+    for (var homework in allHomework.values) {
+      final difference = homework.dueDate.difference(DateTime.now());
+
+      if (!difference.isNegative && difference.inDays < 5) {
+        nearbyTest = homework;
+        break;
+      }
+    }
   }
 
   void _groupHomeworkByDate() {
     final grouped = <DateTime, List<Homework>>{};
     for (var hw in allHomework.values) {
-      final day = DateTime(hw.dueDate.year, hw.dueDate.month, hw.dueDate.day);
-      grouped.putIfAbsent(day, () => []).add(hw);
+      grouped.putIfAbsent(hw.dueDate, () => []).add(hw);
     }
     for (var list in grouped.values) {
       list.sort((a, b) => b.dueDate.compareTo(a.dueDate));
@@ -96,119 +116,160 @@ class _HomeworkPageState extends State<HomeworkPage> {
             headerSliverBuilder: (context, innerBoxIsScrolled) => [CupertinoSliverNavigationBar(largeTitle: Text("Devoirs"))],
             body: SafeArea(
               top: false,
-              child: SizedBox(
-                child: PageView.builder(
-                  controller: timelineController,
-                  itemCount: allDays.length,
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  physics: PageScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final date = allDays[index];
-                    final isPassed = date.isBefore(now);
-                    final opacity = isPassed ? 0.5 : 1.0;
-
-                    final thisDaysHomework = homeworkByDate[DateTime(date.year, date.month, date.day)] ?? [];
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (nearbyTest != null)
+                    Container(
+                      height: 60,
+                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
+                          stops: [0, 0.7, 1],
+                          center: AlignmentGeometry.bottomRight,
+                          radius: 5,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        spacing: 6,
                         children: [
+                          HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.white, size: 40),
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Pour ${formatDate(date, includeArticle: true)}",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
-                                ),
+                                "Le test de ${SubjectHelper.toFrench(nearbyTest!.subject)} approche !",
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                               ),
-                              if (int.tryParse(formatDate(date)[0]) == null) Text(
-                                DateFormat("d MMMM", "fr_CH").format(date),
-                                style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                              Text(
+                                "Prévu pour ${formatDate(nearbyTest!.dueDate)}",
+                                style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(180)),
                               ),
                             ],
                           ),
-
-                          Expanded(
-                            child: ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.only(top: 6, bottom: 20),
-                              clipBehavior: Clip.none,
-                              itemCount: thisDaysHomework.length + 1,
-                              itemBuilder: (context, i) {
-                                if (i < thisDaysHomework.length) {
-                                  final homework = thisDaysHomework[i];
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: HomeworkCard(
-                                      homework: homework,
-                                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                                      onDeleteButtonClicked:
-                                          () => showCupertinoDialog(
-                                            context: context,
-                                            builder:
-                                                (dialogContext) => CupertinoAlertDialog(
-                                                  title: Text("Supprimer le devoir"),
-                                                  content: Text("Le devoir sera supprimé. Cette action est irréversible."),
-                                                  actions: [
-                                                    CupertinoDialogAction(
-                                                      onPressed: () => Navigator.pop(dialogContext),
-                                                      child: Text(
-                                                        "Annuler",
-                                                        style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2)),
-                                                      ),
-                                                    ),
-                                                    CupertinoDialogAction(
-                                                      onPressed: () {
-                                                        homework.delete();
-                                                        Navigator.pop(dialogContext);
-                                                      },
-                                                      child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
-                                                    ),
-                                                  ],
-                                                ),
-                                          ),
-                                    ),
-                                  );
-                                }
-                                return GestureDetector(
-                                  onTap: () => showNewHomeworkPopup(dueDateOverride: date),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: DottedBorder(
-                                    options: RoundedRectDottedBorderOptions(
-                                      color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                      strokeWidth: 2,
-                                      dashPattern: [4, 5],
-                                      radius: Radius.circular(8),
-                                      strokeCap: StrokeCap.round,
-                                      borderPadding: EdgeInsets.all(2),
-                                    ),
-                                    child: SizedBox(
-                                      height: 100,
-                                      child: Center(
-                                        child: HugeIcon(
-                                          icon: HugeIcons.strokeRoundedAdd01,
-                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
                         ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  SizedBox(height: 6),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: timelineController,
+                      itemCount: allDays.length,
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      physics: PageScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final date = allDays[index];
+                        final isPassed = date.isBefore(now);
+                        final opacity = isPassed ? 0.5 : 1.0;
+
+                        final thisDaysHomework = homeworkByDate[DateTime(date.year, date.month, date.day)] ?? [];
+                        
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 7),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    "Pour ${formatDate(date, includeArticle: true)}",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w500,
+                                      color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
+                                    ),
+                                  ),
+                                  if (int.tryParse(formatDate(date)[0]) == null)
+                                    Text(
+                                      DateFormat("d MMMM", "fr_CH").format(date),
+                                      style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                    ),
+                                ],
+                              ),
+
+                              Expanded(
+                                child: ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.only(top: 6, bottom: 20),
+                                  clipBehavior: Clip.none,
+                                  itemCount: thisDaysHomework.length + 1,
+                                  itemBuilder: (context, i) {
+                                    if (i < thisDaysHomework.length) {
+                                      final homework = thisDaysHomework[i];
+
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 12),
+                                        child: HomeworkCard(
+                                          homework: homework,
+                                          onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                                          onDeleteButtonClicked:
+                                              () => showCupertinoDialog(
+                                                context: context,
+                                                builder:
+                                                    (dialogContext) => CupertinoAlertDialog(
+                                                      title: Text("Supprimer le devoir"),
+                                                      content: Text("Le devoir sera supprimé. Cette action est irréversible."),
+                                                      actions: [
+                                                        CupertinoDialogAction(
+                                                          onPressed: () => Navigator.pop(dialogContext),
+                                                          child: Text(
+                                                            "Annuler",
+                                                            style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2)),
+                                                          ),
+                                                        ),
+                                                        CupertinoDialogAction(
+                                                          onPressed: () {
+                                                            homework.delete();
+                                                            Navigator.pop(dialogContext);
+                                                          },
+                                                          child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
+                                                        ),
+                                                      ],
+                                                    ),
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                    return GestureDetector(
+                                      onTap: () => showNewHomeworkPopup(dueDateOverride: date),
+                                      behavior: HitTestBehavior.opaque,
+                                      child: DottedBorder(
+                                        options: RoundedRectDottedBorderOptions(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          strokeWidth: 2,
+                                          dashPattern: [4, 5],
+                                          radius: Radius.circular(8),
+                                          strokeCap: StrokeCap.round,
+                                          borderPadding: EdgeInsets.all(2),
+                                        ),
+                                        child: SizedBox(
+                                          height: 100,
+                                          child: Center(
+                                            child: HugeIcon(
+                                              icon: HugeIcons.strokeRoundedAdd01,
+                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

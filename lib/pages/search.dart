@@ -18,8 +18,6 @@ class SearchResult {
   SearchResult({required this.username, this.displayName, this.classOrRole, this.profilePictureURL});
 
   factory SearchResult.fromJson(Map<String, dynamic> json) {
-    print(json);
-
     return SearchResult(
       username: json["Username"],
       displayName: json["DisplayName"],

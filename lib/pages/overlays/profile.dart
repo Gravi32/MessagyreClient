@@ -362,7 +362,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             content: Text("La conversation avec ${account.username} a été supprimée du téléphone."),
                             actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(context))],
                           ),
-                      context: context,
+                      context: dialogContext,
                     ),
                   );
                 }
@@ -465,9 +465,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
             setState(() => isUploading = false);
 
             if (!context.mounted) return;
+            final mountedContext = context;
 
             showCupertinoDialog(
-              context: context,
+              context: mountedContext,
               builder:
                   (dialogContext) => CupertinoAlertDialog(
                     title: Text(success ? "Profil actualisé!" : "Erreur"),

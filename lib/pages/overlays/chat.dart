@@ -109,7 +109,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
       messageFieldFocusNode.requestFocus();
       scrollDown();
     } catch (e) {
-      print("Error sending message: $e");
+      debugPrint("[Chat] Error sending message: $e");
     }
   }
 
