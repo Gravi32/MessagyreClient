@@ -23,8 +23,6 @@ import 'package:messagyre_client/utility/utility.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  print("main() started");
-
   // Overriding debugPrint
   final originalDebugPrint = debugPrint;
 
@@ -32,7 +30,6 @@ void main() async {
     Data().log(message);
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
-  print("debugPrint overridden");
 
   // Initializing Hive and other stuff
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,10 +50,8 @@ void main() async {
   } catch (e) {
     debugPrint("Hive could not be initialized: $e");
   }
-  print("Hive initialized");
 
   initMessageNotifiers();
-  print("Message notifiers initialized");
 
   final data = Data();
 
@@ -66,7 +61,6 @@ void main() async {
   } catch (e) {
     debugPrint("Misc box could not be opened: $e");
   }
-  print("Misc box opened");
 
   data.appBrightnessNotifier.value = Brightness.dark;
 
@@ -77,11 +71,9 @@ void main() async {
   } catch (e) {
     debugPrint("Firebase could not be initialized: $e");
   }
-  print("Firebase initialized");
 
   // Initializing visual stuff
   await initializeDateFormatting('fr_CH', null);
-  print("Date formatting initialized");
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -91,7 +83,6 @@ void main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-  print("System UI overlay style set");
 
   runApp(App());
 }
@@ -114,7 +105,6 @@ class App extends StatelessWidget {
     return ValueListenableBuilder<Brightness>(
       valueListenable: data.appBrightnessNotifier,
       builder: (context, brightness, _) {
-        print("App built");
         return CupertinoApp(
           navigatorKey: navigatorKey,
           theme: CupertinoThemeData(brightness: brightness, primaryColor: Color.fromRGBO(100, 25, 104, 1)),

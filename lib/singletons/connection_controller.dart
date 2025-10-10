@@ -66,7 +66,6 @@ class ConnectionController {
   bool get isConnected => _channel != null;
 
   Future<void> start() async {
-    print("[Router] Starting up...");
     data.token = await secureStorage.read(key: "AccessToken");
 
     if ((data.token == null || data.username == null) && onUnauthorized != null) {
@@ -75,14 +74,12 @@ class ConnectionController {
       return;
     }
 
-    print("[Router] Startup successful, credentials found. Starting WebSocket connection...");
     connect();
   }
 
   Future<http.Response> refreshAccessToken() async {
-    print("refreshAccessToken called");
     final refreshToken = await secureStorage.read(key: "RefreshToken");
-    debugPrint("[WebSocket 1/2] RefreshToken read from storage: $refreshToken");
+
     if (refreshToken == null) {
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
@@ -93,25 +90,21 @@ class ConnectionController {
         throw Exception("Refresh token request timed out");
       },
     );
-    print("[WebSocket 1/2] Refresh done. Output: ${response.statusCode}, ${response.body}");
 
     if (response.statusCode == 200) {
       try {
         final results = jsonDecode(response.body);
         data.token = results["AccessToken"];
-        print("[WebSocket 2/2] Body decoded.");
 
         await secureStorage.write(key: "AccessToken", value: data.token);
-        print("[WebSocket 2/2] AccessToken stored.");
         await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
-        print("[WebSocket 2/2] RefreshToken stored.");
       } catch (e) {
-        print("[WebSocket 2/2] Failed decoding result: ${response.body} -> $e");
+        debugPrint("[WebSocket] Failed decoding server response: ${response.body} -> $e");
       }
-      print("[WebSocket 2/2] Successfully refreshed. Returning OK");
+
       return http.Response("OK", 200);
     }
-    print("[WebSocket] Not 200!!! ${response.statusCode}, ${response.body}");
+
     return response;
   }
 
@@ -131,16 +124,11 @@ class ConnectionController {
   }
 
   void connect() async {
-    if (isConnected) {
-      print("[WebSocket] connect() called while already connected!");
-      return;
-    }
-    print("[WebSocket 1/2] Starting up...");
+    if (isConnected) return;
 
     // Asking the server to refresh the token
     try {
       connectionState.value = ConnectionState.WaitingForAuthorization;
-      debugPrint("[WebSocket 1/2] Attempting to refresh the access tokens...");
 
       if (onUnauthorized == null) {
         throw Exception("onUnauthorized was not declared.");
@@ -148,31 +136,21 @@ class ConnectionController {
 
       // No token stored, either the first time on the app or logged out
       if (data.token == null) {
-        debugPrint("[WebSocket 1/2][!] No token found in local storage.");
         onUnauthorized!();
-        return;
+        throw Exception("[WebSocket] Connection aborted: No token found in Data.");
       }
 
       final response = await refreshAccessToken();
-      print("Call done ${response.statusCode}, ${response.body}");
 
       // The server refused to refresh access, user was kicked out or banned
-      try {
-        if (response.statusCode == 401) {
-          debugPrint("[WebSocket 1/2][!] Could not refresh the access token. ${response.body}");
-          onUnauthorized!();
-          return;
-        } else if (response.statusCode != 200) {
-          print("not 200! ${response.statusCode}, ${response.body}");
-          throw Exception(response);
-        }
-      } catch (e) {
-        print("[WebSocket] Failed to process connection refusal: $e");
+      if (response.statusCode == 401) {
+        onUnauthorized!();
+        throw Exception("[WebSocket] Could not refresh the access token. ${response.body}");
+      } else if (response.statusCode != 200) {
+        throw Exception(response);
       }
-
-      debugPrint("[WebSocket 1/2] Tokens successfully refreshed.");
     } catch (e, s) {
-      debugPrint("[WebSocket 1/2][!] Token refresh failed: $e, StackTrace:\n$s");
+      debugPrint("[WebSocket] Token refresh failed: $e, StackTrace:\n$s");
       connectionState.value = ConnectionState.NotConnected;
       _scheduleReconnect();
       return;
@@ -182,28 +160,21 @@ class ConnectionController {
     try {
       connectionState.value = ConnectionState.Connecting;
 
-      debugPrint("[WebSocket 2/2] Connecting...");
-
       final socket = await WebSocket.connect(serverWebSocketAddress, headers: {'Authorization': 'Bearer ${data.token}'}).timeout(const Duration(seconds: 40));
-      print("[WebSocket 2/2] await WebSocket.connect() finished");
 
       socket.done.catchError((e) {
         debugPrint("[WebSocket] Socket done with error: $e");
       });
 
       _channel = IOWebSocketChannel(socket);
-      print("[WebSocket] Channel created.");
-
       connectionAttempts = 0;
 
-      print("[WebSocket] Adding listeners");
       _channel!.stream.listen(
         (message) {
           try {
             final receivedData = jsonDecode(message);
 
             if (receivedData is List) {
-              print("$receivedData ${receivedData.runtimeType} ${receivedData[0]} ${receivedData[0].runtimeType}");
               for (var element in receivedData) {
                 _handleMessage(element);
               }
@@ -211,7 +182,7 @@ class ConnectionController {
               _handleMessage(receivedData);
             }
           } catch (e) {
-            debugPrint("[WebSocket] Message received by server could not be decoded: $e. Message content: $message");
+            debugPrint("[WebSocket] An error occurred while decoding a message: $e. Message content: $message");
           }
         },
 
@@ -229,10 +200,9 @@ class ConnectionController {
         },
       );
 
-      debugPrint("[WebSocket 2/2] Connected!");
       connectionState.value = ConnectionState.Connected;
     } catch (e) {
-      debugPrint("[WebSocket 2/2][!] Connection failed: $e");
+      debugPrint("[WebSocket] Connection FAILED: $e");
 
       connectionState.value = ConnectionState.NotConnected;
       _channel = null;
