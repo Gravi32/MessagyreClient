@@ -9,6 +9,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -177,7 +178,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                           margin: EdgeInsets.zero,
                           children: [
                             CupertinoListTile(
-                              title: CupertinoTextField(
+                              title: DismissableTextField(
                                 controller: displayNameController,
                                 decoration: BoxDecoration(),
                                 padding: EdgeInsets.zero,
@@ -196,7 +197,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                           margin: EdgeInsets.zero,
                           children: [
                             CupertinoListTile(
-                              title: CupertinoTextField(
+                              title: DismissableTextField(
                                 controller: bioController,
                                 decoration: BoxDecoration(),
                                 padding: EdgeInsets.symmetric(vertical: 8),

@@ -6,6 +6,7 @@ import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
+import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGrade extends StatefulWidget {
@@ -42,11 +43,12 @@ class _NewGradeState extends State<NewGrade> {
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
         context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: Text("Titre requis"),
-          content: Text("Veuillez entrer un titre pour la note."),
-          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
-        ),
+        builder:
+            (dialogContext) => CupertinoAlertDialog(
+              title: Text("Titre requis"),
+              content: Text("Veuillez entrer un titre pour la note."),
+              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
+            ),
       );
       return;
     }
@@ -68,12 +70,13 @@ class _NewGradeState extends State<NewGrade> {
   void showSubjectPicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CustomSubjectPicker(
-        initialSubject: subject,
-        onSubjectSelected: (selectedSubject) {
-          setState(() => subject = selectedSubject);
-        },
-      ),
+      builder:
+          (_) => CustomSubjectPicker(
+            initialSubject: subject,
+            onSubjectSelected: (selectedSubject) {
+              setState(() => subject = selectedSubject);
+            },
+          ),
     );
   }
 
@@ -170,7 +173,7 @@ class _NewGradeState extends State<NewGrade> {
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CupertinoTextField(
+                DismissableTextField(
                   controller: titleController,
                   decoration: const BoxDecoration(),
                   padding: EdgeInsets.zero,
@@ -200,22 +203,25 @@ class _NewGradeState extends State<NewGrade> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           spacing: 6,
-                          children: fractions.keys
-                              .map((key) {
-                                final isSelected = weight == key;
-                                return CupertinoButton(
-                                  color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
-                                  foregroundColor: isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                  padding: EdgeInsets.zero,
-                                  child: Text(fractions[key] ?? "?", style: const TextStyle(fontWeight: FontWeight.w600)),
-                                  onPressed: () => setState(() {
-                                    weight = key;
-                                  }),
-                                );
-                              })
-                              .toList()
-                              .reversed
-                              .toList(),
+                          children:
+                              fractions.keys
+                                  .map((key) {
+                                    final isSelected = weight == key;
+                                    return CupertinoButton(
+                                      color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
+                                      foregroundColor:
+                                          isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                      padding: EdgeInsets.zero,
+                                      child: Text(fractions[key] ?? "?", style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      onPressed:
+                                          () => setState(() {
+                                            weight = key;
+                                          }),
+                                    );
+                                  })
+                                  .toList()
+                                  .reversed
+                                  .toList(),
                         ),
                       ),
                     ],
@@ -271,12 +277,14 @@ class _NewGradeState extends State<NewGrade> {
                       ...groupNames.map((name) {
                         return CupertinoListTile(
                           title: Text(name),
-                          onTap: () => setState(() {
-                            groupName = name;
-                          }),
-                          trailing: groupName == name
-                              ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))
-                              : null,
+                          onTap:
+                              () => setState(() {
+                                groupName = name;
+                              }),
+                          trailing:
+                              groupName == name
+                                  ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))
+                                  : null,
                         );
                       }),
                       CupertinoListTile(
@@ -306,7 +314,7 @@ class _NewGradeState extends State<NewGrade> {
                                     SizedBox(height: 10),
                                     SizedBox(
                                       height: 40,
-                                      child: CupertinoTextField(
+                                      child: DismissableTextField(
                                         padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                         decoration: BoxDecoration(color: CupertinoColors.systemGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
                                         controller: controller,
@@ -380,7 +388,7 @@ class _NewGradeState extends State<NewGrade> {
                           return Stack(
                             alignment: Alignment.topRight,
                             children: [
-                              CupertinoTextField(
+                              DismissableTextField(
                                 controller: detailsController,
                                 focusNode: focusNode,
                                 decoration: BoxDecoration(),
@@ -397,13 +405,7 @@ class _NewGradeState extends State<NewGrade> {
                                   child: CupertinoButton(
                                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     onPressed: () => focusNode.unfocus(),
-                                    child: Text(
-                                      "Fermer",
-                                      style: TextStyle(
-                                        color: CupertinoTheme.of(context).primaryColor,
-                                        fontSize: 14,
-                                      ),
-                                    ),
+                                    child: Text("Fermer", style: TextStyle(color: CupertinoTheme.of(context).primaryColor, fontSize: 14)),
                                   ),
                                 ),
                             ],
@@ -429,23 +431,24 @@ class _NewGradeState extends State<NewGrade> {
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
-                            builder: (_) => CupertinoAlertDialog(
-                              title: Text("Supprimer la note"),
-                              content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
-                              actions: [
-                                CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                                CupertinoDialogAction(
-                                  isDestructiveAction: true,
-                                  child: Text("Supprimer"),
-                                  onPressed: () {
-                                    widget.toEdit?.delete();
-                                    widget.onDelete?.call();
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop(widget.toEdit);
-                                  },
+                            builder:
+                                (_) => CupertinoAlertDialog(
+                                  title: Text("Supprimer la note"),
+                                  content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
+                                  actions: [
+                                    CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                                    CupertinoDialogAction(
+                                      isDestructiveAction: true,
+                                      child: Text("Supprimer"),
+                                      onPressed: () {
+                                        widget.toEdit?.delete();
+                                        widget.onDelete?.call();
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pop(widget.toEdit);
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
                           );
                         },
                       ),
