@@ -51,12 +51,13 @@ class _NewHomeworkState extends State<NewHomework> {
   void showSubjectPicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CustomSubjectPicker(
-        initialSubject: subject,
-        onSubjectSelected: (selectedSubject) {
-          setState(() => subject = selectedSubject);
-        },
-      ),
+      builder:
+          (_) => CustomSubjectPicker(
+            initialSubject: subject,
+            onSubjectSelected: (selectedSubject) {
+              setState(() => subject = selectedSubject);
+            },
+          ),
     );
   }
 
@@ -85,14 +86,17 @@ class _NewHomeworkState extends State<NewHomework> {
   KeyboardActionsConfig _buildKeyboardConfig() {
     return KeyboardActionsConfig(
       keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
+      keyboardBarColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
       actions: [
         KeyboardActionsItem(
           focusNode: contentFocus,
           toolbarButtons: [
-            (node) => CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: const Text("Terminé"),
-              onPressed: () => node.unfocus(),
+            (node) => GestureDetector(
+              child: Padding(
+                padding: EdgeInsetsGeometry.only(right: 10),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoColors.label.resolveFrom(context)),
+              ),
+              onTap: () => node.unfocus(),
             ),
           ],
         ),
@@ -102,12 +106,13 @@ class _NewHomeworkState extends State<NewHomework> {
 
   @override
   Widget build(BuildContext context) {
-    final previewHomework = Homework()
-      ..subject = subject
-      ..content = contentController.text.trim()
-      ..dueDate = dueDate
-      ..isGraded = isGraded
-      ..isTest = isTest;
+    final previewHomework =
+        Homework()
+          ..subject = subject
+          ..content = contentController.text.trim()
+          ..dueDate = dueDate
+          ..isGraded = isGraded
+          ..isTest = isTest;
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -136,10 +141,7 @@ class _NewHomeworkState extends State<NewHomework> {
             physics: const ClampingScrollPhysics(),
             children: [
               // Preview HomeworkCard
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-                child: HomeworkCard(homework: previewHomework, isPreview: true),
-              ),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18), child: HomeworkCard(homework: previewHomework, isPreview: true)),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -159,7 +161,7 @@ class _NewHomeworkState extends State<NewHomework> {
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
                       onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
                     ),
-                    SizedBox(height: 12,),
+                    SizedBox(height: 12),
                     CupertinoTextField(
                       controller: contentController,
                       focusNode: contentFocus,
@@ -210,10 +212,11 @@ class _NewHomeworkState extends State<NewHomework> {
                     title: const Text("Test"),
                     trailing: CupertinoSwitch(
                       value: isTest,
-                      onChanged: (value) => setState(() {
-                        isTest = value;
-                        isGraded = false;
-                      }),
+                      onChanged:
+                          (value) => setState(() {
+                            isTest = value;
+                            isGraded = false;
+                          }),
                     ),
                   ),
                 ],
