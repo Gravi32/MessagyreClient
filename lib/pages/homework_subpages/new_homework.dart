@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -83,27 +82,6 @@ class _NewHomeworkState extends State<NewHomework> {
     super.dispose();
   }
 
-  KeyboardActionsConfig _buildKeyboardConfig() {
-    return KeyboardActionsConfig(
-      keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
-      keyboardBarColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-      actions: [
-        KeyboardActionsItem(
-          focusNode: contentFocus,
-          toolbarButtons: [
-            (node) => GestureDetector(
-              child: Padding(
-                padding: EdgeInsetsGeometry.only(right: 10),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoColors.label.resolveFrom(context)),
-              ),
-              onTap: () => node.unfocus(),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final previewHomework =
@@ -135,9 +113,7 @@ class _NewHomeworkState extends State<NewHomework> {
       ),
       backgroundColor: CupertinoColors.systemGroupedBackground,
       child: SafeArea(
-        child: KeyboardActions(
-          config: _buildKeyboardConfig(),
-          child: ListView(
+        child: ListView(
             physics: const ClampingScrollPhysics(),
             children: [
               // Preview HomeworkCard
@@ -175,6 +151,7 @@ class _NewHomeworkState extends State<NewHomework> {
                       maxLines: 10,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w400),
+                      onTapOutside: (event) => contentFocus.unfocus(),
                     ),
                   ],
                 ),
@@ -225,7 +202,7 @@ class _NewHomeworkState extends State<NewHomework> {
             ],
           ),
         ),
-      ),
+      
     );
   }
 }
