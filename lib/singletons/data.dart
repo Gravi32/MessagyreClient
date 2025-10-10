@@ -37,14 +37,16 @@ class Data {
   List<String> appLogs = [];
 
   void log(String? message) {
-    final timestamp = DateTime.now();
-    final logEntry = "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
+    try {
+      final timestamp = DateTime.now();
+      final logEntry = "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
 
-    appLogs.add(logEntry);
+      appLogs.add(logEntry);
 
-    if (appLogs.length > 1000) {
-      appLogs.removeAt(0);
-    }
+      if (appLogs.length > 1000) {
+        appLogs.removeAt(0);
+      }
+    } catch (_) {}
   }
 
   ValueNotifier<String?> getPfpNotifier(String accountUsername) {
