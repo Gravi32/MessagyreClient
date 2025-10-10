@@ -137,6 +137,8 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     String originalBio = profile["Bio"] ?? "";
     final displayNameController = TextEditingController(text: originalDisplayName);
     final bioController = TextEditingController(text: originalBio);
+    final displayNameFocusNode = FocusNode();
+    final bioFocusNode = FocusNode();
 
     showCupertinoSheet(
       context: context,
@@ -180,6 +182,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             CupertinoListTile(
                               title: DismissableTextField(
                                 controller: displayNameController,
+                                focusNode: displayNameFocusNode,
                                 decoration: BoxDecoration(),
                                 padding: EdgeInsets.zero,
                                 placeholder: "Entrez votre pseudo",
@@ -188,6 +191,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                 maxLength: 100,
                                 onChanged: (_) => setSheetState(() {}),
                               ),
+                              onTap: () => displayNameFocusNode.requestFocus(),
                             ),
                           ],
                         ),
@@ -199,6 +203,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             CupertinoListTile(
                               title: DismissableTextField(
                                 controller: bioController,
+                                focusNode: bioFocusNode,
                                 decoration: BoxDecoration(),
                                 padding: EdgeInsets.symmetric(vertical: 8),
                                 placeholder: "Bio",
@@ -206,6 +211,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                 maxLines: 5,
                                 maxLength: 100,
                                 onChanged: (_) => setSheetState(() {}),
+                                onTap: () => bioFocusNode.requestFocus(),
                               ),
                             ),
                           ],
