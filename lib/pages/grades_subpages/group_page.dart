@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 
 class GroupPage extends StatefulWidget {
@@ -42,12 +43,12 @@ class _GroupPageState extends State<GroupPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 4,
                         children: [
-                          Text(
+                          CustomText(
                             gradeData.title,
                             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                           ),
                           if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
-                            Text(
+                            CustomText(
                               gradeData.details!,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,

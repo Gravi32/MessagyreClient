@@ -11,6 +11,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
@@ -296,7 +297,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
           spacing: 9,
           runSpacing: 4,
           children: [
-            Padding(padding: EdgeInsetsGeometry.only(bottom: 3.5), child: Text(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 17))),
+            Padding(padding: EdgeInsetsGeometry.only(bottom: 3.5), child: CustomText(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 15))),
             Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
