@@ -199,29 +199,20 @@ class _NewGradeState extends State<NewGrade> {
                       Divider(thickness: .25, color: CupertinoColors.separator.resolveFrom(context)),
                       Text("Valeur", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
                       SingleChildScrollView(
-                        padding: EdgeInsets.only(top: 6),
                         scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.only(top: 6),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 6,
                           children:
-                              fractions.keys
-                                  .map((key) {
-                                    final isSelected = weight == key;
-                                    return CupertinoButton(
-                                      color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
-                                      foregroundColor:
-                                          isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                      padding: EdgeInsets.zero,
-                                      child: Text(fractions[key] ?? "?", style: const TextStyle(fontWeight: FontWeight.w600)),
-                                      onPressed:
-                                          () => setState(() {
-                                            weight = key;
-                                          }),
-                                    );
-                                  })
-                                  .toList()
-                                  .reversed
-                                  .toList(),
+                              fractions.keys.map((key) {
+                                return WeightButton(
+                                  value: key,
+                                  selectedWeight: weight,
+                                  label: fractions[key] ?? "?",
+                                  onTap: () => setState(() => weight = key),
+                                );
+                              }).toList().reversed.toList(),
                         ),
                       ),
                     ],
@@ -457,6 +448,40 @@ class _NewGradeState extends State<NewGrade> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class WeightButton extends StatelessWidget {
+  final double value;
+  final double selectedWeight;
+  final String label;
+  final VoidCallback onTap;
+
+  const WeightButton({super.key, required this.value, required this.selectedWeight, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == selectedWeight;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+          ),
         ),
       ),
     );
