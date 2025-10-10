@@ -32,11 +32,12 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
                       title: Text("Inclure les week-ends"),
                       trailing: CupertinoSwitch(
                         value: data.settings.includeWeekends,
-                        onChanged:
-                            (newValue) => setState(() {
-                              data.settings.includeWeekends = newValue;
-                              data.settings.save();
-                            }),
+                        onChanged: (newValue) {
+                          setState(() {
+                            data.settings.includeWeekends = newValue;
+                          });
+                          data.settings.save();
+                        },
                       ),
                     ),
                   ],
