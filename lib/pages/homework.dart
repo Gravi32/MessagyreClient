@@ -231,6 +231,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         final opacity = isPassed ? 0.5 : 1.0;
 
                         final thisDaysHomework = homeworkByDate[DateTime(date.year, date.month, date.day)] ?? [];
+                        final formattedDate = formatDate(date);
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 7),
@@ -250,11 +251,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                       color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
                                     ),
                                   ),
-                                  if (int.tryParse(formatDate(date)[0]) == null)
+                                  if (int.tryParse(formattedDate[0]) == null)
                                     Text(
-                                      DateFormat("d MMMM", "fr_CH").format(date),
+                                      DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
                                       style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                                     ),
+                                    
                                 ],
                               ),
 
