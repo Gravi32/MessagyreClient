@@ -124,6 +124,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
               onFieldSubmitted();
             }
           },
+          onTapOutside: (event) => focusNode.unfocus(),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
