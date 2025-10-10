@@ -150,6 +150,7 @@ class _NewHomeworkState extends State<NewHomework> {
                     SubjectAutocomplete(
                       decoration: const BoxDecoration(),
                       padding: EdgeInsets.zero,
+                      controller: subjectController,
                       placeholder: "Branche",
                       prefix: Padding(
                         padding: const EdgeInsets.only(right: 10),
