@@ -7,11 +7,20 @@ class CustomText extends StatelessWidget {
   final bool softWrap;
   final TextOverflow overflow;
   final int? maxLines;
+  final List<InlineSpan>? extraSpans;
 
-  const CustomText(this.text, {super.key, this.style, this.boldWeight, this.softWrap = true, this.overflow = TextOverflow.clip, this.maxLines});
+  const CustomText(
+    this.text, {
+    super.key,
+    this.style,
+    this.boldWeight,
+    this.softWrap = true,
+    this.overflow = TextOverflow.clip,
+    this.maxLines,
+    this.extraSpans,
+  });
 
-  @override
-  Widget build(BuildContext context) {
+  static List<InlineSpan> parseSpans(String text, {TextStyle? style, FontWeight? boldWeight}) {
     final spans = <TextSpan>[];
     final regex = RegExp(r'\*(.*?)\*');
     int lastMatchEnd = 0;
@@ -24,7 +33,8 @@ class CustomText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: match.group(1),
-          style: style?.merge(TextStyle(fontWeight: boldWeight ?? FontWeight.bold)) ?? TextStyle(fontWeight: boldWeight ?? FontWeight.bold),
+          style: style?.merge(TextStyle(fontWeight: boldWeight ?? FontWeight.bold))
+              ?? TextStyle(fontWeight: boldWeight ?? FontWeight.bold),
         ),
       );
 
@@ -35,6 +45,21 @@ class CustomText extends StatelessWidget {
       spans.add(TextSpan(text: text.substring(lastMatchEnd), style: style));
     }
 
-    return RichText(text: TextSpan(children: spans), overflow: overflow, softWrap: softWrap, maxLines: maxLines);
+    return spans;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = parseSpans(text, style: style, boldWeight: boldWeight);
+    if (extraSpans != null) {
+      spans.addAll(extraSpans!);
+    }
+
+    return RichText(
+      text: TextSpan(children: spans, style: style),
+      overflow: overflow,
+      softWrap: softWrap,
+      maxLines: maxLines,
+    );
   }
 }

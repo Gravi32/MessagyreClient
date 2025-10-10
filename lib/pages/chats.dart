@@ -10,6 +10,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class ChatsPage extends StatefulWidget {
@@ -57,11 +58,15 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                   alignment: PlaceholderAlignment.middle,
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 2),
-                                    child: HugeIcon(icon: getStatusIcon(data.content.last.status), size: 20, color: CupertinoColors.systemGrey.resolveFrom(context)),
+                                    child: HugeIcon(
+                                      icon: getStatusIcon(data.content.last.status),
+                                      size: 20,
+                                      color: CupertinoColors.systemGrey.resolveFrom(context),
+                                    ),
                                   ),
                                 ),
-                              TextSpan(
-                                text: data.content.last.content.trim(),
+                              ...CustomText.parseSpans(
+                                data.content.last.content.trim(),
                                 style: TextStyle(
                                   fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
                                   color: CupertinoColors.systemGrey.resolveFrom(context),
