@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
@@ -79,6 +81,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
 
+    print(account);
     if (account == null) getAccount();
 
     return CupertinoPageScaffold(
@@ -99,14 +102,17 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                   (account == null || data.username == null)
                       ? SettingsTile(title: SizedBox(height: 39, child: CupertinoActivityIndicator()))
                       : SettingsTile.navigation(
-                        leading: ProfilePictureDisplay(accountUsername: data.username!, radius: 28,),
-                        title: Padding(padding: EdgeInsetsGeometry.symmetric(vertical: 8), child:  Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                            Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 16)),
-                          ],
-                        ),), 
+                        leading: ProfilePictureDisplay(accountUsername: data.username!, radius: 28),
+                        title: Padding(
+                          padding: EdgeInsetsGeometry.symmetric(vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                              Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 16)),
+                            ],
+                          ),
+                        ),
                         onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))),
                       ),
 
@@ -117,13 +123,20 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
 
                           data.username = null;
                           data.token = null;
+                          account = null;
                           await secureStorage.delete(key: "AccessToken");
                           await secureStorage.delete(key: "RefreshToken");
                           await Hive.box("Misc").delete("Username");
 
+                          if (!context.mounted) return;
+                          final mountedContext = context;
+                          Phoenix.rebirth(mountedContext); // Restarting the app
+
                           if (router.onUnauthorized != null) {
                             router.onUnauthorized!();
                           }
+
+                          MainPage.pageIndex.value = 2;
                         }),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
                     title: Text("Se déconnecter"),
