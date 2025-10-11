@@ -103,6 +103,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
     final newHomework = await showCupertinoModalBottomSheet<Homework?>(
       expand: false,
       enableDrag: false,
+      previousRouteAnimationCurve: Curves.ease,
       clipBehavior: Clip.none,
       backgroundColor: CupertinoColors.transparent,
       context: context,
