@@ -34,6 +34,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   List<Homework> nearbyTests = [];
   bool isNearbyTestsNotifierHidden = false;
+  int currentViewingTestIndex = -1;
+  bool isAnimating = false;
 
   List<DateTime> get allDays {
     final rawList = List<DateTime>.generate(data.schoolEnd.difference(data.schoolStart).inDays, (i) => data.schoolStart.add(Duration(days: i)));
@@ -63,6 +65,19 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
     groupHomeworkByDate();
     allHomework.listenable().addListener(groupHomeworkByDate);
+
+    timelineController.addListener(() {
+      if (isAnimating) return;
+      if (currentViewingTestIndex != -1) {
+        setState(() => currentViewingTestIndex = -1);
+      }
+    });
+  }
+
+  void animateToPage(int pageIndex) async {
+    isAnimating = true;
+    await timelineController.animateToPage(pageIndex, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+    isAnimating = false;
   }
 
   void groupHomeworkByDate() {
@@ -103,80 +118,98 @@ class _HomeworkPageState extends State<HomeworkPage> {
   Widget buildNearbyTestsNotifier() {
     return Stack(
       children: [
-        Container(
-          constraints: BoxConstraints(minHeight: 80),
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
-              stops: [0, 0.7, 1],
-              center: AlignmentGeometry.bottomRight,
-              radius: 5,
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              if (currentViewingTestIndex >= nearbyTests.length - 1) {
+                currentViewingTestIndex = 0;
+              } else {
+                currentViewingTestIndex += 1;
+              }
+            });
+
+            final testDate = nearbyTests[currentViewingTestIndex].dueDate;
+
+            animateToPage(allDays.indexWhere((date) => testDate.year == date.year && testDate.month == date.month && testDate.day == date.day));
+          },
+          child: Container(
+            constraints: BoxConstraints(minHeight: 80),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
+                stops: [0, 0.7, 1],
+                center: AlignmentGeometry.bottomRight,
+                radius: 5,
+              ),
+              borderRadius: BorderRadius.circular(10),
             ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                bottom: -20,
-                right: -10,
-                child: Transform.rotate(
-                  angle: pi / 15,
-                  child: Opacity(
-                    opacity: .15,
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.white.withAlpha(50), strokeWidth: 2, size: 100),
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: -20,
+                  right: -10,
+                  child: Transform.rotate(
+                    angle: pi / 15,
+                    child: Opacity(
+                      opacity: .15,
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.white.withAlpha(50), strokeWidth: 2, size: 100),
+                    ),
                   ),
                 ),
-              ),
 
-              Padding(
-                padding: EdgeInsetsGeometry.all(6),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
+                Padding(
+                  padding: EdgeInsetsGeometry.all(6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        nearbyTests.length > 1
+                            ? "*Plusieurs* tests approchent !"
+                            : "*Test* de *${SubjectHelper.toFrench(nearbyTests.first.subject)}* ce ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                        boldWeight: FontWeight.w800,
+                      ),
                       nearbyTests.length > 1
-                          ? "*Plusieurs* tests approchent !"
-                          : "*Test* de *${SubjectHelper.toFrench(nearbyTests.first.subject)}* ce ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                      boldWeight: FontWeight.w800,
-                    ),
-                    nearbyTests.length > 1
-                        ? Padding(
-                          padding: EdgeInsetsGeometry.symmetric(vertical: 6),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            spacing: 2,
-                            children:
-                                nearbyTests
-                                    .map(
-                                      (test) => CustomText(
-                                        "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)}",
-                                        style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(160)),
-                                        boldWeight: FontWeight.w600,
-                                      ),
-                                    )
-                                    .toList(),
-                          ),
-                        )
-                        : Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          spacing: 4,
-                          children: [
-                            Opacity(
-                              opacity: .6,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: CupertinoColors.white.withAlpha(160), size: 16),
+                          ? Padding(
+                            padding: EdgeInsetsGeometry.symmetric(vertical: 6),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              spacing: 2,
+                              children:
+                                  nearbyTests
+                                      .map(
+                                        (test) => CustomText(
+                                          "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: CupertinoColors.white.withAlpha(nearbyTests.indexOf(test) == currentViewingTestIndex ? 255 : 160),
+                                          ),
+                                          boldWeight: FontWeight.w600,
+                                        ),
+                                      )
+                                      .toList(),
                             ),
-                            Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(160))),
-                          ],
-                        ),
-                  ],
+                          )
+                          : Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            spacing: 4,
+                            children: [
+                              Opacity(
+                                opacity: .6,
+                                child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: CupertinoColors.white.withAlpha(160), size: 16),
+                              ),
+                              Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(160))),
+                            ],
+                          ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         Positioned(
@@ -256,7 +289,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                       DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
                                       style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                                     ),
-                                    
                                 ],
                               ),
 
@@ -354,7 +386,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CupertinoPressable(
-                      onTap: () => timelineController.animateToPage(tomorrowPageIndex, duration: Duration(milliseconds: 300), curve: Curves.easeOutExpo),
+                      onTap:
+                          () => setState(() {
+                            currentViewingTestIndex = -1;
+                            animateToPage(tomorrowPageIndex);
+                          }),
 
                       padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
