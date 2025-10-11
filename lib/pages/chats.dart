@@ -28,8 +28,10 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
   // Widgets
 
-  Widget buildChatBar(Chat data) {
-    var hasUnreadMessages = data.unreadMessages > 0;
+  Widget buildChatBar(Chat chatData) {
+    final isBlocked = data.blockedUsers.contains(chatData.recipientUsername);
+    var hasUnreadMessages = chatData.unreadMessages > 0;
+
     return Column(
       children: [
         CupertinoButton(
@@ -38,35 +40,49 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
             height: 50,
             child: Row(
               children: [
-                ProfilePictureDisplay(accountUsername: data.recipientUsername, radius: 25),
+                Container(
+                  foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
+                  child: ProfilePictureDisplay(accountUsername: chatData.recipientUsername, radius: 25),
+                ),
 
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        data.recipientDisplayUsername ?? Account.getDefaultDisplayName(data.recipientUsername),
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                      Row(
+                        spacing: 6,
+                        children: [
+                          if (isBlocked)
+                            Opacity(
+                              opacity: .5,
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                            ),
+                          Text(
+                            chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(chatData.recipientUsername),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                          ),
+                        ],
                       ),
+
                       Expanded(
                         child: Text.rich(
                           TextSpan(
                             children: [
-                              if (data.content.isNotEmpty && data.content.last.isOwned)
+                              if (chatData.content.isNotEmpty && chatData.content.last.isOwned)
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 2),
                                     child: HugeIcon(
-                                      icon: getStatusIcon(data.content.last.status),
+                                      icon: getStatusIcon(chatData.content.last.status),
                                       size: 20,
                                       color: CupertinoColors.systemGrey.resolveFrom(context),
                                     ),
                                   ),
                                 ),
                               ...CustomText.parseSpans(
-                                data.content.last.content.trim(),
+                                chatData.content.last.content.trim(),
                                 style: TextStyle(
                                   fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
                                   color: CupertinoColors.systemGrey.resolveFrom(context),
@@ -87,7 +103,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                   children: [
                     SizedBox(height: 4),
                     Text(
-                      DateFormat('HH:mm').format(data.content.last.sentAt),
+                      DateFormat('HH:mm').format(chatData.content.last.sentAt),
                       style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                     ),
                     if (hasUnreadMessages)
@@ -95,7 +111,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                         margin: EdgeInsets.only(top: 4),
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
-                        child: Text(data.unreadMessages.toString(), style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+                        child: Text(chatData.unreadMessages.toString(), style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
                       ),
                   ],
                 ),
@@ -103,7 +119,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: data.recipientUsername)));
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: chatData.recipientUsername)));
           },
         ),
 

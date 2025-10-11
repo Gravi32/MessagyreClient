@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -31,6 +32,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   late final editMode = account.username == data.username;
 
+  bool isBlocked = false;
   bool changesMade = false;
   bool isUploading = false;
   String? chosenPicturePath;
@@ -497,10 +499,40 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
         : null;
   }
 
+  Widget buildListTile(List<List<dynamic>> icon, String title, {VoidCallback? onTap, bool isDestructive = false}) {
+    final enabled = onTap != null;
+    final color =
+        enabled
+            ? isDestructive
+                ? CupertinoColors.destructiveRed.resolveFrom(context)
+                : CupertinoColors.label.resolveFrom(context)
+            : CupertinoColors.inactiveGray.resolveFrom(context);
+
+    return CupertinoListTile(leading: HugeIcon(icon: icon, color: color), title: Text(title, style: TextStyle(color: color)), onTap: onTap);
+  }
+
   @override
   Widget build(BuildContext context) {
+    isBlocked = data.blockedUsers.contains(account.username);
+
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(leading: buildLeading(), middle: Text(editMode ? "Mon profil" : account.username), trailing: buildTrailing()),
+      navigationBar: CupertinoNavigationBar(
+        leading: buildLeading(),
+        middle: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
+          children: [
+            Text(editMode ? "Mon profil" : account.username),
+            if (isBlocked)
+              Opacity(
+                opacity: .5,
+                child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+              ),
+          ],
+        ),
+        trailing: buildTrailing(),
+      ),
       child: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(10),
@@ -515,7 +547,14 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ProfilePictureDisplay(accountUsername: chosenPicturePath != null ? null : account.username, picturePath: chosenPicturePath, radius: 40),
+                    Container(
+                      foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
+                      child: ProfilePictureDisplay(
+                        accountUsername: chosenPicturePath != null ? null : account.username,
+                        picturePath: chosenPicturePath,
+                        radius: 40,
+                      ),
+                    ),
                     Column(
                       spacing: 5,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -546,42 +585,97 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                 SizedBox(height: 6),
 
+                if (isBlocked)
+                  CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.zero,
+                    children: [
+                      buildListTile(
+                        HugeIcons.strokeRoundedUserUnlock01,
+                        "Débloquer cet utilisateur",
+                        onTap:
+                            () => showCupertinoDialog(
+                              context: context,
+                              builder:
+                                  (dialogContext) => CupertinoAlertDialog(
+                                    title: Text("Débloquer ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ?"),
+                                    content: Text(
+                                      "Vous pourrez à nouveau recevoir de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
+                                    ),
+                                    actions: [
+                                      CupertinoDialogAction(
+                                        child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                        onPressed: () => Navigator.pop(dialogContext),
+                                      ),
+                                      CupertinoDialogAction(
+                                        isDefaultAction: true,
+                                        child: Text("Débloquer", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                        onPressed: () {
+                                          data.unblockUser(account.username);
+                                          setState(() {});
+                                          Navigator.pop(dialogContext);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                      ),
+                    ],
+                  ),
+
                 if (account.username != data.username) ...[
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSent, color: CupertinoColors.label.resolveFrom(context)),
-                        title: Text("Envoyer un message"),
+                      buildListTile(
+                        HugeIcons.strokeRoundedSent,
+                        "Envoyer un message",
                         onTap:
-                            () =>
-                                Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username))),
+                            isBlocked
+                                ? null
+                                : () => Navigator.pushReplacement(
+                                  context,
+                                  CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username)),
+                                ),
                       ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedUserGroup, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Ajouter à un groupe", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedLinkForward, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Transférer ce profil", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Partager ce profil", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
+                      buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
+                      buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
+                      buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
                     ],
                   ),
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedFlag02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Signaler", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Bloquer", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
+                      if (!isBlocked)
+                        buildListTile(
+                          HugeIcons.strokeRoundedUserBlock01,
+                          "Bloquer",
+                          isDestructive: true,
+                          onTap:
+                              () => showCupertinoDialog(
+                                context: context,
+                                builder:
+                                    (dialogContext) => CupertinoAlertDialog(
+                                      title: Text("Bloquer ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ?"),
+                                      content: Text("Vous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action."),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                          onPressed: () => Navigator.pop(dialogContext),
+                                        ),
+                                        CupertinoDialogAction(
+                                          isDestructiveAction: true,
+                                          child: Text("Bloquer"),
+                                          onPressed: () {
+                                            data.blockUser(account.username);
+                                            setState(() {});
+                                            Navigator.pop(dialogContext);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                              ),
+                        ),
+                      buildListTile(HugeIcons.strokeRoundedFlag02, "Signaler"),
                     ],
                   ),
                 ],
@@ -590,19 +684,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedPin, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Épingler", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Effacer les messages", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed),
-                        title: Text("Supprimer la conversation", style: TextStyle(color: CupertinoColors.destructiveRed)),
-                        onTap: deleteChat,
-                      ),
+                      buildListTile(HugeIcons.strokeRoundedPin, "Épingler"),
+                      buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages"),
+                      buildListTile(HugeIcons.strokeRoundedDelete04, "Supprimer la conversation", isDestructive: true, onTap: deleteChat),
                     ],
                   ),
 
@@ -610,20 +694,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.label.resolveFrom(context)),
-                        title: Text("Modifier le profil"),
-                        onTap: () => changeProfile(),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, color: CupertinoColors.label.resolveFrom(context)),
-                        title: Text("Changer de photo de profil"),
-                        onTap: () => changeProfilePicture(),
-                      ),
-                      CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                        title: Text("Parametres de visibilité", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                      ),
+                      buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
+                      buildListTile(HugeIcons.strokeRoundedUserCircle, "Changer de photo de profil", onTap: () => changeProfilePicture()),
+                      buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
                     ],
                   ),
               ],

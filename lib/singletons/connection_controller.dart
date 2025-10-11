@@ -216,6 +216,7 @@ class ConnectionController {
       final isReadReceipt = rawMessageData.containsKey("ReadAt");
 
       if (sender == null) throw FormatException("Missing SenderUsername");
+      if (data.blockedUsers.contains(sender)) return;
 
       if (isReadReceipt) {
         final readAt = DateTime.parse(rawMessageData["ReadAt"].toString()).toLocal();

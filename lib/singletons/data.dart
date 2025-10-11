@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
@@ -60,5 +61,28 @@ class Data {
     pfpNotifiersCache[accountUsername] = ValueNotifier<String?>(null);
     router.getProfilePicture(accountUsername);
     return pfpNotifiersCache[accountUsername]!;
+  }
+
+  // Blocked users
+
+  List<String>? _blockedUsers;
+
+  List<String> get blockedUsers {
+    if (_blockedUsers != null) return _blockedUsers!;
+    return _blockedUsers = List<String>.from(Hive.box("Misc").get("BlockedUsers", defaultValue: <String>[]));
+  }
+
+  Future<void> _saveBlockedUsers() async => Hive.box("Misc").put("BlockedUsers", _blockedUsers);
+
+  Future<void> blockUser(String id) async {
+    if (blockedUsers.contains(id)) return;
+    blockedUsers.add(id);
+    await _saveBlockedUsers();
+  }
+
+  Future<void> unblockUser(String id) async {
+    if (!blockedUsers.contains(id)) return;
+    blockedUsers.remove(id);
+    await _saveBlockedUsers();
   }
 }
