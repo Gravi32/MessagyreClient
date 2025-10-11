@@ -468,7 +468,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
           child: isUploading ? CupertinoActivityIndicator() : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
           onPressed: () async {
             setState(() => isUploading = true);
-            bool success = await router.uploadProfile(profile, imagePath: chosenPicturePath);
+            bool success = await router.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
             setState(() => isUploading = false);
 
             if (!context.mounted) return;
@@ -486,7 +486,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                         child: Text("OK"),
                         onPressed: () {
                           Navigator.of(dialogContext).pop();
-                          if (success) Navigator.of(context).pop();
+                          if (success) Navigator.of(context).pop(true);
                         },
                       ),
                     ],

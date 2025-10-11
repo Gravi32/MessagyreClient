@@ -81,7 +81,6 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
 
-    print(account);
     if (account == null) getAccount();
 
     return CupertinoPageScaffold(
@@ -113,7 +112,10 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                             ],
                           ),
                         ),
-                        onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))),
+                        onPressed:
+                            (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))).then((updated) {
+                              if (updated) getAccount();
+                            }),
                       ),
 
                   SettingsTile.navigation(

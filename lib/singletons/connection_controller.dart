@@ -298,11 +298,12 @@ class ConnectionController {
 
   // HTTP Requests
 
-  Future<bool> uploadProfile(Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
+  Future<bool> uploadProfile(String? displayName, Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
     final uri = Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfile');
     final request = http.MultipartRequest('POST', uri);
 
     request.headers['Authorization'] = 'Bearer ${data.token}';
+    request.fields['DisplayName'] = displayName ?? '';
     request.fields['Profile'] = jsonEncode(profileObject);
 
     if (imagePath != null) {
