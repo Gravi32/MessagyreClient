@@ -18,7 +18,7 @@ class CustomDatePicker extends StatefulWidget {
     required this.onDateSelected,
     this.allowFuture = true,
     this.allowPast = true,
-    this.isPreviewMode = false
+    this.isPreviewMode = false,
   });
 
   @override
@@ -58,33 +58,32 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   @override
   Widget build(BuildContext context) {
     final includeWeekends = data.settings.includeWeekends;
-    final daysOfTheWeek = includeWeekends
-        ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-        : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
+    final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(
       height: 400,
       decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       child: Column(
         children: [
-          if (!widget.isPreviewMode) Container(
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CupertinoButton(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Annuler"), onPressed: () => Navigator.of(context).pop()),
-                Text("Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                CupertinoButton(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Terminé"),
-                  onPressed: () {
-                    widget.onDateSelected(tempDate);
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+          if (!widget.isPreviewMode)
+            Container(
+              color: CupertinoColors.systemBackground.resolveFrom(context),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Annuler"), onPressed: () => Navigator.of(context).pop()),
+                  Text("Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                  CupertinoButton(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text("Terminé"),
+                    onPressed: () {
+                      widget.onDateSelected(tempDate);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
           Expanded(
             child: SafeArea(
               top: false,
@@ -128,18 +127,19 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                           SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: daysOfTheWeek
-                                .map(
-                                  (d) => Expanded(
-                                    child: Center(
-                                      child: Text(
-                                        d,
-                                        style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            children:
+                                daysOfTheWeek
+                                    .map(
+                                      (d) => Expanded(
+                                        child: Center(
+                                          child: Text(
+                                            d,
+                                            style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                                    )
+                                    .toList(),
                           ),
                           SizedBox(height: 6),
                           Expanded(
@@ -147,11 +147,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                               padding: EdgeInsets.zero,
                               physics: ClampingScrollPhysics(),
                               shrinkWrap: true,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                crossAxisSpacing: 4,
-                                mainAxisSpacing: 4,
-                              ),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: crossAxisCount, crossAxisSpacing: 4, mainAxisSpacing: 4),
                               itemCount: totalCells,
                               itemBuilder: (context, i) {
                                 if (i < offset) return SizedBox();
@@ -163,8 +159,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                 final dayNumber = dayDate.day;
 
                                 final today = DateTime.now();
-                                final isSelected = tempDate.year == dayDate.year && tempDate.month == dayDate.month && tempDate.day == dayDate.day;
-                                final isToday = today.year == dayDate.year && today.month == dayDate.month && today.day == dayDate.day;
+                                final isSelected = tempDate.isSameDayAs(dayDate);
+                                final isToday = today.isSameDayAs(dayDate);
 
                                 return GestureDetector(
                                   onTap: () {
@@ -175,7 +171,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                       Container(
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          color: isSelected ? CupertinoTheme.of(context).primaryColor : CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          color:
+                                              isSelected
+                                                  ? CupertinoTheme.of(context).primaryColor
+                                                  : CupertinoColors.secondarySystemBackground.resolveFrom(context),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(dayNumber.toString(), style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
