@@ -232,7 +232,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                           widget.recipientUsername == lastAccountCache?.username ? lastAccountCache : await router.getAccount(widget.recipientUsername);
                       if (recipientAccount == null || !context.mounted) return;
                       lastAccountCache = recipientAccount;
-                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfileOverlay(recipientAccount)));
+                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfileOverlay(recipientAccount, openedFromChat: true,)));
                     },
                   ),
                 ),

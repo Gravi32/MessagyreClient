@@ -66,60 +66,70 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                       ),
 
                       Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              if (chatData.content.isNotEmpty && chatData.content.last.isOwned)
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 2),
-                                    child: HugeIcon(
-                                      icon: getStatusIcon(chatData.content.last.status),
-                                      size: 20,
-                                      color: CupertinoColors.systemGrey.resolveFrom(context),
-                                    ),
+                        child:
+                            chatData.content.isNotEmpty
+                                ? Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      if (chatData.content.last.isOwned)
+                                        WidgetSpan(
+                                          alignment: PlaceholderAlignment.middle,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(right: 2),
+                                            child: HugeIcon(
+                                              icon: getStatusIcon(chatData.content.last.status),
+                                              size: 20,
+                                              color: CupertinoColors.systemGrey.resolveFrom(context),
+                                            ),
+                                          ),
+                                        ),
+                                      ...CustomText.parseSpans(
+                                        chatData.content.last.content.trim(),
+                                        style: TextStyle(
+                                          fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
+                                          color: CupertinoColors.systemGrey.resolveFrom(context),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ...CustomText.parseSpans(
-                                chatData.content.last.content.trim(),
-                                style: TextStyle(
-                                  fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
-                                  color: CupertinoColors.systemGrey.resolveFrom(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                        ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                )
+                                : Text("Envoyez un message...", style: TextStyle(fontStyle: FontStyle.italic, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
                       ),
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    SizedBox(height: 4),
-                    Text(
-                      DateFormat('HH:mm').format(chatData.content.last.sentAt),
-                      style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
-                    ),
-                    if (hasUnreadMessages)
-                      Container(
-                        margin: EdgeInsets.only(top: 4),
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
-                        child: Text(chatData.unreadMessages.toString(), style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+                if (chatData.content.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      SizedBox(height: 4),
+                      Text(
+                        DateFormat('HH:mm').format(chatData.content.last.sentAt),
+                        style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                       ),
-                  ],
-                ),
+                      if (hasUnreadMessages)
+                        Container(
+                          margin: EdgeInsets.only(top: 4),
+                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
+                          child: Text(
+                            chatData.unreadMessages.toString(),
+                            style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                    ],
+                  ),
               ],
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: chatData.recipientUsername)));
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: chatData.recipientUsername)));
           },
         ),
 
@@ -194,7 +204,11 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
               valueListenable: allChats.listenable(),
               builder: (context, Box<Chat> box, _) {
                 final chatsList = box.values.toList();
-                chatsList.sort((a, b) => b.content.last.sentAt.compareTo(a.content.last.sentAt));
+                chatsList.sort((a, b) {
+                  final aDate = a.content.isNotEmpty ? a.content.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
+                  final bDate = b.content.isNotEmpty ? b.content.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
+                  return bDate.compareTo(aDate);
+                });
 
                 return chatsList.isEmpty
                     ? Column(

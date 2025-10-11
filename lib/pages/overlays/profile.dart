@@ -16,8 +16,9 @@ import 'package:settings_ui/settings_ui.dart';
 
 class ProfileOverlay extends StatefulWidget {
   final Account account;
+  final bool openedFromChat;
 
-  const ProfileOverlay(this.account, {super.key});
+  const ProfileOverlay(this.account, {super.key, this.openedFromChat = false});
 
   @override
   State<StatefulWidget> createState() => _ProfileOverlayState();
@@ -345,13 +346,62 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     );
   }
 
+  void deleteMessages() {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return CupertinoAlertDialog(
+          title: Text("Effacer les messages"),
+          content: Text(
+            "Voulez-vous vraiment effacer tous les messages dans la conversation avec ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ? Cette action est irréversible.",
+          ),
+          actions: [
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+
+                if (Hive.isBoxOpen("Chats")) {
+                  Hive.box<Chat>("Chats").get(account.username)?.content.clear();
+                }
+
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).push(
+                    CupertinoDialogRoute(
+                      builder:
+                          (_) => CupertinoAlertDialog(
+                            title: Text("Messages effacés."),
+                            content: Text("Tous les messages de cette conversation ont été effacés du téléphone."),
+                            actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(context))],
+                          ),
+                      context: dialogContext,
+                    ),
+                  );
+                }
+              },
+              child: Text("Effacer"),
+            ),
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void deleteChat() {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return CupertinoAlertDialog(
           title: Text("Supprimer la conversation"),
-          content: Text("Voulez-vous vraiment supprimer la conversation avec ${account.username} ? Cette action est irréversible."),
+          content: Text(
+            "Voulez-vous vraiment supprimer la conversation avec ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ? Cette action est irréversible.",
+          ),
           actions: [
             CupertinoDialogAction(
               isDestructiveAction: true,
@@ -368,7 +418,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                       builder:
                           (_) => CupertinoAlertDialog(
                             title: Text("Supprimée"),
-                            content: Text("La conversation avec ${account.username} a été supprimée du téléphone."),
+                            content: Text(
+                              "La conversation avec ${account.displayName ?? Account.getDefaultDisplayName(account.username)} a été supprimée du téléphone.",
+                            ),
                             actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(context))],
                           ),
                       context: dialogContext,
@@ -383,7 +435,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
               onPressed: () {
                 Navigator.pop(dialogContext);
               },
-              child: Text("Annuler"),
+              child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
             ),
           ],
         );
@@ -626,17 +678,18 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
-                      buildListTile(
-                        HugeIcons.strokeRoundedSent,
-                        "Envoyer un message",
-                        onTap:
-                            isBlocked
-                                ? null
-                                : () => Navigator.pushReplacement(
-                                  context,
-                                  CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username)),
-                                ),
-                      ),
+                      if (!widget.openedFromChat)
+                        buildListTile(
+                          HugeIcons.strokeRoundedSent,
+                          "Envoyer un message",
+                          onTap:
+                              isBlocked
+                                  ? null
+                                  : () => Navigator.pushReplacement(
+                                    context,
+                                    CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username)),
+                                  ),
+                        ),
                       buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
                       buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
                       buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
@@ -659,10 +712,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                       content: Text("Vous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action."),
                                       actions: [
                                         CupertinoDialogAction(
-                                          child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
-                                          onPressed: () => Navigator.pop(dialogContext),
-                                        ),
-                                        CupertinoDialogAction(
                                           isDestructiveAction: true,
                                           child: Text("Bloquer"),
                                           onPressed: () {
@@ -670,6 +719,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                             setState(() {});
                                             Navigator.pop(dialogContext);
                                           },
+                                        ),
+                                        CupertinoDialogAction(
+                                          child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                          onPressed: () => Navigator.pop(dialogContext),
                                         ),
                                       ],
                                     ),
@@ -685,7 +738,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(HugeIcons.strokeRoundedPin, "Épingler"),
-                      buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages"),
+                      buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages", onTap: deleteMessages),
                       buildListTile(HugeIcons.strokeRoundedDelete04, "Supprimer la conversation", isDestructive: true, onTap: deleteChat),
                     ],
                   ),
