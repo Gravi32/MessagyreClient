@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -52,7 +53,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
       tomorrow = tomorrow.add(Duration(days: 1));
     }
 
-    final index = allDays.indexWhere((d) => d.year == tomorrow.year && d.month == tomorrow.month && d.day == tomorrow.day);
+    final index = allDays.indexWhere((d) => d.isSameDayAs(tomorrow));
 
     return index >= 0 ? index : 0;
   }
@@ -131,11 +132,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
             final testDate = nearbyTests[currentViewingTestIndex].dueDate;
 
-            animateToPage(allDays.indexWhere((date) => testDate.year == date.year && testDate.month == date.month && testDate.day == date.day));
+            animateToPage(allDays.indexWhere((date) => date.isSameDayAs(testDate)));
           },
           child: Container(
             constraints: BoxConstraints(minHeight: 80),
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: EdgeInsets.only(left: 4),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
@@ -144,6 +146,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 radius: 5,
               ),
               borderRadius: BorderRadius.circular(10),
+              boxShadow: [BoxShadow(color: const Color.fromARGB(255, 126, 17, 17), blurRadius: 5, spreadRadius: 2)],
             ),
             child: Stack(
               children: [
@@ -333,6 +336,19 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                                       ],
                                                     ),
                                               ),
+                                          onMarkAsDoneButtonClicked: (isMarkedAsDone) {
+                                            bool isAllDone = true;
+
+                                            for (var homework
+                                                in homeworkByDate.entries
+                                                    .where((entry) => entry.key.isSameDayAs(date))
+                                                    .expand((entry) => entry.value)
+                                                    .toList()) {
+                                              if (!homework.isMarkedAsDone) isAllDone = false;
+                                            }
+                                            
+                                            if (isAllDone) Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
+                                          },
                                         ),
                                       );
                                     }
