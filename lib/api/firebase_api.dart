@@ -16,32 +16,25 @@ class FirebaseApi {
   final firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> initialize() async {
+    await Future.delayed(Duration(seconds: 5));
+
     await firebaseMessaging.requestPermission();
 
     data.fcmToken = await firebaseMessaging.getToken();
 
+    debugPrint("${DateTime.now()} [Firebase] APNS Token: ${firebaseMessaging.getAPNSToken()} FCM Token: ${data.fcmToken}");
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("[Firebase] Message received: ${message.messageId}");
       if (message.notification != null) {
-        NotificationController().spawn(
-          message.notification?.title ?? "",
-          message.notification?.body ?? "Une erreur est survenue.",
-        );
+        NotificationController().spawn(message.notification?.title ?? "", message.notification?.body ?? "Une erreur est survenue.");
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (message.notification?.title == null) return;
-      
-      navigatorKey.currentState?.push(
-        CupertinoPageRoute(
-          builder:
-              (_) => ChatOverlay(
-                recipientUsername:
-                    message.notification!.title!
-              ),
-        ),
-      );
+
+      navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: message.notification!.title!)));
     });
 
     firebaseMessaging.onTokenRefresh.listen((newToken) {
@@ -56,16 +49,12 @@ class FirebaseApi {
     debugPrint("[Firebase] Sending FCM Token to the server...");
 
     router
-        .post("/Accounts/Me/UploadFirebaseToken", {
-          "FirebaseToken": data.fcmToken,
-        })
+        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": data.fcmToken})
         .then((response) {
           if (response.statusCode == 200) {
             debugPrint("[Firebase] Token sent to server successfully.");
           } else {
-            debugPrint(
-              "[Firebase] Failed to send token to server. Status code: ${response.statusCode}, body: ${response.body}",
-            );
+            debugPrint("[Firebase] Failed to send token to server. Status code: ${response.statusCode}, body: ${response.body}");
           }
         })
         .catchError((error) {
