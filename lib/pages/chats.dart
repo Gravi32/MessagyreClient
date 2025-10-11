@@ -96,7 +96,10 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                   overflow: TextOverflow.ellipsis,
                                   softWrap: true,
                                 )
-                                : Text("Envoyez un message...", style: TextStyle(fontStyle: FontStyle.italic, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                : Text(
+                                  "Envoyez un message...",
+                                  style: TextStyle(fontStyle: FontStyle.italic, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                ),
                       ),
                     ],
                   ),
@@ -110,16 +113,27 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                         DateFormat('HH:mm').format(chatData.content.last.sentAt),
                         style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                       ),
-                      if (hasUnreadMessages)
-                        Container(
-                          margin: EdgeInsets.only(top: 4),
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
-                          child: Text(
-                            chatData.unreadMessages.toString(),
-                            style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                          ),
-                        ),
+
+                      Row(
+                        spacing: 4,
+                        children: [
+                          if (chatData.isPinned)
+                            Opacity(
+                              opacity: .5,
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                            ),
+                          if (hasUnreadMessages)
+                            Container(
+                              margin: EdgeInsets.only(top: 4),
+                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
+                              child: Text(
+                                chatData.unreadMessages.toString(),
+                                style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
               ],
@@ -205,6 +219,9 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
               builder: (context, Box<Chat> box, _) {
                 final chatsList = box.values.toList();
                 chatsList.sort((a, b) {
+                  if (a.isPinned && !b.isPinned) return -1;
+                  if (!a.isPinned && b.isPinned) return 1;
+
                   final aDate = a.content.isNotEmpty ? a.content.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
                   final bDate = b.content.isNotEmpty ? b.content.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
                   return bDate.compareTo(aDate);

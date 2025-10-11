@@ -70,6 +70,9 @@ class Chat extends HiveObject {
   @HiveField(3)
   String? recipientDisplayUsername;
 
+  @HiveField(4)
+  bool isPinned = false;
+
   Chat({required this.recipientUsername});
 
   @override

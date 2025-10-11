@@ -31,6 +31,9 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   late final account = widget.account;
   late final profile = widget.account.profile ?? {};
 
+  late final box = Hive.box<Chat>("Chats");
+  late final chat = box.get(account.username);
+
   late final editMode = account.username == data.username;
 
   bool isBlocked = false;
@@ -362,7 +365,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 Navigator.of(dialogContext).pop();
 
                 if (Hive.isBoxOpen("Chats")) {
-                  Hive.box<Chat>("Chats").get(account.username)?.content.clear();
+                  chat?.content.clear();
                 }
 
                 if (dialogContext.mounted) {
@@ -409,7 +412,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 Navigator.of(dialogContext).pop();
 
                 if (Hive.isBoxOpen("Chats")) {
-                  await Hive.box<Chat>("Chats").delete(account.username);
+                  await box.delete(account.username);
                 }
 
                 if (dialogContext.mounted) {
@@ -565,6 +568,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final isPinned = chat?.isPinned ?? false;
+
+    print("${chat?.recipientUsername} $isPinned");
+
     isBlocked = data.blockedUsers.contains(account.username);
 
     return CupertinoPageScaffold(
@@ -733,11 +740,20 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   ),
                 ],
 
-                if (Hive.box<Chat>("Chats").containsKey(account.username))
+                if (box.containsKey(account.username))
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
-                      buildListTile(HugeIcons.strokeRoundedPin, "Épingler"),
+                      buildListTile(
+                        isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
+                        isPinned ? "Désépingler" : "Épingler",
+                        onTap: () {
+                          if (chat == null) return;
+                          chat!.isPinned = !isPinned;
+                          chat!.save();
+                          setState(() {});
+                        },
+                      ),
                       buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages", onTap: deleteMessages),
                       buildListTile(HugeIcons.strokeRoundedDelete04, "Supprimer la conversation", isDestructive: true, onTap: deleteChat),
                     ],

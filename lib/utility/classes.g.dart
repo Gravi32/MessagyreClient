@@ -60,13 +60,14 @@ class ChatAdapter extends TypeAdapter<Chat> {
     return Chat(recipientUsername: fields.get(0, "Unknown"))
       ..content = fields.getList<Message>(1)
       ..unreadMessages = fields.get(2, 0)
-      ..recipientDisplayUsername = fields.get(3, null);
+      ..recipientDisplayUsername = fields.get(3, null)
+      ..isPinned = fields.get(4, false);
   }
 
   @override
   void write(BinaryWriter writer, Chat obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.recipientUsername)
       ..writeByte(1)
@@ -74,7 +75,9 @@ class ChatAdapter extends TypeAdapter<Chat> {
       ..writeByte(2)
       ..write(obj.unreadMessages)
       ..writeByte(3)
-      ..write(obj.recipientDisplayUsername);
+      ..write(obj.recipientDisplayUsername)
+      ..writeByte(4)
+      ..write(obj.isPinned);
   }
 
   @override
