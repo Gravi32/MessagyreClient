@@ -570,8 +570,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   Widget build(BuildContext context) {
     final isPinned = chat?.isPinned ?? false;
 
-    print("${chat?.recipientUsername} $isPinned");
-
     isBlocked = data.blockedUsers.contains(account.username);
 
     return CupertinoPageScaffold(

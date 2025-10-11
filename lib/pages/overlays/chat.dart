@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -36,6 +37,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final messageFieldFocusNode = FocusNode();
 
   Set<Message> animatedMessages = {};
+  bool isLoading = false;
 
   void messagesListener(Map<String, Object> messageData) {
     if (chatData == null || messageData["SenderUsername"] != chatData?.recipientUsername) return;
@@ -103,7 +105,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
       messageFieldController.clear();
       messageFieldFocusNode.requestFocus();
       scrollDown();
-    } catch (e) {}
+    } catch (e) {
+      debugPrint("[Chat] Message '$input' could not be sent: $e");
+    }
   }
 
   void saveChatData() {
@@ -168,7 +172,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   int getUnreadChats() {
     int count = 0;
-    for (var chat in chats.values) count += chat.unreadMessages;
+    for (var chat in chats.values) {
+      count += chat.unreadMessages;
+    }
     return count;
   }
 
@@ -222,17 +228,20 @@ class _ChatOverlayState extends State<ChatOverlay> {
                               chatData?.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
                               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
                             ),
+                            if (isLoading) LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
                           ],
                         ),
                         Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 14)),
                       ],
                     ),
                     onTap: () async {
+                      isLoading = true;
                       var recipientAccount =
                           widget.recipientUsername == lastAccountCache?.username ? lastAccountCache : await router.getAccount(widget.recipientUsername);
+                      isLoading = false;
                       if (recipientAccount == null || !context.mounted) return;
                       lastAccountCache = recipientAccount;
-                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfileOverlay(recipientAccount, openedFromChat: true,)));
+                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfileOverlay(recipientAccount, openedFromChat: true)));
                     },
                   ),
                 ),
