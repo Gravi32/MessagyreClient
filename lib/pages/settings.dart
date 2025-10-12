@@ -11,6 +11,7 @@ import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/feedback_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/storage_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/subjects_settings.dart';
+import 'package:messagyre_client/pages/settings_subpages/wallpaper_settings.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -159,6 +160,11 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     initialValue: isDarkMode,
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedMoon02),
                     title: Text('Mode sombre'),
+                  ),
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground),
+                    title: Text("Fond d'écran"),
                   ),
                 ],
               ),

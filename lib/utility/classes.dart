@@ -131,9 +131,10 @@ class Grade extends HiveObject {
 
 @HiveType(typeId: 5)
 class Settings extends HiveObject {
-  // Homework page
   @HiveType(typeId: 0)
   bool includeWeekends = false;
+  @HiveType(typeId: 1)
+  bool useDefaultWallpaper = true;
 }
 
 class Account {

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
@@ -29,8 +30,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final router = ConnectionController();
   final data = Data();
   final chats = Hive.box<Chat>("Chats");
+  final misc = Hive.box("Misc");
 
   late var chatData = chats.get(widget.recipientUsername);
+  late var currentWallpaper = misc.get("CurrentWallpaper");
 
   final chatScrollController = ScrollController();
   final messageFieldController = TextEditingController();
@@ -451,13 +454,16 @@ class _ChatOverlayState extends State<ChatOverlay> {
     return CupertinoPageScaffold(
       child: Container(
         decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/BackgroundTile.png"),
-            repeat: ImageRepeat.repeat,
-            scale: 3,
-            opacity: .1,
-            colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(100), BlendMode.srcIn),
-          ),
+          image:
+              data.settings.useDefaultWallpaper
+                  ? DecorationImage(
+                    image: AssetImage("assets/BackgroundTile.png"),
+                    repeat: ImageRepeat.repeat,
+                    scale: 3,
+                    opacity: .1,
+                    colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(100), BlendMode.srcIn),
+                  )
+                  : DecorationImage(image: Image.file(File(currentWallpaper)).image),
         ),
         child: Column(
           children: [
