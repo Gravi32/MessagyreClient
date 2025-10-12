@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -21,6 +22,8 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
   final box = Hive.box("Misc");
   late final savedWallpapers = List<String>.from(box.get("SavedWallpapers", defaultValue: <String>[]));
   late String currentWallpaper = box.get("CurrentWallpaper", defaultValue: "");
+
+  bool isEditMode = false;
 
   void saveData() {
     box.put("SavedWallpapers", savedWallpapers);
@@ -82,40 +85,117 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                 CupertinoListSection.insetGrouped(
                   header: Text("Vos fonds d'écran"),
                   margin: EdgeInsets.zero,
+                  footer:
+                      isEditMode
+                          ? null
+                          : Text(
+                            "Appuyez longuement pour modifier.",
+                            style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          ),
                   children: [
                     SizedBox(
                       height: 200,
                       child: ListView.builder(
-                        padding: EdgeInsets.all(10),
                         scrollDirection: Axis.horizontal,
-                        itemCount: savedWallpapers.length,
+                        padding: EdgeInsets.symmetric(horizontal: 5),
+                        itemCount: savedWallpapers.length + 1,
                         itemBuilder: (context, index) {
-                          final path = savedWallpapers[index];
+                          final isLastItem = index >= savedWallpapers.length;
+                          final path = isLastItem ? "" : savedWallpapers[index];
 
-                          return GestureDetector(
-                            child: Container(
-                              margin: EdgeInsets.only(right: 10),
-                              decoration:
-                                  currentWallpaper == path
-                                      ? BoxDecoration(
-                                        border: Border.all(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
-                                        borderRadius: BorderRadius.circular(8),
-                                      )
-                                      : null,
-                              child: ClipRRect(
-                                borderRadius: BorderRadiusGeometry.circular(7),
-                                clipBehavior: Clip.hardEdge,
-                                child: Image.file(File(path), fit: BoxFit.cover),
-                              ),
-                            ),
-                            onTap: () {
-                              setState(() => currentWallpaper = path);
-                              saveData();
-                            },
-                          );
+                          return isLastItem
+                              ? isEditMode
+                                  ? SizedBox.shrink()
+                                  : GestureDetector(
+                                    onTap: () => pickImage(ImageSource.gallery),
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Padding(
+                                      padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 5),
+                                      child: DottedBorder(
+                                        options: RoundedRectDottedBorderOptions(
+                                          color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                          strokeWidth: 2,
+                                          dashPattern: [4, 5],
+                                          radius: Radius.circular(8),
+                                          strokeCap: StrokeCap.round,
+                                          borderPadding: EdgeInsets.all(2),
+                                        ),
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context).size.aspectRatio * 180,
+                                          child: Center(
+                                            child: HugeIcon(
+                                              icon: HugeIcons.strokeRoundedAdd01,
+                                              color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                              : GestureDetector(
+                                onTap:
+                                    isEditMode
+                                        ? null
+                                        : () {
+                                          setState(() => currentWallpaper = path);
+                                          saveData();
+                                        },
+                                onLongPress: () => setState(() => isEditMode = true),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                                      decoration:
+                                          currentWallpaper == path
+                                              ? BoxDecoration(
+                                                border: Border.all(
+                                                  color: CupertinoTheme.of(context).primaryColor.withBrightness(.25),
+                                                  strokeAlign: BorderSide.strokeAlignOutside,
+                                                ),
+                                                borderRadius: BorderRadius.circular(8),
+                                              )
+                                              : null,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadiusGeometry.circular(8),
+                                        clipBehavior: Clip.hardEdge,
+                                        child: Image.file(File(path), fit: BoxFit.cover),
+                                      ),
+                                    ),
+                                    if (isEditMode)
+                                      Positioned(
+                                        right: 0,
+                                        top: 5,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              if (path == currentWallpaper) currentWallpaper = "";
+                                              savedWallpapers.remove(path);
+                                            });
+                                            saveData();
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                              boxShadow: [BoxShadow(blurRadius: 20, spreadRadius: 2)],
+                                            ),
+                                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: CupertinoColors.white),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
                         },
                       ),
                     ),
+                    if (isEditMode)
+                      CupertinoListTile(
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoColors.label.resolveFrom(context)),
+                        title: Text("Terminé"),
+                        onTap: () => setState(() => isEditMode = false),
+                      ),
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
