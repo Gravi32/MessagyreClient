@@ -11,13 +11,7 @@ class ProfilePictureDisplay extends StatefulWidget {
   final String? picturePath;
   final String? pictureURL;
 
-  const ProfilePictureDisplay({
-    this.accountUsername,
-    this.picturePath,
-    this.pictureURL,
-    super.key,
-    this.radius,
-  });
+  const ProfilePictureDisplay({this.accountUsername, this.picturePath, this.pictureURL, super.key, this.radius});
 
   @override
   State<StatefulWidget> createState() => _ProfilePictureDisplayState();
@@ -27,22 +21,18 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
   final data = Data();
   double diameter = 0;
 
+  Widget buildErrorWidget(BuildContext context) {
+    return SizedBox.square(dimension: 30, child: HugeIcon(icon: HugeIcons.strokeRoundedWifiError02, size: 20));
+  }
+
   Widget withoutPicture() {
-    final firstLetter =
-        widget.accountUsername == null || widget.accountUsername!.isNotEmpty
-            ? widget.accountUsername![0]
-            : '?';
-    final color =
-        Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) %
-            Colors.primaries.length];
+    final firstLetter = widget.accountUsername == null || widget.accountUsername!.isNotEmpty ? widget.accountUsername![0] : '?';
+    final color = Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) % Colors.primaries.length];
 
     return CircleAvatar(
       radius: widget.radius,
       backgroundColor: color,
-      child: Text(
-        firstLetter.toUpperCase(),
-        style: TextStyle(fontSize: diameter / 4, color: color.shade900),
-      ),
+      child: Text(firstLetter.toUpperCase(), style: TextStyle(fontSize: diameter / 4, color: color.shade900)),
     );
   }
 
@@ -50,14 +40,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
     return CircleAvatar(
       radius: widget.radius,
       backgroundColor: Colors.transparent,
-      child: ClipOval(
-        child: Image.file(
-          File(widget.picturePath!),
-          width: diameter,
-          height: diameter,
-          fit: BoxFit.cover,
-        ),
-      ),
+      child: ClipOval(child: Image.file(File(widget.picturePath!), width: diameter, height: diameter, fit: BoxFit.cover)),
     );
   }
 
@@ -75,7 +58,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
               width: diameter,
               height: diameter,
               fit: BoxFit.cover,
-              errorWidget: (context, url, error) => HugeIcon(icon: HugeIcons.strokeRoundedWifiError02),
+              errorWidget: (context, _,_) => buildErrorWidget(context)
             ),
           ),
         );
@@ -98,7 +81,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                   width: diameter,
                   height: diameter,
                   fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => HugeIcon(icon: HugeIcons.strokeRoundedWifiError02),
+                  errorWidget: (context,_, _) =>buildErrorWidget(context),
                 ),
               ),
             );
