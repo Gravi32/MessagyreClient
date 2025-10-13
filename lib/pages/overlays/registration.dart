@@ -443,7 +443,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         middle: Text("Création de compte"),
       ),
       child: SafeArea(
-        minimum: EdgeInsets.all(20),
+        minimum: EdgeInsets.all(10),
         child: Column(
           children: [
             Row(
