@@ -106,6 +106,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
     return PopScope(
       canPop: false,
       child: SafeArea(
+        minimum: const EdgeInsets.symmetric(horizontal: 10),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 20),
