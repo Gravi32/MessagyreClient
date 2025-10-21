@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -103,7 +104,10 @@ class _NewGradeState extends State<NewGrade> {
               itemExtent: 60,
               diameterRatio: 2,
               physics: const FixedExtentScrollPhysics(),
-              onSelectedItemChanged: (index) => setState(() => grade = grades[index]),
+              onSelectedItemChanged: (index) {
+                setState(() => grade = grades[index]);
+                HapticFeedback.selectionClick();
+              },
               childDelegate: ListWheelChildBuilderDelegate(
                 childCount: grades.length,
                 builder: (context, index) {
@@ -205,14 +209,18 @@ class _NewGradeState extends State<NewGrade> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 6,
                           children:
-                              fractions.keys.map((key) {
-                                return WeightButton(
-                                  value: key,
-                                  selectedWeight: weight,
-                                  label: fractions[key] ?? "?",
-                                  onTap: () => setState(() => weight = key),
-                                );
-                              }).toList().reversed.toList(),
+                              fractions.keys
+                                  .map((key) {
+                                    return WeightButton(
+                                      value: key,
+                                      selectedWeight: weight,
+                                      label: fractions[key] ?? "?",
+                                      onTap: () => setState(() => weight = key),
+                                    );
+                                  })
+                                  .toList()
+                                  .reversed
+                                  .toList(),
                         ),
                       ),
                     ],
