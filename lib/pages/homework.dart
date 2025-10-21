@@ -77,7 +77,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   void animateToPage(int pageIndex) async {
     isAnimating = true;
-    await timelineController.animateToPage(pageIndex, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+    await timelineController.animateToPage(pageIndex, duration: const Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
     isAnimating = false;
   }
 
