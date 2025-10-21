@@ -45,37 +45,27 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   void goToPage(int index) {
     setState(() => currentPage = index);
-    pageController.animateToPage(
-      index,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    pageController.animateToPage(index, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 
   void sendEmail() async {
     startResendTimer();
     isWaitingForResponse = true;
 
-    final response = await router.post("/Auth/Registration", {
-      "EmailAddress": "${emailController.text.trim()}@eduvaud.ch",
-    });
+    final response = await router.post("/Auth/Registration", {"EmailAddress": "${emailController.text.trim()}@eduvaud.ch"});
 
     isWaitingForResponse = false;
 
     final responseData = jsonDecode(response.body);
     final solutions = {
-      "WrongFormat":
-          "L'adresse e-mail doit respecter le format suivant : 'prénom.nom' !",
+      "WrongFormat": "L'adresse e-mail doit respecter le format suivant : 'prénom.nom' !",
       "WrongDomain": "L'adresse doit terminer en '@eduvaud.ch' !",
       "AlreadyExists": "Cet adresse a déjà été utilisé !",
-      "AlreadySent":
-          "Veuillez patienter, le code a déjà été envoyé récemment !",
+      "AlreadySent": "Veuillez patienter, le code a déjà été envoyé récemment !",
     };
 
     if (response.statusCode != 200) {
-      emailError =
-          solutions[responseData] ??
-          "Une erreur s'est produite, veuillez reéssayer.";
+      emailError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
       registrationToken = jsonDecode(response.body)["RegistrationToken"];
       goToPage(1);
@@ -85,18 +75,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void sendCode() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("/Auth/Registration", {
-      "RegistrationToken": registrationToken,
-      "VerificationCode": codeController.text.trim(),
-    });
+    final response = await router.post("/Auth/Registration", {"RegistrationToken": registrationToken, "VerificationCode": codeController.text.trim()});
 
     isWaitingForResponse = false;
 
     var responseData = "";
-    final solutions = {
-      "WrongLength": "Le code doit contenir 6 chiffres.",
-      "WrongCode": "Le code est incorrect !",
-    };
+    final solutions = {"WrongLength": "Le code doit contenir 6 chiffres.", "WrongCode": "Le code est incorrect !"};
 
     try {
       responseData = jsonDecode(response.body);
@@ -105,9 +89,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (response.statusCode == 401) {
       goToPage(0);
     } else if (response.statusCode != 200) {
-      codeError =
-          solutions[responseData] ??
-          "Une erreur s'est produite, veuillez reéssayer.";
+      codeError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
       goToPage(2);
     }
@@ -116,24 +98,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void sendPassword() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("/Auth/Registration", {
-      "RegistrationToken": registrationToken,
-      "Password": passwordController.text.trim(),
-    });
+    final response = await router.post("/Auth/Registration", {"RegistrationToken": registrationToken, "Password": passwordController.text.trim()});
 
     isWaitingForResponse = false;
 
     final responseData = jsonDecode(response.body);
-    final solutions = {
-      "TooShort": "Le mot de passe doit contenir au moins 8 caractères.",
-    };
+    final solutions = {"TooShort": "Le mot de passe doit contenir au moins 8 caractères."};
 
     if (response.statusCode == 401) {
       goToPage(0);
     } else if (response.statusCode != 200) {
-      codeError =
-          solutions[responseData] ??
-          "Une erreur s'est produite, veuillez reéssayer.";
+      codeError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
       final accessToken = responseData["AccessToken"];
       final refreshToken = responseData["RefreshToken"];
@@ -143,14 +118,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       data.username = username;
       isWaitingForResponse = true;
 
-      await FlutterSecureStorage().write(
-        key: "AccessToken",
-        value: accessToken,
-      );
-      await FlutterSecureStorage().write(
-        key: "RefreshToken",
-        value: refreshToken,
-      );
+      await FlutterSecureStorage().write(key: "AccessToken", value: accessToken);
+      await FlutterSecureStorage().write(key: "RefreshToken", value: refreshToken);
       await Hive.box("Misc").put("Username", username);
 
       if (mounted) {
@@ -187,18 +156,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(),
         Text(
           "Adresse e-mail",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: CupertinoTheme.of(context).primaryColor.withBrightness(.075),
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: CupertinoTheme.of(context).primaryColor.withBrightness(.075)),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 12),
-        Text(
-          "veuillez entrer votre adresse e-mail officiel du gymnase.",
-          textAlign: TextAlign.center,
-        ),
+        Text("veuillez entrer votre adresse e-mail officiel du gymnase.", textAlign: TextAlign.center),
         Spacer(),
 
         CustomTextField(
@@ -206,19 +168,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
           placeholder: "prénom.nom",
           error: emailError,
           controller: emailController,
-          suffix: Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Text("@eduvaud.ch"),
-          ),
+          suffix: Padding(padding: EdgeInsets.only(right: 16), child: Text("@eduvaud.ch")),
           keyboardType: TextInputType.emailAddress,
           disabled: isWaitingForResponse,
           onChanged: (input) {
+            final selection = emailController.selection;
+            final newText = input.trim();
+
+            final isValid = RegExp(r'^[a-zA-Z0-9](?:[a-zA-Z0-9._%-]*[a-zA-Z0-9])?$').hasMatch(newText);
+
             setState(() {
-              isEmailValid = RegExp(
-                r'^[a-zA-Z0-9](?:[a-zA-Z0-9._%-]*[a-zA-Z0-9])?$',
-              ).hasMatch(input);
+              isEmailValid = isValid;
               emailError = null;
-              emailController.text = input.trim();
+
+              if (newText != emailController.text) {
+                emailController.value = TextEditingValue(text: newText, selection: selection);
+              }
             });
           },
         ),
@@ -228,12 +193,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
-          onPressed:
-              isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
-          child:
-              isWaitingForResponse
-                  ? CupertinoActivityIndicator()
-                  : Text("Envoyer le code de vérification"),
+          onPressed: isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
+          child: isWaitingForResponse ? CupertinoActivityIndicator() : Text("Envoyer le code de vérification"),
         ),
 
         Spacer(flex: 3),
@@ -249,18 +210,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(),
         Text(
           "Code de vérification",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: CupertinoTheme.of(context).primaryColor.withBrightness(.075),
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: CupertinoTheme.of(context).primaryColor.withBrightness(.075)),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 12),
-        Text(
-          "veuillez entrer le code envoyé à l'adresse '${emailController.text}@eduvaud.ch'",
-          textAlign: TextAlign.center,
-        ),
+        Text("veuillez entrer le code envoyé à l'adresse '${emailController.text}@eduvaud.ch'", textAlign: TextAlign.center),
 
         Spacer(),
 
@@ -272,10 +226,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
           keyboardType: TextInputType.number,
           disabled: isWaitingForResponse,
           onChanged: (input) {
+            final selection = codeController.selection;
+            final newText = input.trim();
+
             setState(() {
-              isCodeValid = input.length == 6;
+              isCodeValid = newText.length == 6;
               codeError = null;
-              codeController.text = input.trim();
+
+              if (newText != codeController.text) {
+                codeController.value = TextEditingValue(text: newText, selection: selection);
+              }
             });
           },
         ),
@@ -284,29 +244,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
-          onPressed:
-              isCodeValid && !isWaitingForResponse ? () => sendCode() : null,
-          child:
-              isWaitingForResponse
-                  ? CupertinoActivityIndicator()
-                  : Text("Vérifier"),
+          onPressed: isCodeValid && !isWaitingForResponse ? () => sendCode() : null,
+          child: isWaitingForResponse ? CupertinoActivityIndicator() : Text("Vérifier"),
         ),
         SizedBox(height: 10),
         CupertinoButton(
-          onPressed:
-              canResendCode && !isWaitingForResponse ? () => sendEmail() : null,
+          onPressed: canResendCode && !isWaitingForResponse ? () => sendEmail() : null,
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 6,
-            children: [
-              HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-              Text(
-                canResendCode
-                    ? "Renvoyer le code"
-                    : "Renvoyer le code ${resendSecondsLeft}s",
-              ),
-            ],
+            children: [HugeIcon(icon: HugeIcons.strokeRoundedRefresh), Text(canResendCode ? "Renvoyer le code" : "Renvoyer le code ${resendSecondsLeft}s")],
           ),
         ),
         CupertinoButton(
@@ -328,18 +276,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(),
         Text(
           "Mot de passe",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: CupertinoTheme.of(context).primaryColor.withBrightness(.075),
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: CupertinoTheme.of(context).primaryColor.withBrightness(.075)),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 12),
-        Text(
-          "vérification réussite!\ncréez maintenant un mot de passe pour accéder à votre compte.",
-          textAlign: TextAlign.center,
-        ),
+        Text("vérification réussite!\ncréez maintenant un mot de passe pour accéder à votre compte.", textAlign: TextAlign.center),
 
         Spacer(),
 
@@ -352,10 +293,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
           alwaysHidePassword: true,
           disabled: isWaitingForResponse,
           onChanged: (input) {
+            final selection = passwordController.selection;
+            final newText = input.trim();
+
             setState(() {
-              isPasswordValid = input.length >= 8;
+              isPasswordValid = newText.length >= 8;
               passwordError = null;
-              passwordController.text = input.trim();
+
+              if (newText != passwordController.text) {
+                passwordController.value = TextEditingValue(text: newText, selection: selection);
+              }
             });
           },
         ),
@@ -369,10 +316,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
           keyboardType: TextInputType.visiblePassword,
           disabled: isWaitingForResponse,
           onChanged: (input) {
+            final selection = confirmPasswordController.selection;
+            final newText = input.trim();
+
             setState(() {
-              isConfirmPasswordValid = passwordController.text == input;
+              isConfirmPasswordValid = passwordController.text == newText;
               confirmPasswordError = null;
-              confirmPasswordController.text = input.trim();
+
+              if (newText != confirmPasswordController.text) {
+                confirmPasswordController.value = TextEditingValue(text: newText, selection: selection);
+              }
             });
           },
         ),
@@ -381,16 +334,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
-          onPressed:
-              (isPasswordValid &&
-                      isConfirmPasswordValid &&
-                      !isWaitingForResponse)
-                  ? () => sendPassword()
-                  : null,
-          child:
-              isWaitingForResponse
-                  ? CupertinoActivityIndicator()
-                  : Text("Créer le compte"),
+          onPressed: (isPasswordValid && isConfirmPasswordValid && !isWaitingForResponse) ? () => sendPassword() : null,
+          child: isWaitingForResponse ? CupertinoActivityIndicator() : Text("Créer le compte"),
         ),
 
         Spacer(flex: 3),
@@ -410,9 +355,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       builder: (context) {
         return CupertinoAlertDialog(
           title: Text("Annuler la création du compte"),
-          content: Text(
-            "Voulez-vous vraiment annuler la création de votre compte? Cette action est irréversible.",
-          ),
+          content: Text("Voulez-vous vraiment annuler la création de votre compte? Cette action est irréversible."),
           actions: [
             CupertinoDialogAction(
               isDestructiveAction: true,
@@ -422,10 +365,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               },
               child: Text("Oui"),
             ),
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Non"),
-            ),
+            CupertinoDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text("Non")),
           ],
         );
       },
@@ -436,10 +376,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        leading: GestureDetector(
-          child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-          onTap: () => askClosingConfirmation(),
-        ),
+        leading: GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01), onTap: () => askClosingConfirmation()),
         middle: Text("Création de compte"),
       ),
       child: SafeArea(
@@ -450,23 +387,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 20,
               children: [
-                currentPage == 0
-                    ? HugeIcon(icon: HugeIcons.strokeRoundedMailAdd01)
-                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
-                currentPage == 1
-                    ? HugeIcon(icon: HugeIcons.strokeRoundedSmsCode)
-                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
-                currentPage == 2
-                    ? HugeIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
-                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
+                currentPage == 0 ? HugeIcon(icon: HugeIcons.strokeRoundedMailAdd01) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
+                currentPage == 1 ? HugeIcon(icon: HugeIcons.strokeRoundedSmsCode) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
+                currentPage == 2 ? HugeIcon(icon: HugeIcons.strokeRoundedPasswordValidation) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
               ],
             ),
             Expanded(
               child: PageView(
                 clipBehavior: Clip.none,
                 controller: pageController,
-                physics:
-                    NeverScrollableScrollPhysics(), // disattiva swipe manuale
+                physics: NeverScrollableScrollPhysics(), // disattiva swipe manuale
                 children: [emailPage(), codePage(), passwordPage()],
               ),
             ),

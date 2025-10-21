@@ -111,9 +111,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 500, 
-              ),
+              constraints: BoxConstraints(maxWidth: 500),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,10 +136,14 @@ class _AccessOverlayState extends State<AccessOverlay> {
                     error: usernameError,
                     controller: usernameController,
                     disabled: isWaitingForResponse,
-                    onChanged:
-                        (_) => setState(() {
-                          usernameController.text = usernameController.text.toLowerCase().replaceAll(' ', '');
-                        }),
+                    onChanged: (_) {
+                      final selection = usernameController.selection;
+                      final newText = usernameController.text.toLowerCase().replaceAll(' ', '');
+
+                      if (newText != usernameController.text) {
+                        usernameController.value = TextEditingValue(text: newText, selection: selection);
+                      }
+                    },
                   ),
                   const SizedBox(height: 20),
                   CustomTextField(
@@ -183,7 +185,7 @@ class _AccessOverlayState extends State<AccessOverlay> {
                             },
                     child: const Text("Créer un compte", style: TextStyle(color: CupertinoColors.white)),
                   ),
-                  const SizedBox(height: 50,)
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
