@@ -15,6 +15,7 @@ import 'package:messagyre_client/pages/settings_subpages/wallpaper_settings.dart
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -54,7 +55,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
             title: Text("Déconnexion"),
             content: Text("Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion."),
             actions: [
-              CupertinoDialogAction(child: Text("Non"), onPressed: () => Navigator.of(context).pop()),
+              CupertinoDialogAction(child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2)),), onPressed: () => Navigator.of(context).pop()),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () {
