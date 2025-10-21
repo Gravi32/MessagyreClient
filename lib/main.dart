@@ -139,7 +139,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final data = Data();
 
   void _switchToAccess() {
-    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => AccessOverlay()));
+    if (navigatorKey.currentState?.widget is AccessOverlay) return;
+
+    print("AccessOverlay pushed, current page: ${navigatorKey.currentState?.widget.runtimeType}");
+
+    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
   }
 
   @override
@@ -198,3 +202,5 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 }
+
+
