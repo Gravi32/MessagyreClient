@@ -110,7 +110,9 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                     children: [
                       SizedBox(height: 4),
                       Text(
-                        DateFormat('HH:mm').format(chatData.content.last.sentAt),
+                        chatData.content.last.sentAt.isSameDayAs(DateTime.now())
+                            ? DateFormat('HH:mm').format(chatData.content.last.sentAt)
+                            : formatDate(chatData.content.last.sentAt),
                         style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                       ),
 
