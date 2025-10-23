@@ -54,10 +54,13 @@
 
 	<!-- Permissions -->
 	<key>NSCameraUsageDescription</key>
-	<string>Cette application a besoin d'accéder à la caméra pour prendre des photos.</string>
+	<string>Cette application utilise la caméra pour vous permettre de prendre une photo de profil, d'envoyer des images dans le chat ou d'ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
+
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Cette application a besoin d'accéder à votre photothèque pour sélectionner et partager des images.</string>
+	<string>Cette application accède à votre photothèque afin que vous puissiez sélectionner des images à partager dans le chat, définir une photo de profil ou ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
+
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Cette application a besoin d'autorisation pour enregistrer des images dans votre photothèque.</string>
+	<string>Cette application enregistre les photos que vous prenez ou sélectionnez pour les partager dans le chat, les définir comme photo de profil ou les utiliser comme informations supplémentaires pour vos devoirs et vos notes.</string>
+
 </dict>
 </plist>
