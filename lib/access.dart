@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -17,7 +16,7 @@ class AccessOverlay extends StatefulWidget {
   State<StatefulWidget> createState() => _AccessOverlayState();
 }
 
-class _AccessOverlayState extends State<AccessOverlay> {
+class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserver {
   final router = ConnectionController();
   final data = Data();
   final secureStorage = FlutterSecureStorage();
@@ -100,106 +99,109 @@ class _AccessOverlayState extends State<AccessOverlay> {
   }
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final fieldsAreEmpty = usernameController.text.isEmpty || passwordController.text.isEmpty;
 
     return PopScope(
       canPop: false,
-      child: SafeArea(
-        minimum: const EdgeInsets.symmetric(horizontal: 10),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 500),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Image.asset("assets/icons/logo_purple.png", height: 100),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Bienvenue sur Messagyre",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "connectez-vous pour continuer",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15, color: CupertinoColors.label.resolveFrom(context).withOpacity(.7)),
-                  ),
-                  const SizedBox(height: 40),
-                  CustomTextField(
-                    title: "Nom d'utilisateur",
-                    placeholder: "prénom.nom",
-                    error: usernameError,
-                    controller: usernameController,
-                    disabled: isWaitingForResponse,
-                    onChanged: (_) {
-                      final selection = usernameController.selection;
-                      final newText = usernameController.text.toLowerCase().replaceAll(' ', '');
-
-                      if (newText != usernameController.text) {
-                        usernameController.value = TextEditingValue(text: newText, selection: selection);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  CustomTextField(
-                    title: "Mot de passe",
-                    placeholder: "••••••••••••••••",
-                    error: passwordError,
-                    controller: passwordController,
-                    disabled: isWaitingForResponse,
-                    keyboardType: TextInputType.visiblePassword,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 36),
-                  CupertinoButton.filled(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    minimumSize: Size.zero,
-                    onPressed: (!fieldsAreEmpty && !isWaitingForResponse) ? tryToLogin : null,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [isWaitingForResponse ? const CupertinoActivityIndicator() : const Text("Connexion")],
+      child: Container(
+        decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context)),
+        child: SafeArea(
+          minimum: const EdgeInsets.symmetric(horizontal: 10),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 500),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Image.asset("assets/icons/logo_purple.png", height: 100),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Bienvenue sur Messagyre",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 30, endIndent: 10)),
-                      const Text("ou", style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12)),
-                      Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 10, endIndent: 30)),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  CupertinoButton.filled(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    onPressed:
-                        isWaitingForResponse
-                            ? null
-                            : () {
-                              Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const RegistrationPage()));
-                            },
-                    child: const Text("Créer un compte", style: TextStyle(color: CupertinoColors.white)),
-                  ),
-                  const SizedBox(height: 50),
-                ],
+                    const SizedBox(height: 6),
+                    Text(
+                      "connectez-vous pour continuer",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, color: CupertinoColors.label.resolveFrom(context).withOpacity(.7)),
+                    ),
+                    const SizedBox(height: 40),
+                    CustomTextField(
+                      title: "Nom d'utilisateur",
+                      placeholder: "prénom.nom",
+                      error: usernameError,
+                      controller: usernameController,
+                      disabled: isWaitingForResponse,
+                      onChanged: (_) {
+                        final selection = usernameController.selection;
+                        final newText = usernameController.text.toLowerCase().replaceAll(' ', '');
+
+                        if (newText != usernameController.text) {
+                          usernameController.value = TextEditingValue(text: newText, selection: selection);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      title: "Mot de passe",
+                      placeholder: "••••••••••••••••",
+                      error: passwordError,
+                      controller: passwordController,
+                      disabled: isWaitingForResponse,
+                      keyboardType: TextInputType.visiblePassword,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 36),
+                    CupertinoButton.filled(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      minimumSize: Size.zero,
+                      onPressed: (!fieldsAreEmpty && !isWaitingForResponse) ? tryToLogin : null,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [isWaitingForResponse ? const CupertinoActivityIndicator() : const Text("Connexion")],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 30, endIndent: 10)),
+                        const Text("ou", style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12)),
+                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 10, endIndent: 30)),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    CupertinoButton.filled(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      onPressed:
+                          isWaitingForResponse
+                              ? null
+                              : () {
+                                Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const RegistrationPage()));
+                              },
+                      child: const Text("Créer un compte", style: TextStyle(color: CupertinoColors.white)),
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    usernameController.dispose();
-    passwordController.dispose();
-
-    super.dispose();
   }
 }
