@@ -126,6 +126,8 @@ class ConnectionController {
   void connect() async {
     if (isConnected) return;
 
+    bool shouldScheduleReconnect = false;
+
     // Asking the server to refresh the token
     try {
       connectionState.value = ConnectionState.WaitingForAuthorization;
@@ -147,12 +149,13 @@ class ConnectionController {
         onUnauthorized!();
         throw Exception("[WebSocket] Could not refresh the access token. ${response.body}");
       } else if (response.statusCode != 200) {
+        shouldScheduleReconnect = true;
         throw Exception(response);
       }
     } catch (e, s) {
       debugPrint("[WebSocket] Token refresh failed: $e, StackTrace:\n$s");
       connectionState.value = ConnectionState.NotConnected;
-      _scheduleReconnect();
+      if (shouldScheduleReconnect) _scheduleReconnect();
       return;
     }
 
