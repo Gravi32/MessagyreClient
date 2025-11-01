@@ -141,8 +141,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void _switchToAccess() {
     if (navigatorKey.currentState?.widget is AccessOverlay) return;
 
-    print("AccessOverlay pushed, current page: ${navigatorKey.currentState?.widget.runtimeType}");
-
     navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
   }
 
