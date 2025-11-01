@@ -30,7 +30,7 @@ class _NewHomeworkState extends State<NewHomework> {
   final contentFocus = FocusNode();
 
   late Subject subject = widget.toEdit?.subject ?? Subject.Maths;
-  late DateTime dueDate = widget.toEdit?.dueDate ?? widget.dueDateOverride ?? DateTime.now().add(const Duration(days: 1));
+  late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool isTest = widget.toEdit?.isTest ?? false;
 

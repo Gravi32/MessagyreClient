@@ -263,11 +263,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       clipBehavior: Clip.none,
                       physics: PageScrollPhysics(),
                       itemBuilder: (context, index) {
-                        final date = allDays[index];
+                        final date = allDays[index].dateOnly();
                         final isPassed = date.isBefore(now);
                         final opacity = isPassed ? 0.5 : 1.0;
 
-                        final thisDaysHomework = homeworkByDate[DateTime(date.year, date.month, date.day)] ?? [];
+                        final thisDaysHomework = homeworkByDate[date] ?? [];
                         final formattedDate = formatDate(date);
 
                         return Padding(
