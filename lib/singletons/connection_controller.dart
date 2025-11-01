@@ -152,8 +152,8 @@ class ConnectionController {
         shouldScheduleReconnect = true;
         throw Exception(response);
       }
-    } catch (e, s) {
-      debugPrint("[WebSocket] Token refresh failed: $e, StackTrace:\n$s");
+    } catch (e) {
+      debugPrint("[WebSocket] Token refresh failed: $e");
       connectionState.value = ConnectionState.NotConnected;
       if (shouldScheduleReconnect) _scheduleReconnect();
       return;
