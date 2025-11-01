@@ -125,9 +125,12 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                         (context) => showLogoutDialog(context, () async {
                           router.get("/Auth/Logout"); // Notifies the server
 
+                          router.disconnect();
+
                           data.username = null;
                           data.token = null;
                           account = null;
+                          
                           await secureStorage.delete(key: "AccessToken");
                           await secureStorage.delete(key: "RefreshToken");
                           await Hive.box("Misc").delete("Username");
