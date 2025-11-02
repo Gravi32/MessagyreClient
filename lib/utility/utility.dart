@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -172,4 +173,10 @@ List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCach
 
   if (useCache) _highlightSearchCache[key] = spans;
   return spans;
+}
+
+void restartApp(BuildContext context) {
+  if (!context.mounted) return;
+  final mountedContext = context;
+  Phoenix.rebirth(mountedContext);
 }

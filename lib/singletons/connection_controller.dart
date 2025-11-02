@@ -6,8 +6,10 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/api/firebase_api.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -64,6 +66,7 @@ class ConnectionController {
   void Function()? onUnauthorized;
 
   bool get isConnected => _channel != null;
+  bool _manuallyDisconnected = false;
 
   Future<void> start() async {
     data.token = await secureStorage.read(key: "AccessToken");
@@ -193,6 +196,12 @@ class ConnectionController {
           debugPrint("[WebSocket] Closed by server");
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
+
+          if (_manuallyDisconnected) { // Avoiding reconnection attempts after manual disconnection
+            _manuallyDisconnected = false;
+            return;
+          }
+
           _scheduleReconnect();
         },
         onError: (err) {
@@ -253,6 +262,8 @@ class ConnectionController {
   }
 
   void disconnect() {
+    _manuallyDisconnected = true;
+
     _channel?.sink.close();
     _channel = null;
     connectionState.value = ConnectionState.NotConnected;
@@ -367,6 +378,23 @@ class ConnectionController {
     final result = Account.fromJson(response.body);
 
     return result;
+  }
+
+  void logout() async {
+    get("/Auth/Logout"); // Notifies the server
+
+    disconnect();
+
+    data.username = null;
+    data.token = null;
+
+    await secureStorage.delete(key: "AccessToken");
+    await secureStorage.delete(key: "RefreshToken");
+    await Hive.box("Misc").delete("Username");
+
+    if (onUnauthorized != null) onUnauthorized!();
+
+    MainPage.pageIndex.value = 2;
   }
 }
 

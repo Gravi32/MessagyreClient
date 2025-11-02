@@ -1,10 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
@@ -55,7 +52,10 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
             title: Text("Déconnexion"),
             content: Text("Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion."),
             actions: [
-              CupertinoDialogAction(child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2)),), onPressed: () => Navigator.of(context).pop()),
+              CupertinoDialogAction(
+                child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2))),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () {
@@ -122,28 +122,10 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
 
                   SettingsTile.navigation(
                     onPressed:
-                        (context) => showLogoutDialog(context, () async {
-                          router.get("/Auth/Logout"); // Notifies the server
-
-                          router.disconnect();
-
-                          data.username = null;
-                          data.token = null;
+                        (context) => showLogoutDialog(context, () {
                           account = null;
-                          
-                          await secureStorage.delete(key: "AccessToken");
-                          await secureStorage.delete(key: "RefreshToken");
-                          await Hive.box("Misc").delete("Username");
-
-                          if (!context.mounted) return;
-                          final mountedContext = context;
-                          Phoenix.rebirth(mountedContext); // Restarting the app
-
-                          if (router.onUnauthorized != null) {
-                            router.onUnauthorized!();
-                          }
-
-                          MainPage.pageIndex.value = 2;
+                          router.logout();
+                          restartApp(context);
                         }),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
                     title: Text("Se déconnecter"),

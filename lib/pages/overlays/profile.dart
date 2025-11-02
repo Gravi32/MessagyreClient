@@ -554,6 +554,120 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
         : null;
   }
 
+  void deleteAccount() async {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (dialogContext) => CupertinoAlertDialog(
+            title: Text("Supprimer le compte"),
+            content: Text("Voulez-vous vraiment supprimer votre compte ? Cette action est irréversible et toutes vos données seront perdues."),
+            actions: [
+              CupertinoDialogAction(
+                child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                onPressed: () => Navigator.pop(dialogContext),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: Text("Supprimer"),
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+
+                  showCupertinoDialog(
+                    context: context,
+                    builder: (dialogContext) {
+                      final controller = TextEditingController();
+                      return CupertinoAlertDialog(
+                        title: Row(
+                          spacing: 8,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            HugeIcon(icon: HugeIcons.strokeRoundedLockPassword, color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
+                            Text("Mot de passe requis"),
+                          ],
+                        ),
+                        content: Column(
+                          children: [
+                            SizedBox(height: 10),
+                            SizedBox(
+                              height: 40,
+                              child: DismissableTextField(
+                                keyboardType: TextInputType.visiblePassword,
+                                obscureText: true,
+                                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                                controller: controller,
+                                placeholder: "Votre mot de passe",
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          CupertinoDialogAction(
+                            child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                            onPressed: () => Navigator.pop(dialogContext),
+                          ),
+                          CupertinoDialogAction(
+                            isDestructiveAction: true,
+                            child: Text("Supprimer"),
+                            onPressed: () async {
+                              final password = controller.text.trim();
+                              if (password.isEmpty) return;
+
+                              final success = await router.post("/Accounts/Me/Delete", {"Password": password});
+                              if (!dialogContext.mounted) return;
+
+                              if (success.statusCode != 200) {
+                                showCupertinoDialog(
+                                  context: dialogContext,
+                                  builder:
+                                      (errorDialogContext) => CupertinoAlertDialog(
+                                        title: Text("Erreur"),
+                                        content: Text("Le mot de passe est incorrect ou une erreur est survenue. Veuillez réessayer."),
+                                        actions: [
+                                          CupertinoDialogAction(isDefaultAction: true, child: Text("OK"), onPressed: () => Navigator.pop(errorDialogContext)),
+                                        ],
+                                      ),
+                                );
+                                return;
+                              }
+
+                              showCupertinoDialog(
+                                context: dialogContext,
+                                builder:
+                                    (errorDialogContext) => CupertinoAlertDialog(
+                                      title: Text("Compte supprimé"),
+                                      content: Text(
+                                        "Votre compte a été supprimé avec succès. Nous sommes désolés de vous voir partir. Vous serez redirigé vers l'écran de connexion.",
+                                      ),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          isDefaultAction: true,
+                                          child: Text("OK"),
+                                          onPressed: () {
+                                            Navigator.pop(errorDialogContext);
+                                            router.logout();
+
+                                            if (!dialogContext.mounted) return;
+                                            restartApp(dialogContext);
+                                            Navigator.pop(dialogContext);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+    );
+  }
+
   Widget buildListTile(List<List<dynamic>> icon, String title, {VoidCallback? onTap, bool isDestructive = false}) {
     final enabled = onTap != null;
     final color =
@@ -757,7 +871,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     ],
                   ),
 
-                if (account.username == data.username)
+                if (account.username == data.username) ...[
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [
@@ -766,6 +880,11 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                       buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
                     ],
                   ),
+                  CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.zero,
+                    children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
+                  ),
+                ],
               ],
             ),
           ],
