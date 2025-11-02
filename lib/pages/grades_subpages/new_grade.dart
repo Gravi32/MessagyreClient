@@ -304,7 +304,7 @@ class _NewGradeState extends State<NewGrade> {
                                   spacing: 8,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5)),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
                                     Text("Nouveau groupe"),
                                   ],
                                 ),
@@ -329,7 +329,7 @@ class _NewGradeState extends State<NewGrade> {
                                   ),
                                   CupertinoDialogAction(
                                     isDefaultAction: true,
-                                    child: Text("Ajouter", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))),
+                                    child: Text("Ajouter", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
                                     onPressed: () {
                                       final newName = controller.text.trim();
                                       try {
