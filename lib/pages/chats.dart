@@ -164,6 +164,11 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
     allChats = Hive.box<Chat>("Chats");
 
+    // FOR THE APPLE VERIFICATION TEAM
+    if (data.username == "apple.verification") {
+      allChats.put("apple.verification", Chat(recipientUsername: "apple.verification"));
+    }
+
     router.onMessageReceived.listen((messageData) {
       if (!mounted || data.isChatOpen) return;
 
