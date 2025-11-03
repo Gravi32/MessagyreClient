@@ -32,16 +32,16 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
 
   Account? account;
 
-  void getAccount() {
+  Future getAccount() async {
     if (data.username == null) return;
 
-    router
-        .getAccount(data.username!)
-        .then(
-          (receivedAccount) => setState(() {
-            account = receivedAccount;
-          }),
-        );
+    final receivedAccount = await router.getAccount(data.username!);
+
+    setState(() {
+      account = receivedAccount;
+    });
+
+    return;
   }
 
   void showLogoutDialog(BuildContext context, VoidCallback onLogoutConfirmed) {
@@ -114,10 +114,15 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                             ],
                           ),
                         ),
-                        onPressed:
-                            (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))).then((updated) {
-                              if (updated) getAccount();
-                            }),
+                        onPressed: (context) async {
+                          if (account!.username != data.username) await getAccount();
+
+                          if (!context.mounted) return;
+
+                          Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))).then((updated) {
+                            if (updated) getAccount();
+                          });
+                        },
                       ),
 
                   SettingsTile.navigation(
