@@ -27,7 +27,6 @@ class Data {
   DateTime get schoolEnd => _now.isBefore(schoolStart) ? DateTime(_now.year, 6, 6) : DateTime(_now.year + 1, 6, 6);
 
   // Chats
-  bool isChatOpen = false;
   String? openChatUsername;
   String? fcmToken;
 

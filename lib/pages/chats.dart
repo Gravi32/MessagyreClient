@@ -170,9 +170,12 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
     }
 
     router.onMessageReceived.listen((messageData) {
-      if (!mounted || data.isChatOpen) return;
+      
+      if (!mounted) return;
 
       var senderUsername = messageData["SenderUsername"]!.toString();
+      if (data.openChatUsername == senderUsername) return;
+
       var receivedMessage = Message.fromMessageData(messageData);
       var targetChat = allChats.get(senderUsername);
 
