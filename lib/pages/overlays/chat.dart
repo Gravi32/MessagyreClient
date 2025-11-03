@@ -455,7 +455,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
           image:
               data.settings.useDefaultWallpaper
                   ? DecorationImage(
-                    image: AssetImage("assets/BackgroundTile.png"),
+                    image: AssetImage("assets/wallpaperTile.png"),
                     repeat: ImageRepeat.repeat,
                     scale: 3,
                     opacity: .1,

@@ -125,7 +125,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Image.asset("assets/icons/logo_purple.png", height: 100),
+                    Image.asset("assets/icons/purple.png", height: 100),
                     const SizedBox(height: 10),
                     Text(
                       "Bienvenue sur Messagyre",
