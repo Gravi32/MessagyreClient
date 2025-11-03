@@ -727,7 +727,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                       ),
                     ),
                     Column(
-                      spacing: 5,
+                      spacing: 2,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -737,17 +737,17 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                             Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                           ],
                         ),
+                        Text(account.username, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                        SizedBox(height: 0),
 
                         if (account.classOrRole != null)
                           Text(account.classOrRole!, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-
-                        Text(account.emailAddress, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
                       ],
                     ),
                   ],
                 ),
-
                 SizedBox(height: 6),
+
                 if (profile["Bio"] != null) Text(profile["Bio"], style: TextStyle(fontSize: 18)),
                 Text(
                   "Compte créé ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}.",
