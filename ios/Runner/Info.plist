@@ -26,8 +26,19 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Cette application utilise la caméra pour vous permettre de prendre une photo de profil, d'envoyer des images dans le chat ou d'ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Cette application enregistre les photos que vous prenez ou sélectionnez pour les partager dans le chat, les définir comme photo de profil ou les utiliser comme informations supplémentaires pour vos devoirs et vos notes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cette application accède à votre photothèque afin que vous puissiez sélectionner des images à partager dans le chat, définir une photo de profil ou ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -35,32 +46,13 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-	</array>
-
-
-	<!-- Permissions -->
-	<key>NSCameraUsageDescription</key>
-	<string>Cette application utilise la caméra pour vous permettre de prendre une photo de profil, d'envoyer des images dans le chat ou d'ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
-
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Cette application accède à votre photothèque afin que vous puissiez sélectionner des images à partager dans le chat, définir une photo de profil ou ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
-
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Cette application enregistre les photos que vous prenez ou sélectionnez pour les partager dans le chat, les définir comme photo de profil ou les utiliser comme informations supplémentaires pour vos devoirs et vos notes.</string>
-
 </dict>
 </plist>
