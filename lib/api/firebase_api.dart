@@ -15,21 +15,18 @@ class FirebaseApi {
   final data = Data();
   final router = ConnectionController();
   final firebaseMessaging = FirebaseMessaging.instance;
+  bool waitingForConnection = false;
 
   Future<void> initialize() async {
     await Future.delayed(const Duration(seconds: 2));
 
-    final settings = await firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    final settings = await firebaseMessaging.requestPermission(alert: true, badge: true, sound: true);
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       if (Platform.isIOS) {
         final apnsToken = await firebaseMessaging.getAPNSToken();
         if (apnsToken == null) {
-          debugPrint("[Firebase] ⚠️ Nessun APNs token disponibile. Le notifiche non funzioneranno su iOS.");
+          debugPrint("[Firebase] No APNs token retrieved.");
         } else {
           debugPrint("[Firebase] APNs token: $apnsToken");
         }
@@ -40,21 +37,16 @@ class FirebaseApi {
       sendTokenToServer();
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint("[Firebase] Messaggio ricevuto: ${message.messageId}");
+        debugPrint("[Firebase] Notification received: ${message.messageId}");
         if (message.notification != null) {
-          NotificationController().spawn(
-            message.notification?.title ?? "",
-            message.notification?.body ?? "Une erreur est survenue.",
-          );
+          NotificationController().spawn(message.notification?.title ?? "", message.notification?.body ?? "Une erreur est survenue.");
         }
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         final title = message.notification?.title;
         if (title == null) return;
-        navigatorKey.currentState?.push(
-          CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: title)),
-        );
+        navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: title)));
       });
 
       firebaseMessaging.onTokenRefresh.listen((newToken) {
@@ -62,26 +54,30 @@ class FirebaseApi {
         sendTokenToServer();
       });
     } else {
-      debugPrint("[Firebase] Notifiche non autorizzate dall’utente.");
+      debugPrint("[Firebase] Notification permission denied.");
     }
   }
 
-  void sendTokenToServer() {
+  void sendTokenToServer() async {
+    if (waitingForConnection) return;
+
+    waitingForConnection = true;
+    while (router.isConnected == false) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    waitingForConnection = false;
+ 
     final token = data.fcmToken;
     if (token == null) return;
 
-    debugPrint("[Firebase] Invio FCM token al server...");
+    debugPrint("[Firebase] Uploading the FCM token...");
 
-    router
-        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token})
-        .then((response) {
-      if (response.statusCode == 200) {
-        debugPrint("[Firebase] Token inviato con successo.");
-      } else {
-        debugPrint("[Firebase] Errore nell’invio del token. Codice: ${response.statusCode}, body: ${response.body}");
-      }
-    }).catchError((error) {
-      debugPrint("[Firebase] Errore durante l’invio del token: $error");
-    });
+    final response = await router.post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token});
+
+    if (response.statusCode == 200) {
+      debugPrint("[Firebase] Token sent successfully.");
+    } else {
+      debugPrint("[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${data.username}, token: ${data.token}");
+    }
   }
 }
