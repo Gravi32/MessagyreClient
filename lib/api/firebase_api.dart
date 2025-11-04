@@ -5,6 +5,7 @@ import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/singletons/notifications_controller.dart';
+import 'dart:io' show Platform;
 
 class FirebaseApi {
   static final _instance = FirebaseApi._internal();
@@ -16,49 +17,71 @@ class FirebaseApi {
   final firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> initialize() async {
-    await Future.delayed(Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 2));
 
-    await firebaseMessaging.requestPermission();
+    final settings = await firebaseMessaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-    data.fcmToken = await firebaseMessaging.getToken();
-
-    debugPrint("${DateTime.now()} [Firebase] APNS Token: ${firebaseMessaging.getAPNSToken()} FCM Token: ${data.fcmToken}");
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint("[Firebase] Message received: ${message.messageId}");
-      if (message.notification != null) {
-        NotificationController().spawn(message.notification?.title ?? "", message.notification?.body ?? "Une erreur est survenue.");
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      if (Platform.isIOS) {
+        final apnsToken = await firebaseMessaging.getAPNSToken();
+        if (apnsToken == null) {
+          debugPrint("[Firebase] ⚠️ Nessun APNs token disponibile. Le notifiche non funzioneranno su iOS.");
+        } else {
+          debugPrint("[Firebase] APNs token: $apnsToken");
+        }
       }
-    });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (message.notification?.title == null) return;
-
-      navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: message.notification!.title!)));
-    });
-
-    firebaseMessaging.onTokenRefresh.listen((newToken) {
-      data.fcmToken = newToken;
+      data.fcmToken = await firebaseMessaging.getToken();
+      debugPrint("[Firebase] FCM token: ${data.fcmToken}");
       sendTokenToServer();
-    });
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint("[Firebase] Messaggio ricevuto: ${message.messageId}");
+        if (message.notification != null) {
+          NotificationController().spawn(
+            message.notification?.title ?? "",
+            message.notification?.body ?? "Une erreur est survenue.",
+          );
+        }
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        final title = message.notification?.title;
+        if (title == null) return;
+        navigatorKey.currentState?.push(
+          CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: title)),
+        );
+      });
+
+      firebaseMessaging.onTokenRefresh.listen((newToken) {
+        data.fcmToken = newToken;
+        sendTokenToServer();
+      });
+    } else {
+      debugPrint("[Firebase] Notifiche non autorizzate dall’utente.");
+    }
   }
 
   void sendTokenToServer() {
-    if (data.fcmToken == null) return;
+    final token = data.fcmToken;
+    if (token == null) return;
 
-    debugPrint("[Firebase] Sending FCM Token to the server...");
+    debugPrint("[Firebase] Invio FCM token al server...");
 
     router
-        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": data.fcmToken})
+        .post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token})
         .then((response) {
-          if (response.statusCode == 200) {
-            debugPrint("[Firebase] Token sent to server successfully.");
-          } else {
-            debugPrint("[Firebase] Failed to send token to server. Status code: ${response.statusCode}, body: ${response.body}");
-          }
-        })
-        .catchError((error) {
-          debugPrint("[Firebase] Error sending token to server: $error");
-        });
+      if (response.statusCode == 200) {
+        debugPrint("[Firebase] Token inviato con successo.");
+      } else {
+        debugPrint("[Firebase] Errore nell’invio del token. Codice: ${response.statusCode}, body: ${response.body}");
+      }
+    }).catchError((error) {
+      debugPrint("[Firebase] Errore durante l’invio del token: $error");
+    });
   }
 }
