@@ -2,10 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 
 class CustomSubjectPicker extends StatefulWidget {
-  final Subject initialSubject;
   final ValueChanged<Subject> onSubjectSelected;
 
-  const CustomSubjectPicker({super.key, required this.initialSubject, required this.onSubjectSelected});
+  const CustomSubjectPicker({super.key, required this.onSubjectSelected});
 
   @override
   State<CustomSubjectPicker> createState() => _CustomSubjectPickerState();
@@ -20,9 +19,6 @@ class _CustomSubjectPickerState extends State<CustomSubjectPicker> {
   @override
   void initState() {
     super.initState();
-
-    tempSubject = widget.initialSubject;
-    controller = FixedExtentScrollController(initialItem: tempSubject.index);
   }
 
   @override
