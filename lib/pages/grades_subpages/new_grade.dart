@@ -26,15 +26,15 @@ class NewGrade extends StatefulWidget {
 class _NewGradeState extends State<NewGrade> {
   late final editMode = widget.toEdit != null;
 
-  late final titleController = TextEditingController(text: widget.toEdit?.title);
-  late final subjectController = TextEditingController(text: SubjectHelper.toFrench(widget.toEdit?.subject ?? Subject.Maths));
-  late final detailsController = TextEditingController(text: widget.toEdit?.details);
-
-  late Subject subject = widget.toEdit?.subject ?? widget.subject ?? Subject.Maths;
+  late Subject? subject = widget.toEdit?.subject ?? widget.subject;
   late double grade = widget.toEdit?.grade ?? 4;
   late DateTime date = widget.toEdit?.date ?? DateTime.now();
   late double weight = widget.toEdit?.weight ?? 1;
   late String? groupName = widget.toEdit?.groupName ?? widget.groupName;
+  
+  late final titleController = TextEditingController(text: widget.toEdit?.title);
+  late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject));
+  late final detailsController = TextEditingController(text: widget.toEdit?.details);
 
   late bool isInGroup = groupName != null;
 
@@ -54,13 +54,26 @@ class _NewGradeState extends State<NewGrade> {
       return;
     }
 
+    if (subject == null) {
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (dialogContext) => CupertinoAlertDialog(
+              title: Text("Branche requise"),
+              content: Text("Veuillez entrer la branche de la note."),
+              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
+            ),
+      );
+      return;
+    }
+
     var gradeData = widget.toEdit ?? Grade();
 
     gradeData
       ..title = titleController.text
       ..grade = grade
       ..weight = weight
-      ..subject = subject
+      ..subject = subject!
       ..date = date
       ..details = detailsController.text
       ..groupName = groupName;
@@ -73,7 +86,6 @@ class _NewGradeState extends State<NewGrade> {
       context: context,
       builder:
           (_) => CustomSubjectPicker(
-            initialSubject: subject,
             onSubjectSelected: (selectedSubject) {
               setState(() => subject = selectedSubject);
             },

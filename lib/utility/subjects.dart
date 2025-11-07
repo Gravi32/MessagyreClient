@@ -52,6 +52,10 @@ enum Subject {
 
 class SubjectHelper {
   static String toFrench(Subject s) {
+    return toFrenchOrNull(s) ?? "Aucune branche";
+  }
+
+  static String? toFrenchOrNull(Subject? s) {
     switch (s) {
       case Subject.French:
         return "Français";
@@ -145,6 +149,9 @@ class SubjectHelper {
 
       case Subject.Other:
         return "Autre";
+
+      default:
+        return null;
     }
   }
 

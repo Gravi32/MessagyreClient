@@ -52,7 +52,6 @@ class _NewHomeworkState extends State<NewHomework> {
       context: context,
       builder:
           (_) => CustomSubjectPicker(
-            initialSubject: subject,
             onSubjectSelected: (selectedSubject) {
               setState(() => subject = selectedSubject);
             },
