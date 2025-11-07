@@ -11,6 +11,7 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -22,6 +23,9 @@ android {
     }
 
     dependencies {
+        // Importing the core library needed for flutter_local_notifications
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
         // Import the Firebase BoM
         implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
 
