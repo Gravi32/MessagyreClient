@@ -458,11 +458,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
           image:
               data.settings.useDefaultWallpaper
                   ? DecorationImage(
-                    image: AssetImage("assets/wallpaperTile.png"),
-                    repeat: ImageRepeat.repeat,
-                    scale: 3,
-                    opacity: .1,
-                    colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(100), BlendMode.srcIn),
+                    image: AssetImage("assets/wallpaper.png"),
+                    fit: BoxFit.cover,
+                    colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(250), BlendMode.srcIn),
                   )
                   : DecorationImage(image: Image.file(File(currentWallpaper)).image),
         ),

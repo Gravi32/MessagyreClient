@@ -126,7 +126,10 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
             ],
           ),
 
-          if (usernameBeingLoaded == result.username) ...[SizedBox(width: 10), LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)],
+          if (usernameBeingLoaded == result.username) ...[
+            SizedBox(width: 10),
+            LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
+          ],
         ],
       ),
       leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 40),
@@ -173,25 +176,12 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                           return RadialGradient(
                             center: Alignment.center,
                             radius: radius,
-                            colors: [CupertinoColors.white.withAlpha(200), CupertinoColors.transparent],
-                            stops: [0.7, 1.0],
+                            colors: [CupertinoColors.white.withAlpha(70), CupertinoColors.white.withAlpha(100), CupertinoColors.transparent],
+                            stops: [.1, 0.7, 1.0],
                           ).createShader(bounds);
                         },
                         blendMode: BlendMode.dstIn,
-                        child: Container(
-                          width: 300,
-                          height: 300,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage("assets/wallpaperTile.png"),
-                              repeat: ImageRepeat.repeat,
-                              scale: 3,
-                              opacity: 0.15,
-                              colorFilter:
-                                  data.appBrightness == Brightness.dark ? null : ColorFilter.mode(CupertinoColors.black.withAlpha(100), BlendMode.srcIn),
-                            ),
-                          ),
-                        ),
+                        child: Image.asset("assets/wallpaper.png", fit: BoxFit.cover),
                       );
                     },
                   ),
