@@ -61,6 +61,8 @@ dependencies:
   flutter_phoenix: ^1.1.1
   flutter_confetti: ^0.5.1
   flutter_local_notifications: ^19.5.0
+  image: ^4.5.4
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
