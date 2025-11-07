@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -522,7 +523,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     return changesMade
         ? CupertinoButton(
           padding: EdgeInsets.zero,
-          child: isUploading ? CupertinoActivityIndicator() : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
+          child: isUploading ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
           onPressed: () async {
             setState(() => isUploading = true);
             bool success = await router.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/pages/overlays/registration.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -172,7 +173,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [isWaitingForResponse ? const CupertinoActivityIndicator() : const Text("Connexion")],
+                        children: [isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : const Text("Connexion")],
                       ),
                     ),
                     const SizedBox(height: 30),

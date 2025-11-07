@@ -431,7 +431,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 8,
-                      children: [CupertinoActivityIndicator(), Text("Connexion en cours...")],
+                      children: [
+                        Text("Connexion en cours", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 16)),
+                        LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
+                      ],
                     ),
                   );
             },

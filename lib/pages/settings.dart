@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
@@ -101,7 +102,12 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                 title: Text("Votre compte"),
                 tiles: [
                   (account == null || data.username == null)
-                      ? SettingsTile(title: SizedBox(height: 39, child: CupertinoActivityIndicator()))
+                      ? SettingsTile(
+                        title: SizedBox(
+                          height: 39,
+                          child: Center(child: LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)),
+                        ),
+                      )
                       : SettingsTile.navigation(
                         leading: ProfilePictureDisplay(accountUsername: data.username!, radius: 28),
                         title: Padding(

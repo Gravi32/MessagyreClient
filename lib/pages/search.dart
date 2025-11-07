@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -125,7 +126,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
             ],
           ),
 
-          if (usernameBeingLoaded == result.username) ...[SizedBox(width: 10), CupertinoActivityIndicator()],
+          if (usernameBeingLoaded == result.username) ...[SizedBox(width: 10), LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)],
         ],
       ),
       leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 40),
@@ -208,7 +209,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                 ],
               )
               : isSearcing
-              ? CupertinoActivityIndicator()
+              ? Center(child: LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14))
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

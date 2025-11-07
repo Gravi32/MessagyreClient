@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -194,7 +195,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
           onPressed: isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
-          child: isWaitingForResponse ? CupertinoActivityIndicator() : Text("Envoyer le code de vérification"),
+          child: isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : Text("Envoyer le code de vérification"),
         ),
 
         Spacer(flex: 3),
@@ -245,7 +246,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         CupertinoButton.filled(
           padding: EdgeInsets.symmetric(vertical: 12),
           onPressed: isCodeValid && !isWaitingForResponse ? () => sendCode() : null,
-          child: isWaitingForResponse ? CupertinoActivityIndicator() : Text("Vérifier"),
+          child: isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : Text("Vérifier"),
         ),
         SizedBox(height: 10),
         CupertinoButton(
@@ -335,7 +336,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
           onPressed: (isPasswordValid && isConfirmPasswordValid && !isWaitingForResponse) ? () => sendPassword() : null,
-          child: isWaitingForResponse ? CupertinoActivityIndicator() : Text("Créer le compte"),
+          child: isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : Text("Créer le compte"),
         ),
 
         Spacer(flex: 3),
