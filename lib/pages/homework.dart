@@ -32,6 +32,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   late final Box<Homework> allHomework;
 
   late Map<DateTime, List<Homework>> homeworkByDate;
+  final Map<int, HomeworkCardController> homeworkCardControllers = {};
 
   List<Homework> nearbyTests = [];
   bool isNearbyTestsNotifierHidden = false;
@@ -75,10 +76,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
     });
   }
 
-  void animateToPage(int pageIndex) async {
+  Future<void> animateToPage(int pageIndex) async {
     isAnimating = true;
     await timelineController.animateToPage(pageIndex, duration: const Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
     isAnimating = false;
+    return;
   }
 
   void groupHomeworkByDate() {
@@ -118,52 +120,52 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   Widget buildNearbyTestsNotifier() {
+    void onTap() async {
+      setState(() {
+        if (currentViewingTestIndex >= nearbyTests.length - 1) {
+          currentViewingTestIndex = 0;
+        } else {
+          currentViewingTestIndex += 1;
+        }
+      });
+
+      final targetTest = nearbyTests[currentViewingTestIndex];
+      await animateToPage(allDays.indexWhere((date) => date.isSameDayAs(targetTest.dueDate)));
+
+      homeworkCardControllers[targetTest.key as int]?.triggerBounceEffect();
+    }
+
     return Stack(
       children: [
         GestureDetector(
-          onTap: () {
-            setState(() {
-              if (currentViewingTestIndex >= nearbyTests.length - 1) {
-                currentViewingTestIndex = 0;
-              } else {
-                currentViewingTestIndex += 1;
-              }
-            });
-
-            final testDate = nearbyTests[currentViewingTestIndex].dueDate;
-
-            animateToPage(allDays.indexWhere((date) => date.isSameDayAs(testDate)));
-          },
+          onTap: onTap,
           child: Container(
-            constraints: BoxConstraints(minHeight: 80),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            constraints: BoxConstraints(minHeight: 100),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             padding: EdgeInsets.only(left: 4),
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                colors: [const Color.fromARGB(255, 126, 17, 17), const Color.fromARGB(255, 173, 64, 64), const Color.fromARGB(255, 126, 34, 30)],
-                stops: [0, 0.7, 1],
+                colors: [
+                  CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                  CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(data.appBrightness == Brightness.dark ? .1 : .02),
+                ],
+                stops: [0, 1],
                 center: AlignmentGeometry.bottomRight,
-                radius: 5,
+                radius: 3,
               ),
               borderRadius: BorderRadius.circular(10),
-              boxShadow: [BoxShadow(color: const Color.fromARGB(255, 126, 17, 17), blurRadius: 5, spreadRadius: 2)],
+              //boxShadow: [BoxShadow(color: CupertinoColors.black, blurRadius: 5, spreadRadius: 2)],
             ),
             child: Stack(
               children: [
                 Positioned(
-                  bottom: -20,
-                  right: -10,
-                  child: Transform.rotate(
-                    angle: pi / 15,
-                    child: Opacity(
-                      opacity: .15,
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.white.withAlpha(50), strokeWidth: 2, size: 100),
-                    ),
-                  ),
+                  bottom: -10,
+                  right: -5,
+                  child: Transform.rotate(angle: pi / 40, child: Opacity(opacity: .6, child: Image.asset("assets/warningSign.png", width: 100, height: 120))),
                 ),
 
                 Padding(
-                  padding: EdgeInsetsGeometry.all(6),
+                  padding: EdgeInsetsGeometry.all(6).add(EdgeInsets.only(bottom: 30)),
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,8 +173,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       CustomText(
                         nearbyTests.length > 1
                             ? "*Plusieurs* tests approchent !"
-                            : "*Test* de *${SubjectHelper.toFrench(nearbyTests.first.subject)}* ce ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                            : "Test de *${SubjectHelper.toFrench(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
                         boldWeight: FontWeight.w800,
                       ),
                       nearbyTests.length > 1
@@ -190,7 +192,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                           "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color: CupertinoColors.white.withAlpha(nearbyTests.indexOf(test) == currentViewingTestIndex ? 255 : 160),
+                                            color: CupertinoColors.secondaryLabel.withAlpha(nearbyTests.indexOf(test) == currentViewingTestIndex ? 255 : 160),
                                           ),
                                           boldWeight: FontWeight.w600,
                                         ),
@@ -204,9 +206,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
                             children: [
                               Opacity(
                                 opacity: .6,
-                                child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: CupertinoColors.white.withAlpha(160), size: 16),
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCalendar04,
+                                  color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160),
+                                  size: 16,
+                                ),
                               ),
-                              Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.white.withAlpha(160))),
+                              Text(
+                                DateFormat('d MMMM', 'fr_CH').format(nearbyTests.first.dueDate),
+                                style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160)),
+                              ),
                             ],
                           ),
                     ],
@@ -225,6 +234,29 @@ class _HomeworkPageState extends State<HomeworkPage> {
               padding: EdgeInsets.all(4),
               decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
               child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: CupertinoColors.label.resolveFrom(context), size: 16),
+            ),
+          ),
+        ),
+
+        Positioned(
+          bottom: 16,
+          left: 20,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 4,
+                children: [
+                  Opacity(
+                    opacity: .6,
+                    child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160), size: 16),
+                  ),
+                  Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160))),
+                ],
+              ),
             ),
           ),
         ),
@@ -310,6 +342,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                         padding: const EdgeInsets.only(bottom: 12),
                                         child: HomeworkCard(
                                           homework: homework,
+                                          controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                                           onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
                                           onDeleteButtonClicked:
                                               () => showCupertinoDialog(
@@ -346,7 +379,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                                     .toList()) {
                                               if (!homework.isMarkedAsDone) isAllDone = false;
                                             }
-                                            
+
                                             if (isAllDone) Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
                                           },
                                         ),
@@ -366,11 +399,19 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                         ),
                                         child: SizedBox(
                                           height: 100,
-                                          child: Center(
-                                            child: HugeIcon(
-                                              icon: HugeIcons.strokeRoundedAdd01,
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                            ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            spacing: 6,
+                                            children: [
+                                              Text(
+                                                "Ajouter un devoir",
+                                                style: TextStyle(fontSize: 16, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
+                                              ),
+                                              HugeIcon(
+                                                icon: HugeIcons.strokeRoundedAdd01,
+                                                color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
