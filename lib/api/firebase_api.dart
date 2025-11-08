@@ -54,6 +54,10 @@ class FirebaseApi {
       sendTokenToServer();
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+        // Ignoring the notification if the app is open
+        final state = WidgetsBinding.instance.lifecycleState;
+        if (state == AppLifecycleState.resumed) return;
+
         debugPrint("[Firebase] Notification received: ${message.data}");
 
         try {
