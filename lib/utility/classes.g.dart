@@ -23,22 +23,24 @@ class MessageAdapter extends TypeAdapter<Message> {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
 
-    return Message(content: fields.get(0, "Une erreur s'est produite."), sentAt: fields.get(1, DateTime(0)), isOwned: fields.get(2, false))
-      .._status = fields.get(4, 0);
+    return Message(id: fields.get(3, Uuid().v4()), content: fields.get(0, "Une erreur s'est produite."), sentAt: fields.get(1, DateTime(0)), isOwned: fields.get(2, false))
+      .._status = MessageStatus.values.firstWhere((e) => e.name == fields.get(4, MessageStatus.Failed.name));
   }
 
   @override
   void write(BinaryWriter writer, Message obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.content)
       ..writeByte(1)
       ..write(obj.sentAt)
       ..writeByte(2)
       ..write(obj.isOwned)
+      ..writeByte(3)
+      ..write(obj.id)
       ..writeByte(4)
-      ..write(obj._status);
+      ..write(obj._status.name);
   }
 
   @override

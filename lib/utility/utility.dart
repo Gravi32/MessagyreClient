@@ -128,10 +128,19 @@ String getFractionString(double value) {
   return value.toStringAsFixed(2);
 }
 
-List<List<dynamic>> getStatusIcon(int status) {
-  if (status == 0) return HugeIcons.strokeRoundedCancel01;
-  if (status == 1) return HugeIcons.strokeRoundedTick02;
-  return HugeIcons.strokeRoundedTickDouble02;
+({List<List<dynamic>> icon, Color color}) getStatusIcon(MessageStatus status) {
+  switch (status) {
+    case MessageStatus.Failed:
+      return (icon: HugeIcons.strokeRoundedCancel01, color: Colors.red);
+    case MessageStatus.Sending:
+      return (icon: HugeIcons.strokeRoundedMoreHorizontal, color: Colors.white);
+    case MessageStatus.Sent:
+      return (icon: HugeIcons.strokeRoundedTick02, color: Colors.white);
+    case MessageStatus.Delivered:
+      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Colors.white);
+    case MessageStatus.Read:
+      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Color(0xFF641968).withBrightness(.25));
+  }
 }
 
 final Map<String, List<TextSpan>> _highlightSearchCache = {};

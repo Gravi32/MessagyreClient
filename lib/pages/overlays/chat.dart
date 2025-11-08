@@ -16,6 +16,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatOverlay extends StatefulWidget {
   final String recipientUsername;
@@ -51,19 +52,17 @@ class _ChatOverlayState extends State<ChatOverlay> {
       chatData!.content.add(newMessage);
     });
 
-    router.sendReadReceipt(chatData!.recipientUsername);
+    router.sendMessageStatusUpdate([newMessage.id], chatData!.recipientUsername, MessageStatus.Read);
 
     saveChatData();
     scrollDown();
   }
 
-  void readReceiptListener(Map<String, Object> readReceipt) {
-    if (chatData == null || readReceipt["SenderUsername"] != chatData?.recipientUsername) return;
-    DateTime readAt = readReceipt["ReadAt"] as DateTime;
+  void messageStatusUpdateListener(Map<String, Object> messageStatusUpdate) {
+    if (chatData == null || messageStatusUpdate["SenderUsername"] != chatData?.recipientUsername) return;
 
-    for (var readMessage in chatData!.content.where((storedMessage) => storedMessage.sentAt.isBefore(readAt))) {
-      if (readMessage.status == 1) readMessage.status = 2;
-    }
+    final targetMessage = chatData!.content.firstWhere((message) => message.id == messageStatusUpdate["MessageID"], orElse: () => Message.empty());
+    targetMessage.status = MessageStatus.values.firstWhere((status) => status.name == messageStatusUpdate["Status"]);
 
     setState(() {});
   }
@@ -94,16 +93,19 @@ class _ChatOverlayState extends State<ChatOverlay> {
         saveChatData();
       }
 
-      final message = Message(content: input, sentAt: DateTime.now(), isOwned: true);
+      final message = Message(id: Uuid().v4(), content: input, sentAt: DateTime.now(), isOwned: true);
 
       setState(() {
         chatData!.content.add(message);
       });
 
       if (router.isConnected) {
-        router.send(widget.recipientUsername, input);
-        message.statusNotifier.value = 1;
+        router.send(message.id, widget.recipientUsername, input);
+        message.statusNotifier.value = MessageStatus.Sending;
+      } else {
+        message.statusNotifier.value = MessageStatus.Failed;
       }
+
       saveChatData();
       messageFieldController.clear();
       messageFieldFocusNode.requestFocus();
@@ -113,9 +115,25 @@ class _ChatOverlayState extends State<ChatOverlay> {
     }
   }
 
-  void saveChatData() {
+  void saveChatData() async {
     if (chatData == null) return;
     chats.put(widget.recipientUsername, chatData!);
+  }
+
+  void updateAllMessagesToRead() async {
+    if ((chatData?.unreadMessages ?? 0) <= 0) return;
+    chatData!.unreadMessages = 0;
+
+    List<String> justReadMessages = [];
+
+    for (var message in chatData!.content) {
+      if (!message.isOwned && message.status != MessageStatus.Read) {
+        message.status = MessageStatus.Read;
+        justReadMessages.add(message.id);
+      }
+    }
+
+    router.sendMessageStatusUpdate(justReadMessages, chatData!.recipientUsername, MessageStatus.Read);
   }
 
   @override
@@ -143,8 +161,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
     });
 
     router.onMessageReceived.listen(messagesListener);
-
-    router.onReadReceiptReceived.listen(readReceiptListener);
+    router.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
 
     chatScrollController.addListener(() {
       if (showScrollDownButton) {
@@ -315,7 +332,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 if (data.isOwned)
                   ValueListenableBuilder(
                     valueListenable: data.statusNotifier,
-                    builder: (context, status, _) => HugeIcon(icon: getStatusIcon(status), color: CupertinoColors.white, size: 13),
+                    builder: (context, status, _) {
+                      final statusIconData = getStatusIcon(status);
+                      return HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13);
+                    },
                   ),
               ],
             ),
@@ -446,63 +466,66 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    if ((chatData?.unreadMessages ?? 0) > 0) {
-      chatData!.unreadMessages = 0;
-      router.sendReadReceipt(chatData!.recipientUsername);
-    }
+    updateAllMessagesToRead();
     saveChatData();
 
     return CupertinoPageScaffold(
-      child: Container(
-        decoration: BoxDecoration(
-          image:
-              data.settings.useDefaultWallpaper
-                  ? DecorationImage(
-                    image: AssetImage("assets/wallpaper.png"),
-                    repeat: ImageRepeat.repeat,
-                    scale: 1.75,
-                    opacity: .12,
-                    colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
-                  )
-                  : DecorationImage(image: Image.file(File(currentWallpaper)).image),
-        ),
-        child: Column(
-          children: [
-            topBar(context),
-            Expanded(
-              child: Stack(
-                children: [
-                  messageList(),
-                  Positioned(
-                    bottom: 8,
-                    right: 12,
-                    child: AnimatedSlide(
-                      offset: showScrollDownButton ? Offset(0, 0) : Offset(0, 1),
-                      duration: Duration(milliseconds: 300),
-                      child: AnimatedOpacity(
-                        opacity: showScrollDownButton ? 1.0 : 0.0,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                image:
+                    data.settings.useDefaultWallpaper
+                        ? DecorationImage(
+                          image: AssetImage("assets/wallpaper.png"),
+                          repeat: ImageRepeat.repeat,
+                          fit: BoxFit.fitWidth,
+                          opacity: .12,
+                          colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
+                        )
+                        : DecorationImage(image: Image.file(File(currentWallpaper)).image, fit: BoxFit.cover),
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              topBar(context),
+              Expanded(
+                child: Stack(
+                  children: [
+                    messageList(),
+                    Positioned(
+                      bottom: 8,
+                      right: 12,
+                      child: AnimatedSlide(
+                        offset: showScrollDownButton ? Offset(0, 0) : Offset(0, 1),
                         duration: Duration(milliseconds: 300),
-                        child: GestureDetector(
-                          onTap: scrollDown,
-                          child: Container(
-                            height: 40,
-                            width: 40,
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context).withAlpha(200),
-                              shape: BoxShape.circle,
+                        child: AnimatedOpacity(
+                          opacity: showScrollDownButton ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 300),
+                          child: GestureDetector(
+                            onTap: scrollDown,
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context).withAlpha(200),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(CupertinoIcons.down_arrow, color: CupertinoColors.label.resolveFrom(context)),
                             ),
-                            child: Icon(CupertinoIcons.down_arrow, color: CupertinoColors.label.resolveFrom(context)),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            bottomBar(),
-          ],
-        ),
+              bottomBar(),
+            ],
+          ),
+        ],
       ),
     );
   }

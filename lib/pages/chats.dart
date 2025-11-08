@@ -32,6 +32,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
     final isBlocked = data.blockedUsers.contains(chatData.recipientUsername);
     var hasUnreadMessages = chatData.unreadMessages > 0;
 
+    final statusIconData = getStatusIcon(chatData.content.last.status);
+
     return Column(
       children: [
         CupertinoButton(
@@ -77,9 +79,9 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
                                             child: HugeIcon(
-                                              icon: getStatusIcon(chatData.content.last.status),
+                                              icon: statusIconData.icon,
                                               size: 20,
-                                              color: CupertinoColors.systemGrey.resolveFrom(context),
+                                              color: statusIconData.color,
                                             ),
                                           ),
                                         ),

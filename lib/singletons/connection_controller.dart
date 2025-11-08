@@ -13,6 +13,7 @@ import 'package:messagyre_client/api/firebase_api.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -59,8 +60,8 @@ class ConnectionController {
   Stream<Map<String, Object>> get onMessageReceived => _messagesController.stream;
 
   /* Stream for the received WebSocket read receipts */
-  final _readReceiptsController = StreamController<Map<String, Object>>.broadcast();
-  Stream<Map<String, Object>> get onReadReceiptReceived => _readReceiptsController.stream;
+  final _messageStatusUpdatesController = StreamController<Map<String, Object>>.broadcast();
+  Stream<Map<String, Object>> get onMessageStatusUpdateReceived => _messageStatusUpdatesController.stream;
 
   final _connectionStatusController = StreamController<void>.broadcast();
   Stream<void> get onConnected => _connectionStatusController.stream;
@@ -198,7 +199,8 @@ class ConnectionController {
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
 
-          if (_manuallyDisconnected) { // Avoiding reconnection attempts after manual disconnection
+          if (_manuallyDisconnected) {
+            // Avoiding reconnection attempts after manual disconnection
             _manuallyDisconnected = false;
             return;
           }
@@ -224,18 +226,27 @@ class ConnectionController {
   }
 
   void _handleMessage(Map<String, dynamic> rawMessageData) {
+    print("WebSocket message received. Raw data: $rawMessageData");
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
-      final isReadReceipt = rawMessageData.containsKey("ReadAt");
+      final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
 
       if (sender == null) throw FormatException("Missing SenderUsername");
       if (data.blockedUsers.contains(sender)) return;
 
-      if (isReadReceipt) {
-        final readAt = DateTime.parse(rawMessageData["ReadAt"].toString()).toLocal();
-        final readReceipt = {"SenderUsername": sender, "ReadAt": readAt};
-        _readReceiptsController.add(readReceipt);
+      if (isMessageStatusUpdate) {
+        final messageId = rawMessageData["ID"]?.toString();
+        final status = MessageStatus.values.firstWhere((status) => status.name == rawMessageData["Status"]?.toString(), orElse: () => MessageStatus.Failed);
+
+        if (messageId == null) {
+          throw FormatException("Missing Message ID");
+        }
+
+        final messageStatusUpdate = {"SenderUsername": sender, "ID": messageId, "Status": status};
+
+        _messageStatusUpdatesController.add(messageStatusUpdate);
       } else {
+        final messageId = rawMessageData["ID"]?.toString();
         final content = rawMessageData["Content"]?.toString();
         final rawSentAt = rawMessageData["SentAt"]?.toString();
 
@@ -243,9 +254,11 @@ class ConnectionController {
           throw FormatException("Missing Content or SentAt");
         }
         final sentAt = DateTime.parse(rawSentAt).toLocal();
-        final messageData = {"SenderUsername": sender, "Content": content, "SentAt": sentAt};
+        final messageData = {"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt};
 
         _messagesController.add(messageData);
+
+        if(messageId != null) sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
 
         HapticFeedback.heavyImpact();
       }
@@ -254,14 +267,14 @@ class ConnectionController {
     }
   }
 
-  void send(String recipientUsername, String messageContent) {
-    final message = jsonEncode({"RecipientUsername": recipientUsername, "Content": messageContent});
+  void send(String id, String recipientUsername, String messageContent) {
+    final message = jsonEncode({"ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
 
     _channel?.sink.add(message);
   }
 
-  void sendReadReceipt(String forUsername) {
-    _channel?.sink.add(jsonEncode({"RecipientUsername": forUsername, "IsReadReceipt": true}));
+  void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
+    _channel?.sink.add(jsonEncode({"RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
   }
 
   void disconnect() {

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:uuid/uuid.dart';
 
 part 'classes.g.dart';
 
@@ -18,16 +19,19 @@ class Message extends HiveObject {
   @HiveField(2)
   bool isOwned;
 
+  @HiveField(3)
+  String id;
+
   @HiveField(4)
-  int _status;
+  MessageStatus _status;
 
-  late ValueNotifier<int> statusNotifier;
+  late ValueNotifier<MessageStatus> statusNotifier;
 
-  Message({required this.content, required this.sentAt, required this.isOwned, int status = 0}) : _status = status {
-    statusNotifier = ValueNotifier<int>(_status);
+  Message({required this.id, required this.content, required this.sentAt, required this.isOwned, MessageStatus status = MessageStatus.Sending}) : _status = status {
+    statusNotifier = ValueNotifier<MessageStatus>(_status);
   }
 
-  set status(int value) {
+  set status(MessageStatus value) {
     _status = value;
     statusNotifier.value = value;
     if (isInBox) {
@@ -35,23 +39,27 @@ class Message extends HiveObject {
     }
   }
 
-  int get status => _status;
+  MessageStatus get status => _status;
 
   factory Message.fromMessageData(Map<String, dynamic> messageData) {
     try {
-      return Message(content: messageData["Content"], sentAt: messageData["SentAt"], isOwned: false);
+      return Message(id: messageData["ID"], content: messageData["Content"], sentAt: messageData["SentAt"], isOwned: false);
     } catch (e) {
       debugPrint("[Classes.dart] Message could not be created: $e");
       throw Exception();
     }
   }
 
+  factory Message.empty() {
+    return Message(id: "", content: "", sentAt: DateTime(0), isOwned: false);
+  }
+
   void initNotifier() {
-    statusNotifier = ValueNotifier<int>(_status);
+    statusNotifier = ValueNotifier<MessageStatus>(_status);
   }
 
   String pack(String recipientUsername) {
-    final data = {"RecipientUsername": recipientUsername, "Content": content, "SentAt": sentAt.toIso8601String(), "Status": status};
+    final data = {"RecipientUsername": recipientUsername, "Content": content, "SentAt": sentAt.toIso8601String(), "Status": status.index};
     return jsonEncode(data);
   }
 }
@@ -214,3 +222,5 @@ class Account {
     return "[Account: $username]\n\tEmail: $emailAddress\n\tProfile: {$profileString\n}\n";
   }
 }
+
+enum MessageStatus { Sending, Sent, Delivered, Read, Failed }
