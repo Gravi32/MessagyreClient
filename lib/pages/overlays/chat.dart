@@ -154,20 +154,6 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
     animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
 
-    Widget buildOption(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 26, color: CupertinoColors.label.resolveFrom(context)),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
-          ],
-        ),
-      );
-    }
-
     entry = OverlayEntry(
       builder: (context) {
         return GestureDetector(
@@ -187,11 +173,14 @@ class _ChatOverlayState extends State<ChatOverlay> {
                   ),
 
                   Positioned(
-                    top: min(bubblePosition?.dy ?? 0 - 2 * bubbleHeight * animation.value, MediaQuery.of(context).size.height - (160 + bubbleHeight) * animation.value),
+                    top: min(
+                      bubblePosition?.dy ?? 0 - 2 * bubbleHeight * animation.value,
+                      MediaQuery.of(context).size.height - (160 + bubbleHeight) * animation.value,
+                    ),
                     left: message.isOwned ? null : 10,
                     right: message.isOwned ? 10 : null,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: message.isOwned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
                         messageBubble(message, false, false, true),
                         Container(
@@ -237,7 +226,60 @@ class _ChatOverlayState extends State<ChatOverlay> {
                               ),
                               Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
                               CupertinoPressable(
-                                onTap: () {},
+                                onTap: () {
+                                  animationController.reverse().then((_) => entry.remove());
+                                  showCupertinoModalPopup(
+                                    context: context,
+                                    builder: (popupContext) {
+                                      return CupertinoActionSheet(
+                                        title: Text("Supprimer le message", style: TextStyle(fontSize: 14)),
+                                        message: Text(
+                                          "Choisissez comment supprimer le message. Ces actions sont irréversibles !",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                        actions: [
+                                          CupertinoActionSheetAction(
+                                            onPressed: () {
+                                              setState(() {
+                                                chatData?.content.remove(message);
+                                                saveChatData();
+                                              });
+
+                                              Navigator.pop(popupContext);
+                                            },
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text("Supprimer pour vous", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: CupertinoColors.systemRed),
+                                              ],
+                                            ),
+                                          ),
+                                          CupertinoActionSheetAction(
+                                            onPressed: () {
+                                              setState(() {
+                                                message
+                                                  ..isDeleted = true
+                                                  ..save();
+                                                saveChatData();
+                                              });
+
+                                              // TODO
+                                              Navigator.pop(popupContext);
+                                            },
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                                 padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.max,
@@ -433,7 +475,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
     Color getBubbleColor(bool isOwned) {
       final isDarkMode = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-      return isOwned ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF)) : (isDarkMode ? const Color(0xFF3D3D3D) : CupertinoColors.systemGrey3);
+      final color = isOwned ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF)) : (isDarkMode ? const Color(0xFF3D3D3D) : CupertinoColors.systemGrey3);
+      return data.isDeleted ? color.withAlpha(200) : color;
     }
 
     Widget bubbleContent = Align(
@@ -456,15 +499,28 @@ class _ChatOverlayState extends State<ChatOverlay> {
             spacing: 9,
             runSpacing: 4,
             children: [
-              Padding(padding: EdgeInsets.only(bottom: 3.5), child: CustomText(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 15))),
+              Padding(
+                padding: EdgeInsets.only(bottom: 3.5),
+                child: CustomText(
+                  data.isDeleted ? "Supprimé" : data.content,
+                  style: TextStyle(
+                    color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white,
+                    fontSize: 15,
+                    fontStyle: data.isDeleted ? FontStyle.italic : null,
+                  ),
+                ),
+              ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 spacing: 1,
                 children: [
-                  Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: CupertinoColors.white, fontSize: 12)),
-                  if (data.isOwned)
+                  Text(
+                    DateFormat('HH:mm').format(data.sentAt),
+                    style: TextStyle(color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white, fontSize: 12),
+                  ),
+                  if (data.isOwned && !data.isDeleted)
                     ValueListenableBuilder(
                       valueListenable: data.statusNotifier,
                       builder: (context, status, _) {

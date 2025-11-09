@@ -23,14 +23,19 @@ class MessageAdapter extends TypeAdapter<Message> {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
 
-    return Message(id: fields.get(3, Uuid().v4()), content: fields.get(0, "Une erreur s'est produite."), sentAt: fields.get(1, DateTime(0)), isOwned: fields.get(2, false))
-      .._status = MessageStatus.values.firstWhere((e) => e.name == fields.get(4, MessageStatus.Failed.name));
+    return Message(
+      id: fields.get(3, Uuid().v4()),
+      content: fields.get(0, "Une erreur s'est produite."),
+      sentAt: fields.get(1, DateTime(0)),
+      isOwned: fields.get(2, false),
+      isDeleted: fields.get(5, false)
+    ).._status = MessageStatus.values.firstWhere((e) => e.name == fields.get(4, MessageStatus.Failed.name));
   }
 
   @override
   void write(BinaryWriter writer, Message obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.content)
       ..writeByte(1)
@@ -40,7 +45,9 @@ class MessageAdapter extends TypeAdapter<Message> {
       ..writeByte(3)
       ..write(obj.id)
       ..writeByte(4)
-      ..write(obj._status.name);
+      ..write(obj._status.name)
+      ..writeByte(5)
+      ..write(obj.isDeleted);
   }
 
   @override
@@ -202,7 +209,7 @@ class SettingsAdapter extends TypeAdapter<Settings> {
       ..writeByte(0)
       ..write(obj.includeWeekends)
       ..writeByte(1)
-      ..write(obj.useDefaultWallpaper); 
+      ..write(obj.useDefaultWallpaper);
   }
 
   @override

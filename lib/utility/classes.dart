@@ -25,9 +25,19 @@ class Message extends HiveObject {
   @HiveField(4)
   MessageStatus _status;
 
+  @HiveField(5)
+  bool isDeleted = false;
+
   late ValueNotifier<MessageStatus> statusNotifier;
 
-  Message({required this.id, required this.content, required this.sentAt, required this.isOwned, MessageStatus status = MessageStatus.Sending}) : _status = status {
+  Message({
+    required this.id,
+    required this.content,
+    required this.sentAt,
+    required this.isOwned,
+    MessageStatus status = MessageStatus.Sending,
+    this.isDeleted = false,
+  }) : _status = status {
     statusNotifier = ValueNotifier<MessageStatus>(_status);
   }
 
