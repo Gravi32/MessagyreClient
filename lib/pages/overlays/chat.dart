@@ -192,39 +192,41 @@ class _ChatOverlayState extends State<ChatOverlay> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              CupertinoPressable(
-                                onTap: () {
-                                  Clipboard.setData(ClipboardData(text: message.content));
-                                  animationController.reverse().then((_) => entry.remove());
-                                },
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Copier"),
-                                    HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: CupertinoColors.label.resolveFrom(context)),
-                                  ],
+                              if (!message.isDeleted) ...[
+                                CupertinoPressable(
+                                  onTap: () {
+                                    Clipboard.setData(ClipboardData(text: message.content));
+                                    animationController.reverse().then((_) => entry.remove());
+                                  },
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Copier"),
+                                      HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: CupertinoColors.label.resolveFrom(context)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
-                              CupertinoPressable(
-                                onTap: null,
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                                    HugeIcon(
-                                      icon: HugeIcons.strokeRoundedInformationSquare,
-                                      size: 20,
-                                      color: CupertinoColors.inactiveGray.resolveFrom(context),
-                                    ),
-                                  ],
+                                Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                                CupertinoPressable(
+                                  onTap: null,
+                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                                      HugeIcon(
+                                        icon: HugeIcons.strokeRoundedInformationSquare,
+                                        size: 20,
+                                        color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                                Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                              ],
                               CupertinoPressable(
                                 onTap: () {
                                   animationController.reverse().then((_) => entry.remove());
@@ -255,26 +257,28 @@ class _ChatOverlayState extends State<ChatOverlay> {
                                               ],
                                             ),
                                           ),
-                                          CupertinoActionSheetAction(
-                                            onPressed: () {
-                                              setState(() {
-                                                message
-                                                  ..isDeleted = true
-                                                  ..save();
-                                                saveChatData();
-                                              });
 
-                                              // TODO
-                                              Navigator.pop(popupContext);
-                                            },
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
-                                                HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
-                                              ],
+                                          if (!message.isDeleted)
+                                            CupertinoActionSheetAction(
+                                              onPressed: () {
+                                                setState(() {
+                                                  message
+                                                    ..isDeleted = true
+                                                    ..save();
+                                                  saveChatData();
+                                                });
+
+                                                // TODO
+                                                Navigator.pop(popupContext);
+                                              },
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                  HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                                ],
+                                              ),
                                             ),
-                                          ),
                                         ],
                                       );
                                     },
