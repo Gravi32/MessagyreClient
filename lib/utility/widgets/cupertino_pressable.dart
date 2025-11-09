@@ -7,11 +7,10 @@ class CupertinoPressable extends StatefulWidget {
   final BorderRadius? borderRadius;
   final Duration duration;
   final Color? highlightColor;
-
-  // proprietà simili a Container
   final BoxConstraints? constraints;
   final BoxDecoration? decoration;
   final EdgeInsetsGeometry? padding;
+  final double? height;
 
   const CupertinoPressable({
     super.key,
@@ -23,6 +22,7 @@ class CupertinoPressable extends StatefulWidget {
     this.constraints,
     this.decoration,
     this.padding,
+    this.height
   });
 
   @override
@@ -54,6 +54,7 @@ class _CupertinoPressableState extends State<CupertinoPressable> {
         constraints: widget.constraints,
         padding: widget.padding,
         decoration: widget.decoration,
+        height: widget.height,
 
         foregroundDecoration: BoxDecoration(
           color: _pressed ? (widget.highlightColor ?? defaultHighlight) : null,

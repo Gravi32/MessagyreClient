@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/material.dart' hide ConnectionState;
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -39,6 +41,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final chatScrollController = ScrollController();
   final messageFieldController = TextEditingController();
   final messageFieldFocusNode = FocusNode();
+  final Map<String, GlobalKey> bubbleKeys = {};
 
   Set<Message> animatedMessages = {};
   bool isLoading = false;
@@ -134,6 +137,133 @@ class _ChatOverlayState extends State<ChatOverlay> {
     }
 
     router.sendMessageStatusUpdate(justReadMessages, chatData!.recipientUsername, MessageStatus.Read);
+  }
+
+  void showMessageContextMenu(BuildContext context, Message message) {
+    final overlay = Overlay.of(context);
+    final key = bubbleKeys[message.id];
+    final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
+    final bubblePosition = renderBox?.localToGlobal(Offset.zero);
+    final bubbleHeight = renderBox?.size.height ?? 0;
+
+    late OverlayEntry entry;
+    late AnimationController animationController;
+    late Animation<double> animation;
+
+    animationController = AnimationController(vsync: Navigator.of(context), duration: const Duration(milliseconds: 200));
+
+    animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
+
+    Widget buildOption(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 26, color: CupertinoColors.label.resolveFrom(context)),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    entry = OverlayEntry(
+      builder: (context) {
+        return GestureDetector(
+          onTap: () {
+            animationController.reverse().then((_) => entry.remove());
+          },
+          child: AnimatedBuilder(
+            animation: animation,
+            builder: (context, _) {
+              return Stack(
+                children: [
+                  Opacity(
+                    opacity: animationController.value,
+                    child: Positioned.fill(
+                      child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), child: Container(color: Colors.white.withAlpha(5))),
+                    ),
+                  ),
+
+                  Positioned(
+                    top: min(bubblePosition?.dy ?? 0 - 2 * bubbleHeight * animation.value, MediaQuery.of(context).size.height - (160 + bubbleHeight) * animation.value),
+                    left: message.isOwned ? null : 10,
+                    right: message.isOwned ? 10 : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        messageBubble(message, false, false, true),
+                        Container(
+                          width: 240,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              CupertinoPressable(
+                                onTap: () {
+                                  Clipboard.setData(ClipboardData(text: message.content));
+                                  animationController.reverse().then((_) => entry.remove());
+                                },
+                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("Copier"),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: CupertinoColors.label.resolveFrom(context)),
+                                  ],
+                                ),
+                              ),
+                              Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                              CupertinoPressable(
+                                onTap: null,
+                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedInformationSquare,
+                                      size: 20,
+                                      color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                              CupertinoPressable(
+                                onTap: () {},
+                                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed)),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    overlay.insert(entry);
+    animationController.forward();
   }
 
   @override
@@ -273,9 +403,11 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
   }
 
-  Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned) {
+  Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, bool isPreview) {
     final alreadyAnimated = animatedMessages.contains(data);
     if (!alreadyAnimated) animatedMessages.add(data);
+
+    bubbleKeys.putIfAbsent(data.id, () => GlobalKey());
 
     BorderRadius getBubbleShape(bool isOwned) {
       const double maxPx = 11;
@@ -306,40 +438,44 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
     Widget bubbleContent = Align(
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-        margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
-        padding: EdgeInsets.only(left: 9, right: 8, bottom: 2, top: 5),
-        decoration: BoxDecoration(
-          color: getBubbleColor(data.isOwned),
-          borderRadius: getBubbleShape(data.isOwned),
-          boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10)],
-        ),
-        child: Wrap(
-          alignment: WrapAlignment.end,
-          crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 9,
-          runSpacing: 4,
-          children: [
-            Padding(padding: EdgeInsets.only(bottom: 3.5), child: CustomText(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 15))),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              spacing: 1,
-              children: [
-                Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: CupertinoColors.white, fontSize: 12)),
-                if (data.isOwned)
-                  ValueListenableBuilder(
-                    valueListenable: data.statusNotifier,
-                    builder: (context, status, _) {
-                      final statusIconData = getStatusIcon(status);
-                      return HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13);
-                    },
-                  ),
-              ],
-            ),
-          ],
+      child: GestureDetector(
+        key: isPreview ? null : bubbleKeys[data.id],
+        onLongPressStart: isPreview ? null : (details) => showMessageContextMenu(context, data),
+        child: Container(
+          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+          margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
+          padding: EdgeInsets.only(left: 9, right: 8, bottom: 2, top: 5),
+          decoration: BoxDecoration(
+            color: getBubbleColor(data.isOwned),
+            borderRadius: getBubbleShape(data.isOwned),
+            boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10)],
+          ),
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.end,
+            spacing: 9,
+            runSpacing: 4,
+            children: [
+              Padding(padding: EdgeInsets.only(bottom: 3.5), child: CustomText(data.content, style: TextStyle(color: CupertinoColors.white, fontSize: 15))),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                spacing: 1,
+                children: [
+                  Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: CupertinoColors.white, fontSize: 12)),
+                  if (data.isOwned)
+                    ValueListenableBuilder(
+                      valueListenable: data.statusNotifier,
+                      builder: (context, status, _) {
+                        final statusIconData = getStatusIcon(status);
+                        return HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13);
+                      },
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -374,23 +510,26 @@ class _ChatOverlayState extends State<ChatOverlay> {
         var previousMessage = visibleMessagesList[max(index - 1, 0)];
         var nextMessage = visibleMessagesList[min(index + 1, visibleMessagesList.length - 1)];
 
-        final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned);
+        final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
         return currentMessage.sentAt.difference(previousMessage.sentAt).inDays > 0 || index == 0
             ? Column(
               children: [
                 Container(
                   margin: EdgeInsets.only(bottom: 12, top: 30),
-                  padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                  padding: EdgeInsets.symmetric(vertical: 6, horizontal: 16),
                   decoration: BoxDecoration(
                     color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(200),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    spacing: 6,
+                    spacing: 8,
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      Opacity(
+                        opacity: .5,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      ),
                       Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
                     ],
                   ),
