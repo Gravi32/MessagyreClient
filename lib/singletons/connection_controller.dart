@@ -258,7 +258,7 @@ class ConnectionController {
 
         _messagesController.add(messageData);
 
-        if(messageId != null) sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
+        if (messageId != null) sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
 
         HapticFeedback.heavyImpact();
       }
@@ -268,13 +268,17 @@ class ConnectionController {
   }
 
   void send(String id, String recipientUsername, String messageContent) {
-    final message = jsonEncode({"ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
+    final message = jsonEncode({"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
 
     _channel?.sink.add(message);
   }
 
   void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
-    _channel?.sink.add(jsonEncode({"RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
+    _channel?.sink.add(jsonEncode({"RequestType": "StatusUpdate", "RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
+  }
+
+  void sendMessageDelete(List<String> forMessageIds, String forUsername) {
+    _channel?.sink.add(jsonEncode({"RequestType": "Deletion", "RecipientUsername": forUsername, "IDs": forMessageIds}));
   }
 
   void disconnect() {

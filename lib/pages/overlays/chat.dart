@@ -227,73 +227,80 @@ class _ChatOverlayState extends State<ChatOverlay> {
                                 ),
                                 Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
                               ],
-                              CupertinoPressable(
-                                onTap: () {
-                                  animationController.reverse().then((_) => entry.remove());
-                                  showCupertinoModalPopup(
-                                    context: context,
-                                    builder: (popupContext) {
-                                      return CupertinoActionSheet(
-                                        title: Text("Supprimer le message", style: TextStyle(fontSize: 14)),
-                                        message: Text(
-                                          "Choisissez comment supprimer le message. Ces actions sont irréversibles !",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        actions: [
-                                          CupertinoActionSheetAction(
-                                            onPressed: () {
-                                              setState(() {
-                                                chatData?.content.remove(message);
-                                                saveChatData();
-                                              });
-
-                                              Navigator.pop(popupContext);
-                                            },
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text("Supprimer pour vous", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
-                                                HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: CupertinoColors.systemRed),
-                                              ],
-                                            ),
+                              if (message.isOwned)
+                                CupertinoPressable(
+                                  onTap: () {
+                                    animationController.reverse().then((_) => entry.remove());
+                                    showCupertinoModalPopup(
+                                      context: context,
+                                      builder: (popupContext) {
+                                        return CupertinoActionSheet(
+                                          title: Text("Supprimer le message", style: TextStyle(fontSize: 14)),
+                                          message: Text(
+                                            "Choisissez comment supprimer le message. Ces actions sont irréversibles !",
+                                            style: TextStyle(fontSize: 14),
                                           ),
-
-                                          if (!message.isDeleted)
+                                          actions: [
                                             CupertinoActionSheetAction(
                                               onPressed: () {
                                                 setState(() {
-                                                  message
-                                                    ..isDeleted = true
-                                                    ..save();
+                                                  chatData?.content.remove(message);
                                                   saveChatData();
                                                 });
 
-                                                // TODO
                                                 Navigator.pop(popupContext);
                                               },
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
-                                                  Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
-                                                  HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                                  Text("Supprimer pour vous", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                  HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: CupertinoColors.systemRed),
                                                 ],
                                               ),
                                             ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed)),
-                                    HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
-                                  ],
+
+                                            if (!message.isDeleted)
+                                              CupertinoActionSheetAction(
+                                                onPressed: () {
+                                                  try {
+                                                    final savedMessage = chatData?.content.firstWhere((element) => element.id == message.id);
+                                                    if (savedMessage == null) return;
+
+                                                    setState(() {
+                                                      savedMessage.isDeleted = true;
+                                                      saveChatData();
+                                                    });
+
+                                                    router.sendMessageDelete([message.id], widget.recipientUsername);
+                                                    print("Deletion request sent for ${message.id}");
+                                                  } catch (e) {
+                                                    print("Failed sending deletion request: $e");
+                                                  }
+                                                  Navigator.pop(popupContext);
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                    HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                                  ],
+                                                ),
+                                              ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed)),
+                                      HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                    ],
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
