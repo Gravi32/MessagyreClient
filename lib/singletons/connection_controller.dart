@@ -119,8 +119,9 @@ class ConnectionController {
 
     connectionState.value = ConnectionState.WaitingToReconnect;
 
-    connectionAttempts++;
     final delay = min(15 * connectionAttempts, 300);
+    connectionAttempts++;
+
     debugPrint("[WebSocket] Reconnecting in $delay seconds...");
 
     Future.delayed(Duration(seconds: delay), () {
