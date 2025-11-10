@@ -250,7 +250,6 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                       padding: EdgeInsets.only(top: 8),
                       itemCount: chatsList.length,
                       itemBuilder: (context, index) {
-                        print("Building chat [$index]: ${chatsList[index]}");
                         return buildChatBar(chatsList[index]);
                       },
                     );

@@ -272,9 +272,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                                       });
 
                                                       router.sendMessageDelete([message.id], widget.recipientUsername);
-                                                      print("Deletion request sent for ${message.id}");
+                                                      debugPrint("[Chat] Deletion request sent for ${message.id}");
                                                     } catch (e) {
-                                                      print("Failed sending deletion request: $e");
+                                                      debugPrint("[Chat] Failed sending deletion request: $e");
                                                     }
                                                     Navigator.pop(popupContext);
                                                   },
