@@ -32,7 +32,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
     final isBlocked = data.blockedUsers.contains(chatData.recipientUsername);
     var hasUnreadMessages = chatData.unreadMessages > 0;
 
-    final statusIconData = getStatusIcon(chatData.content.last.status);
+    final statusIconData = chatData.content.isNotEmpty ? getStatusIcon(chatData.content.last.status) : null;
 
     return Column(
       children: [
@@ -78,11 +78,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: HugeIcon(
-                                              icon: statusIconData.icon,
-                                              size: 20,
-                                              color: statusIconData.color,
-                                            ),
+                                            child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color),
                                           ),
                                         ),
                                       ...CustomText.parseSpans(
@@ -166,13 +162,12 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
     allChats = Hive.box<Chat>("Chats");
 
-    // FOR THE APPLE VERIFICATION TEAM
+    // FOR THE APPLE VERIFICATION TEAM \\
     if (data.username == "apple.verification") {
       allChats.put("apple.verification", Chat(recipientUsername: "apple.verification"));
     }
 
     router.onMessageReceived.listen((messageData) {
-      
       if (!mounted) return;
 
       var senderUsername = messageData["SenderUsername"]!.toString();
@@ -255,6 +250,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                       padding: EdgeInsets.only(top: 8),
                       itemCount: chatsList.length,
                       itemBuilder: (context, index) {
+                        print("Building chat [$index]: ${chatsList[index]}");
                         return buildChatBar(chatsList[index]);
                       },
                     );
