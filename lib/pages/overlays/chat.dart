@@ -587,9 +587,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
               children: [
                 Container(
                   margin: EdgeInsets.only(bottom: 12, top: 30),
-                  padding: EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(200),
+                    color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(120),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -597,7 +597,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     spacing: 8,
                     children: [
                       Opacity(
-                        opacity: .5,
+                        opacity: .25,
                         child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                       ),
                       Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
