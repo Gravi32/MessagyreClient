@@ -97,7 +97,7 @@ class App extends StatelessWidget {
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
     AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage()),
     AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsPage()),
-    AppPage(name: "Récherche", icon: HugeIcons.strokeRoundedUserGroup, build: () => SearchPage()),
+    AppPage(name: "Récherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),
   ];
 
