@@ -193,7 +193,7 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
                         child: Text("Récherchez vos amis !", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
                       ),
                       SizedBox(height: 15),
-                      Container(width: 200, decoration: getDecoration(), child: Image.asset("assets/messagyreGuy.png")),
+                      Container(width: 200, decoration: getDecoration(), child: Image.asset("assets/messagyreGuy.png", errorBuilder: (_,_,_) => Image.asset("assets/MessagyreGuy.png"),)),
                     ],
                   ),
                 ],
