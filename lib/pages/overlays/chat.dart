@@ -29,7 +29,7 @@ class ChatOverlay extends StatefulWidget {
   State<StatefulWidget> createState() => _ChatOverlayState();
 }
 
-class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin  {
+class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin {
   final router = ConnectionController();
   final data = Data();
   final chats = Hive.box<Chat>("Chats");
@@ -141,186 +141,183 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
   void showMessageContextMenu(BuildContext context, Message message) {
     try {
-    final overlay = Overlay.of(context, rootOverlay: true);
-    final key = bubbleKeys[message.id];
-    final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
+      final overlay = Overlay.of(context, rootOverlay: true);
+      final key = bubbleKeys[message.id];
+      final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox == null) return;
 
-    final bubblePosition = renderBox.localToGlobal(Offset.zero);
-    final bubbleHeight = renderBox.size.height;
+      final bubblePosition = renderBox.localToGlobal(Offset.zero);
+      final bubbleHeight = renderBox.size.height;
 
-    late OverlayEntry entry;
-    late AnimationController animationController;
-    late Animation<double> animation;
+      late OverlayEntry entry;
+      late AnimationController animationController;
+      late Animation<double> animation;
 
-    animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+      animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
 
-    animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
+      animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
 
-    entry = OverlayEntry(
-      builder: (context) {
-        return GestureDetector(
-          onTap: () {
-            animationController.reverse().then((_) => entry.remove());
-          },
-          child: AnimatedBuilder(
-            animation: animation,
-            builder: (context, _) {
-              return Stack(
-                children: [
-                  Opacity(
-                    opacity: animationController.value,
-                    child: Positioned.fill(
-                      child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), child: Container(color: Colors.white.withAlpha(5))),
+      entry = OverlayEntry(
+        builder: (context) {
+          return GestureDetector(
+            onTap: () {
+              animationController.reverse().then((_) => entry.remove());
+            },
+            child: AnimatedBuilder(
+              animation: animation,
+              builder: (context, _) {
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: animationController.value,
+                        child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), child: Container(color: Colors.white.withAlpha(5))),
+                      ),
                     ),
-                  ),
 
-                  Positioned(
-                    top: min(
-                      bubblePosition.dy,
-                      MediaQuery.of(context).size.height - (160 + bubbleHeight) * animation.value,
-                    ),
-                    left: message.isOwned ? null : 10,
-                    right: message.isOwned ? 10 : null,
-                    child: Column(
-                      crossAxisAlignment: message.isOwned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                      children: [
-                        messageBubble(message, false, false, true),
-                        Container(
-                          width: 240,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.8),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (!message.isDeleted) ...[
-                                CupertinoPressable(
-                                  onTap: () {
-                                    Clipboard.setData(ClipboardData(text: message.content));
-                                    animationController.reverse().then((_) => entry.remove());
-                                  },
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("Copier"),
-                                      HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: CupertinoColors.label.resolveFrom(context)),
-                                    ],
+                    Positioned(
+                      top: min(bubblePosition.dy, MediaQuery.of(context).size.height - (160 + bubbleHeight) * animation.value),
+                      left: message.isOwned ? null : 10,
+                      right: message.isOwned ? 10 : null,
+                      child: Column(
+                        crossAxisAlignment: message.isOwned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          messageBubble(message, false, false, true),
+                          Container(
+                            width: 240,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.8),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (!message.isDeleted) ...[
+                                  CupertinoPressable(
+                                    onTap: () {
+                                      Clipboard.setData(ClipboardData(text: message.content));
+                                      animationController.reverse().then((_) => entry.remove());
+                                    },
+                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Copier"),
+                                        HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: CupertinoColors.label.resolveFrom(context)),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
-                                CupertinoPressable(
-                                  onTap: null,
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                                      HugeIcon(
-                                        icon: HugeIcons.strokeRoundedInformationSquare,
-                                        size: 20,
-                                        color: CupertinoColors.inactiveGray.resolveFrom(context),
-                                      ),
-                                    ],
+                                  Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                                  CupertinoPressable(
+                                    onTap: null,
+                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                                        HugeIcon(
+                                          icon: HugeIcons.strokeRoundedInformationSquare,
+                                          size: 20,
+                                          color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
-                              ],
-                              if (message.isOwned)
-                                CupertinoPressable(
-                                  onTap: () {
-                                    animationController.reverse().then((_) => entry.remove());
-                                    showCupertinoModalPopup(
-                                      context: context,
-                                      builder: (popupContext) {
-                                        return CupertinoActionSheet(
-                                          title: Text("Supprimer le message", style: TextStyle(fontSize: 14)),
-                                          message: Text(
-                                            "Choisissez comment supprimer le message. Ces actions sont irréversibles !",
-                                            style: TextStyle(fontSize: 14),
-                                          ),
-                                          actions: [
-                                            CupertinoActionSheetAction(
-                                              onPressed: () {
-                                                setState(() {
-                                                  chatData?.content.remove(message);
-                                                  saveChatData();
-                                                });
-
-                                                Navigator.pop(popupContext);
-                                              },
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Text("Supprimer pour vous", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
-                                                  HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: CupertinoColors.systemRed),
-                                                ],
-                                              ),
+                                  Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                                ],
+                                if (message.isOwned)
+                                  CupertinoPressable(
+                                    onTap: () {
+                                      animationController.reverse().then((_) => entry.remove());
+                                      showCupertinoModalPopup(
+                                        context: context,
+                                        builder: (popupContext) {
+                                          return CupertinoActionSheet(
+                                            title: Text("Supprimer le message", style: TextStyle(fontSize: 14)),
+                                            message: Text(
+                                              "Choisissez comment supprimer le message. Ces actions sont irréversibles !",
+                                              style: TextStyle(fontSize: 14),
                                             ),
-
-                                            if (!message.isDeleted)
+                                            actions: [
                                               CupertinoActionSheetAction(
                                                 onPressed: () {
-                                                  try {
-                                                    final savedMessage = chatData?.content.firstWhere((element) => element.id == message.id);
-                                                    if (savedMessage == null) return;
+                                                  setState(() {
+                                                    chatData?.content.remove(message);
+                                                    saveChatData();
+                                                  });
 
-                                                    setState(() {
-                                                      savedMessage.isDeleted = true;
-                                                      saveChatData();
-                                                    });
-
-                                                    router.sendMessageDelete([message.id], widget.recipientUsername);
-                                                    print("Deletion request sent for ${message.id}");
-                                                  } catch (e) {
-                                                    print("Failed sending deletion request: $e");
-                                                  }
                                                   Navigator.pop(popupContext);
                                                 },
                                                 child: Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
-                                                    Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
-                                                    HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                                    Text("Supprimer pour vous", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                    HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: CupertinoColors.systemRed),
                                                   ],
                                                 ),
                                               ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed)),
-                                      HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
 
-    overlay.insert(entry);
-    animationController.forward();}
-    catch(e,s) {
+                                              if (!message.isDeleted)
+                                                CupertinoActionSheetAction(
+                                                  onPressed: () {
+                                                    try {
+                                                      final savedMessage = chatData?.content.firstWhere((element) => element.id == message.id);
+                                                      if (savedMessage == null) return;
+
+                                                      setState(() {
+                                                        savedMessage.isDeleted = true;
+                                                        saveChatData();
+                                                      });
+
+                                                      router.sendMessageDelete([message.id], widget.recipientUsername);
+                                                      print("Deletion request sent for ${message.id}");
+                                                    } catch (e) {
+                                                      print("Failed sending deletion request: $e");
+                                                    }
+                                                    Navigator.pop(popupContext);
+                                                  },
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text("Supprimer pour tout le monde", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                      HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                    padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed)),
+                                        HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: CupertinoColors.systemRed),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+        },
+      );
+
+      overlay.insert(entry);
+      animationController.forward();
+    } catch (e, s) {
       debugPrint("Message focus failed: $e. $s");
     }
   }
