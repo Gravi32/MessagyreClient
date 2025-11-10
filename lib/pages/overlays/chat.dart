@@ -29,7 +29,7 @@ class ChatOverlay extends StatefulWidget {
   State<StatefulWidget> createState() => _ChatOverlayState();
 }
 
-class _ChatOverlayState extends State<ChatOverlay> {
+class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin  {
   final router = ConnectionController();
   final data = Data();
   final chats = Hive.box<Chat>("Chats");
@@ -140,17 +140,20 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   void showMessageContextMenu(BuildContext context, Message message) {
-    final overlay = Overlay.of(context);
+    try {
+    final overlay = Overlay.of(context, rootOverlay: true);
     final key = bubbleKeys[message.id];
     final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
-    final bubblePosition = renderBox?.localToGlobal(Offset.zero);
-    final bubbleHeight = renderBox?.size.height ?? 0;
+    if (renderBox == null) return;
+
+    final bubblePosition = renderBox.localToGlobal(Offset.zero);
+    final bubbleHeight = renderBox.size.height;
 
     late OverlayEntry entry;
     late AnimationController animationController;
     late Animation<double> animation;
 
-    animationController = AnimationController(vsync: Navigator.of(context), duration: const Duration(milliseconds: 200));
+    animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
 
     animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
 
@@ -174,7 +177,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
                   Positioned(
                     top: min(
-                      bubblePosition?.dy ?? 0 - 2 * bubbleHeight * animation.value,
+                      bubblePosition.dy,
                       MediaQuery.of(context).size.height - (160 + bubbleHeight) * animation.value,
                     ),
                     left: message.isOwned ? null : 10,
@@ -316,7 +319,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
 
     overlay.insert(entry);
-    animationController.forward();
+    animationController.forward();}
+    catch(e,s) {
+      debugPrint("Message focus failed: $e. $s");
+    }
   }
 
   @override
