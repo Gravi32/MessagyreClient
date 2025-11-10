@@ -186,18 +186,33 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               spacing: 2,
                               children:
-                                  nearbyTests
-                                      .map(
-                                        (test) => CustomText(
-                                          "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: CupertinoColors.secondaryLabel.withAlpha(nearbyTests.indexOf(test) == currentViewingTestIndex ? 255 : 160),
+                                  nearbyTests.map((test) {
+                                    final isSelected = nearbyTests.indexOf(test) == currentViewingTestIndex;
+
+                                    return TweenAnimationBuilder<double>(
+                                      key: ValueKey(test.key),
+                                      tween: Tween<double>(begin: 1.0, end: isSelected ? 0.6 : 1.0),
+                                      duration: Duration(milliseconds: isSelected ? 500 : 1000),
+                                      onEnd: () {
+                                        if (isSelected) {
+                                          Future.delayed(Duration(milliseconds: 500), () {
+                                            if (mounted) setState(() {});
+                                          });
+                                        }
+                                      },
+                                      builder: (context, value, _) {
+                                        final baseColor = CupertinoColors.secondaryLabel.resolveFrom(context);
+                                        return Opacity(
+                                          opacity: value,
+                                          child: CustomText(
+                                            "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
+                                            style: TextStyle(fontSize: 16, color: baseColor.withAlpha(isSelected ? 255 : 160)),
+                                            boldWeight: FontWeight.w600,
                                           ),
-                                          boldWeight: FontWeight.w600,
-                                        ),
-                                      )
-                                      .toList(),
+                                        );
+                                      },
+                                    );
+                                  }).toList(),
                             ),
                           )
                           : Row(
