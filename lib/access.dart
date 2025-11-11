@@ -49,6 +49,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
       usernameError = passwordError = null;
       wasPasswordWrong = false;
     });
+    if (usernameError != null || passwordError != null) return;
 
     // Sending the request to the server
     debugPrint("[Access] Logging in as $username...");
@@ -100,6 +101,30 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
     // Closing the page
     debugPrint("[Login successful] Token received and stored.");
     if (mounted) Navigator.of(context).pop();
+  }
+
+  void tryToResetPassword() async {
+    isWaitingForResponse = true;
+
+    final response = await router.post("/Auth/Registration", {"PasswordResetUsername": usernameController.value.text});
+
+    isWaitingForResponse = false;
+
+    if (response.statusCode != 200) {
+      debugPrint("[Access] Password reset failed (${response.statusCode}): ${response.body}");
+      return;
+    }
+
+    String? registrationToken;
+    try {
+      registrationToken = jsonDecode(response.body)["RegistrationToken"];
+    } catch (_) {}
+
+    final mountedContext = context;
+    if (!context.mounted) return;
+    Navigator.of(
+      mountedContext,
+    ).push(CupertinoPageRoute(builder: (context) => RegistrationPage(passwordResetMode: true, registrationTokenOverride: registrationToken)));
   }
 
   @override
@@ -188,14 +213,14 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
                       CupertinoButton(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         minimumSize: Size.zero,
-                        onPressed: (!isWaitingForResponse) ? tryToLogin : null,
+                        onPressed: (!isWaitingForResponse) ? tryToResetPassword : null,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             isWaitingForResponse
                                 ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
-                                : const Text("J'ai oublié mon mot de passe"),
+                                : const Text("J'ai oublié mon mot de passe..."),
                           ],
                         ),
                       ),

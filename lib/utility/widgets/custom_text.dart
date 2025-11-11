@@ -8,6 +8,7 @@ class CustomText extends StatelessWidget {
   final TextOverflow overflow;
   final int? maxLines;
   final List<InlineSpan>? extraSpans;
+  final TextAlign textAlign;
 
   const CustomText(
     this.text, {
@@ -18,6 +19,7 @@ class CustomText extends StatelessWidget {
     this.overflow = TextOverflow.clip,
     this.maxLines,
     this.extraSpans,
+    this.textAlign = TextAlign.start
   });
 
   static List<InlineSpan> parseSpans(String text, {TextStyle? style, FontWeight? boldWeight}) {
@@ -60,6 +62,7 @@ class CustomText extends StatelessWidget {
       overflow: overflow,
       softWrap: softWrap,
       maxLines: maxLines,
+      textAlign: textAlign,
     );
   }
 }
