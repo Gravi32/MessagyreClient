@@ -61,6 +61,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final solutions = {
       "WrongFormat": "L'adresse e-mail doit respecter le format suivant : 'prénom.nom' !",
       "WrongDomain": "L'adresse doit terminer en '@eduvaud.ch' !",
+      "WrongAddress" : "Utilisez votre adresse nom.prénom@eduvaud.ch, pas pXNNXXX@eduvaud.ch",
       "AlreadyExists": "Cet adresse a déjà été utilisé !",
       "AlreadySent": "Veuillez patienter, le code a déjà été envoyé récemment !",
     };
