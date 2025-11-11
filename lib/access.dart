@@ -24,6 +24,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
 
   bool isPasswordHidden = true;
   bool isWaitingForResponse = false;
+  bool wasPasswordWrong = false;
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -46,6 +47,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
       }
 
       usernameError = passwordError = null;
+      wasPasswordWrong = false;
     });
 
     // Sending the request to the server
@@ -69,6 +71,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
               break;
             case "WrongPassword":
               passwordError = "Mot de passe incorrect !";
+              wasPasswordWrong = true;
               break;
             default:
               usernameError = "Une erreur s'est produite, veuillez reéssayer.";
@@ -173,10 +176,33 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : const Text("Connexion")],
+                        children: [
+                          isWaitingForResponse
+                              ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                              : const Text("Connexion"),
+                        ],
                       ),
                     ),
+                    if (wasPasswordWrong) ...[
+                      const SizedBox(height: 10),
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        minimumSize: Size.zero,
+                        onPressed: (!isWaitingForResponse) ? tryToLogin : null,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            isWaitingForResponse
+                                ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                                : const Text("J'ai oublié mon mot de passe"),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 30),
+
                     Row(
                       children: [
                         Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 30, endIndent: 10)),
