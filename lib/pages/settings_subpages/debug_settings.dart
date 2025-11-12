@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -46,10 +47,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        previousPageTitle: "Réglages",
-        middle: Text("Débogage"),
-      ),
+      navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Débogage")),
       child: SafeArea(
         child: SettingsList(
           platform: DevicePlatform.iOS,
@@ -57,36 +55,17 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
             SettingsSection(
               title: Text("Informations générales"),
               tiles: [
-                SettingsTile(
-                  title: Text("Nom d'utilisateur"),
-                  value: Text(data.username ?? "-"),
-                ),
-                SettingsTile(
-                  title: Text("Version"),
-                  value: Text(appVersion),
-                ),
-                SettingsTile(
-                  title: Text("Photos de profil en cache"),
-                  value: Text(data.pfpNotifiersCache.length.toString()),
-                ),
+                SettingsTile(title: Text("Nom d'utilisateur"), value: Text(data.username ?? "-")),
+                SettingsTile(title: Text("Version"), value: Text(appVersion)),
+                SettingsTile(title: Text("Photos de profil en cache"), value: Text(data.pfpNotifiersCache.length.toString())),
               ],
             ),
             SettingsSection(
               title: Text("Connexion"),
               tiles: [
-                SettingsTile(
-                  title: Text("Mode de test local"),
-                  value: Text(
-                    ConnectionController.useLocalhost ? "Oui" : "Non",
-                  ),
-                ),
+                SettingsTile(title: Text("Mode de test local"), value: Text(ConnectionController.useLocalhost ? "Oui" : "Non")),
 
-                SettingsTile(
-                  title: Text("Adresse du serveur"),
-                  value: Text(
-                    ConnectionController.serverHTTPAddress.substring(7),
-                  ),
-                ),
+                SettingsTile(title: Text("Adresse du serveur"), value: Text(ConnectionController.serverHTTPAddress.substring(7))),
 
                 SettingsTile(
                   title: Text("État du WebSocket"),
@@ -102,13 +81,12 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
             SettingsSection(
               title: Text("Tokens"),
               tiles: [
-                SettingsTile(
-                  title: Text("Token d'accès (JWT)"),
-                  value: Text(data.token != null ? "Oui" : "Non"),
-                ),
-                SettingsTile(
-                  title: Text("Token de renouvellement"),
-                  value: Text(isRefreshTokenStored ? "Oui" : "Non"),
+                SettingsTile(title: Text("Token d'accès (JWT)"), value: Text(data.token != null ? "Oui" : "Non")),
+                SettingsTile(title: Text("Token de renouvellement"), value: Text(isRefreshTokenStored ? "Oui" : "Non")),
+                SettingsTile(title: Text("Token FCM"), value:SizedBox(width: 150, child: Text(data.fcmToken ?? "-", overflow: TextOverflow.ellipsis,),) ),
+                SettingsTile.navigation(
+                  title: Text("Supprimer le token FCM", style: TextStyle(color: CupertinoColors.systemRed)),
+                  onPressed: (context) => FirebaseMessaging.instance.deleteToken(),
                 ),
               ],
             ),
@@ -119,7 +97,6 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                   title:
                       data.appLogs.isNotEmpty
                           ? ListView.builder(
-                            
                             itemBuilder: (context, index) {
                               final logIndex = data.appLogs.length - 1 - index;
                               return Text(data.appLogs[logIndex]);
@@ -131,13 +108,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                           )
                           : Row(
                             spacing: 8,
-                            children: [
-                              HugeIcon(icon: 
-                                HugeIcons.strokeRoundedAlert02,
-                                color: CupertinoColors.systemYellow,
-                              ),
-                              Text("Aucun log disponible."),
-                            ],
+                            children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.systemYellow), Text("Aucun log disponible.")],
                           ),
                 ),
               ],

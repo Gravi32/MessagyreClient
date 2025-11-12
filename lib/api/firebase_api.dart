@@ -40,6 +40,8 @@ class FirebaseApi {
     final settings = await firebaseMessaging.requestPermission(alert: true, badge: true, sound: true);
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      await firebaseMessaging.setAutoInitEnabled(true);
+
       if (Platform.isIOS) {
         final apnsToken = await firebaseMessaging.getAPNSToken();
         if (apnsToken == null) {
