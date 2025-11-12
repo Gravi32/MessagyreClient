@@ -52,6 +52,14 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   Set<Message> animatedMessages = {};
   bool isLoading = false;
 
+  int visibleMessageCount = 150;
+  double blurAmount = 6;
+  Color barLightColor = CupertinoColors.systemGrey5.withAlpha(150);
+  Color barDarkColor = CupertinoColors.darkBackgroundGray.withAlpha(150);
+
+  Account? lastAccountCache;
+  bool showScrollDownButton = false;
+
   void messagesListener(Map<String, Object> messageData) {
     if (chatData == null || messageData["SenderUsername"] != chatData?.recipientUsername) return;
 
@@ -89,14 +97,6 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     });
   }
 
-  int visibleMessageCount = 150;
-  double blurAmount = 6;
-  Color barLightColor = CupertinoColors.systemGrey5.withAlpha(150);
-  Color barDarkColor = CupertinoColors.darkBackgroundGray.withAlpha(150);
-
-  Account? lastAccountCache;
-  bool showScrollDownButton = false;
-
   void scrollDown() {
     Future.delayed(Duration(milliseconds: 100), () {
       setState(() => showScrollDownButton = false);
@@ -107,7 +107,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   void sendMessage(String input) async {
-    if (input.isEmpty) return;
+    if (input.trim().isEmpty) return;
+
+    HapticFeedback.mediumImpact();
 
     try {
       if (chatData == null) {
@@ -159,6 +161,8 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   void showMessageContextMenu(BuildContext context, Message message) {
+    HapticFeedback.heavyImpact();
+
     try {
       final overlay = Overlay.of(context, rootOverlay: true);
       final key = bubbleKeys["${message.id}-${message.isOwned}"];
