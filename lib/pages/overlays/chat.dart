@@ -75,7 +75,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     if (chatData == null || messageDeletion["SenderUsername"] != chatData?.recipientUsername) return;
 
     final targetMessages = chatData!.content.where((message) => message.id == messageDeletion["ID"]);
-print("DELETING $targetMessages");
+
     setState(() {
       for (var message in targetMessages) {
         message.isDeleted = true;
