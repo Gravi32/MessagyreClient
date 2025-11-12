@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -121,6 +122,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   Widget buildNearbyTestsNotifier() {
     void onTap() async {
+      HapticFeedback.lightImpact();
       setState(() {
         if (currentViewingTestIndex >= nearbyTests.length - 1) {
           currentViewingTestIndex = 0;
@@ -392,10 +394,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                                     .where((entry) => entry.key.isSameDayAs(date))
                                                     .expand((entry) => entry.value)
                                                     .toList()) {
-                                              if (!homework.isMarkedAsDone) isAllDone = false;
+                                              if (!homework.isTest && !homework.isMarkedAsDone) isAllDone = false;
                                             }
 
-                                            if (isAllDone) Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
+                                            if (isAllDone) {
+                                              Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
+                                              HapticFeedback.vibrate();
+                                            }
                                           },
                                         ),
                                       );

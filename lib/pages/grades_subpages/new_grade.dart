@@ -31,7 +31,7 @@ class _NewGradeState extends State<NewGrade> {
   late DateTime date = widget.toEdit?.date ?? DateTime.now();
   late double weight = widget.toEdit?.weight ?? 1;
   late String? groupName = widget.toEdit?.groupName ?? widget.groupName;
-  
+
   late final titleController = TextEditingController(text: widget.toEdit?.title);
   late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject));
   late final detailsController = TextEditingController(text: widget.toEdit?.details);
@@ -227,7 +227,10 @@ class _NewGradeState extends State<NewGrade> {
                                       value: key,
                                       selectedWeight: weight,
                                       label: fractions[key] ?? "?",
-                                      onTap: () => setState(() => weight = key),
+                                      onTap: () {
+                                        setState(() => weight = key);
+                                        HapticFeedback.selectionClick();
+                                      },
                                     );
                                   })
                                   .toList()

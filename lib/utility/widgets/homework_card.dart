@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:animated_line_through/animated_line_through.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -85,6 +86,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
   void markAsDone() {
     final newValue = !widget.homework.isMarkedAsDone;
     setState(() => widget.homework.isMarkedAsDone = newValue);
+    HapticFeedback.mediumImpact();
     widget.onMarkAsDoneButtonClicked?.call(newValue);
     if (newValue) triggerBorderEffect(CupertinoColors.activeGreen);
   }
@@ -149,7 +151,13 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
             ],
           ),
           CupertinoPressable(
-            onTap: isPreview ? null : toggleExpanded,
+            onTap:
+                isPreview
+                    ? null
+                    : () {
+                      toggleExpanded();
+                      HapticFeedback.lightImpact();
+                    },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 400),
               curve: Curves.easeOutCubic,
