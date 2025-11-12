@@ -187,6 +187,37 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
       allChats.put(senderUsername, targetChat);
     });
+
+    router.onMessageStatusUpdateReceived.listen((messageStatusUpdate) {
+      var senderUsername = messageStatusUpdate["SenderUsername"]!.toString();
+      if (data.openChatUsername == senderUsername) return;
+
+      var targetChat = allChats.get(senderUsername);
+      if (targetChat == null) return;
+
+      final targetMessage = targetChat.content.firstWhere(
+        (message) => message.isOwned && message.id == messageStatusUpdate["ID"],
+        orElse: () => Message.empty(),
+      );
+
+      targetMessage.status = (messageStatusUpdate["Status"] as MessageStatus?) ?? MessageStatus.Failed;
+    });
+
+    router.onMessageDeletionReceived.listen((messageDeletion) {
+      var senderUsername = messageDeletion["SenderUsername"]!.toString();
+      if (data.openChatUsername == senderUsername) return;
+
+      var targetChat = allChats.get(senderUsername);
+      if (targetChat == null) return;
+
+      final targetMessages = targetChat.content.where((message) => message.id == messageDeletion["ID"]);
+
+      setState(() {
+        for (var message in targetMessages) {
+          message.isDeleted = true;
+        }
+      });
+    });
   }
 
   @override
