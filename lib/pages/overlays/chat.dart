@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
@@ -37,6 +38,11 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
   late var chatData = chats.get(widget.recipientUsername);
   late var currentWallpaper = misc.get("CurrentWallpaper");
+
+  StreamSubscription? _keyboardVisibilitySub;
+  StreamSubscription? _messageReceivedSub;
+  StreamSubscription? _statusUpdateSub;
+  StreamSubscription? _messageDeletionSub;
 
   final chatScrollController = ScrollController();
   final messageFieldController = TextEditingController();
@@ -346,12 +352,12 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     });
 
     messageFieldFocusNode.addListener(
-      () => Future.delayed(Duration(milliseconds: 400), () {
+      () => Future.delayed(const Duration(milliseconds: 400), () {
         scrollDown();
       }),
     );
 
-    KeyboardVisibilityController().onChange.listen((bool visible) {
+    _keyboardVisibilitySub = KeyboardVisibilityController().onChange.listen((bool visible) {
       if (visible) {
         scrollDown();
       } else {
@@ -359,9 +365,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       }
     });
 
-    router.onMessageReceived.listen(messagesListener);
-    router.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
-    router.onMessageDeletionReceived.listen(messageDeletionListener);
+    _messageReceivedSub = router.onMessageReceived.listen(messagesListener);
+    _statusUpdateSub = router.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
+    _messageDeletionSub = router.onMessageDeletionReceived.listen(messageDeletionListener);
 
     chatScrollController.addListener(() {
       if (showScrollDownButton) {
@@ -383,8 +389,21 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   @override
   void dispose() {
     data.openChatUsername = null;
+
+    messageFieldController.removeListener(() {});
     messageFieldController.dispose();
+
+    messageFieldFocusNode.removeListener(() {});
+    messageFieldFocusNode.dispose();
+
+    chatScrollController.removeListener(() {});
     chatScrollController.dispose();
+
+    _keyboardVisibilitySub?.cancel();
+    _messageReceivedSub?.cancel();
+    _statusUpdateSub?.cancel();
+    _messageDeletionSub?.cancel();
+
     super.dispose();
   }
 
