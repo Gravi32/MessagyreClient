@@ -59,9 +59,13 @@ class ConnectionController {
   final _messagesController = StreamController<Map<String, Object>>.broadcast();
   Stream<Map<String, Object>> get onMessageReceived => _messagesController.stream;
 
-  /* Stream for the received WebSocket read receipts */
+  /* Stream for the received WebSocket messages status updates */
   final _messageStatusUpdatesController = StreamController<Map<String, Object>>.broadcast();
   Stream<Map<String, Object>> get onMessageStatusUpdateReceived => _messageStatusUpdatesController.stream;
+
+  /* Stream for the received WebSocket messages deletion */
+  final _messageDeletionController = StreamController<Map<String, Object>>.broadcast();
+  Stream<Map<String, Object>> get onMessageDeletionReceived => _messageDeletionController.stream;
 
   final _connectionStatusController = StreamController<void>.broadcast();
   Stream<void> get onConnected => _connectionStatusController.stream;
@@ -231,23 +235,26 @@ class ConnectionController {
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
       final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
+      final isMessageDeletion = rawMessageData.containsKey("Deletion") && rawMessageData["Deletion"] == true;
 
       if (sender == null) throw FormatException("Missing SenderUsername");
       if (data.blockedUsers.contains(sender)) return;
 
+      final messageId = rawMessageData["ID"]?.toString();
+
       if (isMessageStatusUpdate) {
-        final messageId = rawMessageData["ID"]?.toString();
+        // If the received WebSocket message is a Status Update
         final status = MessageStatus.values.firstWhere((status) => status.name == rawMessageData["Status"]?.toString(), orElse: () => MessageStatus.Failed);
 
-        if (messageId == null) {
-          throw FormatException("Missing Message ID");
-        }
+        if (messageId == null) throw FormatException("Missing Message ID");
 
-        final messageStatusUpdate = {"SenderUsername": sender, "ID": messageId, "Status": status};
-
-        _messageStatusUpdatesController.add(messageStatusUpdate);
+        _messageStatusUpdatesController.add({"SenderUsername": sender, "ID": messageId, "Status": status});
+      } else if (isMessageDeletion) {
+        // If the received WebSocket message is for a Message Deletion
+        if (messageId == null) throw FormatException("Missing Message ID");
+        _messageDeletionController.add({"SenderUsername": sender, "ID": messageId});
       } else {
-        final messageId = rawMessageData["ID"]?.toString();
+        // If the received WebSocket message is a simple Message
         final content = rawMessageData["Content"]?.toString();
         final rawSentAt = rawMessageData["SentAt"]?.toString();
 

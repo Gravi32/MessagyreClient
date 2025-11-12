@@ -64,10 +64,23 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   void messageStatusUpdateListener(Map<String, Object> messageStatusUpdate) {
     if (chatData == null || messageStatusUpdate["SenderUsername"] != chatData?.recipientUsername) return;
 
-    final targetMessage = chatData!.content.firstWhere((message) => message.id == messageStatusUpdate["MessageID"], orElse: () => Message.empty());
-    targetMessage.status = MessageStatus.values.firstWhere((status) => status.name == messageStatusUpdate["Status"]);
+    final targetMessage = chatData!.content.firstWhere((message) => message.isOwned && message.id == messageStatusUpdate["ID"], orElse: () => Message.empty());
 
-    setState(() {});
+    targetMessage.status = (messageStatusUpdate["Status"] as MessageStatus?) ?? MessageStatus.Failed;
+
+    //setState(() {});
+  }
+
+  void messageDeletionListener(Map<String, Object> messageDeletion) {
+    if (chatData == null || messageDeletion["SenderUsername"] != chatData?.recipientUsername) return;
+
+    final targetMessages = chatData!.content.where((message) => message.id == messageDeletion["ID"]);
+print("DELETING $targetMessages");
+    setState(() {
+      for (var message in targetMessages) {
+        message.isDeleted = true;
+      }
+    });
   }
 
   int visibleMessageCount = 150;
@@ -142,7 +155,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   void showMessageContextMenu(BuildContext context, Message message) {
     try {
       final overlay = Overlay.of(context, rootOverlay: true);
-      final key = bubbleKeys[message.id];
+      final key = bubbleKeys["${message.id}-${message.isOwned}"];
       final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox == null) return;
 
@@ -348,6 +361,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     router.onMessageReceived.listen(messagesListener);
     router.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
+    router.onMessageDeletionReceived.listen(messageDeletionListener);
 
     chatScrollController.addListener(() {
       if (showScrollDownButton) {
@@ -463,7 +477,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     final alreadyAnimated = animatedMessages.contains(data);
     if (!alreadyAnimated) animatedMessages.add(data);
 
-    bubbleKeys.putIfAbsent(data.id, () => GlobalKey());
+    bubbleKeys.putIfAbsent("${data.id}-${data.isOwned}", () => GlobalKey());
 
     BorderRadius getBubbleShape(bool isOwned) {
       const double maxPx = 11;
@@ -496,7 +510,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     Widget bubbleContent = Align(
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
-        key: isPreview ? null : bubbleKeys[data.id],
+        key: isPreview ? null : bubbleKeys["${data.id}-${data.isOwned}"],
         onLongPressStart: isPreview ? null : (details) => showMessageContextMenu(context, data),
         child: Container(
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
