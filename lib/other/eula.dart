@@ -80,8 +80,16 @@ Tout comportement abusif, harcèlement ou tentative de nuire à la communauté p
 *5. Propriété intellectuelle*  
 Vous garantissez que tout contenu que vous partagez ne viole pas les droits de propriété intellectuelle d'autrui. Messagyre ne saurait être tenu responsable des infractions commises par ses utilisateurs.
 
-*6. Acceptation des conditions*  
+*6. Informations du profil public*  
+Les informations que vous choisissez de rendre publiques, telles que votre pseudonyme, votre biographie et votre photo de profil, sont visibles par les autres utilisateurs de l'application. Ces informations sont utilisées uniquement pour votre identification au sein de Messagyre et ne sont pas partagées avec des tiers à des fins commerciales.
+
+*7. Données locales*  
+Les notes, les devoirs et autres informations scolaires restent entièrement locales à votre appareil. Elles ne sont pas partagées avec les serveurs de l’application ni avec les développeurs.
+
+*8. Acceptation des conditions*  
 En acceptant ces conditions, vous vous engagez à respecter toutes les règles énoncées ci-dessus et à contribuer à maintenir une communauté sécurisée, respectueuse et agréable pour tous les utilisateurs.
+
+Messagyre - Pietro Gravina
 """, style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
                   ),
                 ),
