@@ -78,7 +78,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color),
+                                            child: Opacity(opacity: .6, child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color)),
                                           ),
                                         ),
                                       ...CustomText.parseSpans(
