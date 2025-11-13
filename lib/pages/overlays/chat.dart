@@ -628,23 +628,70 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     return ListView.builder(
       controller: chatScrollController,
       padding: EdgeInsets.symmetric(horizontal: 10),
-      itemCount: chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount),
+      itemCount:
+          (chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount)) + 1, // +1 per il banner
       itemBuilder: (context, index) {
         if (chatData == null) return SizedBox.shrink();
+
+        if (index == 0) {
+          return Container(
+            margin: EdgeInsets.only(bottom: 12, top: 30),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            decoration: BoxDecoration(
+              color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(150),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                ProfilePictureDisplay(accountUsername: chatData?.recipientUsername, radius: 30),
+                SizedBox(height: 6),
+                Text(
+                  chatData?.recipientDisplayUsername ?? Account.getDefaultDisplayName(chatData?.recipientUsername ?? "Inconnu"),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                ),
+                Text(chatData?.recipientUsername ?? "utilisateur inconnu", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                SizedBox(height: 6),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Opacity(
+                            opacity: .5,
+                            child: HugeIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          ),
+                        ),
+                      ),
+                      ...CustomText.parseSpans(
+                        "Pour bloquer un utilisateur, allez sur son profil > Bloquer cet utilisateur.",
+                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  softWrap: true,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final msgIndex = index - 1;
 
         var allMessagesList = chatData!.content;
         var visibleMessagesList = allMessagesList.sublist((allMessagesList.length - visibleMessageCount).clamp(0, allMessagesList.length));
 
-        var currentMessage = visibleMessagesList[index];
-        var previousMessage = visibleMessagesList[max(index - 1, 0)];
-        var nextMessage = visibleMessagesList[min(index + 1, visibleMessagesList.length - 1)];
+        var currentMessage = visibleMessagesList[msgIndex];
+        var previousMessage = visibleMessagesList[max(msgIndex - 1, 0)];
+        var nextMessage = visibleMessagesList[min(msgIndex + 1, visibleMessagesList.length - 1)];
 
         final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
         return (currentMessage.sentAt.day != previousMessage.sentAt.day ||
                 currentMessage.sentAt.month != previousMessage.sentAt.month ||
                 currentMessage.sentAt.year != previousMessage.sentAt.year ||
-                index == 0)
+                msgIndex == 0)
             ? Column(
               children: [
                 Container(
@@ -669,7 +716,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                 bubble,
               ],
             )
-            : Container(margin: EdgeInsets.only(top: (index == 0) ? 12 : 0, bottom: (index == visibleMessagesList.length - 1) ? 12 : 0), child: bubble);
+            : Container(margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == visibleMessagesList.length - 1) ? 12 : 0), child: bubble);
       },
     );
   }
