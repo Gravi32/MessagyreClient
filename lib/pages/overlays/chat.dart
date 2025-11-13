@@ -641,7 +641,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
         final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
-        return currentMessage.sentAt.difference(previousMessage.sentAt).inDays > 0 || index == 0
+        return (currentMessage.sentAt.day != previousMessage.sentAt.day ||
+                currentMessage.sentAt.month != previousMessage.sentAt.month ||
+                currentMessage.sentAt.year != previousMessage.sentAt.year ||
+                index == 0)
             ? Column(
               children: [
                 Container(
