@@ -34,7 +34,6 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
     final lastMessage = chatData.content.isNotEmpty ? chatData.content.last : null;
     final statusIconData = lastMessage != null ? getStatusIcon(lastMessage.status) : null;
-    print("For chat ${chatData.recipientUsername}: ${lastMessage?.isDeleted}");
 
     return Column(
       children: [
