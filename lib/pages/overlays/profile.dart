@@ -523,7 +523,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
     return changesMade
         ? CupertinoButton(
           padding: EdgeInsets.zero,
-          child: isUploading ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
+          child:
+              isUploading
+                  ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                  : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
           onPressed: () async {
             setState(() => isUploading = true);
             bool success = await router.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
@@ -815,42 +818,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                       buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
                     ],
                   ),
-                  CupertinoListSection.insetGrouped(
-                    margin: EdgeInsets.zero,
-                    children: [
-                      if (!isBlocked)
-                        buildListTile(
-                          HugeIcons.strokeRoundedUserBlock01,
-                          "Bloquer",
-                          isDestructive: true,
-                          onTap:
-                              () => showCupertinoDialog(
-                                context: context,
-                                builder:
-                                    (dialogContext) => CupertinoAlertDialog(
-                                      title: Text("Bloquer ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ?"),
-                                      content: Text("Vous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action."),
-                                      actions: [
-                                        CupertinoDialogAction(
-                                          isDestructiveAction: true,
-                                          child: Text("Bloquer"),
-                                          onPressed: () {
-                                            data.blockUser(account.username);
-                                            setState(() {});
-                                            Navigator.pop(dialogContext);
-                                          },
-                                        ),
-                                        CupertinoDialogAction(
-                                          child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
-                                          onPressed: () => Navigator.pop(dialogContext),
-                                        ),
-                                      ],
-                                    ),
-                              ),
-                        ),
-                      buildListTile(HugeIcons.strokeRoundedFlag02, "Signaler"),
-                    ],
-                  ),
                 ],
 
                 if (box.containsKey(account.username))
@@ -884,6 +851,74 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
+                  ),
+                ],
+
+                if (account.username != data.username) ...[
+                  CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.zero,
+                    children: [
+                      if (!isBlocked)
+                        buildListTile(
+                          HugeIcons.strokeRoundedUserBlock01,
+                          "Bloquer",
+                          isDestructive: true,
+                          onTap:
+                              () => showCupertinoDialog(
+                                context: context,
+                                builder:
+                                    (dialogContext) => CupertinoAlertDialog(
+                                      title: Text("Bloquer ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ?"),
+                                      content: Text("Vous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action."),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                          onPressed: () => Navigator.pop(dialogContext),
+                                        ),
+                                        CupertinoDialogAction(
+                                          isDestructiveAction: true,
+                                          child: Text("Bloquer"),
+                                          onPressed: () {
+                                            data.blockUser(account.username);
+                                            setState(() {});
+                                            Navigator.pop(dialogContext);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                              ),
+                        ),
+                      buildListTile(
+                        HugeIcons.strokeRoundedFlag02,
+                        "Signaler",
+                        isDestructive: true,
+                        onTap:
+                            () => showCupertinoDialog(
+                              context: context,
+                              builder:
+                                  (dialogContext) => CupertinoAlertDialog(
+                                    title: Text("Signaler ${account.displayName ?? Account.getDefaultDisplayName(account.username)} ?"),
+                                    content: Text(
+                                      "Ce profil sera envoyé aux développeurs de Messagyre pour évaluation. Si le profil est jugé inapproprié, des mesures pourront être prises.",
+                                    ),
+                                    actions: [
+                                      CupertinoDialogAction(
+                                        child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(0.25))),
+                                        onPressed: () => Navigator.pop(dialogContext),
+                                      ),
+                                      CupertinoDialogAction(
+                                        isDestructiveAction: true,
+                                        child: Text("Signaler"),
+                                        onPressed: () {
+                                          setState(() {});
+                                          Navigator.pop(dialogContext);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                      ),
+                    ],
                   ),
                 ],
               ],
