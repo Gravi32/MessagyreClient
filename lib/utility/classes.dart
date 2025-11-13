@@ -71,6 +71,11 @@ class Message extends HiveObject {
     final data = {"RecipientUsername": recipientUsername, "Content": content, "SentAt": sentAt.toIso8601String(), "Status": status.index};
     return jsonEncode(data);
   }
+
+  @override
+  String toString() {
+    return "Message $id (${sentAt.toIso8601String().split('.').first}) ${isOwned ? "[Owned] " : ""}${isDeleted ? "[Deleted] " : ""}: $content";
+  }
 }
 
 @HiveType(typeId: 1)
