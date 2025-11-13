@@ -3,7 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
 class EulaPage extends StatefulWidget {
-  const EulaPage({super.key});
+  final bool readOnly;
+  const EulaPage({super.key, this.readOnly = false});
 
   @override
   State<EulaPage> createState() => _EulaPageState();
@@ -31,9 +32,12 @@ class _EulaPageState extends State<EulaPage> {
   }
 
   Future<void> _acceptEula() async {
-    final box = await Hive.openBox('Misc');
-    await box.put('eulaAccepted', true);
-    if (context.mounted) Navigator.of(context).pop();
+    if (!widget.readOnly) {
+      final box = await Hive.openBox('Misc');
+      await box.put('eulaAccepted', true);
+    }
+    final mountedContext = context;
+    if (context.mounted) Navigator.of(mountedContext).pop();
   }
 
   @override
@@ -83,23 +87,36 @@ En acceptant ces conditions, vous vous engagez à respecter toutes les règles �
                 ),
               ),
               SizedBox(height: 16),
-              CupertinoListSection.insetGrouped(
-                backgroundColor: CupertinoColors.transparent,
-                children: [
-                  CupertinoListTile(
-                    title: Text("J'ai lu et j'accepte les conditions", style: TextStyle(color: CupertinoColors.white)),
-                    trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
-                    onTap: null,
-                  ),
-                ],
-              ),
 
-              if (accepted)
+              if (!widget.readOnly) ...[
                 CupertinoListSection.insetGrouped(
                   backgroundColor: CupertinoColors.transparent,
                   children: [
                     CupertinoListTile(
-                      title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
+                      title: Text("J'ai lu et j'accepte les conditions", style: TextStyle(color: CupertinoColors.white)),
+                      trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
+                      onTap: null,
+                    ),
+                  ],
+                ),
+                if (accepted)
+                  CupertinoListSection.insetGrouped(
+                    backgroundColor: CupertinoColors.transparent,
+                    children: [
+                      CupertinoListTile(
+                        title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
+                        onTap: _acceptEula,
+                      ),
+                    ],
+                  ),
+              ],
+
+              if (widget.readOnly)
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: CupertinoColors.transparent,
+                  children: [
+                    CupertinoListTile(
+                      title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
                       onTap: _acceptEula,
                     ),
                   ],
@@ -114,9 +131,7 @@ En acceptant ces conditions, vous vous engagez à respecter toutes les règles �
 
 Future<void> askUserToAcceptEula(BuildContext context) async {
   final box = await Hive.openBox('Misc');
-
   if (box.get('eulaAccepted') == true) return;
-
   if (!context.mounted) return;
 
   Navigator.of(context).push(
@@ -127,8 +142,27 @@ Future<void> askUserToAcceptEula(BuildContext context) async {
         return CupertinoFullscreenDialogTransition(
           primaryRouteAnimation: animation,
           secondaryRouteAnimation: secondaryAnimation,
-          child: child,
           linearTransition: true,
+          child: child,
+        );
+      },
+    ),
+  );
+}
+
+Future<void> showEulaReadOnly(BuildContext context) async {
+  if (!context.mounted) return;
+
+  Navigator.of(context).push(
+    PageRouteBuilder(
+      opaque: false,
+      pageBuilder: (context, animation, secondaryAnimation) => EulaPage(readOnly: true),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return CupertinoFullscreenDialogTransition(
+          primaryRouteAnimation: animation,
+          secondaryRouteAnimation: secondaryAnimation,
+          linearTransition: true,
+          child: child,
         );
       },
     ),
