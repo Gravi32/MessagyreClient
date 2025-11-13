@@ -123,7 +123,7 @@ class ConnectionController {
 
     connectionState.value = ConnectionState.WaitingToReconnect;
 
-    final delay = min(15 * connectionAttempts, 300);
+    final delay = connectionAttempts == 0 ? 1 : min(5 * connectionAttempts, 30);
     connectionAttempts++;
 
     debugPrint("[WebSocket] Reconnecting in $delay seconds...");
@@ -180,7 +180,6 @@ class ConnectionController {
       });
 
       _channel = IOWebSocketChannel(socket);
-      connectionAttempts = 0;
 
       _channel!.stream.listen(
         (message) {
@@ -221,6 +220,7 @@ class ConnectionController {
       );
 
       connectionState.value = ConnectionState.Connected;
+      connectionAttempts = 0;
     } catch (e) {
       debugPrint("[WebSocket] Connection FAILED: $e");
 

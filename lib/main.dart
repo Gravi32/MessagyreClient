@@ -35,6 +35,8 @@ void main() async {
 
   // Initializing Hive and other stuff
   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding.instance.addObserver(_AppLifecycleObserver());
+  
   try {
     await Hive.initFlutter();
     Hive.registerAdapter(MessageAdapter());
@@ -204,5 +206,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             ),
           ),
     );
+  }
+}
+
+class _AppLifecycleObserver extends WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final controller = ConnectionController();
+      controller.connectionAttempts = 0;
+      if (!controller.isConnected) controller.connect();
+    }
   }
 }
