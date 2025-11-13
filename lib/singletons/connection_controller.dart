@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:messagyre_client/api/firebase_api.dart';
+import 'package:messagyre_client/other/firebase_api.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';

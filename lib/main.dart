@@ -8,7 +8,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/access.dart';
-import 'package:messagyre_client/api/firebase_api.dart';
+import 'package:messagyre_client/other/eula.dart';
+import 'package:messagyre_client/other/firebase_api.dart';
 import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -147,6 +148,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+
     router.start();
     WidgetsBinding.instance.addObserver(this);
     router.onUnauthorized = _switchToAccess;
@@ -154,6 +156,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     NotificationController().init(context);
 
     MainPage.pageIndex.addListener(() => setState(() {}));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      askUserToAcceptEula(context);
+    });
   }
 
   @override
@@ -200,5 +206,3 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 }
-
-
