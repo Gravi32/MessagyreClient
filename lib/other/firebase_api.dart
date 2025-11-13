@@ -69,7 +69,7 @@ class FirebaseApi {
           final imageUrl = dataMap['ProfilePictureURL'] as String?;
           final senderUsername = dataMap['SenderUsername'] ?? title;
           if (state == AppLifecycleState.resumed) {
-            NotificationController().spawn(senderUsername, body);
+            NotificationController().spawn(title, senderUsername, body);
           } else {
             await _showNotification(title, body, imageUrl, senderUsername);
           }

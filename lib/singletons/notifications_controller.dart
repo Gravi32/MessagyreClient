@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/data.dart';
-import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class NotificationController {
@@ -18,13 +20,11 @@ class NotificationController {
     _overlayState = Overlay.of(context);
   }
 
-  void spawn(String sender, String message) {
-    print("CALLED $sender $message");
+  void spawn(String title, String sender, String message) {
     if ((Data().openChatUsername ?? "") == sender) return;
 
     _currentOverlay?.remove();
-    _currentOverlay = OverlayEntry(
-        builder: (context) => NotificationPopup(senderUsername: sender, messageContent: message));
+    _currentOverlay = OverlayEntry(builder: (context) => NotificationPopup(title: title, senderUsername: sender, messageContent: message));
     _overlayState?.insert(_currentOverlay!);
   }
 
@@ -35,11 +35,12 @@ class NotificationController {
 }
 
 class NotificationPopup extends StatefulWidget {
+  final String title;
   final String senderUsername;
   final String messageContent;
   final double outScreenOffset = -150;
 
-  const NotificationPopup({super.key, required this.senderUsername, required this.messageContent});
+  const NotificationPopup({super.key, required this.title, required this.senderUsername, required this.messageContent});
 
   @override
   State<NotificationPopup> createState() => _NotificationPopupsState();
@@ -50,6 +51,8 @@ class _NotificationPopupsState extends State<NotificationPopup> {
   double _dragOffset = 0;
   Timer? _timer;
   bool _isDragging = false;
+
+  final allChats = Hive.box<Chat>("Chats");
 
   @override
   void initState() {
@@ -79,6 +82,8 @@ class _NotificationPopupsState extends State<NotificationPopup> {
 
   @override
   Widget build(BuildContext context) {
+    final unreadMessages = allChats.get(widget.senderUsername)?.unreadMessages;
+
     return AnimatedPositioned(
       duration: Duration(milliseconds: 600),
       curve: _top == 8 ? Curves.easeOutQuart : Curves.easeInCubic,
@@ -88,8 +93,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
       child: GestureDetector(
         onTap: () {
           _dismiss();
-          Navigator.of(context, rootNavigator: true)
-              .push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: widget.senderUsername)));
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: widget.senderUsername)));
         },
         onVerticalDragStart: (_) {
           _isDragging = true;
@@ -98,9 +102,9 @@ class _NotificationPopupsState extends State<NotificationPopup> {
         onVerticalDragUpdate: (details) => setState(() => _dragOffset += details.delta.dy),
         onVerticalDragEnd: (details) {
           _isDragging = false;
-          if (_dragOffset < -30)
+          if (_dragOffset < -30) {
             _dismiss();
-          else {
+          } else {
             setState(() => _dragOffset = 0);
             _startAutoDismissTimer();
           }
@@ -119,26 +123,38 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                   children: [
                     Row(
                       children: [
-                        ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 20),
+                        ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 30),
                         SizedBox(width: 10),
                         Expanded(
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.senderUsername.replaceAll(".", " ").capitalize(everyWord: true),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                    fontSize: 14),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    widget.title,
+                                    style: TextStyle(fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context), fontSize: 18),
+                                  ),
+                                  if (unreadMessages != null && unreadMessages - 1 > 0)
+                                    Container(
+                                      margin: EdgeInsets.only(top: 4),
+                                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
+                                      child: Text(
+                                        "+ ${unreadMessages - 1}",
+                                        style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                ],
                               ),
-                              Text(
+                              CustomText(
                                 widget.messageContent.trim(),
                                 maxLines: 2,
                                 overflow: TextOverflow.fade,
                                 softWrap: true,
-                                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+                                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
                               ),
                             ],
                           ),
@@ -148,9 +164,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                     Container(
                       width: 100,
                       height: 4,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: CupertinoColors.quaternaryLabel.resolveFrom(context)),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: CupertinoColors.quaternaryLabel.resolveFrom(context)),
                     ),
                   ],
                 ),
