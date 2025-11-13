@@ -83,7 +83,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               tiles: [
                 SettingsTile(title: Text("Token d'accès (JWT)"), value: Text(data.token != null ? "Oui" : "Non")),
                 SettingsTile(title: Text("Token de renouvellement"), value: Text(isRefreshTokenStored ? "Oui" : "Non")),
-                SettingsTile(title: Text("Token FCM"), value:SizedBox(width: 150, child: Text(data.fcmToken ?? "-", overflow: TextOverflow.ellipsis,),) ),
+                SettingsTile(title: Text("Token FCM"), value:SizedBox(width: 150, child: Text(data.fcmToken ?? "-", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end,),) ),
                 SettingsTile.navigation(
                   title: Text("Supprimer le token FCM", style: TextStyle(color: CupertinoColors.systemRed)),
                   onPressed: (context) => FirebaseMessaging.instance.deleteToken(),
