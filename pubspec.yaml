@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none" 
 
-version: 1.19.316+316
+version: 1.21.340+340
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Homework page
@@ -23,6 +23,8 @@ version: 1.19.316+316
 # 1.17  Homework page major upgrade
 # 1.18  Added chat messages options (focusing)
 # 1.19  Added a reset password option
+# 1.20  Added chat banner
+# 1.21  Added EULA requirements
 
 environment:
   sdk: ^3.7.2
