@@ -700,11 +700,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       controller: chatScrollController,
       padding: EdgeInsets.symmetric(horizontal: 10),
       itemCount:
-          (chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount)) + 1, // +1 per il banner
+          (chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount)) + 1,
       itemBuilder: (context, index) {
-        if (chatData == null) return SizedBox.shrink();
-
-        if (index == 0) {
+        print(widget.recipientUsername);
+        if (chatData == null || index == 0) {
           return Container(
             margin: EdgeInsets.only(bottom: 12, top: 30),
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -714,13 +713,13 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
             ),
             child: Column(
               children: [
-                ProfilePictureDisplay(accountUsername: chatData?.recipientUsername, radius: 30),
+                ProfilePictureDisplay(accountUsername: widget.recipientUsername, radius: 30),
                 SizedBox(height: 6),
                 Text(
-                  chatData?.recipientDisplayUsername ?? Account.getDefaultDisplayName(chatData?.recipientUsername ?? "Inconnu"),
+                  chatData?.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
-                Text(chatData?.recipientUsername ?? "utilisateur inconnu", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
                 SizedBox(height: 6),
                 Text.rich(
                   TextSpan(
