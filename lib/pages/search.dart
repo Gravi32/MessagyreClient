@@ -207,8 +207,8 @@ class SearchPageState extends State<SearchPage>
                               center: Alignment.center,
                               radius: radius,
                               colors: [
-                                CupertinoColors.white.withAlpha(70),
-                                CupertinoColors.white.withAlpha(100),
+                                CupertinoColors.white.withAlpha(10),
+                                CupertinoColors.white.withAlpha(80),
                                 CupertinoColors.transparent
                               ],
                               stops: [.1, 0.7, 1.0],
@@ -231,7 +231,7 @@ class SearchPageState extends State<SearchPage>
                         child: Text(
                           "Récherchez vos amis !",
                           style: TextStyle(
-                              fontSize: 26, fontWeight: FontWeight.w800),
+                              fontSize: 26, fontWeight: FontWeight.w600),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -241,7 +241,7 @@ class SearchPageState extends State<SearchPage>
                         decoration: getDecoration(),
                         child: Image.asset(
                           "assets/messagyreGuy.png",
-                          errorBuilder: (_, _, __) =>
+                          errorBuilder: (_, _, _) =>
                               Image.asset("assets/MessagyreGuy.png"),
                         ),
                       ),
