@@ -702,7 +702,6 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       itemCount:
           (chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount)) + 1,
       itemBuilder: (context, index) {
-        print(widget.recipientUsername);
         if (chatData == null || index == 0) {
           return Container(
             margin: EdgeInsets.only(bottom: 12, top: 30),
