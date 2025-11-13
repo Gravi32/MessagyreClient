@@ -3,7 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart'; // DO NOT SOLVE THIS WARNING
+import 'package:messagyre_client/singletons/notifications_controller.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -55,10 +56,9 @@ class FirebaseApi {
       debugPrint("[Firebase] FCM token: ${data.fcmToken}");
       sendTokenToServer();
 
+      // Gestione notifiche in foreground
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-        // Ignoring the notification if the app is open
         final state = WidgetsBinding.instance.lifecycleState;
-        if (state == AppLifecycleState.resumed) return;
 
         debugPrint("[Firebase] Notification received: ${message.data}");
 
@@ -68,11 +68,13 @@ class FirebaseApi {
           final body = dataMap['Body'] ?? message.notification?.body ?? '';
           final imageUrl = dataMap['ProfilePictureURL'] as String?;
           final senderUsername = dataMap['SenderUsername'] ?? title;
-
-          await _showNotification(title, body, imageUrl, senderUsername);
+          if (state == AppLifecycleState.resumed) {
+            NotificationController().spawn(senderUsername, body);
+          } else {
+            await _showNotification(title, body, imageUrl, senderUsername);
+          }
         } catch (e) {
           debugPrint("[Firebase] Error parsing notification data: $e");
-          return;
         }
       });
 
