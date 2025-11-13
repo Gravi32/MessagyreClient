@@ -39,49 +39,45 @@ class Data {
   void log(String? message) {
     try {
       final timestamp = DateTime.now();
-      final logEntry = "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().substring(0, 3)}] $message";
-
+      final logEntry = "[${timestamp.hour}:${timestamp.minute}:${timestamp.millisecond.toString().padLeft(3, '0')}] $message";
       appLogs.add(logEntry);
-
-      if (appLogs.length > 1000) {
-        appLogs.removeAt(0);
-      }
+      if (appLogs.length > 1000) appLogs.removeAt(0);
     } catch (_) {}
   }
 
   ValueNotifier<String?> getPfpNotifier(String accountUsername) {
-    // Getting the cached URL notifier
     var cachedURL = pfpNotifiersCache[accountUsername];
-    if (cachedURL != null) {
-      return cachedURL;
-    }
-
-    // Otherwise returns an empty one and asks the server to fill it
+    if (cachedURL != null) return cachedURL;
     pfpNotifiersCache[accountUsername] = ValueNotifier<String?>(null);
     router.getProfilePicture(accountUsername);
     return pfpNotifiersCache[accountUsername]!;
   }
 
   // Blocked users
-
   List<String>? _blockedUsers;
+  final ValueNotifier<List<String>> blockedUsersNotifier = ValueNotifier([]);
 
   List<String> get blockedUsers {
-    if (_blockedUsers != null) return _blockedUsers!;
-    return _blockedUsers = List<String>.from(Hive.box("Misc").get("BlockedUsers", defaultValue: <String>[]));
+    if (_blockedUsers == null) {
+      _blockedUsers = List<String>.from(Hive.box("Misc").get("BlockedUsers", defaultValue: <String>[]));
+      blockedUsersNotifier.value = List<String>.from(_blockedUsers!);
+    }
+    return blockedUsersNotifier.value;
   }
 
-  Future<void> _saveBlockedUsers() async => Hive.box("Misc").put("BlockedUsers", _blockedUsers);
+  Future<void> _saveBlockedUsers() async {
+    await Hive.box("Misc").put("BlockedUsers", blockedUsersNotifier.value);
+  }
 
   Future<void> blockUser(String id) async {
     if (blockedUsers.contains(id)) return;
-    blockedUsers.add(id);
+    blockedUsersNotifier.value = [...blockedUsers, id];
     await _saveBlockedUsers();
   }
 
   Future<void> unblockUser(String id) async {
     if (!blockedUsers.contains(id)) return;
-    blockedUsers.remove(id);
+    blockedUsersNotifier.value = blockedUsers.where((u) => u != id).toList();
     await _saveBlockedUsers();
   }
 }

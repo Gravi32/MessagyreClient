@@ -346,6 +346,8 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     }
   }
 
+  void onBlockedUsersChanged() => setState(() {});
+
   @override
   void initState() {
     super.initState();
@@ -369,6 +371,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         messageFieldFocusNode.unfocus();
       }
     });
+
+    data.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
+    data.blockedUsersNotifier.addListener(onBlockedUsersChanged);
 
     _messageReceivedSub = router.onMessageReceived.listen(messagesListener);
     _statusUpdateSub = router.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
@@ -660,7 +665,11 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                           padding: const EdgeInsets.only(right: 4),
                           child: Opacity(
                             opacity: .5,
-                            child: HugeIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedInformationSquare,
+                              size: 16,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            ),
                           ),
                         ),
                       ),

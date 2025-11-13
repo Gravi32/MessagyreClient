@@ -203,6 +203,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
       allChats.put("apple.verification", reviewChat);
     }
 
+    data.blockedUsersNotifier.addListener(() => setState(() {}));
+
     router.onMessageReceived.listen((messageData) {
       if (!mounted) return;
 
