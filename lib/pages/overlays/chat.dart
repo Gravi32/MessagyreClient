@@ -249,9 +249,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                       ],
                                     ),
                                   ),
-                                  Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
                                 ],
-                                if (message.isOwned)
+                                if (message.isOwned) ...[
+                                  Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
                                   CupertinoPressable(
                                     onTap: () {
                                       animationController.reverse().then((_) => entry.remove());
@@ -325,6 +325,72 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                       ],
                                     ),
                                   ),
+                                ],
+                                if (!message.isOwned) ...[
+                                  Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+
+                                  CupertinoPressable(
+                                    onTap: () {
+                                      animationController.reverse().then((_) => entry.remove());
+
+                                      showCupertinoModalPopup(
+                                        context: context,
+                                        builder: (popupContext) {
+                                          return CupertinoActionSheet(
+                                            title: Text("Signaler le message", style: TextStyle(fontSize: 14)),
+                                            message: Text(
+                                              "Si vous signalez ce message, il sera envoyé aux développeurs de Messagyre pour une évaluation. Si le message est considéré comme inapproprié, des mesures pourront être prises.",
+                                              style: TextStyle(fontSize: 14),
+                                            ),
+                                            actions: [
+                                              CupertinoActionSheetAction(
+                                                onPressed: () {
+                                                  Navigator.pop(popupContext);
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text("Signaler", style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18)),
+                                                    HugeIcon(icon: HugeIcons.strokeRoundedFlag02, size: 20, color: CupertinoColors.systemRed),
+                                                  ],
+                                                ),
+                                              ),
+
+                                              if (!message.isDeleted)
+                                                CupertinoActionSheetAction(
+                                                  onPressed: () {
+                                                    if (chatData != null) {
+                                                      data.blockUser(chatData!.recipientUsername);
+                                                    }
+                                                    Navigator.pop(popupContext);
+                                                  },
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Signaler et bloquer ${chatData?.recipientUsername ?? "cet utilisateur"}",
+                                                        style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18),
+                                                      ),
+                                                      HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, size: 20, color: CupertinoColors.systemRed),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                    padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Signaler", style: TextStyle(color: CupertinoColors.systemRed)),
+                                        HugeIcon(icon: HugeIcons.strokeRoundedFlag02, size: 20, color: CupertinoColors.systemRed),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -543,7 +609,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
         key: isPreview ? null : bubbleKeys["${data.id}-${data.isOwned}"],
-        onLongPressStart: isPreview ? null : (details) => showMessageContextMenu(context, data),
+        onLongPressStart: isPreview || !data.isOwned && data.isDeleted ? null : (details) => showMessageContextMenu(context, data),
         child: Container(
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
