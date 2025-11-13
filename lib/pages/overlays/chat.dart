@@ -374,14 +374,17 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     _messageDeletionSub = router.onMessageDeletionReceived.listen(messageDeletionListener);
 
     chatScrollController.addListener(() {
-      if (showScrollDownButton) {
-        if (chatScrollController.offset > chatScrollController.position.maxScrollExtent - 20) {
-          setState(() => showScrollDownButton = false);
-        }
-      } else {
-        if (chatScrollController.offset < chatScrollController.position.maxScrollExtent - 100) {
-          setState(() => showScrollDownButton = true);
-        }
+      final offset = chatScrollController.offset;
+      final maxOffset = chatScrollController.position.maxScrollExtent;
+
+      if (offset > maxOffset - 20 && showScrollDownButton) {
+        setState(() => showScrollDownButton = false);
+      } else if (offset < maxOffset - 100 && !showScrollDownButton) {
+        setState(() => showScrollDownButton = true);
+      }
+
+      if (offset < maxOffset - 300 && messageFieldFocusNode.hasFocus) {
+        messageFieldFocusNode.unfocus();
       }
     });
 
