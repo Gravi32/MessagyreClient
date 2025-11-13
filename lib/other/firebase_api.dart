@@ -44,11 +44,18 @@ class FirebaseApi {
       await firebaseMessaging.setAutoInitEnabled(true);
 
       if (Platform.isIOS) {
-        final apnsToken = await firebaseMessaging.getAPNSToken();
-        if (apnsToken == null) {
-          debugPrint("[Firebase] No APNs token retrieved.");
-        } else {
-          debugPrint("[Firebase] APNs token: $apnsToken");
+        String? apnsToken;
+        while (apnsToken == null) {
+          apnsToken = await firebaseMessaging.getAPNSToken();
+
+          if (apnsToken == null) {
+            debugPrint("[Firebase] No APNs token retrieved. Retrying in 3 seconds...");
+          } else {
+            debugPrint("[Firebase] APNs token: $apnsToken");
+            break;
+          }
+
+          await Future.delayed(Duration(seconds: 3));
         }
       }
 
