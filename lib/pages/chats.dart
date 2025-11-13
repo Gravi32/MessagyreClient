@@ -32,7 +32,9 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
     final isBlocked = data.blockedUsers.contains(chatData.recipientUsername);
     var hasUnreadMessages = chatData.unreadMessages > 0;
 
-    final statusIconData = chatData.content.isNotEmpty ? getStatusIcon(chatData.content.last.status) : null;
+    final lastMessage = chatData.content.isNotEmpty ? chatData.content.last : null;
+    final statusIconData = lastMessage != null ? getStatusIcon(lastMessage.status) : null;
+    print("For chat ${chatData.recipientUsername}: ${lastMessage?.isDeleted}");
 
     return Column(
       children: [
@@ -69,11 +71,11 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
                       Expanded(
                         child:
-                            chatData.content.isNotEmpty
+                            lastMessage != null
                                 ? Text.rich(
                                   TextSpan(
                                     children: [
-                                      if (chatData.content.last.isOwned)
+                                      if (lastMessage.isOwned)
                                         WidgetSpan(
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
@@ -81,11 +83,27 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                             child: Opacity(opacity: .6, child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color)),
                                           ),
                                         ),
+                                      if (lastMessage.isDeleted)
+                                        WidgetSpan(
+                                          alignment: PlaceholderAlignment.middle,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(right: 3),
+                                            child: Opacity(
+                                              opacity: .6,
+                                              child: HugeIcon(
+                                                icon: HugeIcons.strokeRoundedUnavailable,
+                                                size: 14,
+                                                strokeWidth: hasUnreadMessages ? 3 : 2,
+                                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ...CustomText.parseSpans(
-                                        chatData.content.last.content.trim(),
+                                        lastMessage.isDeleted ? "Message supprimé" : lastMessage.content.trim(),
                                         style: TextStyle(
                                           fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
-                                          color: CupertinoColors.systemGrey.resolveFrom(context),
+                                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
                                         ),
                                       ),
                                     ],
@@ -102,15 +120,13 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                     ],
                   ),
                 ),
-                if (chatData.content.isNotEmpty)
+                if (lastMessage != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       SizedBox(height: 4),
                       Text(
-                        chatData.content.last.sentAt.isSameDayAs(DateTime.now())
-                            ? DateFormat('HH:mm').format(chatData.content.last.sentAt)
-                            : formatDate(chatData.content.last.sentAt),
+                        lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
                         style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                       ),
 
@@ -201,6 +217,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
       );
 
       targetMessage.status = (messageStatusUpdate["Status"] as MessageStatus?) ?? MessageStatus.Failed;
+
+      setState(() {});
     });
 
     router.onMessageDeletionReceived.listen((messageDeletion) {
