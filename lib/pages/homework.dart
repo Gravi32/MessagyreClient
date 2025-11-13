@@ -399,7 +399,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
                                             if (isAllDone) {
                                               Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
-                                              HapticFeedback.vibrate();
+                                              HapticFeedback.heavyImpact();
                                             }
                                           },
                                         ),
