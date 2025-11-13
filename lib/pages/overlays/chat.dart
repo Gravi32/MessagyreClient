@@ -552,13 +552,31 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
             children: [
               Padding(
                 padding: EdgeInsets.only(bottom: 3.5),
-                child: CustomText(
-                  data.isDeleted ? "Supprimé" : data.content,
-                  style: TextStyle(
-                    color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white,
-                    fontSize: 15,
-                    fontStyle: data.isDeleted ? FontStyle.italic : null,
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      if (data.isDeleted)
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Opacity(
+                              opacity: .6,
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.white.withAlpha(150)),
+                            ),
+                          ),
+                        ),
+                      ...CustomText.parseSpans(
+                        data.isDeleted ? "Supprimé" : data.content.trim(),
+                        style: TextStyle(
+                          color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white,
+                          fontSize: 17,
+                          fontStyle: data.isDeleted ? FontStyle.italic : null,
+                        ),
+                      ),
+                    ],
                   ),
+                  softWrap: true,
                 ),
               ),
               Row(
