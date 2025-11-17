@@ -207,8 +207,8 @@ class SearchPageState extends State<SearchPage>
                               center: Alignment.center,
                               radius: radius,
                               colors: [
-                                CupertinoColors.white.withAlpha(10),
-                                CupertinoColors.white.withAlpha(80),
+                                CupertinoColors.white.withAlpha(30),
+                                CupertinoColors.white.withAlpha(40),
                                 CupertinoColors.transparent
                               ],
                               stops: [.1, 0.7, 1.0],
