@@ -427,10 +427,11 @@ class _NewGradeState extends State<NewGrade> {
                         },
                       ),
                     ),
-                    CupertinoListTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                      title: Text("Ajouter des photos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                    ),
+                    // TODO
+                    // CupertinoListTile(
+                    //   leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                    //   title: Text("Ajouter des photos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                    // ),
                   ],
                 ),
 

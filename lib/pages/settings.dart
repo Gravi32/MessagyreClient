@@ -7,9 +7,7 @@ import 'package:messagyre_client/other/eula.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
-import 'package:messagyre_client/pages/settings_subpages/feedback_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/storage_settings.dart';
-import 'package:messagyre_client/pages/settings_subpages/subjects_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/wallpaper_settings.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -175,11 +173,11 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04),
                     title: Text("Calendrier"),
                   ),
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
-                    title: Text("Vos branches"),
-                  ),
+                  // SettingsTile.navigation(
+                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsSettingsPage())),
+                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
+                  //   title: Text("Vos branches"),
+                  // ),
                 ],
               ),
 
@@ -191,18 +189,18 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
                     title: Text("Effacer les données"),
                   ),
-                  SettingsTile(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
-                    title: Text("Exporter les données"),
-                    enabled: false, // Placeholder for future implementation
-                  ),
-                  SettingsTile(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
-                    title: Text("Importer les données"),
-                    enabled: false, // Placeholder for future implementation
-                  ),
+                  // SettingsTile(
+                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
+                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
+                  //   title: Text("Exporter les données"),
+                  //   enabled: false, // Placeholder for future implementation
+                  // ),
+                  // SettingsTile(
+                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
+                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
+                  //   title: Text("Importer les données"),
+                  //   enabled: false, // Placeholder for future implementation
+                  // ),
                 ],
               ),
 
@@ -214,11 +212,11 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
                     title: Text("Conditions d'utilisation"),
                   ),
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
-                    title: Text("Envoyez un commentaire"),
-                  ),
+                  // SettingsTile.navigation(
+                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
+                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
+                  //   title: Text("Envoyez un commentaire"),
+                  // ),
                   SettingsTile.navigation(
                     onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),

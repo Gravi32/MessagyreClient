@@ -798,26 +798,29 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   ),
 
                 if (account.username != data.username) ...[
-                  CupertinoListSection.insetGrouped(
-                    margin: EdgeInsets.zero,
-                    children: [
-                      if (!widget.openedFromChat)
-                        buildListTile(
-                          HugeIcons.strokeRoundedSent,
-                          "Envoyer un message",
-                          onTap:
-                              isBlocked
-                                  ? null
-                                  : () => Navigator.pushReplacement(
-                                    context,
-                                    CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username)),
-                                  ),
-                        ),
-                      buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
-                      buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
-                      buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
-                    ],
-                  ),
+                  if (!widget.openedFromChat) // Temporary
+                    CupertinoListSection.insetGrouped(
+                      margin: EdgeInsets.zero,
+                      children: [
+                        if (!widget.openedFromChat)
+                          buildListTile(
+                            HugeIcons.strokeRoundedSent,
+                            "Envoyer un message",
+                            onTap:
+                                isBlocked
+                                    ? null
+                                    : () => Navigator.pushReplacement(
+                                      context,
+                                      CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username)),
+                                    ),
+                          ),
+
+                        // TODO
+                        // buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
+                        // buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
+                        // buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
+                      ],
+                    ),
                 ],
 
                 if (box.containsKey(account.username))
@@ -845,7 +848,8 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     children: [
                       buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
                       buildListTile(HugeIcons.strokeRoundedUserCircle, "Changer de photo de profil", onTap: () => changeProfilePicture()),
-                      buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
+                      //TODO
+                      //buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
                     ],
                   ),
                   CupertinoListSection.insetGrouped(

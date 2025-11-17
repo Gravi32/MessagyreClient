@@ -232,23 +232,23 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                       ],
                                     ),
                                   ),
-                                  Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
-                                  CupertinoPressable(
-                                    onTap: null,
-                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
-                                        HugeIcon(
-                                          icon: HugeIcons.strokeRoundedInformationSquare,
-                                          size: 20,
-                                          color: CupertinoColors.inactiveGray.resolveFrom(context),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  // Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+                                  // CupertinoPressable(
+                                  //   onTap: null,
+                                  //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  //   child: Row(
+                                  //     mainAxisSize: MainAxisSize.max,
+                                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  //     children: [
+                                  //       Text("Infos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                                  //       HugeIcon(
+                                  //         icon: HugeIcons.strokeRoundedInformationSquare,
+                                  //         size: 20,
+                                  //         color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                  //       ),
+                                  //     ],
+                                  //   ),
+                                  // ),
                                 ],
                                 if (message.isOwned) ...[
                                   Divider(height: 0, thickness: 1, color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
@@ -561,7 +561,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     },
                   ),
                 ),
-                HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22, color: CupertinoColors.systemGrey.resolveFrom(context)),
+                //HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22, color: CupertinoColors.systemGrey.resolveFrom(context)),
                 SizedBox(width: 10),
               ],
             ),
