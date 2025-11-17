@@ -61,39 +61,47 @@ class _EulaPageState extends State<EulaPage> {
                   padding: EdgeInsets.all(16),
                   child: SingleChildScrollView(
                     controller: scrollController,
-                    child: CustomText("""*Bienvenue sur Messagyre*
+                    child: CustomText("""*Conditions d'utilisation de Messagyre*
 
-Messagyre est une plateforme de messagerie dont l'utilisation est strictement soumise aux presentes conditions. Tout utilisateur doit les lire attentivement et les accepter integralement avant d'acceder au service. Messagyre applique une politique rigoureuse concernant la securite, la moderation et le respect des regles imposees par l'App Store.
+*1. Acceptation*
+En utilisant Messagyre, l'utilisateur confirme avoir lu et accepte integralement les presentes conditions. Messagyre applique une politique de tolerance zero envers les contenus illegaux, abusifs ou contraires aux lois applicables.
 
-*1. Contenu genere par l'utilisateur*  
-L'utilisateur est entierement et exclusivement responsable de tout contenu qu'il transmet dans l'application. La publication ou la transmission de contenus illegaux, offensants, diffamatoires, discriminatoires, violents, menaçants, abusifs, obscenes, nuisibles ou contraires aux lois en vigueur est strictement interdite. Messagyre applique une tolerance zero : tout contenu non conforme peut etre supprime immediatement, sans preavis, et peut entrainer la suspension ou la fermeture definitive du compte.
+*2. Contenu genere par les utilisateurs*
+L'utilisateur est seul responsable de l'ensemble des contenus qu'il partage. Tout contenu illegal, diffamatoire, haineux, incitant a la violence, sexuellement explicite impliquant des mineurs, ou contraire aux lois et reglements est strictement interdit. Tout manquement peut entrainer la suspension ou la suppression definitive du compte.
 
-*2. Systeme de filtrage et de moderation*  
-Messagyre met en place des mecanismes destines a prevenir la diffusion de contenu inapproprie, incluant des outils automatises, des verifications manuelles et une equipe de moderation chargee de veiller au respect des regles. Messagyre se reserve le droit de renforcer ou d'adapter ces mesures a tout moment afin de maintenir un environnement securise et conforme.
+*3. Chiffrement et limites techniques*
+Les messages prives echanges sur Messagyre sont chiffrés de bout en bout. En raison de ce chiffre­ment, les messages prives ne peuvent pas etre lus, filtres ou analyses par Messagyre. Par consequent, le filtrage automatique s'applique uniquement aux contenus non chiffrés tels que pseudonymes, biographies, images de profil, noms de groupes et autres informations publiques ou semi-publiques.
 
-*3. Signalement du contenu et traitement sous 24 heures*  
-L'utilisateur peut signaler n'importe quel contenu ou comportement non conforme via une fonctionnalite dediee. Chaque signalement est examine individuellement et traite dans un delai maximum de vingt-quatre heures. Messagyre peut supprimer immediatement tout contenu signale et appliquer des sanctions a l'utilisateur concerne, pouvant aller jusqu'a la desactivation de son compte.
+*4. Systeme automatique de detection*
+Messagyre utilise un systeme automatique minimal de detection pour empecher la publication de contenus non chiffrés potentiellement offensants, illegaux ou contraires a ces conditions. Ce systeme vise uniquement a prevenir la diffusion de contenus manifestement problematiques et ne s'applique pas aux messages prives.
 
-*4. Blocage des utilisateurs*  
-L'application permet de bloquer tout utilisateur adoptant un comportement problematique. Une fois bloque, l'utilisateur ne peut plus envoyer de messages ni interagir avec la personne qui l'a bloque. Messagyre peut appliquer des mesures supplementaires si un abus est constate.
+*5. Signalement du contenu illicite ou abusif*
+Les utilisateurs disposent d'un mecanisme clair pour signaler tout contenu ou comportement problematique. Tout signalement est examine dans un delai maximal de 24 heures. En cas de violation averee, Messagyre peut supprimer le contenu, restreindre les functionalities ou suspendre le compte concerne.
 
-*5. Comportement exige et infractions graves*  
-Un comportement strictement respectueux est exige de tous les utilisateurs. Toute forme de harcelement, menace, intimidation, incitation a la haine, tentative de nuire ou comportement perturbant la securite de la communaute constitue une infraction grave. Messagyre peut prendre des mesures immediates et definitives sans avertissement.
+*6. Blocage des utilisateurs*
+Chaque utilisateur peut bloquer d'autres utilisateurs a tout moment afin d'empecher toute communication non desiree. Le blocage est immediat et irreversible tant que l'utilisateur ne le retire pas.
 
-*6. Confidentialite et securite des donnees*  
-Messagyre assure la confidentialite des communications grace au chiffrement et a des protocoles de securite conformes aux normes actuelles. Les messages ne sont accessibles ni aux developpeurs ni a des tiers non autorises. Les donnees personnelles sont traitees exclusivement dans le cadre legal et selon la politique de confidentialite de Messagyre.
+*7. Comportements interdits*
+Il est strictement interdit de:
+- harceler, menacer ou intimider d'autres utilisateurs;
+- partager des contenus illegaux ou inappropries;
+- chercher a contourner les systemes de moderation;
+- usurper l'identite d'autrui;
+- utiliser Messagyre a des fins frauduleuses ou criminelles.
 
-*7. Propriete intellectuelle*  
-L'utilisateur garantit que tout contenu partage ne viole pas de droits de propriete intellectuelle. En cas d'infraction, l'utilisateur en assume l'entiere responsabilite. Messagyre se reserve le droit de supprimer tout contenu litigieux et de suspendre immediatement le compte associe.
+Toute violation peut entrainer des mesures disciplinaires immediates, y compris la suppression definitive du compte.
 
-*8. Informations du profil public*  
-Le pseudonyme, la biographie et la photo de profil, lorsqu'ils sont fournis, sont visibles par les autres utilisateurs. Ces informations servent uniquement a l'identification au sein de Messagyre et ne sont jamais exploitees a des fins commerciales externes ni transmises a des tiers non autorises.
+*8. Responsabilite*
+Messagyre ne peut etre tenu responsable des contenus generes par les utilisateurs. Toutefois, Messagyre s'engage a intervenir rapidement en cas de signalement et a supprimer tout contenu violant les presentes conditions.
 
-*9. Donnees locales*  
-Les donnees stockees localement, telles que notes ou devoirs, restent exclusivement sur l'appareil de l'utilisateur et ne sont jamais envoyees aux serveurs de Messagyre.
+*9. Protection des donnees*
+Les donnees personnelles sont traitees conformement aux lois en vigueur et a la politique de confidentialite de Messagyre. Les contenus prives chiffrés ne sont jamais accessibles aux developpeurs ou a des tiers.
 
-*10. Acceptation des conditions*  
-L'utilisation de Messagyre implique l'acceptation totale, sans reserve, de l'ensemble des conditions definies dans ce document. Tout manquement expose l'utilisateur a des sanctions immediates pouvant aller jusqu'a la suppression definitive du compte. Messagyre peut modifier ou mettre a jour ces conditions a tout moment pour des raisons legales, techniques ou de securite.
+*10. Modification des conditions*
+Messagyre se reserve le droit de modifier les presentes conditions afin de respecter les obligations legales et les politiques des plateformes de distribution. Toute modification importante sera notifiee a l'utilisateur.
+
+*11. Acceptation finale*
+En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve l'ensemble de ces conditions et s'engage a respecter un comportement responsable, legal et respectueux envers les autres membres de la plateforme.
 
 Messagyre - Pietro Gravina
 
