@@ -178,30 +178,61 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
     allChats = Hive.box<Chat>("Chats");
 
-    // FOR THE APPLE VERIFICATION TEAM \\
-    if (data.username == "apple.verification") {
-      final reviewChat = Chat(recipientUsername: "apple.verification");
+    router.connectionState.addListener(() {
+      print("CALLED ${data.username}");
+      // FOR THE APPLE VERIFICATION TEAM \\
+      if (data.username == "apple.verification" || data.username == "apple.verify.temp") {
+        final now = DateTime.now();
 
-      final now = DateTime.now();
+        final abusiveChat = Chat(recipientUsername: "test.1");
+        abusiveChat.content.addAll([
+          Message(
+            id: const Uuid().v4(),
+            content: "Bonjour. Ceci est une conversation de démonstration.",
+            sentAt: now.subtract(const Duration(minutes: 5)),
+            isOwned: false,
+          ),
+          Message(id: const Uuid().v4(), content: "Salut, comment ça va ?", sentAt: now.subtract(const Duration(minutes: 4)), isOwned: true),
+          Message(
+            id: const Uuid().v4(),
+            content: "Tu es vraiment nul, personne veut parler avec toi.",
+            sentAt: now.subtract(const Duration(minutes: 3)),
+            isOwned: false,
+          ),
+          Message(
+            id: const Uuid().v4(),
+            content: "Ce message est un exemple de contenu à signaler.",
+            sentAt: now.subtract(const Duration(minutes: 2)),
+            isOwned: false,
+          ),
+        ]);
 
-      reviewChat.content.addAll([
-        Message(
-          id: const Uuid().v4(),
-          content: "Hi! You can long press any message to report or block a user.",
-          sentAt: now.subtract(const Duration(minutes: 3)),
-          isOwned: false,
-        ),
-        Message(id: const Uuid().v4(), content: "Thanks! That's very helpful.", sentAt: now.subtract(const Duration(minutes: 2)), isOwned: true),
-        Message(
-          id: const Uuid().v4(),
-          content: "No problem — this is a demo conversation for review purposes.",
-          sentAt: now.subtract(const Duration(minutes: 1)),
-          isOwned: false,
-        ),
-      ]);
+        final normalChat = Chat(recipientUsername: "test.2");
+        normalChat.content.addAll([
+          Message(
+            id: const Uuid().v4(),
+            content: "Bonjour, ceci est un exemple de chat normal.",
+            sentAt: now.subtract(const Duration(minutes: 6)),
+            isOwned: false,
+          ),
+          Message(
+            id: const Uuid().v4(),
+            content: "Merci, c'est parfait pour la vérification.",
+            sentAt: now.subtract(const Duration(minutes: 5)),
+            isOwned: true,
+          ),
+          Message(
+            id: const Uuid().v4(),
+            content: "N'hésitez pas à signaler ou bloquer un utilisateur.",
+            sentAt: now.subtract(const Duration(minutes: 4)),
+            isOwned: false,
+          ),
+        ]);
 
-      allChats.put("apple.verification", reviewChat);
-    }
+        allChats.put("test.1", abusiveChat);
+        allChats.put("test.2", normalChat);
+      }
+    });
 
     data.blockedUsersNotifier.addListener(() => setState(() {}));
 

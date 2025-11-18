@@ -67,8 +67,6 @@ class ConnectionController {
   final _messageDeletionController = StreamController<Map<String, Object>>.broadcast();
   Stream<Map<String, Object>> get onMessageDeletionReceived => _messageDeletionController.stream;
 
-  final _connectionStatusController = StreamController<void>.broadcast();
-  Stream<void> get onConnected => _connectionStatusController.stream;
   void Function()? onUnauthorized;
 
   bool get isConnected => _channel != null;
@@ -221,6 +219,8 @@ class ConnectionController {
 
       connectionState.value = ConnectionState.Connected;
       connectionAttempts = 0;
+
+      
     } catch (e) {
       debugPrint("[WebSocket] Connection FAILED: $e");
 
