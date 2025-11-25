@@ -24,12 +24,12 @@ class _NewHomeworkState extends State<NewHomework> {
 
   late final editMode = widget.toEdit != null;
 
-  late final subjectController = TextEditingController(text: SubjectHelper.toFrench(subject));
+  late final subjectController = TextEditingController(text: subject == null ? null : SubjectHelper.toFrench(subject!));
   late final contentController = TextEditingController(text: widget.toEdit?.content);
 
   final contentFocus = FocusNode();
 
-  late Subject subject = widget.toEdit?.subject ?? Subject.Maths;
+  late Subject? subject = widget.toEdit?.subject;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool isTest = widget.toEdit?.isTest ?? false;
@@ -37,8 +37,10 @@ class _NewHomeworkState extends State<NewHomework> {
   void confirmHomework() {
     var homework = widget.toEdit ?? Homework();
 
+    if (subject == null) return;
+
     homework
-      ..subject = subject
+      ..subject = subject ?? Subject.Other
       ..content = contentController.text.trim()
       ..dueDate = dueDate
       ..isGraded = isGraded
@@ -85,7 +87,7 @@ class _NewHomeworkState extends State<NewHomework> {
   Widget build(BuildContext context) {
     final previewHomework =
         Homework()
-          ..subject = subject
+          ..subject = subject ?? Subject.Other
           ..content = contentController.text.trim()
           ..dueDate = dueDate
           ..isGraded = isGraded
