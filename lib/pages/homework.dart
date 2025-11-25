@@ -32,6 +32,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
   late final PageController timelineController;
   late final Box<Homework> allHomework;
 
+  HomeworkViewMode currentViewMode = HomeworkViewMode.byDueDate;
+
   late Map<DateTime, List<Homework>> homeworkByDate;
   final Map<int, HomeworkCardController> homeworkCardControllers = {};
 
@@ -156,7 +158,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 radius: 3,
               ),
               borderRadius: BorderRadius.circular(10),
-              //boxShadow: [BoxShadow(color: CupertinoColors.black, blurRadius: 5, spreadRadius: 2)],
             ),
             child: Stack(
               children: [
@@ -165,7 +166,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   right: -5,
                   child: Transform.rotate(angle: pi / 40, child: Opacity(opacity: .6, child: Image.asset("assets/warningSign.png", width: 100, height: 120))),
                 ),
-
                 Padding(
                   padding: EdgeInsetsGeometry.all(6).add(EdgeInsets.only(bottom: 30)),
                   child: Column(
@@ -254,7 +254,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
             ),
           ),
         ),
-
         Positioned(
           bottom: 16,
           left: 20,
@@ -281,6 +280,334 @@ class _HomeworkPageState extends State<HomeworkPage> {
     );
   }
 
+  Widget buildHomeworkList() {
+    final now = DateTime.now();
+
+    switch (currentViewMode) {
+      case HomeworkViewMode.bySubject:
+        final homeworkListBySubject = <Subject, List<Homework>>{};
+
+        for (var hw in allHomework.values) {
+          homeworkListBySubject.putIfAbsent(hw.subject, () => []).add(hw);
+        }
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: SubjectHelper.sortedSubjects.length,
+          itemBuilder: (context, index) {
+            final subject = SubjectHelper.sortedSubjects[index];
+            final subjectHomework = homeworkListBySubject[subject];
+
+            return subjectHomework == null
+                ? SizedBox.shrink()
+                : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      SubjectHelper.toFrench(subject),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                    ),
+                    Text(
+                      allHomework.values.where((hw) => hw.subject == subject).length > 1
+                          ? "${allHomework.values.where((hw) => hw.subject == subject).length} devoirs"
+                          : "1 devoir",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                    ),
+                    SizedBox(height: 8),
+                    ...subjectHomework.map(
+                      (homework) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: HomeworkCard(
+                          homework: homework,
+                          controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                          onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                          onDeleteButtonClicked: () => homework.delete(),
+                          onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                  ],
+                );
+          },
+        );
+
+      case HomeworkViewMode.byDueDate:
+        final sortedHomework = allHomework.values.toList()..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: sortedHomework.length,
+          itemBuilder: (context, index) {
+            final date = sortedHomework[index].dueDate;
+            final formattedDate = formatDate(date);
+            final opacity = date.isBefore(now) ? 0.5 : 1.0;
+            final homework = sortedHomework[index];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Pour ${formatDate(date, includeArticle: true)}",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                ),
+                if (int.tryParse(formattedDate[0]) == null)
+                  Text(
+                    DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                  ),
+                SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HomeworkCard(
+                    homework: homework,
+                    controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                    onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                    onDeleteButtonClicked: () => homework.delete(),
+                    onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+
+      case HomeworkViewMode.all:
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: allHomework.length,
+          itemBuilder: (context, index) {
+            final homework = allHomework.getAt(index)!;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: HomeworkCard(
+                homework: homework,
+                controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                onDeleteButtonClicked: () => homework.delete(),
+                onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+              ),
+            );
+          },
+        );
+
+      case HomeworkViewMode.testsFirst:
+        final sortedHomework =
+            allHomework.values.toList()
+              ..sort((a, b) => a.dueDate.compareTo(b.dueDate))
+              ..sort((a, b) {
+                if (a.isTest && !b.isTest) return -1;
+                if (!a.isTest && b.isTest) return 1;
+                return 0;
+              });
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: sortedHomework.length,
+          itemBuilder: (context, index) {
+            final date = sortedHomework[index].dueDate;
+            final formattedDate = formatDate(date);
+            final opacity = date.isBefore(now) ? 0.5 : 1.0;
+            final homework = sortedHomework[index];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Pour ${formatDate(date, includeArticle: true)}",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                ),
+                if (int.tryParse(formattedDate[0]) == null)
+                  Text(
+                    DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                  ),
+                SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HomeworkCard(
+                    homework: homework,
+                    controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                    onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                    onDeleteButtonClicked: () => homework.delete(),
+                    onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+
+      case HomeworkViewMode.testsOnly:
+        final sortedHomework = allHomework.values.where((hw) => hw.isTest).toList()..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: sortedHomework.length,
+          itemBuilder: (context, index) {
+            final date = sortedHomework[index].dueDate;
+            final formattedDate = formatDate(date);
+            final opacity = date.isBefore(now) ? 0.5 : 1.0;
+            final homework = sortedHomework[index];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Pour ${formatDate(date, includeArticle: true)}",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                ),
+                if (int.tryParse(formattedDate[0]) == null)
+                  Text(
+                    DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                  ),
+                SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HomeworkCard(
+                    homework: homework,
+                    controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                    onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                    onDeleteButtonClicked: () => homework.delete(),
+                    onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+
+      default:
+        return PageView.builder(
+          controller: timelineController,
+          itemCount: allDays.length,
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
+          physics: PageScrollPhysics(),
+          itemBuilder: (context, index) {
+            final date = allDays[index].dateOnly();
+            final isPassed = date.isBefore(now);
+            final opacity = isPassed ? 0.5 : 1.0;
+
+            final thisDaysHomework = homeworkByDate[date] ?? [];
+            final formattedDate = formatDate(date);
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        "Pour ${formatDate(date, includeArticle: true)}",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                      ),
+                      if (int.tryParse(formattedDate[0]) == null)
+                        Text(
+                          DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                          style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        ),
+                    ],
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.only(top: 6, bottom: 20),
+                      clipBehavior: Clip.none,
+                      itemCount: thisDaysHomework.length + 1,
+                      itemBuilder: (context, i) {
+                        if (i < thisDaysHomework.length) {
+                          final homework = thisDaysHomework[i];
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: HomeworkCard(
+                              homework: homework,
+                              controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                              onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                              onDeleteButtonClicked:
+                                  () => showCupertinoDialog(
+                                    context: context,
+                                    builder:
+                                        (dialogContext) => CupertinoAlertDialog(
+                                          title: Text("Supprimer le devoir"),
+                                          content: Text("Le devoir sera supprimé. Cette action est irréversible."),
+                                          actions: [
+                                            CupertinoDialogAction(
+                                              onPressed: () => Navigator.pop(dialogContext),
+                                              child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2))),
+                                            ),
+                                            CupertinoDialogAction(
+                                              onPressed: () {
+                                                homework.delete();
+                                                Navigator.pop(dialogContext);
+                                              },
+                                              child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
+                                            ),
+                                          ],
+                                        ),
+                                  ),
+                              onMarkAsDoneButtonClicked: (isMarkedAsDone) {
+                                bool isAllDone = true;
+
+                                for (var homework
+                                    in homeworkByDate.entries.where((entry) => entry.key.isSameDayAs(date)).expand((entry) => entry.value).toList()) {
+                                  if (!homework.isTest && !homework.isMarkedAsDone) isAllDone = false;
+                                }
+
+                                if (isAllDone) {
+                                  Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
+                                  HapticFeedback.heavyImpact();
+                                }
+                              },
+                            ),
+                          );
+                        }
+                        return GestureDetector(
+                          onTap: () => showNewHomeworkPopup(dueDateOverride: date),
+                          behavior: HitTestBehavior.opaque,
+                          child: DottedBorder(
+                            options: RoundedRectDottedBorderOptions(
+                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                              strokeWidth: 2,
+                              dashPattern: [4, 5],
+                              radius: Radius.circular(8),
+                              strokeCap: StrokeCap.round,
+                              borderPadding: EdgeInsets.all(2),
+                            ),
+                            child: SizedBox(
+                              height: 100,
+                              child: Opacity(
+                                opacity: .2,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 6,
+                                  children: [
+                                    Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: CupertinoColors.label.resolveFrom(context)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+    }
+  }
+
   @override
   void dispose() {
     timelineController.dispose();
@@ -289,162 +616,196 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-
     return CupertinoPageScaffold(
       child: Stack(
         children: [
           NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [CupertinoSliverNavigationBar(largeTitle: Text("Devoirs"))],
+            headerSliverBuilder:
+                (context, innerBoxIsScrolled) => [
+                  CupertinoSliverNavigationBar(
+                    largeTitle: Text("Devoirs"),
+                    bottomMode: NavigationBarBottomMode.automatic,
+                    bottom: PreferredSize(
+                      preferredSize: Size.fromHeight(80),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints.tightFor(height: 80),
+                          child: Padding(
+                            padding: EdgeInsetsGeometry.symmetric(horizontal: 14),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 10,
+                              children: [
+                                CupertinoSearchTextField(onChanged: (value) {}, placeholder: "Rechercher des devoirs"),
+
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: BouncingScrollPhysics(),
+                                  child: Row(
+                                    spacing: 6,
+                                    children: [
+                                      CupertinoPressable(
+                                        onTap: () => setState(() => currentViewMode = HomeworkViewMode.byDefault),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                        child: Opacity(
+                                          opacity: currentViewMode == HomeworkViewMode.byDefault ? 1 : 0.5,
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              HugeIcon(icon: HugeIcons.strokeRoundedCalendar03, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                              Text("Calendrier"),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      CupertinoPressable(
+                                        onTap:
+                                            () => setState(
+                                              () =>
+                                                  currentViewMode =
+                                                      currentViewMode == HomeworkViewMode.byDueDate ? HomeworkViewMode.byDefault : HomeworkViewMode.byDueDate,
+                                            ),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                        child: Opacity(
+                                          opacity: currentViewMode == HomeworkViewMode.byDueDate ? 1 : 0.5,
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              HugeIcon(
+                                                icon: HugeIcons.strokeRoundedCalendarUpload01,
+                                                size: 16,
+                                                color: CupertinoColors.label.resolveFrom(context),
+                                              ),
+                                              Text("Par date de remise"),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      CupertinoPressable(
+                                        onTap:
+                                            () => setState(
+                                              () =>
+                                                  currentViewMode =
+                                                      currentViewMode == HomeworkViewMode.bySubject ? HomeworkViewMode.byDefault : HomeworkViewMode.bySubject,
+                                            ),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                        child: Opacity(
+                                          opacity: currentViewMode == HomeworkViewMode.bySubject ? 1 : 0.5,
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              HugeIcon(
+                                                icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                                                size: 16,
+                                                color: CupertinoColors.label.resolveFrom(context),
+                                              ),
+                                              Text("Par branche"),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      CupertinoPressable(
+                                        onTap:
+                                            () => setState(
+                                              () =>
+                                                  currentViewMode = currentViewMode == HomeworkViewMode.all ? HomeworkViewMode.byDefault : HomeworkViewMode.all,
+                                            ),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                        child: Opacity(
+                                          opacity: currentViewMode == HomeworkViewMode.all ? 1 : 0.5,
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              HugeIcon(icon: HugeIcons.strokeRoundedMenu01, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                              Text("Tous"),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      CupertinoPressable(
+                                        onTap:
+                                            () => setState(
+                                              () =>
+                                                  currentViewMode =
+                                                      currentViewMode == HomeworkViewMode.testsFirst ? HomeworkViewMode.byDefault : HomeworkViewMode.testsFirst,
+                                            ),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                        child: Opacity(
+                                          opacity: currentViewMode == HomeworkViewMode.testsFirst ? 1 : 0.5,
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                              Text("Les tests d'abord"),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      CupertinoPressable(
+                                        onTap:
+                                            () => setState(
+                                              () =>
+                                                  currentViewMode =
+                                                      currentViewMode == HomeworkViewMode.testsOnly ? HomeworkViewMode.byDefault : HomeworkViewMode.testsOnly,
+                                            ),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                        child: Opacity(
+                                          opacity: currentViewMode == HomeworkViewMode.testsOnly ? 1 : 0.5,
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                              Text("Seulement les tests"),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
             body: SafeArea(
               top: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (nearbyTests.isNotEmpty && !isNearbyTestsNotifierHidden) buildNearbyTestsNotifier(),
-
                   SizedBox(height: 6),
-                  Expanded(
-                    child: PageView.builder(
-                      controller: timelineController,
-                      itemCount: allDays.length,
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      physics: PageScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final date = allDays[index].dateOnly();
-                        final isPassed = date.isBefore(now);
-                        final opacity = isPassed ? 0.5 : 1.0;
-
-                        final thisDaysHomework = homeworkByDate[date] ?? [];
-                        final formattedDate = formatDate(date);
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 7),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    "Pour ${formatDate(date, includeArticle: true)}",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w500,
-                                      color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity),
-                                    ),
-                                  ),
-                                  if (int.tryParse(formattedDate[0]) == null)
-                                    Text(
-                                      DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                                      style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                                    ),
-                                ],
-                              ),
-
-                              Expanded(
-                                child: ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.only(top: 6, bottom: 20),
-                                  clipBehavior: Clip.none,
-                                  itemCount: thisDaysHomework.length + 1,
-                                  itemBuilder: (context, i) {
-                                    if (i < thisDaysHomework.length) {
-                                      final homework = thisDaysHomework[i];
-
-                                      return Padding(
-                                        padding: const EdgeInsets.only(bottom: 12),
-                                        child: HomeworkCard(
-                                          homework: homework,
-                                          controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                                          onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                                          onDeleteButtonClicked:
-                                              () => showCupertinoDialog(
-                                                context: context,
-                                                builder:
-                                                    (dialogContext) => CupertinoAlertDialog(
-                                                      title: Text("Supprimer le devoir"),
-                                                      content: Text("Le devoir sera supprimé. Cette action est irréversible."),
-                                                      actions: [
-                                                        CupertinoDialogAction(
-                                                          onPressed: () => Navigator.pop(dialogContext),
-                                                          child: Text(
-                                                            "Annuler",
-                                                            style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2)),
-                                                          ),
-                                                        ),
-                                                        CupertinoDialogAction(
-                                                          onPressed: () {
-                                                            homework.delete();
-                                                            Navigator.pop(dialogContext);
-                                                          },
-                                                          child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
-                                                        ),
-                                                      ],
-                                                    ),
-                                              ),
-                                          onMarkAsDoneButtonClicked: (isMarkedAsDone) {
-                                            bool isAllDone = true;
-
-                                            for (var homework
-                                                in homeworkByDate.entries
-                                                    .where((entry) => entry.key.isSameDayAs(date))
-                                                    .expand((entry) => entry.value)
-                                                    .toList()) {
-                                              if (!homework.isTest && !homework.isMarkedAsDone) isAllDone = false;
-                                            }
-
-                                            if (isAllDone) {
-                                              Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
-                                              HapticFeedback.heavyImpact();
-                                            }
-                                          },
-                                        ),
-                                      );
-                                    }
-                                    return GestureDetector(
-                                      onTap: () => showNewHomeworkPopup(dueDateOverride: date),
-                                      behavior: HitTestBehavior.opaque,
-                                      child: DottedBorder(
-                                        options: RoundedRectDottedBorderOptions(
-                                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                          strokeWidth: 2,
-                                          dashPattern: [4, 5],
-                                          radius: Radius.circular(8),
-                                          strokeCap: StrokeCap.round,
-                                          borderPadding: EdgeInsets.all(2),
-                                        ),
-                                        child: SizedBox(
-                                          height: 100,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            spacing: 6,
-                                            children: [
-                                              Text(
-                                                "Ajouter un devoir",
-                                                style: TextStyle(fontSize: 16, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
-                                              ),
-                                              HugeIcon(
-                                                icon: HugeIcons.strokeRoundedAdd01,
-                                                color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                  Expanded(child: buildHomeworkList()),
                 ],
               ),
             ),
@@ -469,7 +830,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                             currentViewingTestIndex = -1;
                             animateToPage(tomorrowPageIndex);
                           }),
-
                       padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(isAtTomorrow ? 0 : 1),
@@ -489,7 +849,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     SizedBox(height: 10),
                     CupertinoPressable(
                       onTap: showNewHomeworkPopup,
-
                       padding: EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
@@ -508,3 +867,5 @@ class _HomeworkPageState extends State<HomeworkPage> {
     );
   }
 }
+
+enum HomeworkViewMode { byDefault, byDueDate, bySubject, testsFirst, testsOnly, all }
