@@ -171,83 +171,99 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                     BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    spacing: 6,
-                    children: [
-                      SizedBox(
-                        height: 30,
-                        child:
-                            isTest
-                                ? Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  textBaseline: TextBaseline.alphabetic,
-                                  spacing: 2,
-                                  children: [
-                                    HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 20),
-                                    const Text("TEST", style: TextStyle(color: CupertinoColors.systemRed, fontWeight: FontWeight.w700, fontSize: 20)),
-                                  ],
-                                )
-                                : GestureDetector(
-                                  onTap: isPreview ? null : markAsDone,
-                                  child: HugeIcon(
-                                    icon: isMarkedAsDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
-                                    size: 30,
-                                    color: isMarkedAsDone ? CupertinoColors.activeGreen : CupertinoColors.secondaryLabel.resolveFrom(context),
+                  Padding(
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 6).add(const EdgeInsets.only(top: 6)),
+                    child: Row(
+                      spacing: 6,
+                      children: [
+                        SizedBox(
+                          height: 30,
+                          child:
+                              isTest
+                                  ? Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    textBaseline: TextBaseline.alphabetic,
+                                    spacing: 2,
+                                    children: [
+                                      HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 20),
+                                      const Text("TEST", style: TextStyle(color: CupertinoColors.systemRed, fontWeight: FontWeight.w700, fontSize: 20)),
+                                    ],
+                                  )
+                                  : GestureDetector(
+                                    onTap: isPreview ? null : markAsDone,
+                                    child: HugeIcon(
+                                      icon: isMarkedAsDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
+                                      size: 30,
+                                      color: isMarkedAsDone ? CupertinoColors.activeGreen : CupertinoColors.secondaryLabel.resolveFrom(context),
+                                    ),
                                   ),
-                                ),
-                      ),
-
-                      Expanded(
-                        child: Row(
-                          spacing: 4,
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            if (isGraded)
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                                color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
-                                size: 20,
-                              ),
-                            Expanded(
-                              child: AnimatedLineThrough(
-                                duration: const Duration(milliseconds: 150),
-                                isCrossed: isMarkedAsDone,
-                                strokeWidth: 1,
-                                child: Text(
-                                  SubjectHelper.toFrench(widget.homework.subject).capitalize(),
-                                  style: TextStyle(
-                                    color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 20,
-                                  ),
-                                  softWrap: true,
-                                  overflow: TextOverflow.fade,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                    ],
+
+                        Expanded(
+                          child: Row(
+                            spacing: 4,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              if (isGraded)
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                                  color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
+                                  size: 20,
+                                ),
+                              Expanded(
+                                child: AnimatedLineThrough(
+                                  duration: const Duration(milliseconds: 150),
+                                  isCrossed: isMarkedAsDone,
+                                  strokeWidth: 1,
+                                  child: Text(
+                                    SubjectHelper.toFrench(widget.homework.subject).capitalize(),
+                                    style: TextStyle(
+                                      color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20,
+                                    ),
+                                    softWrap: true,
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 6),
-                    child: AnimatedLineThrough(
-                      duration: const Duration(milliseconds: 150),
-                      isCrossed: isMarkedAsDone,
-                      strokeWidth: .5,
-                      child: CustomText(
-                        isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
-                        style: TextStyle(color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9)),
-                        boldWeight: FontWeight.w800,
-                        overflow: TextOverflow.fade,
-                        maxLines: isPreview ? 3 : null,
+                    padding: const EdgeInsets.only(top: 8, bottom: 5),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: CupertinoColors.tertiarySystemBackground.resolveFrom(context).withOpacity(isMarkedAsDone ? .2 : .5),
+                        boxShadow:
+                            isMarkedAsDone
+                                ? null
+                                : [BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 2, spreadRadius: 1, offset: const Offset(0, 2))],
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                      child: AnimatedLineThrough(
+                        duration: const Duration(milliseconds: 150),
+                        isCrossed: isMarkedAsDone,
+                        strokeWidth: .5,
+                        child: CustomText(
+                          isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
+                          style: TextStyle(
+                            color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                          ),
+                          boldWeight: FontWeight.w800,
+                          overflow: TextOverflow.fade,
+                          maxLines: isPreview ? 3 : null,
+                        ),
                       ),
                     ),
                   ),
