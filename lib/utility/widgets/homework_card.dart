@@ -207,6 +207,12 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           children: [
+                            if (isGraded)
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                                color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
+                                size: 20,
+                              ),
                             Expanded(
                               child: AnimatedLineThrough(
                                 duration: const Duration(milliseconds: 150),
@@ -224,12 +230,6 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                 ),
                               ),
                             ),
-                            if (isGraded)
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                                color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
-                                size: 20,
-                              ),
                           ],
                         ),
                       ),
