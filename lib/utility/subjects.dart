@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:messagyre_client/utility/classes.dart';
 
 enum Subject {
   French,
@@ -30,7 +31,7 @@ enum Subject {
   GeographyOC,
   Philosophy,
   PhilosophyOS,
-  Psychology,
+      Psychology,
   PsychologyOS,
   HistoryAndReligionsOC,
 
@@ -179,6 +180,24 @@ class SubjectHelper {
     final list = Subject.values.toList();
     list.sort((a, b) => normalize(toFrench(a)).compareTo(normalize(toFrench(b))));
     return list;
+  }
+
+  static List<Homework> searchBySimilarity(String query, Map<Subject, Homework> allHomework) {
+    final lowerQuery = query.toLowerCase().trim();
+
+    int similarityScore(Homework hw) {
+      int score = 0;
+      if (hw.content.toLowerCase().contains(lowerQuery)) score += 10;
+      if (hw.subject.name.toLowerCase().contains(lowerQuery)) score += 5;
+      return score;
+    }
+
+    final filtered =
+        allHomework.values.where((hw) => hw.content.toLowerCase().contains(lowerQuery) || hw.subject.name.toLowerCase().contains(lowerQuery)).toList();
+
+    filtered.sort((a, b) => similarityScore(b).compareTo(similarityScore(a)));
+
+    return filtered;
   }
 }
 
