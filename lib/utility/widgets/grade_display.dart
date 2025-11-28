@@ -16,74 +16,78 @@ class GradeDisplay extends StatefulWidget {
 class _GradeDisplayState extends State<GradeDisplay> {
   @override
   Widget build(BuildContext context) {
-    final double size = widget.size;
-    final CupertinoDynamicColor color;
+    final size = widget.size;
     final int alpha = ((.25 + widget.weight * .75) * 255).toInt();
 
-    if (widget.grade >= 4) {
-      color = CupertinoColors.activeGreen;
-    } else if (widget.grade > 3.75) {
-      color = CupertinoColors.activeOrange;
-    } else {
-      color = CupertinoColors.systemRed;
-    }
+    final CupertinoDynamicColor color =
+        widget.grade >= 4
+            ? CupertinoColors.activeGreen
+            : widget.grade > 3.75
+            ? CupertinoColors.activeOrange
+            : CupertinoColors.systemRed;
 
-    return SizedBox(
-      width: size,
-      height: size + 14,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CircularProgressIndicator(value: widget.grade / 6, strokeWidth: 4, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
-                Transform.flip(
-                  flipX: true,
-                  child: Transform.rotate(
-                    angle: 3.14 * .1,
-                    child: CircularProgressIndicator(
-                      value: 1 - widget.grade / 6 - 0.1,
-                      strokeWidth: 4,
-                      strokeCap: StrokeCap.round,
-                      color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: widget.grade),
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      builder: (context, animatedGrade, _) {
+        return SizedBox(
+          width: size,
+          height: size + 14,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: size,
+                height: size,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(value: animatedGrade / 6, strokeWidth: 4, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
+                    Transform.flip(
+                      flipX: true,
+                      child: Transform.rotate(
+                        angle: 3.14 * .1,
+                        child: CircularProgressIndicator(
+                          value: 1 - animatedGrade / 6 - 0.1,
+                          strokeWidth: 4,
+                          strokeCap: StrokeCap.round,
+                          color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                animatedGrade % 1 == 0 ? animatedGrade.toInt().toString() : animatedGrade.toStringAsFixed(1),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CupertinoColors.label.resolveFrom(context)),
+              ),
+              if (widget.weight != 1)
+                Positioned(
+                  bottom: 0,
+                  child: Transform.translate(
+                    offset: const Offset(0, 1),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(color: CupertinoColors.systemBackground.resolveFrom(context).withAlpha(200), blurRadius: 4, offset: const Offset(0, 2)),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        getFractionString(widget.weight) ?? "${(widget.weight * 100).round()}%",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: CupertinoColors.label.resolveFrom(context)),
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
-          Text(
-            widget.grade % 1 == 0 ? widget.grade.toInt().toString() : widget.grade.toStringAsFixed(1),
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CupertinoColors.label.resolveFrom(context)),
-          ),
-          if (widget.weight != 1)
-            Positioned(
-              bottom: 0,
-              child: Transform.translate(
-                offset: const Offset(0, 1),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(color: CupertinoColors.systemBackground.resolveFrom(context).withAlpha(200), blurRadius: 4, offset: const Offset(0, 2)),
-                    ],
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    getFractionString(widget.weight) ?? "${(widget.weight * 100).round()}%",
-
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: CupertinoColors.label.resolveFrom(context)),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
