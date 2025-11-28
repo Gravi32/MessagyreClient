@@ -213,7 +213,7 @@ class _NewGradeState extends State<NewGrade> {
                             placeholderStyle: TextStyle(color: CupertinoColors.placeholderText, fontWeight: FontWeight.w500),
                           ),
                           Text(
-                            subject != null ? "Note de: ${SubjectHelper.toFrenchOrNull(subject)}" : "Pas de branche sélectionnée",
+                            subject != null ? "Note ${SubjectHelper.withPreposition(subject, lowercase: true)}" : "Pas de branche sélectionnée",
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: CupertinoColors.quaternaryLabel.resolveFrom(context), fontSize: 15),

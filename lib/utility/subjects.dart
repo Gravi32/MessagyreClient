@@ -31,7 +31,7 @@ enum Subject {
   GeographyOC,
   Philosophy,
   PhilosophyOS,
-      Psychology,
+  Psychology,
   PsychologyOS,
   HistoryAndReligionsOC,
 
@@ -198,6 +198,20 @@ class SubjectHelper {
     filtered.sort((a, b) => similarityScore(b).compareTo(similarityScore(a)));
 
     return filtered;
+  }
+
+  static String? withPreposition(Subject? s, {bool lowercase = false}) {
+    String? name = toFrenchOrNull(s);
+    if (name == null) return null;
+
+    if (lowercase) name = name.toLowerCase();
+
+    final firstChar = name[0].toLowerCase();
+    if ('aeiouàâäéèêëïîôöùûü'.contains(firstChar)) {
+      return "d'$name";
+    } else {
+      return "de $name";
+    }
   }
 }
 

@@ -84,9 +84,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
       if (!searchFocusNode.hasFocus && currentViewMode == HomeworkViewMode.searchMode) {
         setState(() => currentViewMode = HomeworkViewMode.byDefault);
       }
-      searchFocusNode.addListener(() => setState(() {
-      
-    }));
+      searchFocusNode.addListener(() => setState(() {}));
     });
   }
 
@@ -186,7 +184,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       CustomText(
                         nearbyTests.length > 1
                             ? "*Plusieurs* tests approchent !"
-                            : "Test de *${SubjectHelper.toFrench(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
+                            : "Test *${SubjectHelper.withPreposition(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
                         boldWeight: FontWeight.w800,
                       ),
@@ -492,7 +490,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
       case HomeworkViewMode.searchMode:
         final query = searchController.text.trim().toLowerCase();
-        final sortedHomework = query.isEmpty ? [] : SubjectHelper.searchBySimilarity(query, allHomework.toMap().map((key, value) => MapEntry(value.subject, value)));
+        final sortedHomework =
+            query.isEmpty ? [] : SubjectHelper.searchBySimilarity(query, allHomework.toMap().map((key, value) => MapEntry(value.subject, value)));
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -500,7 +499,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
             Padding(
               padding: EdgeInsetsGeometry.symmetric(horizontal: 14, vertical: 10),
               child: Text(
-                sortedHomework.isEmpty ? "Recherchéz un devoir..." : "${sortedHomework.length} ${sortedHomework.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
+                sortedHomework.isEmpty
+                    ? "Recherchéz un devoir..."
+                    : "${sortedHomework.length} ${sortedHomework.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
               ),
             ),
@@ -671,7 +672,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
   void dispose() {
     timelineController.dispose();
 
-    
     super.dispose();
   }
 
