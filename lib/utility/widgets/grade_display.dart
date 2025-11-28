@@ -74,7 +74,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Text(
-                    getFractionString(widget.weight),
+                    getFractionString(widget.weight) ?? "${(widget.weight * 100).round()}%",
 
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: CupertinoColors.label.resolveFrom(context)),
