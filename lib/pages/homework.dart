@@ -32,7 +32,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   late final PageController timelineController;
   late final Box<Homework> allHomework;
 
-  HomeworkViewMode currentViewMode = HomeworkViewMode.byDueDate;
+  HomeworkViewMode currentViewMode = HomeworkViewMode.byDefault;
 
   late Map<DateTime, List<Homework>> homeworkByDate;
   final Map<int, HomeworkCardController> homeworkCardControllers = {};
@@ -293,6 +293,59 @@ class _HomeworkPageState extends State<HomeworkPage> {
     final now = DateTime.now();
 
     switch (currentViewMode) {
+      case HomeworkViewMode.byDueDate:
+        final sortedHomework = allHomework.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: sortedHomework.length,
+          itemBuilder: (context, index) {
+            final date = sortedHomework[index].dueDate;
+            final formattedDate = formatDate(date);
+            final opacity = date.isBefore(now) ? 0.5 : 1.0;
+            final homework = sortedHomework[index];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (index == 0 || !sortedHomework[index - 1].dueDate.isSameDayAs(date)) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    spacing: 6,
+                    children: [
+                      Text(
+                        "Pour ${formatDate(date, includeArticle: true)}",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                      ),
+                      if (int.tryParse(formattedDate[0]) == null)
+                        Text(
+                          DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                          style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 6),
+                ],
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Opacity(
+                    opacity: opacity,
+                    child: HomeworkCard(
+                      homework: homework,
+                      controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                      onDeleteButtonClicked: () => homework.delete(),
+                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+
       case HomeworkViewMode.bySubject:
         final homeworkListBySubject = <Subject, List<Homework>>{};
 
@@ -312,26 +365,40 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      SubjectHelper.toFrench(subject),
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      spacing: 6,
+                      children: [
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 140),
+                          child: Text(
+                            SubjectHelper.toFrench(subject),
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        Text(
+                          "${subjectHomework.length} ${subjectHomework.length == 1 ? "Devoir" : "Devoirs"}",
+                          style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        ),
+                      ],
                     ),
-                    Text(
-                      allHomework.values.where((hw) => hw.subject == subject).length > 1
-                          ? "${allHomework.values.where((hw) => hw.subject == subject).length} devoirs"
-                          : "1 devoir",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                    ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 4),
                     ...subjectHomework.map(
                       (homework) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: HomeworkCard(
-                          homework: homework,
-                          controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                          onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                          onDeleteButtonClicked: () => homework.delete(),
-                          onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                        child: Opacity(
+                          opacity: homework.dueDate.isBefore(now) ? 0.5 : 1.0,
+                          child: HomeworkCard(
+                            homework: homework,
+                            controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                            onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                            onDeleteButtonClicked: () => homework.delete(),
+                            onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                          ),
                         ),
                       ),
                     ),
@@ -341,70 +408,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
           },
         );
 
-      case HomeworkViewMode.byDueDate:
-        final sortedHomework = allHomework.values.toList()..sort((a, b) => a.dueDate.compareTo(b.dueDate));
-
-        return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          itemCount: sortedHomework.length,
-          itemBuilder: (context, index) {
-            final date = sortedHomework[index].dueDate;
-            final formattedDate = formatDate(date);
-            final opacity = date.isBefore(now) ? 0.5 : 1.0;
-            final homework = sortedHomework[index];
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  "Pour ${formatDate(date, includeArticle: true)}",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
-                ),
-                if (int.tryParse(formattedDate[0]) == null)
-                  Text(
-                    DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                  ),
-                SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: HomeworkCard(
-                    homework: homework,
-                    controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                    onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                    onDeleteButtonClicked: () => homework.delete(),
-                    onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-
-      case HomeworkViewMode.all:
-        return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          itemCount: allHomework.length,
-          itemBuilder: (context, index) {
-            final homework = allHomework.getAt(index)!;
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: HomeworkCard(
-                homework: homework,
-                controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                onDeleteButtonClicked: () => homework.delete(),
-                onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
-              ),
-            );
-          },
-        );
-
       case HomeworkViewMode.testsFirst:
         final sortedHomework =
             allHomework.values.toList()
-              ..sort((a, b) => a.dueDate.compareTo(b.dueDate))
+              ..sort((a, b) => b.dueDate.compareTo(a.dueDate))
               ..sort((a, b) {
                 if (a.isTest && !b.isTest) return -1;
                 if (!a.isTest && b.isTest) return 1;
@@ -423,24 +430,35 @@ class _HomeworkPageState extends State<HomeworkPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  "Pour ${formatDate(date, includeArticle: true)}",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  spacing: 6,
+                  children: [
+                    Text(
+                      "Pour ${formatDate(date, includeArticle: true)}",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                    ),
+                    if (int.tryParse(formattedDate[0]) == null)
+                      Text(
+                        DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                        style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      ),
+                  ],
                 ),
-                if (int.tryParse(formattedDate[0]) == null)
-                  Text(
-                    DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                  ),
                 SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: HomeworkCard(
-                    homework: homework,
-                    controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                    onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                    onDeleteButtonClicked: () => homework.delete(),
-                    onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                  child: Opacity(
+                    opacity: opacity,
+                    child: HomeworkCard(
+                      homework: homework,
+                      controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                      onDeleteButtonClicked: () => homework.delete(),
+                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                    ),
                   ),
                 ),
               ],
@@ -449,7 +467,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
         );
 
       case HomeworkViewMode.testsOnly:
-        final sortedHomework = allHomework.values.where((hw) => hw.isTest).toList()..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+        final sortedHomework = allHomework.values.where((hw) => hw.isTest).toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -463,27 +481,64 @@ class _HomeworkPageState extends State<HomeworkPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  "Pour ${formatDate(date, includeArticle: true)}",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  spacing: 6,
+                  children: [
+                    Text(
+                      "Pour ${formatDate(date, includeArticle: true)}",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                    ),
+                    if (int.tryParse(formattedDate[0]) == null)
+                      Text(
+                        DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                        style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      ),
+                  ],
                 ),
-                if (int.tryParse(formattedDate[0]) == null)
-                  Text(
-                    DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                    style: TextStyle(fontSize: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                  ),
                 SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: HomeworkCard(
-                    homework: homework,
-                    controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                    onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                    onDeleteButtonClicked: () => homework.delete(),
-                    onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                  child: Opacity(
+                    opacity: opacity,
+                    child: HomeworkCard(
+                      homework: homework,
+                      controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                      onDeleteButtonClicked: () => homework.delete(),
+                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                    ),
                   ),
                 ),
               ],
+            );
+          },
+        );
+
+      case HomeworkViewMode.all:
+        final sortedHomework = allHomework.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          itemCount: sortedHomework.length,
+          itemBuilder: (context, index) {
+            final homework = sortedHomework[index];
+            final opacity = homework.dueDate.isBefore(now) ? 0.5 : 1.0;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Opacity(
+                opacity: opacity,
+                child: HomeworkCard(
+                  homework: homework,
+                  controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                  onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                  onDeleteButtonClicked: () => homework.delete(),
+                  onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                ),
+              ),
             );
           },
         );
@@ -802,29 +857,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                               ),
                                             ),
                                           ),
-                                          CupertinoPressable(
-                                            onTap:
-                                                () => setState(
-                                                  () =>
-                                                      currentViewMode =
-                                                          currentViewMode == HomeworkViewMode.all ? HomeworkViewMode.byDefault : HomeworkViewMode.all,
-                                                ),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.all ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(icon: HugeIcons.strokeRoundedMenu01, size: 16, color: CupertinoColors.label.resolveFrom(context)),
-                                                  Text("Tous"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
 
                                           CupertinoPressable(
                                             onTap:
@@ -873,6 +905,30 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                                 children: [
                                                   HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, size: 16, color: CupertinoColors.label.resolveFrom(context)),
                                                   Text("Seulement les tests"),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+
+                                          CupertinoPressable(
+                                            onTap:
+                                                () => setState(
+                                                  () =>
+                                                      currentViewMode =
+                                                          currentViewMode == HomeworkViewMode.all ? HomeworkViewMode.byDefault : HomeworkViewMode.all,
+                                                ),
+                                            decoration: BoxDecoration(
+                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                            child: Opacity(
+                                              opacity: currentViewMode == HomeworkViewMode.all ? 1 : 0.5,
+                                              child: Row(
+                                                spacing: 6,
+                                                children: [
+                                                  HugeIcon(icon: HugeIcons.strokeRoundedMenu01, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                                  Text("Tous"),
                                                 ],
                                               ),
                                             ),
