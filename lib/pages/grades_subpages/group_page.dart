@@ -1,12 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 
 class GroupPage extends StatefulWidget {
   final List<Grade> grades;
@@ -20,63 +17,6 @@ class GroupPage extends StatefulWidget {
 
 class _GroupPageState extends State<GroupPage> {
   final Box<Grade> allGrades = Hive.box<Grade>("Grades");
-
-  Widget buildGradeBar(Grade gradeData) {
-    return Column(
-      children: [
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: SizedBox(
-            height: 55,
-            child: Row(
-              children: [
-                GradeDisplay(grade: gradeData.grade, weight: gradeData.weight),
-
-                SizedBox(width: 12),
-
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4,
-                        children: [
-                          CustomText(
-                            gradeData.title,
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
-                          ),
-                          if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
-                            CustomText(
-                              gradeData.details!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
-                            ),
-                          ],
-                        ],
-                      ),
-                      Text(
-                        formatDate(gradeData.date).capitalize(),
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          onPressed: () => showNewGradePopup(toEdit: gradeData),
-        ),
-
-        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
-      ],
-    );
-  }
 
   Widget buildList() {
     // Sorting grades by date
@@ -96,7 +36,8 @@ class _GroupPageState extends State<GroupPage> {
         : ListView.builder(
           padding: EdgeInsets.only(top: 8),
           itemCount: widget.grades.length,
-          itemBuilder: (context, index) => buildGradeBar(widget.grades.elementAt(index)),
+          itemBuilder:
+              (context, index) => GradeBar(gradeData: widget.grades.elementAt(index), onTap: () => showNewGradePopup(toEdit: widget.grades.elementAt(index))),
         );
   }
 
@@ -162,7 +103,7 @@ class _GroupPageState extends State<GroupPage> {
             },
             body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
           ),
-          
+
           Positioned(
             bottom: MediaQuery.paddingOf(context).bottom + 20,
             right: 20,

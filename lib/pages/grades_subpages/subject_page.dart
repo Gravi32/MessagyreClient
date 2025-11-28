@@ -9,7 +9,7 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -42,63 +42,6 @@ class _SubjectPageState extends State<SubjectPage> {
     subjectGrades.clear();
 
     subjectGrades = allGrades.values.where((grade) => grade.subject == widget.subject).toList();
-  }
-
-  Widget buildGradeBar(Grade gradeData) {
-    return Column(
-      children: [
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: SizedBox(
-            height: 55,
-            child: Row(
-              children: [
-                GradeDisplay(grade: gradeData.grade, weight: gradeData.weight),
-
-                SizedBox(width: 12),
-
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4,
-                        children: [
-                          CustomText(
-                            gradeData.title,
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
-                          ),
-                          if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
-                            CustomText(
-                              gradeData.details!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
-                            ),
-                          ],
-                        ],
-                      ),
-                      Text(
-                        formatDate(gradeData.date).capitalize(),
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          onPressed: () => showNewGradePopup(toEdit: gradeData),
-        ),
-
-        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
-      ],
-    );
   }
 
   Widget buildGroupBar(String groupName) {
@@ -218,7 +161,7 @@ class _SubjectPageState extends State<SubjectPage> {
           itemCount: barsToBuild,
           itemBuilder: (context, index) {
             return index + 1 <= barsToBuild - groupNames.length
-                ? buildGradeBar(subjectGrades.elementAt(index))
+                ? GradeBar(gradeData: subjectGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: subjectGrades.elementAt(index)))
                 : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
           },
         );
