@@ -44,6 +44,7 @@ class _GroupPageState extends State<GroupPage> {
   void showNewGradePopup({Grade? toEdit}) async {
     final newGrade = await showCupertinoSheet<Grade?>(
       context: context,
+      enableDrag: false,
       builder:
           (context) => NewGrade(
             subject: widget.grades.first.subject,

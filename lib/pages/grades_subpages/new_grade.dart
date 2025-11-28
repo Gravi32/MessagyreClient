@@ -8,6 +8,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
+import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGrade extends StatefulWidget {
@@ -191,21 +192,37 @@ class _NewGradeState extends State<NewGrade> {
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DismissableTextField(
-                  controller: titleController,
-                  decoration: const BoxDecoration(),
-                  padding: EdgeInsets.zero,
-                  placeholder: "Titre",
-                  prefix: Padding(
-                    padding: EdgeInsetsGeometry.only(right: 10),
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: CupertinoColors.placeholderText.resolveFrom(context)),
-                  ),
-                  suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
-                  suffixMode: OverlayVisibilityMode.notEditing,
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-                  placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
-                ),
+                Row(
+                  spacing: 14,
+                  children: [
+                    GradeDisplay(grade: grade, size: 50, weight: weight),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: 2,
+                        children: [
+                          DismissableTextField(
+                            controller: titleController,
+                            decoration: BoxDecoration(),
+                            padding: EdgeInsets.zero,
+                            placeholder: "Titre",
 
+                            suffix: Opacity(opacity: .4, child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText)),
+                            suffixMode: OverlayVisibilityMode.notEditing,
+                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
+                            placeholderStyle: TextStyle(color: CupertinoColors.placeholderText, fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            subject != null ? "Note de: ${SubjectHelper.toFrenchOrNull(subject)}" : "Pas de branche sélectionnée",
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: CupertinoColors.quaternaryLabel.resolveFrom(context), fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 Container(
                   decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
                   margin: EdgeInsets.only(top: 10),

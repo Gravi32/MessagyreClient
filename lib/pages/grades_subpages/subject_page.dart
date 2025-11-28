@@ -170,6 +170,7 @@ class _SubjectPageState extends State<SubjectPage> {
   void showNewGradePopup({Grade? toEdit}) async {
     final newGrade = await showCupertinoModalBottomSheet<Grade?>(
       context: context,
+      enableDrag: false,
       builder:
           (context) => NewGrade(
             subject: widget.subject,
