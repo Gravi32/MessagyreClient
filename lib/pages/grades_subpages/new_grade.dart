@@ -40,6 +40,8 @@ class _NewGradeState extends State<NewGrade> {
 
   late List<String> groupNames = List.from(widget.existingGroupNames);
 
+  bool isValuePickerExpanded = false;
+
   void confirmGrade() {
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
@@ -213,29 +215,77 @@ class _NewGradeState extends State<NewGrade> {
                     children: [
                       buildGradePicker(),
                       Divider(thickness: .25, color: CupertinoColors.separator.resolveFrom(context)),
+
                       Text("Valeur", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         padding: EdgeInsets.only(top: 6),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 6,
-                          children:
-                              fractions.keys
-                                  .map((key) {
-                                    return WeightButton(
-                                      value: key,
-                                      selectedWeight: weight,
-                                      label: fractions[key] ?? "?",
-                                      onTap: () {
-                                        setState(() => weight = key);
-                                        HapticFeedback.selectionClick();
-                                      },
-                                    );
-                                  })
-                                  .toList()
-                                  .reversed
-                                  .toList(),
+                          children: [
+                            ...fractions.keys
+                                .map((key) {
+                                  return WeightButton(
+                                    value: key,
+                                    selectedWeight: weight,
+                                    label: fractions[key] ?? "?",
+                                    onTap: () {
+                                      setState(() => weight = key);
+                                      HapticFeedback.selectionClick();
+                                    },
+                                  );
+                                })
+                                .toList()
+                                .reversed,
+                          ],
+                        ),
+                      ),
+
+                      if (isValuePickerExpanded)
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.only(top: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              for (var value = 0.05; value < 1.0; value += 0.05)
+                                if (!fractions.keys.contains(value))
+                                  WeightButton(
+                                    value: value,
+                                    selectedWeight: weight,
+                                    label: "${(value * 100).round()}%",
+                                    onTap: () {
+                                      setState(() => weight = value);
+                                      HapticFeedback.selectionClick();
+                                    },
+                                  ),
+                            ],
+                          ),
+                        ),
+
+                      GestureDetector(
+                        onTap: () => setState(() => isValuePickerExpanded = !isValuePickerExpanded),
+                        child: Container(
+                          margin: EdgeInsets.only(top: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                isValuePickerExpanded ? "Voir moins" : "Voir plus",
+                                style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
+                              ),
+                              Opacity(
+                                opacity: .25,
+                                child: HugeIcon(
+                                  icon: isValuePickerExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
