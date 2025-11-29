@@ -77,7 +77,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
     setState(() => widget.homework.isMarkedAsDone = newValue);
     HapticFeedback.mediumImpact();
     widget.onMarkAsDoneButtonClicked?.call(newValue);
-    
+
     widget.homework.save();
   }
 
@@ -112,6 +112,8 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
     final isPreviewDescriptionEmpty = isPreview && widget.homework.content.isEmpty;
     final isMarkedAsDone = widget.homework.isMarkedAsDone;
     final isGraded = widget.homework.isGraded;
+
+    final title = SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
 
     return AnimatedScale(
       scale: isBouncing ? 1.05 : 1,
@@ -211,10 +213,10 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                   isCrossed: isMarkedAsDone,
                                   strokeWidth: 1,
                                   child: Text(
-                                    SubjectHelper.toFrench(widget.homework.subject).capitalize(),
+                                    title ?? "Branche",
                                     style: TextStyle(
-                                      color: CupertinoColors.label.resolveFrom(context).withOpacity(isMarkedAsDone ? .5 : 1),
-                                      fontWeight: FontWeight.w700,
+                                      color: CupertinoColors.label.resolveFrom(context).withOpacity((isMarkedAsDone || title == null) ? .5 : 1),
+                                      fontWeight: title == null ? FontWeight.w500 : FontWeight.w700,
                                       fontSize: 20,
                                     ),
                                     softWrap: true,

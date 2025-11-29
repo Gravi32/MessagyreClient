@@ -49,6 +49,8 @@ enum Subject {
   SportOC,
 
   Other,
+
+  NotSet,
 }
 
 class SubjectHelper {
