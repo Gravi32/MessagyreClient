@@ -11,9 +11,7 @@ import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
 class HomeworkCardController {
-  void Function(Color color)? _borderEffectTrigger;
   void Function()? _bounceEffectTrigger;
-  void triggerBorderEffect(Color color) => _borderEffectTrigger?.call(color);
   void triggerBounceEffect() => _bounceEffectTrigger?.call();
 }
 
@@ -54,16 +52,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => calculateSizes());
-    widget.controller?._borderEffectTrigger = triggerBorderEffect;
     widget.controller?._bounceEffectTrigger = triggerBounceEffect;
-  }
-
-  void triggerBorderEffect(Color color) {
-    setState(() => borderColor = color);
-    Timer(const Duration(milliseconds: 300), () {
-      if (!mounted) return;
-      setState(() => borderColor = null);
-    });
   }
 
   void triggerBounceEffect() async {
@@ -88,7 +77,6 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
     setState(() => widget.homework.isMarkedAsDone = newValue);
     HapticFeedback.mediumImpact();
     widget.onMarkAsDoneButtonClicked?.call(newValue);
-    if (newValue) triggerBorderEffect(CupertinoColors.activeGreen);
   }
 
   void toggleExpanded() {
@@ -165,7 +153,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
               decoration: BoxDecoration(
                 color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(isMarkedAsDone && !isExpanded ? -.025 : 0),
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
-                border: borderColor != null ? Border.all(color: borderColor!, width: .5, strokeAlign: BorderSide.strokeAlignOutside) : null,
+
                 boxShadow: [
                   if (data.appBrightness == Brightness.dark || isPreview)
                     BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
