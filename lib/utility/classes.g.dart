@@ -112,13 +112,14 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..creationDate = fields.get(3, DateTime(0))
       ..isGraded = fields.get(4, false)
       ..isTest = fields.get(5, false)
-      ..isMarkedAsDone = fields.get(6, false);
+      ..isMarkedAsDone = fields.get(6, false)
+      ..referenceId = fields.get(7, null);
   }
 
   @override
   void write(BinaryWriter writer, Homework obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.subject)
       ..writeByte(1)
@@ -132,7 +133,9 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..writeByte(5)
       ..write(obj.isTest)
       ..writeByte(6)
-      ..write(obj.isMarkedAsDone);
+      ..write(obj.isMarkedAsDone)
+      ..writeByte(7)
+      ..write(obj.referenceId);
   }
 
   @override
@@ -158,13 +161,14 @@ class GradeAdapter extends TypeAdapter<Grade> {
       ..date = fields.get(3, DateTime(0))
       ..details = fields.get<String?>(4, null)
       ..weight = fields.get(5, 0)
-      ..groupName = fields.get<String?>(6, null);
+      ..groupName = fields.get<String?>(6, null)
+      ..referenceId = fields.get<String?>(7, null);
   }
 
   @override
   void write(BinaryWriter writer, Grade obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.subject)
       ..writeByte(1)
@@ -178,7 +182,9 @@ class GradeAdapter extends TypeAdapter<Grade> {
       ..writeByte(5)
       ..write(obj.weight)
       ..writeByte(6)
-      ..write(obj.groupName);
+      ..write(obj.groupName)
+      ..writeByte(7)
+      ..write(obj.referenceId);
   }
 
   @override

@@ -8,6 +8,7 @@ import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/homework_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
+import 'package:uuid/uuid.dart';
 
 class NewHomework extends StatefulWidget {
   final Homework? toEdit;
@@ -33,6 +34,7 @@ class _NewHomeworkState extends State<NewHomework> {
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool isTest = widget.toEdit?.isTest ?? false;
+  late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
 
   void confirmHomework() {
     var homework = widget.toEdit ?? Homework();
@@ -40,11 +42,12 @@ class _NewHomeworkState extends State<NewHomework> {
     if (subject == null) return;
 
     homework
-      ..subject = subject ?? Subject.Other
+      ..subject = subject ?? Subject.NotSet
       ..content = contentController.text.trim()
       ..dueDate = dueDate
       ..isGraded = isGraded
-      ..isTest = isTest;
+      ..isTest = isTest
+      ..referenceId = addingToGradesPage ? Uuid().v4() : null;
 
     Navigator.of(context).pop(homework);
   }
@@ -87,7 +90,7 @@ class _NewHomeworkState extends State<NewHomework> {
   Widget build(BuildContext context) {
     final previewHomework =
         Homework()
-          ..subject = subject ?? Subject.Other
+          ..subject = subject ?? Subject.NotSet
           ..content = contentController.text.trim()
           ..dueDate = dueDate
           ..isGraded = isGraded
@@ -208,6 +211,18 @@ class _NewHomeworkState extends State<NewHomework> {
                 ),
               ],
             ),
+
+            if (isGraded || isTest)
+              CupertinoListSection.insetGrouped(
+                margin: const EdgeInsets.symmetric(horizontal: 10).add(EdgeInsetsGeometry.only(top: 10)),
+                children: [
+                  CupertinoListTile(
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white)),
+                    title: Text("Ajouter à la page des notes", style: TextStyle(color: CupertinoColors.label.resolveFrom(context))),
+                    trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

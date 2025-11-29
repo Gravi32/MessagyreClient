@@ -124,6 +124,9 @@ class Homework extends HiveObject {
   @HiveField(6)
   bool isMarkedAsDone = false;
 
+  @HiveField(7)
+  String? referenceId;
+
   @override
   String toString() => content;
 }
@@ -152,6 +155,12 @@ class Grade extends HiveObject {
 
   @HiveField(6)
   String? groupName;
+
+  @HiveField(7)
+  String? referenceId;
+
+  @override
+  String toString() => "$title ($grade)";
 }
 
 @HiveType(typeId: 5)

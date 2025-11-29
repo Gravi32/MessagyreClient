@@ -5,12 +5,13 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 class GradeDisplay extends StatefulWidget {
-  final double? grade;
+  final double grade;
   final double size;
   final double weight;
   final bool isIncoming;
+  final bool isPlanned;
 
-  const GradeDisplay({super.key, required this.grade, this.size = 48, this.weight = 1.0, this.isIncoming = false});
+  const GradeDisplay({super.key, required this.grade, this.size = 48, this.weight = 1.0, this.isIncoming = false, this.isPlanned = false});
 
   @override
   State<GradeDisplay> createState() => _GradeDisplayState();
@@ -19,21 +20,20 @@ class GradeDisplay extends StatefulWidget {
 class _GradeDisplayState extends State<GradeDisplay> {
   @override
   Widget build(BuildContext context) {
-    final isUnknown = widget.grade == null;
+    final isUnknown = widget.isPlanned || widget.isIncoming;
+    final isGradeHidden = widget.grade == 0;
     final size = widget.size;
     final int alpha = ((.25 + widget.weight * .75) * 255).toInt();
 
     final color =
-        isUnknown
-            ? CupertinoColors.tertiarySystemBackground.resolveFrom(context)
-            : (widget.grade! >= 4
-                ? CupertinoColors.activeGreen
-                : widget.grade! > 3.75
-                ? CupertinoColors.activeOrange
-                : CupertinoColors.systemRed);
+        widget.grade >= 4
+            ? CupertinoColors.activeGreen
+            : widget.grade > 3.75
+            ? CupertinoColors.activeOrange
+            : CupertinoColors.systemRed;
 
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: widget.grade ?? 0),
+      tween: Tween(begin: 0, end: widget.grade),
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       builder: (context, animatedGrade, _) {
@@ -43,13 +43,14 @@ class _GradeDisplayState extends State<GradeDisplay> {
           child: Stack(
             alignment: Alignment.center,
             children: [
+              // Content \\
+
+              // Dotted line / Circle
               SizedBox(
                 width: size,
                 height: size,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    isUnknown
+                child:
+                    isGradeHidden
                         ? DottedBorder(
                           options: RoundedRectDottedBorderOptions(
                             color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
@@ -61,31 +62,35 @@ class _GradeDisplayState extends State<GradeDisplay> {
                           ),
                           child: SizedBox.square(dimension: 200),
                         )
-                        : CircularProgressIndicator(value: animatedGrade / 6, strokeWidth: 3, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
-                    if (!isUnknown)
-                      Transform.flip(
-                        flipX: true,
-                        child: Transform.rotate(
-                          angle: 3.14 * .1,
-                          child: CircularProgressIndicator(
-                            value: 1 - animatedGrade / 6 - 0.1,
-                            strokeWidth: 4,
-                            strokeCap: StrokeCap.round,
-                            color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
-                          ),
+                        : Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CircularProgressIndicator(value: animatedGrade / 6, strokeWidth: 3, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
+
+                            Transform.flip(
+                              flipX: true,
+                              child: Transform.rotate(
+                                angle: 3.14 * .1,
+                                child: CircularProgressIndicator(
+                                  value: 1 - animatedGrade / 6 - 0.1,
+                                  strokeWidth: 4,
+                                  strokeCap: StrokeCap.round,
+                                  color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                  ],
-                ),
               ),
-              if (!isUnknown) Text(
-                isUnknown ? "?" : (animatedGrade % 1 == 0 ? animatedGrade.toInt().toString() : animatedGrade.toStringAsFixed(1)),
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: isUnknown ? FontWeight.w400 : FontWeight.w500,
-                  color: isUnknown ? CupertinoColors.tertiaryLabel.resolveFrom(context) : CupertinoColors.label.resolveFrom(context),
+
+              // Grade
+              if (!isGradeHidden)
+                Text(
+                  animatedGrade % 1 == 0 ? animatedGrade.toInt().toString() : animatedGrade.toStringAsFixed(1),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
                 ),
-              ),
+
+              // Weight
               if (widget.weight != 1)
                 Positioned(
                   bottom: 0,
@@ -107,7 +112,9 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     ),
                   ),
                 ),
-              if (isUnknown || widget.isIncoming)
+
+              // Badge
+              if (isUnknown)
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -117,7 +124,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     child: Opacity(
                       opacity: .3,
                       child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedClock01,
+                        icon: widget.isIncoming ? HugeIcons.strokeRoundedClock01 : HugeIcons.strokeRoundedCalendar04,
                         size: 16,
                         strokeWidth: 2,
                         color: CupertinoColors.tertiaryLabel.resolveFrom(context),

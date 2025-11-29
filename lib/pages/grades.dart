@@ -27,20 +27,31 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
   late Box<Homework> allHomework;
   late Box<List> subjectOrderBox;
   List<MapEntry<Subject, List<Grade>>> subjectGradesList = [];
-  List<MapEntry<Subject, List<Homework>>> subjectIncomingGradesList = [];
+  List<Subject> subjectsWithIncomingGrades = [];
 
-  Widget buildSubjectBar(Subject subject, {List<Grade> grades = const [], int index = 0, bool isIncoming = false}) {
-    final incomingGrades =
+  Widget buildSubjectBar(Subject subject, {List<Grade> grades = const [], int index = 0, bool isGradeUnknown = false}) {
+    final thisSubjectGradedHomework =
         allHomework.values
-            .where((homework) => homework.dueDate.isAfter(DateTime.now()) && (homework.isGraded || homework.isTest) && homework.subject == subject)
+            .where(
+              (homework) =>
+                  homework.subject == subject &&
+                  homework.referenceId != null &&
+                  !grades.any((grade) => grade.referenceId != null && grade.referenceId == homework.referenceId),
+            )
             .toList();
+
+    // Passed tests that have not yet been graded
+    final incomingGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isBefore(DateTime.now())).toList();
+
+    // Tests that are planned in the future
+    final plannedGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isAfter(DateTime.now())).toList();
 
     return Column(
       children: [
         CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed:
-              isIncoming
+              isGradeUnknown
                   ? null
                   : () {
                     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
@@ -50,35 +61,42 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
             child: Row(
               children: [
                 SizedBox(width: 4),
-                GradeDisplay(grade: isIncoming ? null : calculateAverage(grades), size: 48, isIncoming: incomingGrades.isNotEmpty),
+                GradeDisplay(
+                  grade: isGradeUnknown ? 0 : calculateAverage(grades),
+                  size: 48,
+                  isIncoming: incomingGrades.isNotEmpty,
+                  isPlanned: plannedGrades.isNotEmpty,
+                ),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: isIncoming ? MainAxisAlignment.center : MainAxisAlignment.start,
+                    mainAxisAlignment: isGradeUnknown ? MainAxisAlignment.center : MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 2,
                     children: [
                       Text(
-                        SubjectHelper.toFrench(subject),
+                        "${SubjectHelper.toFrench(subject)} ${isGradeUnknown ? "prévue:" : ""}",
                         style: TextStyle(
-                          fontWeight: isIncoming ? FontWeight.w400 : FontWeight.w500,
+                          fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
                           fontSize: 18,
-                          color: isIncoming ? CupertinoColors.tertiaryLabel.resolveFrom(context) : adaptiveColor(CupertinoColors.black, CupertinoColors.white),
+                          color:
+                              isGradeUnknown ? CupertinoColors.tertiaryLabel.resolveFrom(context) : adaptiveColor(CupertinoColors.black, CupertinoColors.white),
                         ),
                       ),
 
                       Text(
-                        isIncoming ? incomingGrades.join(", ") : "${grades.length} note${grades.length > 1 ? 's' : ''}",
+                        isGradeUnknown ? incomingGrades.join(", ") + plannedGrades.join(", ") : "${grades.length} note${grades.length > 1 ? 's' : ''}",
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 18),
+                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 16),
                       ),
                     ],
                   ),
                 ),
 
-                if (!isIncoming)
+                if (!isGradeUnknown)
                   ReorderableDragStartListener(
                     index: index,
 
@@ -180,29 +198,30 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
     allHomework = Hive.box<Homework>("Homework");
     subjectOrderBox = Hive.box<List>("SubjectOrder");
 
-    allHomework.listenable().addListener(() => setState(() {}));
+    allHomework.listenable().addListener(() {
+      setState(() {});
+      loadSubjects();
+    });
   }
 
   void loadSubjects() {
     final gradeList = allGrades.values.toList();
-    final homeworkList = allHomework.values.toList();
 
     final subjectGradesMap = <Subject, List<Grade>>{};
-    final subjectIncomingGradesMap = <Subject, List<Homework>>{};
 
-    for (var grade in gradeList) {
+    for (final grade in gradeList) {
       subjectGradesMap.putIfAbsent(grade.subject, () => []);
       subjectGradesMap[grade.subject]!.add(grade);
     }
 
-    for (var homework in homeworkList) {
-      if (homework.dueDate.isBefore(DateTime.now()) || (!homework.isGraded && !homework.isTest)) continue;
-      subjectIncomingGradesMap.putIfAbsent(homework.subject, () => []);
-      subjectIncomingGradesMap[homework.subject]!.add(homework);
+    subjectsWithIncomingGrades.clear();
+    for (final homework in allHomework.values) {
+      if ((homework.isGraded || homework.isTest) && homework.referenceId != null && !subjectGradesMap.containsKey(homework.subject)) {
+        subjectsWithIncomingGrades.add(homework.subject);
+      }
     }
 
     subjectGradesList = subjectGradesMap.entries.toList();
-    subjectIncomingGradesList = subjectIncomingGradesMap.entries.toList();
 
     final savedOrder = subjectOrderBox.get('order')?.cast<int>();
     if (savedOrder != null) {
@@ -233,8 +252,6 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                 child: ValueListenableBuilder(
                   valueListenable: allGrades.listenable(),
                   builder: (context, Box<Grade> box, _) {
-                    loadSubjects();
-
                     return subjectGradesList.isEmpty
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -278,10 +295,10 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                               ListView.builder(
                                 padding: EdgeInsets.zero,
                                 itemBuilder: (context, index) {
-                                  final subjectIncomingGrades = subjectIncomingGradesList[index];
-                                  return buildSubjectBar(subjectIncomingGrades.key, isIncoming: true);
+                                  final subjectIncomingGrades = subjectsWithIncomingGrades.elementAt(index);
+                                  return buildSubjectBar(subjectIncomingGrades, isGradeUnknown: true);
                                 },
-                                itemCount: subjectIncomingGradesList.length,
+                                itemCount: subjectsWithIncomingGrades.length,
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
                               ),
