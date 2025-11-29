@@ -15,8 +15,9 @@ import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 class RegistrationPage extends StatefulWidget {
   final String? registrationTokenOverride;
   final bool passwordResetMode;
+  final bool isResumingRegistration;
 
-  const RegistrationPage({super.key, this.passwordResetMode = false, this.registrationTokenOverride});
+  const RegistrationPage({super.key, this.passwordResetMode = false, this.isResumingRegistration = false, this.registrationTokenOverride});
 
   @override
   State<RegistrationPage> createState() => _RegistrationPageState();
@@ -25,6 +26,8 @@ class RegistrationPage extends StatefulWidget {
 class _RegistrationPageState extends State<RegistrationPage> {
   final router = ConnectionController();
   final data = Data();
+  final secureStorage = FlutterSecureStorage();
+  final registrationDataBox = Hive.box("RegistrationData");
 
   final pageController = PageController();
   final emailController = TextEditingController();
@@ -74,6 +77,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       emailError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
       registrationToken = jsonDecode(response.body)["RegistrationToken"];
+      registrationDataBox.put("RegistrationToken", registrationToken);
+      registrationDataBox.put("EmailAddress", emailController.text.trim());
+      registrationDataBox.put("Page", 1);
+
+      print("STORED $registrationToken");
       goToPage(1);
     }
   }
@@ -97,6 +105,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     } else if (response.statusCode != 200) {
       codeError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
+      registrationDataBox.put("Page", 2);
       goToPage(2);
     }
   }
@@ -124,13 +133,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       data.username = username;
       isWaitingForResponse = true;
 
-      await FlutterSecureStorage().write(key: "AccessToken", value: accessToken);
-      await FlutterSecureStorage().write(key: "RefreshToken", value: refreshToken);
+      await secureStorage.write(key: "AccessToken", value: accessToken);
+      await secureStorage.write(key: "RefreshToken", value: refreshToken);
       await Hive.box("Misc").put("Username", username);
+      await registrationDataBox.clear();
 
       if (mounted) {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
       isWaitingForResponse = false;
 
@@ -298,7 +307,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         SizedBox(height: 12),
         CustomText(
           "*Vérification réussite!*\n${widget.passwordResetMode ? "Entrez maintenant votre nouveau mot de passe. Ne l'oubliez pas cette fois !" : "Créez maintenant un mot de passe pour accéder à votre compte."}",
-          style: TextStyle(fontSize: 16), textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16),
+          textAlign: TextAlign.center,
         ),
 
         Spacer(),
@@ -384,6 +394,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
+                registrationDataBox.clear();
               },
               child: Text("Oui"),
             ),
@@ -396,10 +407,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   void initState() {
-    if (widget.passwordResetMode) {
-      currentPage = 1;
+    emailController.value = TextEditingValue(text: registrationDataBox.get("EmailAddress", defaultValue: ""));
+
+    print("INIT CALLED");
+    if (widget.passwordResetMode || widget.isResumingRegistration) {
+      setState(() => currentPage = registrationDataBox.get("Page", defaultValue: 1));
+
+      print("Resuming registration with token: ${widget.registrationTokenOverride}, current page: $currentPage");
+
       startResendTimer();
       registrationToken = widget.registrationTokenOverride;
+
+      if (widget.isResumingRegistration) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          goToPage(currentPage);
+        });
+      }
     }
     super.initState();
   }
@@ -420,9 +443,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
               spacing: 20,
               children: [
                 if (!widget.passwordResetMode)
-                  currentPage == 0 ? HugeIcon(icon: HugeIcons.strokeRoundedMailAdd01) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
-                currentPage == 1 ? HugeIcon(icon: HugeIcons.strokeRoundedSmsCode) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
-                currentPage == 2 ? HugeIcon(icon: HugeIcons.strokeRoundedPasswordValidation) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 8),
+                  currentPage == 0 ? HugeIcon(icon: HugeIcons.strokeRoundedMailAdd01) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+                currentPage == 1 ? HugeIcon(icon: HugeIcons.strokeRoundedSmsCode) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+                currentPage == 2
+                    ? HugeIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
+                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
               ],
             ),
             Expanded(
@@ -430,6 +455,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 clipBehavior: Clip.none,
                 controller: pageController,
                 physics: NeverScrollableScrollPhysics(),
+                
                 children: [if (!widget.passwordResetMode) emailPage(), codePage(), passwordPage()],
               ),
             ),

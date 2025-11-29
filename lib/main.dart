@@ -35,7 +35,7 @@ void main() async {
   // Initializing Hive and other stuff
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsBinding.instance.addObserver(_AppLifecycleObserver());
-  
+
   try {
     await Hive.initFlutter();
     Hive.registerAdapter(MessageAdapter());
@@ -61,6 +61,12 @@ void main() async {
   try {
     final miscBox = await Hive.openBox("Misc");
     data.username = miscBox.get("Username")?.toString();
+  } catch (e) {
+    debugPrint("Misc box could not be opened: $e");
+  }
+
+  try {
+    await Hive.openBox("RegistrationData");
   } catch (e) {
     debugPrint("Misc box could not be opened: $e");
   }
@@ -140,7 +146,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final router = ConnectionController();
   late final data = Data();
 
-  
   @override
   void initState() {
     super.initState();

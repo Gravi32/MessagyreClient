@@ -241,8 +241,8 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
                       onPressed:
                           isWaitingForResponse
                               ? null
-                              : () {
-                                Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const RegistrationPage()));
+                              : () async {
+                                Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage()));
                               },
                       child: const Text("Créer un compte", style: TextStyle(color: CupertinoColors.white)),
                     ),
@@ -255,5 +255,26 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
         ),
       ),
     );
+  }
+
+  void resumeIfNeeded() async {
+    final registrationDataBox = Hive.box("RegistrationData");
+    final storedRegistrationToken = await registrationDataBox.get("RegistrationToken");
+    final isResumingRegistration = storedRegistrationToken != null;
+    final mountedContext = context;
+
+    if (!context.mounted || !isResumingRegistration) return;
+
+    Navigator.of(mountedContext).pushReplacement(
+      CupertinoPageRoute(
+        builder: (context) => RegistrationPage(isResumingRegistration: isResumingRegistration, registrationTokenOverride: storedRegistrationToken),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    resumeIfNeeded();
   }
 }

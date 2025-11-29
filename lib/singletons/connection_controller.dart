@@ -69,7 +69,6 @@ class ConnectionController {
 
   void onUnauthorized() {
     if (navigatorKey.currentState?.widget is AccessOverlay) return;
-
     navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
   }
 
@@ -81,6 +80,7 @@ class ConnectionController {
 
     if (data.token == null || data.username == null) {
       debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
+      onUnauthorized();
       return;
     }
 
