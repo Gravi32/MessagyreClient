@@ -181,7 +181,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           disabled: isWaitingForResponse,
           onChanged: (input) {
             final selection = emailController.selection;
-            final newText = input.trim();
+            final newText = input.trim().toLowerCase();
 
             final isValid = RegExp(r'^[a-zA-Z0-9](?:[a-zA-Z0-9._%-]*[a-zA-Z0-9])?$').hasMatch(newText);
 
