@@ -33,8 +33,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
     final incomingGrades =
         allHomework.values
             .where((homework) => homework.dueDate.isAfter(DateTime.now()) && (homework.isGraded || homework.isTest) && homework.subject == subject)
-            .toList()
-            ;
+            .toList();
 
     return Column(
       children: [
@@ -69,7 +68,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                       ),
 
                       Text(
-                        isIncoming ? incomingGrades.join(", "): "${grades.length} note${grades.length > 1 ? 's' : ''}",
+                        isIncoming ? incomingGrades.join(", ") : "${grades.length} note${grades.length > 1 ? 's' : ''}",
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
@@ -181,11 +180,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
     allHomework = Hive.box<Homework>("Homework");
     subjectOrderBox = Hive.box<List>("SubjectOrder");
 
-    allHomework.listenable().addListener(
-      () => setState(() {
-        print("changedAAAA");
-      }),
-    );
+    allHomework.listenable().addListener(() => setState(() {}));
   }
 
   void loadSubjects() {

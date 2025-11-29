@@ -179,7 +179,6 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
     allChats = Hive.box<Chat>("Chats");
 
     router.connectionState.addListener(() {
-      print("CALLED ${data.username}");
       // FOR THE APPLE VERIFICATION TEAM \\
       if (data.username == "apple.verification" || data.username == "apple.verify.temp") {
         final now = DateTime.now();
