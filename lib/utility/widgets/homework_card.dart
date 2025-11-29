@@ -77,6 +77,8 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
     setState(() => widget.homework.isMarkedAsDone = newValue);
     HapticFeedback.mediumImpact();
     widget.onMarkAsDoneButtonClicked?.call(newValue);
+    
+    widget.homework.save();
   }
 
   void toggleExpanded() {
