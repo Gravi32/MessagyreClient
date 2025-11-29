@@ -7,7 +7,6 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:messagyre_client/access.dart';
 import 'package:messagyre_client/other/eula.dart';
 import 'package:messagyre_client/other/firebase_api.dart';
 import 'package:messagyre_client/pages/homework.dart';
@@ -141,19 +140,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final router = ConnectionController();
   late final data = Data();
 
-  void _switchToAccess() {
-    if (navigatorKey.currentState?.widget is AccessOverlay) return;
-
-    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
-  }
-
+  
   @override
   void initState() {
     super.initState();
 
     router.start();
     WidgetsBinding.instance.addObserver(this);
-    router.onUnauthorized = _switchToAccess;
 
     NotificationController().init(context);
 

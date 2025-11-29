@@ -4,11 +4,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart' hide ConnectionState;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:messagyre_client/access.dart';
 import 'package:messagyre_client/other/firebase_api.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -67,7 +67,11 @@ class ConnectionController {
   final _messageDeletionController = StreamController<Map<String, Object>>.broadcast();
   Stream<Map<String, Object>> get onMessageDeletionReceived => _messageDeletionController.stream;
 
-  void Function()? onUnauthorized;
+  void onUnauthorized() {
+    if (navigatorKey.currentState?.widget is AccessOverlay) return;
+
+    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
+  }
 
   bool get isConnected => _channel != null;
   bool _manuallyDisconnected = false;
@@ -75,9 +79,8 @@ class ConnectionController {
   Future<void> start() async {
     data.token = await secureStorage.read(key: "AccessToken");
 
-    if ((data.token == null || data.username == null) && onUnauthorized != null) {
+    if (data.token == null || data.username == null) {
       debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
-      onUnauthorized!();
       return;
     }
 
@@ -140,13 +143,9 @@ class ConnectionController {
     try {
       connectionState.value = ConnectionState.WaitingForAuthorization;
 
-      if (onUnauthorized == null) {
-        throw Exception("onUnauthorized was not declared.");
-      }
-
       // No token stored, either the first time on the app or logged out
       if (data.token == null) {
-        onUnauthorized!();
+        onUnauthorized();
         throw Exception("[WebSocket] Connection aborted: No token found in Data.");
       }
 
@@ -154,7 +153,7 @@ class ConnectionController {
 
       // The server refused to refresh access, user was kicked out or banned
       if (response.statusCode == 401) {
-        onUnauthorized!();
+        onUnauthorized();
         throw Exception("[WebSocket] Could not refresh the access token. ${response.body}");
       } else if (response.statusCode != 200) {
         shouldScheduleReconnect = true;
@@ -219,8 +218,6 @@ class ConnectionController {
 
       connectionState.value = ConnectionState.Connected;
       connectionAttempts = 0;
-
-      
     } catch (e) {
       debugPrint("[WebSocket] Connection FAILED: $e");
 
@@ -420,7 +417,7 @@ class ConnectionController {
     await secureStorage.delete(key: "RefreshToken");
     await Hive.box("Misc").delete("Username");
 
-    if (onUnauthorized != null) onUnauthorized!();
+    onUnauthorized();
 
     MainPage.pageIndex.value = 2;
   }
