@@ -68,7 +68,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
         setState(() {
           switch (responseData) {
             case "NotFound":
-              usernameError = "Ce compte n'existe pas !";
+              usernameError = "Ce compte n'existe pas ! Créez-le en appuyant sur \"Créer un compte\".";
               break;
             case "WrongPassword":
               passwordError = "Mot de passe incorrect !";
@@ -165,8 +165,16 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
                     Text(
                       "connectez-vous pour continuer",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 15, color: CupertinoColors.label.resolveFrom(context).withOpacity(.7)),
+                      style: TextStyle(fontSize: 15, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                     ),
+                    const SizedBox(height: 6),
+
+                    Text(
+                      "Attention: Les comptes de Messagyre ne sont pas liés au gymnase ! Vous devez créer un compte à part si vous ne l'avez pas déjà fait !",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                    ),
+
                     const SizedBox(height: 40),
                     CustomTextField(
                       title: "Nom d'utilisateur",
