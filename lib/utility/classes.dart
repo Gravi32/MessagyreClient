@@ -123,6 +123,9 @@ class Homework extends HiveObject {
 
   @HiveField(6)
   bool isMarkedAsDone = false;
+
+  @override
+  String toString() => content;
 }
 
 // Subject uses HiveType 3
