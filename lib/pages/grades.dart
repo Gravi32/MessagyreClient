@@ -9,6 +9,7 @@ import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -28,6 +29,8 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
   late Box<List> subjectOrderBox;
   List<MapEntry<Subject, List<Grade>>> subjectGradesList = [];
   List<Subject> subjectsWithIncomingGrades = [];
+
+  bool isIncomingGradesInfoExpanded = false;
 
   Widget buildSubjectBar(Subject subject, {List<Grade> grades = const [], int index = 0, bool isGradeUnknown = false}) {
     final thisSubjectGradedHomework =
@@ -76,7 +79,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                     spacing: 2,
                     children: [
                       Text(
-                        "${SubjectHelper.toFrench(subject)} ${isGradeUnknown ? "prévue:" : ""}",
+                        "${SubjectHelper.toFrench(subject)}:",
                         style: TextStyle(
                           fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
                           fontSize: 18,
@@ -293,6 +296,49 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                                   );
                                 },
                               ),
+
+                              CupertinoPressable(
+                                onTap: () => setState(() => isIncomingGradesInfoExpanded = !isIncomingGradesInfoExpanded),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text("Branches prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                    Opacity(
+                                      opacity: .3,
+                                      child: HugeIcon(
+                                        icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
+                                        size: 18,
+                                        color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              AnimatedSwitcher(
+                                duration: Duration(milliseconds: 300),
+                                switchInCurve: Curves.easeInOut,
+                                switchOutCurve: Curves.easeInOut,
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, axisAlignment: 1, child: child),
+                                  );
+                                },
+                                child:
+                                    isIncomingGradesInfoExpanded
+                                        ? Padding(
+                                          padding: EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            "Les branches en gris ci-dessous apparaîtront dans la liste des moyennes dès que vous ajouterez votre première note.\nMessagyre les crée automatiquement lorsque vous créez un devoir avec l'option « ajouter à la page des notes » activée.",
+                                            key: ValueKey("info"),
+                                            style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                          ),
+                                        )
+                                        : SizedBox(key: ValueKey("empty")),
+                              ),
+
+                              Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+
                               ListView.builder(
                                 padding: EdgeInsets.zero,
                                 itemBuilder: (context, index) {
