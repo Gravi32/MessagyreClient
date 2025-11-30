@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:archive/archive.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -16,6 +21,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -33,6 +39,7 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
   late bool isDarkMode;
 
   Account? account;
+  bool isCreatingBackup = false;
 
   Future getAccount() async {
     if (data.username == null) return;
@@ -191,18 +198,164 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
                     title: Text("Effacer les données"),
                   ),
-                  // SettingsTile(
-                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
-                  //   title: Text("Exporter les données"),
-                  //   enabled: false, // Placeholder for future implementation
-                  // ),
-                  // SettingsTile(
-                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
-                  //   title: Text("Importer les données"),
-                  //   enabled: false, // Placeholder for future implementation
-                  // ),
+
+                  SettingsTile(
+                    onPressed: (context) async {
+                      showCupertinoDialog(
+                        context: context,
+                        builder:
+                            (dialogContext) => CupertinoAlertDialog(
+                              title: Text("Sauvegarder en local ?"),
+                              content: Text(
+                                "Messagyre copiera vos notes et vos devoirs dans un nouveau fichier que vous pourrez utiliser pour passer les données sur un autre dispositif.",
+                              ),
+                              actions: [
+                                CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(dialogContext)),
+                                CupertinoDialogAction(
+                                  isDefaultAction: true,
+                                  child: Text("Continuer"),
+                                  onPressed: () async {
+                                    Navigator.pop(dialogContext);
+                                    setState(() => isCreatingBackup = true);
+
+                                    try {
+                                      final appDir = await getApplicationDocumentsDirectory();
+                                      final hiveFiles =
+                                          Directory(appDir.path).listSync().where((f) => f.path.endsWith('.hive') || f.path.endsWith('.lock')).toList();
+
+                                      final archive = Archive();
+                                      for (var file in hiveFiles) {
+                                        final bytes = await File(file.path).readAsBytes();
+                                        archive.addFile(ArchiveFile(file.uri.pathSegments.last, bytes.length, bytes));
+                                      }
+
+                                      final zipData = ZipEncoder().encode(archive);
+
+                                      await Future.delayed(Duration(seconds: 5));
+                                      final path = await FilePicker.platform.saveFile(
+                                        dialogTitle: 'Choisir où enregistrer les données',
+                                        fileName: 'MessagyreBackup-${DateTime.now().toIso8601String()}.zip',
+                                        bytes: Uint8List.fromList(zipData),
+                                      );
+
+                                      setState(() => isCreatingBackup = false);
+
+                                      if (path != null || !context.mounted) return;
+
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder:
+                                            (ctx) => CupertinoAlertDialog(
+                                              title: Text("Sauvegarde terminée"),
+                                              content: Text(
+                                                "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour passer vos donnés sur un autre dispositif.",
+                                              ),
+                                              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                                            ),
+                                      );
+                                    } catch (e) {
+                                      debugPrint("Backup failed: $e");
+                                      setState(() => isCreatingBackup = false);
+
+                                      if (!context.mounted) return;
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder:
+                                            (ctx) => CupertinoAlertDialog(
+                                              title: Text("Erreur"),
+                                              content: Text("Impossible d'effectuer la sauvegarde :\n\n$e"),
+                                              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                                            ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                      );
+                    },
+                    leading: isCreatingBackup ? null : HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
+                    title:
+                        isCreatingBackup
+                            ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 6,
+                              children: [
+                                LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
+                                Text("Exportation en cours", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                              ],
+                            )
+                            : Text("Exporter une sauvegarde"),
+                  ),
+
+                  SettingsTile(
+                    onPressed: (context) async {
+                      final confirm = await showCupertinoDialog<bool>(
+                        context: context,
+                        builder:
+                            (ctx) => CupertinoAlertDialog(
+                              title: Text("Confirmer l'importation"),
+                              content: Text(
+                                "L'importation du backup va remplacer vos données actuelles. "
+                                "Voulez-vous continuer ?",
+                              ),
+                              actions: [
+                                CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(ctx, false)),
+                                CupertinoDialogAction(isDestructiveAction: true, child: Text("Continuer"), onPressed: () => Navigator.pop(ctx, true)),
+                              ],
+                            ),
+                      );
+
+                      if (confirm != true) return;
+
+                      try {
+                        final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['zip']);
+
+                        if (result == null || result.files.isEmpty) return;
+
+                        final filePath = result.files.single.path;
+                        if (filePath == null) return;
+
+                        final bytes = await File(filePath).readAsBytes();
+                        final archive = ZipDecoder().decodeBytes(bytes);
+
+                        final appDir = await getApplicationDocumentsDirectory();
+
+                        for (final file in archive) {
+                          if (file.isFile) {
+                            final data = file.content as List<int>;
+                            final outFile = File('${appDir.path}/${file.name}');
+                            await outFile.create(recursive: true);
+                            await outFile.writeAsBytes(data);
+                          }
+                        }
+
+                        if (!context.mounted) return;
+                        showCupertinoDialog(
+                          context: context,
+                          builder:
+                              (ctx) => CupertinoAlertDialog(
+                                title: Text("Importation terminée"),
+                                content: Text("Le backup a été importé avec succès."),
+                                actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                              ),
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        showCupertinoDialog(
+                          context: context,
+                          builder:
+                              (ctx) => CupertinoAlertDialog(
+                                title: Text("Erreur"),
+                                content: Text("Impossible d'importer le backup : $e"),
+                                actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                              ),
+                        );
+                      }
+                    },
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
+                    title: Text("Importer une sauvegarde"),
+                  ),
                 ],
               ),
 
@@ -210,23 +363,18 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                 title: Text("Autres"),
                 tiles: [
                   SettingsTile.navigation(
-                    onPressed: (context) => showEulaReadOnly(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
-                    title: Text("Conditions d'utilisation"),
-                  ),
-                  SettingsTile.navigation(
                     onPressed:
                         (context) => showCupertinoDialog(
                           context: context,
                           builder:
                               (dialogContext) => CupertinoAlertDialog(
-                                title: Text("Support"),
+                                title: Text("Contacter le support"),
                                 content: CustomText(
                                   "Si vous avez la moindre question concernant Messagyre, vous pouvez écrire à *Support Messagyre*.\n\nVous recevrez une réponse sous *48 heures*.",
                                 ),
                                 actions: [
-                                  CupertinoActionSheetAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Annuler")),
-                                  CupertinoActionSheetAction(
+                                  CupertinoDialogAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Annuler")),
+                                  CupertinoDialogAction(
                                     onPressed: () {
                                       Navigator.pop(dialogContext);
                                       Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: "support.messagyre")));
@@ -240,6 +388,13 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
                     title: Text("Support"),
                   ),
+
+                  SettingsTile.navigation(
+                    onPressed: (context) => showEulaReadOnly(context),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
+                    title: Text("Conditions d'utilisation"),
+                  ),
+
                   SettingsTile.navigation(
                     onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
