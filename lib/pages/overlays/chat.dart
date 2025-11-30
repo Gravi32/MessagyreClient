@@ -98,7 +98,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   void scrollDown() {
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(Duration(milliseconds: 200), () {
       setState(() => showScrollDownButton = false);
       if (chatScrollController.hasClients) {
         chatScrollController.animateTo(chatScrollController.position.maxScrollExtent, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
@@ -728,7 +728,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                         child: Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: Opacity(
-                            opacity: .5,
+                            opacity: .4,
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedInformationSquare,
                               size: 16,
@@ -738,7 +738,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                         ),
                       ),
                       ...CustomText.parseSpans(
-                        "Pour bloquer un utilisateur, allez sur son profil > Bloquer cet utilisateur.",
+                        "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
                         style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
                       ),
                     ],
