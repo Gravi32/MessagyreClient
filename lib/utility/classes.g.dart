@@ -113,13 +113,14 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..isGraded = fields.get(4, false)
       ..isTest = fields.get(5, false)
       ..isMarkedAsDone = fields.get(6, false)
-      ..referenceId = fields.get(7, null);
+      ..referenceId = fields.get(7, null)
+      ..calendarEventId = fields.get(8, null);
   }
 
   @override
   void write(BinaryWriter writer, Homework obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.subject)
       ..writeByte(1)
@@ -135,7 +136,9 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
       ..writeByte(6)
       ..write(obj.isMarkedAsDone)
       ..writeByte(7)
-      ..write(obj.referenceId);
+      ..write(obj.referenceId)
+      ..writeByte(8)
+      ..write(obj.calendarEventId);
   }
 
   @override

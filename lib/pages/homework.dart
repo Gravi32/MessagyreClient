@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:device_calendar/device_calendar.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +29,7 @@ class HomeworkPage extends StatefulWidget {
 class _HomeworkPageState extends State<HomeworkPage> {
   final router = ConnectionController();
   final data = Data();
+  final calendar = DeviceCalendarPlugin();
 
   late final PageController timelineController;
   late final Box<Homework> allHomework;
@@ -39,6 +41,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   final FocusNode searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
 
+  Calendar? targetCalendar;
   List<Homework> nearbyTests = [];
   bool isNearbyTestsNotifierHidden = false;
   int currentViewingTestIndex = -1;
@@ -64,11 +67,18 @@ class _HomeworkPageState extends State<HomeworkPage> {
     return index >= 0 ? index : 0;
   }
 
+  Future<bool> requestPermissions() async {
+    final result = await calendar.requestPermissions();
+    return result.isSuccess && result.data == true;
+  }
+
   @override
   void initState() {
     super.initState();
     allHomework = Hive.box<Homework>("Homework");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
+
+    data.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
 
     groupHomeworkByDate();
     allHomework.listenable().addListener(groupHomeworkByDate);
@@ -115,7 +125,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   void showNewHomeworkPopup({Homework? toEdit, DateTime? dueDateOverride}) async {
-    final newHomework = await showCupertinoModalBottomSheet<Homework?>(
+    final result = await showCupertinoModalBottomSheet(
       expand: false,
       enableDrag: false,
       previousRouteAnimationCurve: Curves.ease,
@@ -125,10 +135,46 @@ class _HomeworkPageState extends State<HomeworkPage> {
       builder: (context) => NewHomework(toEdit: toEdit, dueDateOverride: dueDateOverride),
     );
 
-    if (newHomework == null) return;
+    final homework = result.homework;
+
+    if (homework == null) return;
 
     if (toEdit != null) toEdit.delete();
-    allHomework.add(newHomework);
+
+    allHomework.add(homework);
+
+    if (result.editsCalendar) {
+      final permissionResult = await calendar.hasPermissions();
+      if (!permissionResult.isSuccess || permissionResult.data != true) {
+        final requestResult = await calendar.requestPermissions();
+        if (!requestResult.isSuccess || requestResult.data != true) return;
+      }
+
+      if (targetCalendar == null) return;
+
+      String title = "Devoir ${SubjectHelper.withPreposition(homework.subject)}";
+      if (homework.isGraded) {
+        title = "Devoir noté ${SubjectHelper.withPreposition(homework.subject)}";
+      } else if (homework.isTest) {
+        title = "Test ${SubjectHelper.withPreposition(homework.subject)}";
+      }
+
+      final timeZone = getLocation("Europe/Zurich");
+
+      final event = Event(
+        targetCalendar!.id,
+        eventId: homework.calendarEventId,
+        title: title,
+        start: TZDateTime.from(homework.dueDate, timeZone),
+        end: TZDateTime.from(homework.dueDate.add(const Duration(minutes: 45)), timeZone),
+        allDay: true,
+        description: "${(homework.content?.isEmpty ?? true) ? "" : "${homework.content}\n\n"}Créé par Messagyre.",
+      );
+
+      final result = await calendar.createOrUpdateEvent(event);
+      homework.calendarEventId = result?.data ?? homework.calendarEventId;
+      homework.save();
+    }
   }
 
   Widget buildNearbyTestsNotifier() {
@@ -292,6 +338,33 @@ class _HomeworkPageState extends State<HomeworkPage> {
   Widget buildHomeworkList() {
     final now = DateTime.now();
 
+    void deleteHomework(Homework target) {
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (dialogContext) => CupertinoAlertDialog(
+              title: Text("Supprimer le devoir"),
+              content: Text("Le devoir sera supprimé. Cette action est irréversible."),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2))),
+                ),
+                CupertinoDialogAction(
+                  onPressed: () {
+                    if (target.calendarEventId != null && targetCalendar?.id != null) {
+                      calendar.deleteEvent(targetCalendar?.id, target.calendarEventId);
+                    }
+                    target.delete();
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
+                ),
+              ],
+            ),
+      );
+    }
+
     switch (currentViewMode) {
       case HomeworkViewMode.byDueDate:
         final sortedHomework = allHomework.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
@@ -336,7 +409,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       homework: homework,
                       controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                       onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                      onDeleteButtonClicked: () => homework.delete(),
+                      onDeleteButtonClicked: () => deleteHomework(homework),
                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
                     ),
                   ),
@@ -396,7 +469,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                             homework: homework,
                             controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                             onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                            onDeleteButtonClicked: () => homework.delete(),
+                            onDeleteButtonClicked: () => deleteHomework(homework),
                             onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
                           ),
                         ),
@@ -456,7 +529,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       homework: homework,
                       controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                       onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                      onDeleteButtonClicked: () => homework.delete(),
+                      onDeleteButtonClicked: () => deleteHomework(homework),
                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
                     ),
                   ),
@@ -507,7 +580,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       homework: homework,
                       controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                       onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                      onDeleteButtonClicked: () => homework.delete(),
+                      onDeleteButtonClicked: () => deleteHomework(homework),
                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
                     ),
                   ),
@@ -535,7 +608,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   homework: homework,
                   controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                   onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                  onDeleteButtonClicked: () => homework.delete(),
+                  onDeleteButtonClicked: () => deleteHomework(homework),
                   onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
                 ),
               ),
@@ -582,7 +655,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                           homework: homework,
                           controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                           onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                          onDeleteButtonClicked: () => homework.delete(),
+                          onDeleteButtonClicked: () => deleteHomework(homework),
                           onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
                         ),
                       ),
@@ -646,28 +719,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               homework: homework,
                               controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
                               onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                              onDeleteButtonClicked:
-                                  () => showCupertinoDialog(
-                                    context: context,
-                                    builder:
-                                        (dialogContext) => CupertinoAlertDialog(
-                                          title: Text("Supprimer le devoir"),
-                                          content: Text("Le devoir sera supprimé. Cette action est irréversible."),
-                                          actions: [
-                                            CupertinoDialogAction(
-                                              onPressed: () => Navigator.pop(dialogContext),
-                                              child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2))),
-                                            ),
-                                            CupertinoDialogAction(
-                                              onPressed: () {
-                                                homework.delete();
-                                                Navigator.pop(dialogContext);
-                                              },
-                                              child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
-                                            ),
-                                          ],
-                                        ),
-                                  ),
+                              onDeleteButtonClicked: () => deleteHomework(homework),
                               onMarkAsDoneButtonClicked: (isMarkedAsDone) {
                                 bool isAllDone = true;
 

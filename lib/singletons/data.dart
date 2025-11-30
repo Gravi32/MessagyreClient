@@ -1,3 +1,4 @@
+import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -7,6 +8,7 @@ import 'package:messagyre_client/utility/classes.dart';
 class Data {
   static final Data _instance = Data._internal();
   factory Data() => _instance;
+
   Data._internal();
 
   late final ConnectionController router = ConnectionController();
@@ -25,6 +27,14 @@ class Data {
   final _now = DateTime.now();
   DateTime get schoolStart => DateTime(_now.year, 8, 18);
   DateTime get schoolEnd => _now.isBefore(schoolStart) ? DateTime(_now.year, 6, 6) : DateTime(_now.year + 1, 6, 6);
+
+  // Calendar
+  Future<Calendar?> getTargetCalendar() async {
+    final calendarsResult = await DeviceCalendarPlugin().retrieveCalendars();
+    if (!calendarsResult.isSuccess || calendarsResult.data == null) return null;
+
+    return calendarsResult.data!.firstWhere((c) => c.isDefault ?? false, orElse: () => calendarsResult.data!.first);
+  }
 
   // Chats
   String? openChatUsername;

@@ -32,6 +32,8 @@
 	<string>Cette application enregistre les photos que vous prenez ou sélectionnez pour les partager dans le chat, les définir comme photo de profil ou les utiliser comme informations supplémentaires pour vos devoirs et vos notes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cette application accède à votre photothèque afin que vous puissiez sélectionner des images à partager dans le chat, définir une photo de profil ou ajouter des photos comme informations supplémentaires pour vos devoirs et vos notes.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Cette application accède à votre calendrier afin que vous puissiez créer ou gérer des événements directement depuis l'application.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

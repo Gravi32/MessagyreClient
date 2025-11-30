@@ -1,4 +1,6 @@
+import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -22,6 +24,7 @@ class NewHomework extends StatefulWidget {
 
 class _NewHomeworkState extends State<NewHomework> {
   final data = Data();
+  final miscBox = Hive.box("Misc");
 
   late final editMode = widget.toEdit != null;
 
@@ -35,6 +38,9 @@ class _NewHomeworkState extends State<NewHomework> {
   late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool isTest = widget.toEdit?.isTest ?? false;
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
+  late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : miscBox.get("EditsCalendar", defaultValue: true);
+
+  final targetCalendar = ValueNotifier<Calendar?>(null);
 
   void confirmHomework() {
     var homework = widget.toEdit ?? Homework();
@@ -47,9 +53,10 @@ class _NewHomeworkState extends State<NewHomework> {
       ..dueDate = dueDate
       ..isGraded = isGraded
       ..isTest = isTest
-      ..referenceId = addingToGradesPage ? Uuid().v4() : null;
+      ..referenceId = addingToGradesPage ? Uuid().v4() : null
+      ..calendarEventId = editsCalendar == false ? null : widget.toEdit?.calendarEventId;
 
-    Navigator.of(context).pop(homework);
+    Navigator.of(context).pop((homework: homework, editsCalendar: editsCalendar));
   }
 
   void showSubjectPicker() {
@@ -76,6 +83,7 @@ class _NewHomeworkState extends State<NewHomework> {
     super.initState();
     subjectController.addListener(() => setState(() {}));
     contentController.addListener(() => setState(() {}));
+    data.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
 
   @override
@@ -223,6 +231,60 @@ class _NewHomeworkState extends State<NewHomework> {
                   ),
                 ],
               ),
+
+            CupertinoListSection.insetGrouped(
+              header: const Text("Notifications"),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              children: [
+                CupertinoListTile(
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedNotification01, color: CupertinoColors.label.resolveFrom(context)),
+                  title: Text("Recevoir une notification"),
+                  trailing: CupertinoSwitch(
+                    value: editsCalendar,
+                    onChanged:
+                        (value) => setState(() {
+                          editsCalendar = value;
+                          miscBox.put("EditsCalendar", value);
+                        }),
+                  ),
+                ),
+              ],
+            ),
+
+            ValueListenableBuilder(
+              valueListenable: targetCalendar,
+              builder:
+                  (context, newTargetCalendar, _) => CupertinoListSection.insetGrouped(
+                    header: const Text("Autres"),
+                    footer:
+                        editsCalendar
+                            ? Padding(
+                              padding: EdgeInsetsGeometry.only(top: 6),
+                              child: Text(
+                                "Un événement sera créé sur ${newTargetCalendar == null ? "votre calendrier prédefini." : "${newTargetCalendar.name}."} Vous pouvez changer de calendrier dans les réglages de votre dispositif.",
+                                style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
+                              ),
+                            )
+                            : null,
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    children: [
+                      CupertinoListTile(
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar03, color: CupertinoColors.label.resolveFrom(context)),
+                        title: newTargetCalendar == null ? Text("Ajouter au calendrier de système") : Text("Ajouter à ${newTargetCalendar.name}"),
+                        trailing: CupertinoSwitch(
+                          value: editsCalendar,
+                          onChanged:
+                              (value) => setState(() {
+                                editsCalendar = value;
+                                miscBox.put("EditsCalendar", value);
+                              }),
+                        ),
+                      ),
+                    ],
+                  ),
+            ),
+
+            const SizedBox(height: 10),
           ],
         ),
       ),

@@ -127,6 +127,9 @@ class Homework extends HiveObject {
   @HiveField(7)
   String? referenceId;
 
+  @HiveField(8)
+  String? calendarEventId;
+
   @override
   String toString() => content;
 }
