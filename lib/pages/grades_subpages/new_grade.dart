@@ -405,31 +405,38 @@ class _NewGradeState extends State<NewGrade> {
                         ),
                       ),
 
-                      if (isValuePickerExpanded)
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.only(top: 6),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 6,
-                            children: [
-                              for (var value = 0.05; value < 1.0; value += 0.05)
-                                if (!fractions.keys.contains(value))
-                                  WeightButton(
-                                    value: value,
-                                    selectedWeight: weight,
-                                    label: "${(value * 100).round()}%",
-                                    onTap: () {
-                                      setState(() => weight = value);
-                                      HapticFeedback.selectionClick();
-                                    },
+                      AnimatedSize(
+                        duration: Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        child:
+                            isValuePickerExpanded
+                                ? SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: EdgeInsets.only(top: 6),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    spacing: 6,
+                                    children: [
+                                      for (var value = 0.05; value < 1.0; value += 0.05)
+                                        if (!fractions.keys.contains(value))
+                                          WeightButton(
+                                            value: value,
+                                            selectedWeight: weight,
+                                            label: "${(value * 100).round()}%",
+                                            onTap: () {
+                                              setState(() => weight = value);
+                                              HapticFeedback.selectionClick();
+                                            },
+                                          ),
+                                    ],
                                   ),
-                            ],
-                          ),
-                        ),
+                                )
+                                : SizedBox.shrink(),
+                      ),
 
                       GestureDetector(
                         onTap: () => setState(() => isValuePickerExpanded = !isValuePickerExpanded),
+                        behavior: HitTestBehavior.opaque,
                         child: Container(
                           margin: EdgeInsets.only(top: 6),
                           child: Row(
