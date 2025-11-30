@@ -40,8 +40,7 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
       children: [
         CupertinoButton(
           padding: EdgeInsets.zero,
-          child: SizedBox(
-            height: 50,
+          child: IntrinsicHeight(
             child: Row(
               children: [
                 Container(
@@ -50,7 +49,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                 ),
 
                 SizedBox(width: 12),
-                Expanded(
+                Flexible(
+                  fit: FlexFit.tight,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -109,8 +109,8 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                                     ],
                                   ),
                                   maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                   softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
                                 )
                                 : Text(
                                   "Envoyez un message...",
