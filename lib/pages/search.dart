@@ -153,7 +153,7 @@ class SearchPageState extends State<SearchPage>
       leading: ProfilePictureDisplay(
           accountUsername: result.username,
           pictureURL: result.profilePictureURL,
-          radius: 40),
+          radius: 26),
       leadingSize: 50,
       additionalInfo: HugeIcon(
           icon: HugeIcons.strokeRoundedArrowRight01,
