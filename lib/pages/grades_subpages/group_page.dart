@@ -47,13 +47,17 @@ class _GroupPageState extends State<GroupPage> {
       enableDrag: false,
       builder:
           (context) => NewGrade(
-            subject: widget.grades.first.subject,
+            subject: widget.grades.isNotEmpty ? widget.grades.first.subject : null,
             toEdit: toEdit,
             onDelete: () {
               widget.grades.remove(toEdit);
               setState(() {});
+              // Se la lista è vuota dopo l'eliminazione, torna indietro
+              if (widget.grades.isEmpty && mounted) {
+                Navigator.of(context).pop();
+              }
             },
-            groupName: widget.grades.first.groupName,
+            groupName: widget.grades.isNotEmpty ? widget.grades.first.groupName : null,
             existingGroupNames: widget.existingGroupNames,
           ),
     );
@@ -95,7 +99,7 @@ class _GroupPageState extends State<GroupPage> {
                     spacing: 10,
                     children: [
                       HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.label.resolveFrom(context), size: 28),
-                      Text(widget.grades.first.groupName ?? "Groupe"),
+                      Text(widget.grades.isNotEmpty ? (widget.grades.first.groupName ?? "Groupe") : "Groupe"),
                     ],
                   ),
                   previousPageTitle: "Retour",
