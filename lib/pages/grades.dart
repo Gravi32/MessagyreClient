@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -244,7 +245,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
     }
 
     subjectsWithIncomingGrades.clear();
-    for (final homework in allHomework.values) {
+    for (final homework in allHomework.values.sortedBy((homework) => homework.dueDate)) {
       if ((homework.isGraded || homework.isTest) && homework.referenceId != null && !subjectGradesMap.containsKey(homework.subject)) {
         subjectsWithIncomingGrades.add(homework.subject);
       }
