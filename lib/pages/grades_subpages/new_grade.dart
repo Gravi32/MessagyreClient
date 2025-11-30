@@ -91,7 +91,6 @@ class _NewGradeState extends State<NewGrade> {
       ..details = detailsController.text
       ..groupName = groupName
       ..referenceId = referenceId;
-    print("NEW GRADE PAGE CLOSED WITH $gradeData");
     Navigator.of(context).pop(gradeData);
   }
 

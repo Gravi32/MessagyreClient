@@ -81,7 +81,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
       registrationDataBox.put("EmailAddress", emailController.text.trim());
       registrationDataBox.put("Page", 1);
 
-      print("STORED $registrationToken");
       goToPage(1);
     }
   }
@@ -409,11 +408,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void initState() {
     emailController.value = TextEditingValue(text: registrationDataBox.get("EmailAddress", defaultValue: ""));
 
-    print("INIT CALLED");
     if (widget.passwordResetMode || widget.isResumingRegistration) {
       setState(() => currentPage = registrationDataBox.get("Page", defaultValue: 1));
-
-      print("Resuming registration with token: ${widget.registrationTokenOverride}, current page: $currentPage");
 
       startResendTimer();
       registrationToken = widget.registrationTokenOverride;
@@ -455,7 +451,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 clipBehavior: Clip.none,
                 controller: pageController,
                 physics: NeverScrollableScrollPhysics(),
-                
+
                 children: [if (!widget.passwordResetMode) emailPage(), codePage(), passwordPage()],
               ),
             ),
