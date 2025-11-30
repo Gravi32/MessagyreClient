@@ -232,32 +232,13 @@ class _NewHomeworkState extends State<NewHomework> {
                 ],
               ),
 
-            CupertinoListSection.insetGrouped(
-              header: const Text("Notifications"),
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              children: [
-                CupertinoListTile(
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedNotification01, color: CupertinoColors.label.resolveFrom(context)),
-                  title: Text("Recevoir une notification"),
-                  trailing: CupertinoSwitch(
-                    value: editsCalendar,
-                    onChanged:
-                        (value) => setState(() {
-                          editsCalendar = value;
-                          miscBox.put("EditsCalendar", value);
-                        }),
-                  ),
-                ),
-              ],
-            ),
-
             ValueListenableBuilder(
               valueListenable: targetCalendar,
               builder:
                   (context, newTargetCalendar, _) => CupertinoListSection.insetGrouped(
                     header: const Text("Autres"),
                     footer:
-                        editsCalendar
+                        editsCalendar && !editMode
                             ? Padding(
                               padding: EdgeInsetsGeometry.only(top: 6),
                               child: Text(
