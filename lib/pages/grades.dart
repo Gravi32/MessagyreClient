@@ -174,7 +174,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                           softWrap: true,
                           style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
                         ),
-                        const SizedBox(width: 2,)
+                        const SizedBox(width: 2),
                       ],
                       if (plannedGrades.isNotEmpty) ...[
                         Opacity(
@@ -323,47 +323,49 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                                 },
                               ),
 
-                              CupertinoPressable(
-                                onTap: () => setState(() => isIncomingGradesInfoExpanded = !isIncomingGradesInfoExpanded),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Branches prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-                                    Opacity(
-                                      opacity: .3,
-                                      child: HugeIcon(
-                                        icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
-                                        size: 18,
-                                        color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                              if (subjectsWithIncomingGrades.isNotEmpty) ...[
+                                CupertinoPressable(
+                                  onTap: () => setState(() => isIncomingGradesInfoExpanded = !isIncomingGradesInfoExpanded),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Branches prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                      Opacity(
+                                        opacity: .3,
+                                        child: HugeIcon(
+                                          icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
+                                          size: 18,
+                                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              AnimatedSwitcher(
-                                duration: Duration(milliseconds: 300),
-                                switchInCurve: Curves.easeInOut,
-                                switchOutCurve: Curves.easeInOut,
-                                transitionBuilder: (child, animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, axisAlignment: 1, child: child),
-                                  );
-                                },
-                                child:
-                                    isIncomingGradesInfoExpanded
-                                        ? Padding(
-                                          padding: EdgeInsets.only(top: 4),
-                                          child: Text(
-                                            "Les branches en gris ci-dessous apparaîtront dans la liste des moyennes dès que vous ajouterez votre première note.\nMessagyre les crée automatiquement lorsque vous créez un devoir avec l'option « ajouter à la page des notes » activée.",
-                                            key: ValueKey("info"),
-                                            style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                                          ),
-                                        )
-                                        : SizedBox(key: ValueKey("empty")),
-                              ),
+                                AnimatedSwitcher(
+                                  duration: Duration(milliseconds: 300),
+                                  switchInCurve: Curves.easeInOut,
+                                  switchOutCurve: Curves.easeInOut,
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, axisAlignment: 1, child: child),
+                                    );
+                                  },
+                                  child:
+                                      isIncomingGradesInfoExpanded
+                                          ? Padding(
+                                            padding: EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              "Les branches en gris ci-dessous apparaîtront dans la liste des moyennes dès que vous ajouterez votre première note.\nMessagyre les crée automatiquement lorsque vous créez un devoir avec l'option « ajouter à la page des notes » activée.",
+                                              key: ValueKey("info"),
+                                              style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                            ),
+                                          )
+                                          : SizedBox(key: ValueKey("empty")),
+                                ),
 
-                              Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+                                Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+                              ],
 
                               ListView.builder(
                                 padding: EdgeInsets.zero,

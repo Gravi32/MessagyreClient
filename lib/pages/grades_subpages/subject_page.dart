@@ -57,61 +57,66 @@ class _SubjectPageState extends State<SubjectPage> {
       children: [
         CupertinoButton(
           padding: EdgeInsets.zero,
-          child: SizedBox(
-            height: 65,
-            child: Row(
+          child: IntrinsicHeight(
+            child: Column(
+              spacing: 6,
               children: [
-                GradeDisplay(grade: calculateAverage(gradesInGroup), isGroup: true),
+                Row(
+                  children: [
+                    GradeDisplay(grade: calculateAverage(gradesInGroup), isGroup: true),
 
-                SizedBox(width: 12),
+                    SizedBox(width: 12),
 
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 4,
-                          children: [
-                            Row(
-                              spacing: 6,
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 4,
                               children: [
-                                Text(
-                                  groupName,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 20,
-                                    color: adaptiveColor(CupertinoColors.black, CupertinoColors.white),
-                                  ),
+                                Row(
+                                  spacing: 6,
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      groupName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 20,
+                                        color: adaptiveColor(CupertinoColors.black, CupertinoColors.white),
+                                      ),
+                                    ),
+
+                                    Text(
+                                      "contient ${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 15, color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontWeight: FontWeight.w400),
+                                    ),
+                                  ],
                                 ),
 
-                                Text(
-                                  "contient ${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 15, color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontWeight: FontWeight.w400),
-                                ),
+                                gradesInGroup.map((data) => data.title).isNotEmpty
+                                    ? Text(
+                                      gradesInGroup.map((data) => "• ${data.title}").join("\n"),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.fade,
+                                      style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
+                                    )
+                                    : const SizedBox.shrink(),
                               ],
                             ),
-
-                            gradesInGroup.map((data) => data.title).isNotEmpty
-                                ? Text(
-                                  gradesInGroup.map((data) => "• ${data.title}").join("\n"),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.fade,
-                                  style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
-                                )
-                                : const SizedBox.shrink(),
-                          ],
-                        ),
+                          ),
+                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.systemGrey),
+                        ],
                       ),
-                      HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.systemGrey),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                Divider(indent: 60, color: CupertinoColors.separator.resolveFrom(context).withAlpha(30)),
               ],
             ),
           ),
@@ -176,9 +181,10 @@ class _SubjectPageState extends State<SubjectPage> {
               },
             ),
 
-            Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
-            Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-            Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+            if (subjectIncomingGrades.isNotEmpty) ...[
+              Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+              Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+            ],
 
             ListView.builder(
               padding: EdgeInsets.zero,
