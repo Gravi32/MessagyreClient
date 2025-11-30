@@ -44,6 +44,7 @@ class _NewGradeState extends State<NewGrade> {
   late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject ?? referencedHomework?.subject));
   late final detailsController = TextEditingController(text: widget.toEdit?.details);
   final titleFocusNode = FocusNode();
+  final subjectFocusNode = FocusNode();
 
   late bool isInGroup = groupName != null;
 
@@ -142,7 +143,7 @@ class _NewGradeState extends State<NewGrade> {
                   final isSelected = grade == thisGrade;
 
                   return GestureDetector(
-                    onTap: () => controller.animateToItem(index, duration: Duration(milliseconds: 2000), curve: Curves.easeOut),
+                    onTap: () => controller.animateToItem(index, duration: Duration(milliseconds: 200), curve: Curves.easeOut),
                     child: RotatedBox(
                       quarterTurns: 1,
                       child: Center(
@@ -468,6 +469,7 @@ class _NewGradeState extends State<NewGrade> {
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
+                      onTap: () => subjectFocusNode.requestFocus(),
                       leading: HugeIcon(
                         icon: HugeIcons.strokeRoundedBookBookmark02,
                         color: referenceId == null ? CupertinoColors.tertiaryLabel.resolveFrom(context) : CupertinoColors.inactiveGray.resolveFrom(context),
@@ -478,6 +480,7 @@ class _NewGradeState extends State<NewGrade> {
                               : null,
                       title: SubjectAutocomplete(
                         controller: subjectController,
+                        focusNode: subjectFocusNode,
                         decoration: const BoxDecoration(),
                         padding: EdgeInsets.zero,
                         placeholder: "Entrez une branche",
