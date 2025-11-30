@@ -60,8 +60,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                   : () {
                     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
                   },
-          child: SizedBox(
-            height: 55,
+          child: IntrinsicHeight(
             child: Row(
               children: [
                 SizedBox(width: 4),
