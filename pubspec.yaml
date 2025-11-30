@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none" 
 
-version: 1.25.392+392
+version: 1.27.402+402
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Homework page
@@ -29,6 +29,8 @@ version: 1.25.392+392
 # 1.23  Increased possible grade weights
 # 1.24  Added a grade display to the new grade page
 # 1.25  Added incoming grades from the homework page
+# 1.26  Implemented device calendar syncronization with the app's homework
+# 1.27  Support can now be contacted from the settings page
 
 environment:
   sdk: ^3.7.2
