@@ -141,15 +141,18 @@ class _NewGradeState extends State<NewGrade> {
                   final display = isWhole ? thisGrade.toInt().toString() : thisGrade.toStringAsFixed(1);
                   final isSelected = grade == thisGrade;
 
-                  return RotatedBox(
-                    quarterTurns: 1,
-                    child: Center(
-                      child: Text(
-                        display,
-                        style: TextStyle(
-                          fontSize: isSelected ? 28 : 22,
-                          color: isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
-                          fontWeight: FontWeight.w500,
+                  return GestureDetector(
+                    onTap: () => controller.animateToItem(index, duration: Duration(milliseconds: 2000), curve: Curves.easeOut),
+                    child: RotatedBox(
+                      quarterTurns: 1,
+                      child: Center(
+                        child: Text(
+                          display,
+                          style: TextStyle(
+                            fontSize: isSelected ? 28 : 22,
+                            color: isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
