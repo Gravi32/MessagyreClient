@@ -119,8 +119,16 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
 
   Widget buildAverageBar() {
     final average = calculateAverage(allGrades.values.toList());
-    final incomingGrades =
-        allHomework.values.where((homework) => homework.dueDate.isAfter(DateTime.now()) && (homework.isGraded || homework.isTest)).toList().length;
+    final thisSubjectGradedHomework =
+        allHomework.values
+            .where(
+              (homework) =>
+                  homework.referenceId != null && !allGrades.values.any((grade) => grade.referenceId != null && grade.referenceId == homework.referenceId),
+            )
+            .toList();
+
+    final incomingGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isBefore(DateTime.now())).toList();
+    final plannedGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isAfter(DateTime.now())).toList();
 
     return Padding(
       padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
@@ -133,23 +141,22 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 2,
                 children: [
                   Text(
                     "Moyenne générale",
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
                   ),
+                  Text(
+                    "${allGrades.length} note${allGrades.length > 1 ? 's' : ''} au total",
+                    maxLines: 2,
+                    overflow: TextOverflow.fade,
+                    softWrap: true,
+                    style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 18),
+                  ),
                   Row(
+                    spacing: 3,
                     children: [
-                      Text(
-                        "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 18),
-                      ),
-                      const SizedBox(width: 8),
-                      if (incomingGrades > 0) ...[
+                      if (incomingGrades.isNotEmpty) ...[
                         Opacity(
                           opacity: .3,
                           child: HugeIcon(
@@ -159,9 +166,27 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                             color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                           ),
                         ),
-                        const SizedBox(width: 3),
                         Text(
-                          "$incomingGrades à venir",
+                          "${incomingGrades.length} passées",
+                          maxLines: 2,
+                          overflow: TextOverflow.fade,
+                          softWrap: true,
+                          style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
+                        ),
+                        const SizedBox(width: 2,)
+                      ],
+                      if (plannedGrades.isNotEmpty) ...[
+                        Opacity(
+                          opacity: .3,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCalendar04,
+                            size: 14,
+                            strokeWidth: 2,
+                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                          ),
+                        ),
+                        Text(
+                          "${incomingGrades.length} planifiées",
                           maxLines: 2,
                           overflow: TextOverflow.fade,
                           softWrap: true,
