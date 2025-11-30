@@ -18,10 +18,9 @@ class NewGrade extends StatefulWidget {
   final Grade? toEdit;
   final Subject? subject;
   final VoidCallback? onDelete;
-  final List<String> existingGroupNames;
   final String? groupName;
 
-  const NewGrade({super.key, this.toEdit, this.subject, this.onDelete, this.existingGroupNames = const [], this.groupName});
+  const NewGrade({super.key, this.toEdit, this.subject, this.onDelete, this.groupName});
 
   @override
   State<StatefulWidget> createState() => _NewGradeState();
@@ -47,8 +46,6 @@ class _NewGradeState extends State<NewGrade> {
   final subjectFocusNode = FocusNode();
 
   late bool isInGroup = groupName != null;
-
-  late List<String> groupNames = List.from(widget.existingGroupNames);
 
   bool isValuePickerExpanded = false;
   bool isReferenceTileExpanded = false;
@@ -181,6 +178,23 @@ class _NewGradeState extends State<NewGrade> {
     return allHomework.values
         .where((homework) => homework.referenceId != null && !allGrades.values.any((grade) => grade.referenceId == homework.referenceId))
         .toList();
+  }
+
+  List<({String groupName, Subject groupSubject})> getGroups() {
+    final resultList = <({String groupName, Subject groupSubject})>[];
+
+    if (groupName != null && subject != null) resultList.add((groupName: groupName!, groupSubject: subject!));
+
+    for (var storedGrade in allGrades.values) {
+      if (storedGrade.groupName == null ||
+          storedGrade.subject != subject ||
+          resultList.contains((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject))) {
+        continue;
+      }
+      resultList.add((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject));
+    }
+
+    return resultList;
   }
 
   @override
@@ -494,120 +508,131 @@ class _NewGradeState extends State<NewGrade> {
                         onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
                         forceValid: true,
                         enabled: referenceId == null,
-                        
                       ),
                     ),
                   ],
                 ),
 
-                CupertinoListSection.insetGrouped(
-                  header: Text("Groupe"),
-                  margin: EdgeInsets.zero,
-                  footer: Padding(
-                    padding: EdgeInsetsGeometry.only(top: 6),
-                    child: Text(
-                      "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
-                      style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                    ),
-                  ),
-                  children: [
-                    CupertinoListTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      title: Text("Fait partie d'un groupe"),
-                      trailing: CupertinoSwitch(
-                        value: isInGroup,
-                        onChanged: (value) {
-                          setState(() {
-                            isInGroup = value;
-                            if (!value) {
-                              groupName = null;
-                            }
-                          });
-                        },
+                if (subject != null)
+                  CupertinoListSection.insetGrouped(
+                    header: Text("Groupe"),
+                    margin: EdgeInsets.zero,
+                    footer: Padding(
+                      padding: EdgeInsetsGeometry.only(top: 6),
+                      child: Text(
+                        "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
+                        style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                       ),
                     ),
-                    if (isInGroup) ...[
-                      ...groupNames.map((name) {
-                        return CupertinoListTile(
-                          title: Text(name),
-                          onTap:
-                              () => setState(() {
-                                groupName = name;
-                              }),
-                          trailing:
-                              groupName == name
-                                  ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))
-                                  : null,
-                        );
-                      }),
+                    children: [
                       CupertinoListTile(
-                        title: Row(
-                          children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
-                            const SizedBox(width: 10),
-                            Text("Ajouter un groupe"),
-                          ],
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        title: Text("Fait partie d'un groupe"),
+                        trailing: CupertinoSwitch(
+                          value: isInGroup,
+                          onChanged: (value) {
+                            setState(() {
+                              isInGroup = value;
+                              if (!value) {
+                                groupName = null;
+                              }
+                            });
+                          },
                         ),
-                        onTap: () {
-                          showCupertinoDialog(
-                            context: context,
-                            builder: (dialogContext) {
-                              final controller = TextEditingController();
-                              return CupertinoAlertDialog(
-                                title: Row(
-                                  spacing: 8,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
-                                    Text("Nouveau groupe"),
-                                  ],
+                      ),
+                      if (isInGroup) ...[
+                        ...getGroups().map((group) {
+                          final gradesInGroup = allGrades.values.where(
+                            (storedGrade) => storedGrade.subject == group.groupSubject && storedGrade.groupName == group.groupName,
+                          );
+
+                          return CupertinoListTile(
+                            title: Row(
+                              spacing: 6,
+                              children: [
+                                Text(group.groupName, style: TextStyle(fontWeight: FontWeight.w600)),
+                                Text(
+                                  "${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
+                                  style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                                 ),
-                                content: Column(
-                                  children: [
-                                    SizedBox(height: 10),
-                                    SizedBox(
-                                      height: 40,
-                                      child: DismissableTextField(
-                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                        decoration: BoxDecoration(color: CupertinoColors.systemGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                                        controller: controller,
-                                        placeholder: "Nom du groupe",
+                              ],
+                            ),
+                            onTap:
+                                () => setState(() {
+                                  groupName = group.groupName;
+                                }),
+                            trailing:
+                                groupName == group.groupName
+                                    ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))
+                                    : null,
+                          );
+                        }),
+                        CupertinoListTile(
+                          title: Row(
+                            children: [
+                              HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                              const SizedBox(width: 10),
+                              Text("Ajouter un groupe"),
+                            ],
+                          ),
+                          onTap: () {
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                final controller = TextEditingController();
+                                return CupertinoAlertDialog(
+                                  title: Row(
+                                    spacing: 8,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
+                                      Text("Nouveau groupe"),
+                                    ],
+                                  ),
+                                  content: Column(
+                                    children: [
+                                      SizedBox(height: 10),
+                                      SizedBox(
+                                        height: 40,
+                                        child: DismissableTextField(
+                                          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                          decoration: BoxDecoration(
+                                            color: CupertinoColors.systemGrey.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          controller: controller,
+                                          placeholder: "Nom du groupe",
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      child: Text("Annuler", style: TextStyle(color: CupertinoColors.label.resolveFrom(context))),
+                                      onPressed: () => Navigator.pop(dialogContext),
+                                    ),
+                                    CupertinoDialogAction(
+                                      isDefaultAction: true,
+                                      child: Text("Ajouter", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                      onPressed: () {
+                                        final newName = controller.text.trim();
+                                        try {
+                                          if (newName.isNotEmpty) setState(() => groupName = newName);
+                                        } catch (e) {
+                                          debugPrint("Error adding group: $e");
+                                        }
+                                        Navigator.pop(dialogContext);
+                                      },
                                     ),
                                   ],
-                                ),
-                                actions: [
-                                  CupertinoDialogAction(
-                                    child: Text("Annuler", style: TextStyle(color: CupertinoColors.label.resolveFrom(context))),
-                                    onPressed: () => Navigator.pop(dialogContext),
-                                  ),
-                                  CupertinoDialogAction(
-                                    isDefaultAction: true,
-                                    child: Text("Ajouter", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
-                                    onPressed: () {
-                                      final newName = controller.text.trim();
-                                      try {
-                                        if (newName.isNotEmpty && !groupNames.contains(newName)) {
-                                          setState(() {
-                                            groupNames.add(newName);
-                                            groupName = newName;
-                                          });
-                                        }
-                                      } catch (e) {
-                                        debugPrint("Error adding group: $e");
-                                      }
-                                      Navigator.pop(dialogContext);
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     ],
-                  ],
-                ),
+                  ),
 
                 CupertinoListSection.insetGrouped(
                   header: Text("Date de reception"),

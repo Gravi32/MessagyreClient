@@ -52,13 +52,12 @@ class _GroupPageState extends State<GroupPage> {
             onDelete: () {
               widget.grades.remove(toEdit);
               setState(() {});
-              // Se la lista è vuota dopo l'eliminazione, torna indietro
+              
               if (widget.grades.isEmpty && mounted) {
                 Navigator.of(context).pop();
               }
             },
             groupName: widget.grades.isNotEmpty ? widget.grades.first.groupName : null,
-            existingGroupNames: widget.existingGroupNames,
           ),
     );
 

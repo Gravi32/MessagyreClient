@@ -223,7 +223,6 @@ class _SubjectPageState extends State<SubjectPage> {
               loadGrades();
               setState(() {});
             },
-            existingGroupNames: groupNames,
           ),
     );
 
