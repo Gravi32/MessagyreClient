@@ -198,8 +198,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                         Expanded(
                           child: Row(
                             spacing: 4,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               if (isGraded)
                                 HugeIcon(
@@ -263,7 +262,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
               ),
             ),
           ),
-          Positioned(top: -5, right: -5, child: Opacity(opacity: isMarkedAsDone ? .5 : 1, child: Image.asset("assets/pin.png", width: 30, height: 30))),
+         // Positioned(top: -5, right: -5, child: Opacity(opacity: isMarkedAsDone ? .5 : 1, child: Image.asset("assets/pin.png", width: 30, height: 30))),
         ],
       ),
     );
