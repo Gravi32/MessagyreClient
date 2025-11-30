@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/singletons/notifications_controller.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,6 +21,7 @@ class FirebaseApi {
   final firebaseMessaging = FirebaseMessaging.instance;
   final localNotifications = FlutterLocalNotificationsPlugin();
   bool waitingForConnection = false;
+  int badgeCount = 0;
 
   Future<void> initialize() async {
     await Future.delayed(const Duration(seconds: 2));
@@ -35,6 +37,7 @@ class FirebaseApi {
         if (username != null && username.isNotEmpty) {
           navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: username)));
         }
+        _resetBadge();
       },
     );
 
@@ -63,7 +66,6 @@ class FirebaseApi {
       debugPrint("[Firebase] FCM token: ${data.fcmToken}");
       sendTokenToServer();
 
-      // Gestione notifiche in foreground
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         final state = WidgetsBinding.instance.lifecycleState;
 
@@ -77,8 +79,10 @@ class FirebaseApi {
           final senderUsername = dataMap['SenderUsername'] ?? title;
           if (state == AppLifecycleState.resumed) {
             NotificationController().spawn(title, senderUsername, body);
+            _resetBadge();
           } else {
             await _showNotification(title, body, imageUrl, senderUsername);
+            _incrementBadge();
           }
         } catch (e) {
           debugPrint("[Firebase] Error parsing notification data: $e");
@@ -89,6 +93,7 @@ class FirebaseApi {
         final username = message.data['SenderUsername'];
         if (username == null) return;
         navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: username)));
+        _resetBadge();
       });
 
       firebaseMessaging.onTokenRefresh.listen((newToken) {
@@ -108,7 +113,6 @@ class FirebaseApi {
       final largeIcon = FilePathAndroidBitmap(imagePath);
 
       final sender = Person(name: title, icon: BitmapFilePathAndroidIcon(imagePath));
-
       final messageStyle = MessagingStyleInformation(sender, messages: [Message(body, DateTime.now(), sender)]);
 
       final androidDetails = AndroidNotificationDetails(
@@ -160,5 +164,15 @@ class FirebaseApi {
     } else {
       debugPrint("[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${data.username}, token: ${data.token}");
     }
+  }
+
+  void _incrementBadge() {
+    badgeCount++;
+    FlutterAppBadger.updateBadgeCount(badgeCount);
+  }
+
+  void _resetBadge() {
+    badgeCount = 0;
+    FlutterAppBadger.removeBadge();
   }
 }
