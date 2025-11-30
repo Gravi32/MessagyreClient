@@ -11,6 +11,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -750,11 +751,10 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     ),
                   ],
                 ),
-                SizedBox(height: 6),
 
-                if (profile["Bio"] != null) Text(profile["Bio"], style: TextStyle(fontSize: 18)),
+                if (profile["Bio"] != null) CustomText(profile["Bio"], style: TextStyle(fontSize: 16)),
                 Text(
-                  "Compte créé ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}.",
+                  "Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}.",
                   style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                 ),
 
