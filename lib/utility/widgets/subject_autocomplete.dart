@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -140,7 +142,10 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
               onFieldSubmitted();
             }
           },
-          onTapOutside: (event) => focusNode.unfocus(),
+          onTapOutside: (event) {
+            // Close the keyboard unless user is scrolling
+            if (event.kind != PointerDeviceKind.touch) focusNode.unfocus();
+          },
         );
       },
       optionsViewBuilder: (context, onSelected, options) {

@@ -494,6 +494,7 @@ class _NewGradeState extends State<NewGrade> {
                         onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
                         forceValid: true,
                         enabled: referenceId == null,
+                        
                       ),
                     ),
                   ],
