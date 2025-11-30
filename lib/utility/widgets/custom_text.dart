@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomText extends StatelessWidget {
@@ -19,7 +20,7 @@ class CustomText extends StatelessWidget {
     this.overflow = TextOverflow.clip,
     this.maxLines,
     this.extraSpans,
-    this.textAlign = TextAlign.start
+    this.textAlign = TextAlign.start,
   });
 
   static List<InlineSpan> parseSpans(String text, {TextStyle? style, FontWeight? boldWeight}) {
@@ -35,8 +36,7 @@ class CustomText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: match.group(1),
-          style: style?.merge(TextStyle(fontWeight: boldWeight ?? FontWeight.bold))
-              ?? TextStyle(fontWeight: boldWeight ?? FontWeight.bold),
+          style: style?.merge(TextStyle(fontWeight: boldWeight ?? FontWeight.bold)) ?? TextStyle(fontWeight: boldWeight ?? FontWeight.bold),
         ),
       );
 
@@ -58,7 +58,11 @@ class CustomText extends StatelessWidget {
     }
 
     return RichText(
-      text: TextSpan(children: spans, style: style),
+      text: TextSpan(
+        children: spans,
+        style: (style ?? DefaultTextStyle.of(context).style).merge(TextStyle(color: style?.color ?? DefaultTextStyle.of(context).style.color)),
+      ),
+
       overflow: overflow,
       softWrap: softWrap,
       maxLines: maxLines,

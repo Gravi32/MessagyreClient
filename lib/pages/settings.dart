@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/other/eula.dart';
+import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
@@ -13,6 +14,7 @@ import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -212,11 +214,32 @@ class _SettingsPageState extends State<SettingsPage> with AutomaticKeepAliveClie
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
                     title: Text("Conditions d'utilisation"),
                   ),
-                  // SettingsTile.navigation(
-                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => FeedbackSettingsPage())),
-                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
-                  //   title: Text("Envoyez un commentaire"),
-                  // ),
+                  SettingsTile.navigation(
+                    onPressed:
+                        (context) => showCupertinoDialog(
+                          context: context,
+                          builder:
+                              (dialogContext) => CupertinoAlertDialog(
+                                title: Text("Support"),
+                                content: CustomText(
+                                  "Si vous avez la moindre question concernant Messagyre, vous pouvez écrire à *Support Messagyre*.\n\nVous recevrez une réponse sous *48 heures*.",
+                                ),
+                                actions: [
+                                  CupertinoActionSheetAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Annuler")),
+                                  CupertinoActionSheetAction(
+                                    onPressed: () {
+                                      Navigator.pop(dialogContext);
+                                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: "support.messagyre")));
+                                    },
+                                    isDefaultAction: true,
+                                    child: Text("Continuer"),
+                                  ),
+                                ],
+                              ),
+                        ),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
+                    title: Text("Support"),
+                  ),
                   SettingsTile.navigation(
                     onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
