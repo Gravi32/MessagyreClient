@@ -71,6 +71,8 @@ String formatDate(DateTime targetDate, {bool includeTime = false, bool includeAr
     result = (includeArticle ? "le " : "") + DateFormat("d MMMM", 'fr_CH').format(targetDate);
   }
 
+  if (date.year != today.year) result += " ${date.year}";
+
   if (includeTime) {
     final time = DateFormat.Hm('fr_CH').format(targetDate);
     result += " à $time";
