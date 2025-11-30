@@ -1,14 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/autocomplete_field.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/homework_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGrade extends StatefulWidget {
@@ -25,6 +28,9 @@ class NewGrade extends StatefulWidget {
 }
 
 class _NewGradeState extends State<NewGrade> {
+  final allGrades = Hive.box<Grade>("Grades");
+  final allHomework = Hive.box<Homework>("Homework");
+
   late final editMode = widget.toEdit != null;
 
   late Subject? subject = widget.toEdit?.subject ?? widget.subject;
@@ -32,16 +38,20 @@ class _NewGradeState extends State<NewGrade> {
   late DateTime date = widget.toEdit?.date ?? DateTime.now();
   late double weight = widget.toEdit?.weight ?? 1;
   late String? groupName = widget.toEdit?.groupName ?? widget.groupName;
+  late String? referenceId = widget.toEdit?.referenceId;
 
   late final titleController = TextEditingController(text: widget.toEdit?.title);
-  late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject));
+  late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject ?? referencedHomework?.subject));
   late final detailsController = TextEditingController(text: widget.toEdit?.details);
+  final titleFocusNode = FocusNode();
 
   late bool isInGroup = groupName != null;
 
   late List<String> groupNames = List.from(widget.existingGroupNames);
 
   bool isValuePickerExpanded = false;
+  bool isReferenceTileExpanded = false;
+  Homework? referencedHomework;
 
   void confirmGrade() {
     if (titleController.text.isEmpty) {
@@ -79,7 +89,8 @@ class _NewGradeState extends State<NewGrade> {
       ..subject = subject!
       ..date = date
       ..details = detailsController.text
-      ..groupName = groupName;
+      ..groupName = groupName
+      ..referenceId = referenceId;
 
     Navigator.of(context).pop(gradeData);
   }
@@ -163,11 +174,18 @@ class _NewGradeState extends State<NewGrade> {
     );
   }
 
+  List<Homework> getPlannedGrades() {
+    return allHomework.values
+        .where((homework) => homework.referenceId != null && !allGrades.values.any((grade) => grade.referenceId == homework.referenceId))
+        .toList();
+  }
+
   @override
   void dispose() {
     titleController.dispose();
     subjectController.dispose();
     detailsController.dispose();
+    titleFocusNode.dispose();
     super.dispose();
   }
 
@@ -201,16 +219,61 @@ class _NewGradeState extends State<NewGrade> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         spacing: 2,
                         children: [
-                          DismissableTextField(
+                          AutocompleteField(
                             controller: titleController,
+                            focusNode: titleFocusNode,
                             decoration: BoxDecoration(),
                             padding: EdgeInsets.zero,
                             placeholder: "Titre",
-
+                            forceValid: false,
                             suffix: Opacity(opacity: .4, child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText)),
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                             placeholderStyle: TextStyle(color: CupertinoColors.placeholderText, fontWeight: FontWeight.w500),
+                            items: getPlannedGrades(),
+                            itemBuilder: (homework, query) {
+                              if (homework is! Homework) return SizedBox.shrink();
+                              return Column(
+                                spacing: 4,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          WidgetSpan(
+                                            child: HugeIcon(
+                                              icon: homework.isTest ? HugeIcons.strokeRoundedTextCheck : HugeIcons.strokeRoundedCheckmarkBadge04,
+                                              color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                            ),
+                                          ),
+                                          WidgetSpan(child: SizedBox(width: 4)),
+                                          ...highlightSearchMatch(homework.content, query, useCache: true),
+                                        ],
+                                        style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        SubjectHelper.toFrench(homework.subject),
+                                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                      ),
+                                      Text(formatDate(homework.dueDate), style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                            onSelected: (homework) {
+                              if (homework is! Homework) return;
+                              setState(() => referenceId = homework.referenceId);
+                              referencedHomework = homework;
+                              subjectController.value = TextEditingValue(text: SubjectHelper.toFrenchOrNull(homework.subject) ?? "");
+                              titleFocusNode.unfocus();
+                            },
                           ),
                           Text(
                             subject != null ? "Note ${SubjectHelper.withPreposition(subject, lowercase: true)}" : "Pas de branche sélectionnée",
@@ -223,6 +286,85 @@ class _NewGradeState extends State<NewGrade> {
                     ),
                   ],
                 ),
+
+                if (referenceId != null)
+                  Container(
+                    decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
+                    margin: EdgeInsets.only(top: 10),
+                    padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => isReferenceTileExpanded = !isReferenceTileExpanded),
+                          child: Row(
+                            spacing: 6,
+                            children: [
+                              HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                              Text("Cette note est associée à un devoir.", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                              Spacer(),
+                              HugeIcon(
+                                icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                                color: CupertinoColors.inactiveGray.resolveFrom(context),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if (isReferenceTileExpanded && referencedHomework != null) ...[
+                          const SizedBox(height: 10),
+
+                          Opacity(opacity: .9, child: HomeworkCard(homework: referencedHomework!)),
+                          const SizedBox(height: 10),
+                          Text(
+                            "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans dissocier la note.",
+                            style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                          ),
+                          const SizedBox(height: 4),
+                          Text("ID de réference: $referenceId", style: TextStyle(fontSize: 14, color: CupertinoColors.quaternaryLabel.resolveFrom(context))),
+                          Divider(thickness: .25, color: CupertinoColors.separator.resolveFrom(context)),
+                          GestureDetector(
+                            onTap: () {
+                              showCupertinoDialog(
+                                context: context,
+                                builder:
+                                    (dialogContext) => CupertinoAlertDialog(
+                                      title: Text("Dissocier la note ?"),
+                                      content: Text(
+                                        "Vous pourrez la réassocier en changeant le titre à \"${referencedHomework?.content}\" et en appuyant sur le résultat.",
+                                      ),
+                                      actions: [
+                                        CupertinoActionSheetAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Non")),
+                                        CupertinoActionSheetAction(
+                                          onPressed: () {
+                                            setState(() {
+                                              referenceId = null;
+                                              isReferenceTileExpanded = false;
+                                            });
+                                            referencedHomework = null;
+                                            Navigator.pop(dialogContext);
+                                          },
+                                          isDestructiveAction: true,
+                                          child: Text("Oui"),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            },
+                            child: Row(
+                              spacing: 6,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                HugeIcon(icon: HugeIcons.strokeRoundedUnlink04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
+                                Text("Dissocier", style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
                 Container(
                   decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
                   margin: EdgeInsets.only(top: 10),
@@ -310,12 +452,28 @@ class _NewGradeState extends State<NewGrade> {
                 ),
 
                 CupertinoListSection.insetGrouped(
-                  header: Text("Branche"),
+                  header: Text("Branche", style: referenceId == null ? null : TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                  footer:
+                      referenceId == null
+                          ? null
+                          : Padding(
+                            padding: EdgeInsetsGeometry.only(top: 6),
+                            child: Text(
+                              "La branche ne peut pas etre changé parce que cette note est associé à un devoir.",
+                              style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            ),
+                          ),
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      leading: HugeIcon(
+                        icon: HugeIcons.strokeRoundedBookBookmark02,
+                        color: referenceId == null ? CupertinoColors.tertiaryLabel.resolveFrom(context) : CupertinoColors.inactiveGray.resolveFrom(context),
+                      ),
+                      trailing:
+                          referenceId == null
+                              ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.inactiveGray.resolveFrom(context))
+                              : null,
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         decoration: const BoxDecoration(),
@@ -323,6 +481,7 @@ class _NewGradeState extends State<NewGrade> {
                         placeholder: "Entrez une branche",
                         onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
                         forceValid: true,
+                        enabled: referenceId == null,
                       ),
                     ),
                   ],

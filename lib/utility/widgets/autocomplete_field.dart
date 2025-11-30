@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:messagyre_client/utility/subjects.dart';
-import 'package:messagyre_client/utility/utility.dart';
 
-class SubjectAutocomplete extends StatefulWidget {
-  final void Function(Subject subject) onSelected;
+class AutocompleteField extends StatefulWidget {
+  final List<Object> items;
+  final Widget Function(Object item, String query) itemBuilder;
+  final void Function(Object item) onSelected;
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String? placeholder;
@@ -17,10 +17,11 @@ class SubjectAutocomplete extends StatefulWidget {
   final EdgeInsets? padding;
   final double optionsMaxHeight;
   final bool forceValid;
-  final bool enabled;
 
-  const SubjectAutocomplete({
+  const AutocompleteField({
     super.key,
+    required this.items,
+    required this.itemBuilder,
     required this.onSelected,
     this.controller,
     this.focusNode,
@@ -34,24 +35,23 @@ class SubjectAutocomplete extends StatefulWidget {
     this.padding,
     this.optionsMaxHeight = 180,
     this.forceValid = true,
-    this.enabled = true,
   });
 
   @override
-  State<SubjectAutocomplete> createState() => _SubjectAutocompleteState();
+  State<AutocompleteField> createState() => _AutocompleteFieldState();
 }
 
-class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
+class _AutocompleteFieldState extends State<AutocompleteField> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
-  late final List<MapEntry<Subject, String>> _subjectsNormalized;
+  late List<MapEntry<Object, String>> _normalized;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
     _focusNode = widget.focusNode ?? FocusNode();
-    _subjectsNormalized = SubjectHelper.sortedSubjects.map((s) => MapEntry(s, _normalize(SubjectHelper.toFrench(s)))).toList();
+    _normalized = widget.items.map((e) => MapEntry(e, _normalize(e.toString()))).toList();
     if (widget.forceValid) {
       _focusNode.addListener(() {
         if (!_focusNode.hasFocus) _validateAndFix();
@@ -75,19 +75,19 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       .replaceAll(RegExp(r'[ùûü]'), 'u')
       .replaceAll('ç', 'c');
 
-  Subject? _matchSubject(String input) {
-    final normalized = _normalize(input);
-    for (final e in _subjectsNormalized) {
-      if (e.value == normalized) return e.key;
+  Object? _matchItem(String input) {
+    final n = _normalize(input);
+    for (final e in _normalized) {
+      if (e.value == n) return e.key;
     }
     return null;
   }
 
   void _validateAndFix() {
-    final match = _matchSubject(_controller.text);
+    final match = _matchItem(_controller.text);
     if (match != null) {
       widget.onSelected(match);
-      _controller.text = SubjectHelper.toFrench(match);
+      _controller.text = match.toString();
     } else {
       _controller.clear();
     }
@@ -95,37 +95,20 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.enabled) {
-      return CupertinoTextField(
-        controller: _controller,
-        focusNode: _focusNode,
-        placeholder: widget.placeholder ?? 'Branche',
-        prefix: widget.prefix,
-        suffix: widget.suffix,
-        suffixMode: widget.suffixMode,
-        style: widget.style ?? TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
-        placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
-        decoration: widget.decoration ?? const BoxDecoration(),
-        padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
-        enabled: false,
-      );
-    }
-
-    return RawAutocomplete<Subject>(
+    return RawAutocomplete<Object>(
       textEditingController: _controller,
       focusNode: _focusNode,
       optionsBuilder: (value) {
-        if (value.text.isEmpty) return const Iterable<Subject>.empty();
+        if (value.text.isEmpty) return const Iterable<Object>.empty();
         final input = _normalize(value.text);
-        return _subjectsNormalized.where((e) => e.value.contains(input)).map((e) => e.key);
+        return _normalized.where((e) => e.value.contains(input)).map((e) => e.key);
       },
-      displayStringForOption: (Subject option) => SubjectHelper.toFrench(option),
       onSelected: widget.onSelected,
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+      fieldViewBuilder: (context, controller, focusNode, _) {
         return CupertinoTextField(
           controller: controller,
           focusNode: focusNode,
-          placeholder: widget.placeholder ?? 'Branche',
+          placeholder: widget.placeholder,
           prefix: widget.prefix,
           suffix: widget.suffix,
           suffixMode: widget.suffixMode,
@@ -133,12 +116,9 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
+
           onSubmitted: (value) {
-            if (widget.forceValid) {
-              _validateAndFix();
-            } else {
-              onFieldSubmitted();
-            }
+            if (widget.forceValid) _validateAndFix();
           },
           onTapOutside: (event) => focusNode.unfocus(),
         );
@@ -164,18 +144,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => onSelected(option),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text.rich(
-                          TextSpan(
-                            children: highlightSearchMatch(SubjectHelper.toFrench(option), _controller.text, useCache: true),
-                            style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: Padding(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), child: widget.itemBuilder(option, _controller.text)),
                   ),
                   if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withOpacity(.1)),
                 ],
