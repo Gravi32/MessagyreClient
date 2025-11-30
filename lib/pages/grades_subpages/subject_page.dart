@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -26,8 +27,10 @@ class _SubjectPageState extends State<SubjectPage> {
   final router = ConnectionController();
   final data = Data();
 
-  late Box<Grade> allGrades;
+  Box<Grade> allGrades = Hive.box<Grade>("Grades");
+  Box<Homework> allHomework = Hive.box<Homework>("Homework");
   List<Grade> subjectGrades = [];
+  List<Homework> subjectIncomingGrades = [];
   List<String> groupNames = [];
 
   @override
@@ -37,11 +40,14 @@ class _SubjectPageState extends State<SubjectPage> {
   }
 
   void loadGrades() {
-    allGrades = Hive.box<Grade>("Grades");
-
     subjectGrades.clear();
-
     subjectGrades = allGrades.values.where((grade) => grade.subject == widget.subject).toList();
+
+    subjectIncomingGrades =
+        allHomework.values
+            .where((homework) => homework.subject == widget.subject && (homework.isGraded || homework.isTest))
+            .sortedBy((homework) => homework.dueDate)
+            .toList();
   }
 
   Widget buildGroupBar(String groupName) {
@@ -55,7 +61,7 @@ class _SubjectPageState extends State<SubjectPage> {
             height: 65,
             child: Row(
               children: [
-                GradeDisplay(grade: calculateAverage(gradesInGroup)),
+                GradeDisplay(grade: calculateAverage(gradesInGroup), isGroup: true),
 
                 SizedBox(width: 12),
 
@@ -69,8 +75,9 @@ class _SubjectPageState extends State<SubjectPage> {
                           spacing: 4,
                           children: [
                             Row(
-                              spacing: 10,
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              spacing: 6,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
                                   groupName,
@@ -82,17 +89,17 @@ class _SubjectPageState extends State<SubjectPage> {
                                 ),
 
                                 Text(
-                                  gradesInGroup.length == 1 ? "1 note" : "${gradesInGroup.length} notes",
+                                  "contient ${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontWeight: FontWeight.w500),
+                                  style: TextStyle(fontSize: 15, color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontWeight: FontWeight.w400),
                                 ),
                               ],
                             ),
 
                             gradesInGroup.map((data) => data.title).isNotEmpty
                                 ? Text(
-                                  gradesInGroup.map((data) => "- ${data.title}").join("\n"),
+                                  gradesInGroup.map((data) => "• ${data.title}").join("\n"),
                                   maxLines: 2,
                                   overflow: TextOverflow.fade,
                                   style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
@@ -118,8 +125,6 @@ class _SubjectPageState extends State<SubjectPage> {
             });
           },
         ),
-
-        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
       ],
     );
   }
@@ -156,14 +161,46 @@ class _SubjectPageState extends State<SubjectPage> {
             Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
           ],
         )
-        : ListView.builder(
-          padding: EdgeInsets.only(top: 8),
-          itemCount: barsToBuild,
-          itemBuilder: (context, index) {
-            return index + 1 <= barsToBuild - groupNames.length
-                ? GradeBar(gradeData: subjectGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: subjectGrades.elementAt(index)))
-                : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
-          },
+        : Column(
+          spacing: 1,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.only(top: 8),
+              itemCount: barsToBuild,
+              itemBuilder: (context, index) {
+                return index + 1 <= barsToBuild - groupNames.length
+                    ? GradeBar(gradeData: subjectGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: subjectGrades.elementAt(index)))
+                    : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
+              },
+            ),
+
+            Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+            Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+            Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+
+            ListView.builder(
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                final homework = subjectIncomingGrades[index];
+                final grade =
+                    Grade()
+                      ..title = homework.content
+                      ..date = homework.dueDate;
+                return GradeBar(
+                  gradeData: grade,
+                  onTap: () {},
+                  isGradeUnknown: true,
+                  isIncoming: homework.dueDate.isBefore(DateTime.now()),
+                  isPlanned: homework.dueDate.isAfter(DateTime.now()),
+                );
+              },
+              itemCount: subjectIncomingGrades.length,
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+            ),
+          ],
         );
   }
 

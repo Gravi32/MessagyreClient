@@ -10,8 +10,17 @@ class GradeDisplay extends StatefulWidget {
   final double weight;
   final bool isIncoming;
   final bool isPlanned;
+  final bool isGroup;
 
-  const GradeDisplay({super.key, required this.grade, this.size = 48, this.weight = 1.0, this.isIncoming = false, this.isPlanned = false});
+  const GradeDisplay({
+    super.key,
+    required this.grade,
+    this.size = 48,
+    this.weight = 1.0,
+    this.isIncoming = false,
+    this.isPlanned = false,
+    this.isGroup = false,
+  });
 
   @override
   State<GradeDisplay> createState() => _GradeDisplayState();
@@ -20,7 +29,6 @@ class GradeDisplay extends StatefulWidget {
 class _GradeDisplayState extends State<GradeDisplay> {
   @override
   Widget build(BuildContext context) {
-    final isUnknown = widget.isPlanned || widget.isIncoming;
     final isGradeHidden = widget.grade == 0;
     final size = widget.size;
     final int alpha = ((.25 + widget.weight * .75) * 255).toInt();
@@ -31,6 +39,15 @@ class _GradeDisplayState extends State<GradeDisplay> {
             : widget.grade > 3.75
             ? CupertinoColors.activeOrange
             : CupertinoColors.systemRed;
+
+    List<List<dynamic>>? badge;
+    if (widget.isIncoming) {
+      badge = HugeIcons.strokeRoundedClock01;
+    } else if (widget.isPlanned) {
+      badge = HugeIcons.strokeRoundedCalendar04;
+    } else if (widget.isGroup) {
+      badge = HugeIcons.strokeRoundedSelect01;
+    }
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: widget.grade),
@@ -114,7 +131,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                 ),
 
               // Badge
-              if (isUnknown)
+              if (badge != null)
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -122,13 +139,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.systemBackground.resolveFrom(context)),
                     padding: const EdgeInsets.only(left: 4, top: 5),
                     child: Opacity(
-                      opacity: .3,
-                      child: HugeIcon(
-                        icon: widget.isIncoming ? HugeIcons.strokeRoundedClock01 : HugeIcons.strokeRoundedCalendar04,
-                        size: 16,
-                        strokeWidth: 2,
-                        color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                      ),
+                      opacity: widget.isGroup ? 1 : .3,
+                      child: HugeIcon(icon: badge, size: 16, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                     ),
                   ),
                 ),

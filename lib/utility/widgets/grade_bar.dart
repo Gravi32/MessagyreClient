@@ -8,23 +8,31 @@ import 'package:messagyre_client/utility/widgets/grade_display.dart';
 
 class GradeBar extends StatelessWidget {
   final Grade gradeData;
+  final bool isGradeUnknown;
+  final bool isIncoming;
+  final bool isPlanned;
   final Function() onTap;
 
-  const GradeBar({super.key, required this.gradeData, required this.onTap});
+  const GradeBar({super.key, required this.gradeData, required this.onTap, this.isGradeUnknown = false, this.isIncoming = false, this.isPlanned = false});
 
   @override
   Widget build(BuildContext context) {
+    final daysDistance = DateTime.now().difference(gradeData.date).inDays;
+
     return Column(
       children: [
         CupertinoButton(
           padding: EdgeInsets.zero,
-          onPressed: onTap,
+          onPressed: isGradeUnknown ? null : onTap,
           child: Row(
             children: [
-              GradeDisplay(grade: gradeData.grade, weight: gradeData.weight),
-
+              GradeDisplay(
+                grade: isGradeUnknown ? 0 : gradeData.grade,
+                weight: isGradeUnknown ? 1 : gradeData.weight,
+                isIncoming: isIncoming,
+                isPlanned: isPlanned,
+              ),
               SizedBox(width: 12),
-
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -36,9 +44,13 @@ class GradeBar extends StatelessWidget {
                       children: [
                         CustomText(
                           gradeData.title,
-                          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                          style: TextStyle(
+                            fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
+                            fontSize: isGradeUnknown ? 16 : 18,
+                            color: isGradeUnknown ? CupertinoColors.secondaryLabel.resolveFrom(context) : CupertinoColors.label.resolveFrom(context),
+                          ),
                         ),
-                        if (gradeData.details != null && gradeData.details!.isNotEmpty) ...[
+                        if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
                           Padding(
                             padding: EdgeInsetsGeometry.symmetric(vertical: 4),
                             child: Row(
@@ -61,9 +73,10 @@ class GradeBar extends StatelessWidget {
                               ],
                             ),
                           ),
-                        ],
                         Text(
-                          formatDate(gradeData.date).capitalize(),
+                          isGradeUnknown
+                              ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
+                              : formatDate(gradeData.date).capitalize(),
                           maxLines: 2,
                           overflow: TextOverflow.fade,
                           softWrap: true,
@@ -77,7 +90,6 @@ class GradeBar extends StatelessWidget {
             ],
           ),
         ),
-
         Divider(indent: 60, color: CupertinoColors.separator.resolveFrom(context).withAlpha(30)),
       ],
     );
