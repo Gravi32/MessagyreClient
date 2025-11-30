@@ -270,7 +270,11 @@ class _NewHomeworkState extends State<NewHomework> {
                     children: [
                       CupertinoListTile(
                         leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar03, color: CupertinoColors.label.resolveFrom(context)),
-                        title: newTargetCalendar == null ? Text("Ajouter au calendrier de système") : Text("Ajouter à ${newTargetCalendar.name}"),
+                        title: Text(
+                          newTargetCalendar == null
+                              ? "${editMode ? "Syncroniser avec le" : "Ajouter au"} calendrier de système"
+                              : "${editMode ? "Syncroniser avec" : "Ajouter à"} ${newTargetCalendar.name}",
+                        ),
                         trailing: CupertinoSwitch(
                           value: editsCalendar,
                           onChanged:
