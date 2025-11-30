@@ -186,6 +186,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
     if (toEdit != null) toEdit.delete();
 
     allGrades.add(newGrade);
+    setState(() {});
   }
 
   @override
@@ -236,7 +237,6 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    loadSubjects();
 
     return CupertinoPageScaffold(
       child: Stack(
@@ -252,6 +252,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                 child: ValueListenableBuilder(
                   valueListenable: allGrades.listenable(),
                   builder: (context, Box<Grade> box, _) {
+                    loadSubjects();
                     return subjectGradesList.isEmpty
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
