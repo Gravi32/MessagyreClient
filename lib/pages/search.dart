@@ -95,7 +95,7 @@ class SearchPageState extends State<SearchPage>
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: CupertinoSearchTextField(
-        placeholder: "Réchercher un.e gymnasien.ne",
+        placeholder: "Rechercher un.e gymnasien.ne",
         padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
         controller: searchBarController,
         onChanged: search,
@@ -229,7 +229,7 @@ class SearchPageState extends State<SearchPage>
                       Container(
                         decoration: getDecoration(),
                         child: Text(
-                          "Récherchez vos amis !",
+                          "Recherchez vos amis !",
                           style: TextStyle(
                               fontSize: 26, fontWeight: FontWeight.w600),
                           textAlign: TextAlign.center,
