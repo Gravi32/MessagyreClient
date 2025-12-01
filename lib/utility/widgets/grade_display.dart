@@ -11,6 +11,7 @@ class GradeDisplay extends StatefulWidget {
   final bool isIncoming;
   final bool isPlanned;
   final bool isGroup;
+  final bool roundGrade;
 
   const GradeDisplay({
     super.key,
@@ -20,6 +21,7 @@ class GradeDisplay extends StatefulWidget {
     this.isIncoming = false,
     this.isPlanned = false,
     this.isGroup = false,
+    this.roundGrade = true,
   });
 
   @override
@@ -103,8 +105,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
               // Grade
               if (!isGradeHidden)
                 Text(
-                  animatedGrade % 1 == 0 ? animatedGrade.toInt().toString() : animatedGrade.toStringAsFixed(1),
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
+                  animatedGrade % 1 == 0 ? animatedGrade.toInt().toString() : animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2),
+                  style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
                 ),
 
               // Weight

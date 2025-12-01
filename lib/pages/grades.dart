@@ -69,6 +69,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                   size: 48,
                   isIncoming: incomingGrades.isNotEmpty,
                   isPlanned: plannedGrades.isNotEmpty,
+                  roundGrade: false
                 ),
                 SizedBox(width: 12),
                 Expanded(
@@ -197,7 +198,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                   ),
                 ],
               ),
-              GradeDisplay(grade: average, size: 64),
+              GradeDisplay(grade: average, size: 64, roundGrade: false,),
             ],
           ),
           Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
