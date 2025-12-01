@@ -74,6 +74,7 @@ class ConnectionController {
 
   bool get isConnected => _channel != null;
   bool _manuallyDisconnected = false;
+  bool _isConnecting = false; // ← AGGIUNTO: flag per evitare connessioni multiple
 
   Future<void> start() async {
     data.token = await secureStorage.read(key: "AccessToken");
@@ -84,19 +85,23 @@ class ConnectionController {
       return;
     }
 
-    connect();
+    await connect(); // ← AGGIUNTO: await per aspettare la connessione
   }
 
   Future<http.Response> refreshAccessToken() async {
     final refreshToken = await secureStorage.read(key: "RefreshToken");
 
     if (refreshToken == null) {
+      debugPrint("[RefreshToken] No refresh token found in SecureStorage.");
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
+
+    debugPrint("[RefreshToken] Requesting token refresh, sending $refreshToken...");
 
     final response = await post("/Auth/Refresh", {"RefreshToken": refreshToken}).timeout(
       const Duration(seconds: 15),
       onTimeout: () {
+        debugPrint("[RefreshToken] Request timed out");
         throw Exception("Refresh token request timed out");
       },
     );
@@ -108,35 +113,51 @@ class ConnectionController {
 
         await secureStorage.write(key: "AccessToken", value: data.token);
         await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+
+        debugPrint("[RefreshToken] Token refreshed successfully ! New token: ${results["RefreshToken"]}");
       } catch (e) {
-        debugPrint("[WebSocket] Failed decoding server response: ${response.body} -> $e");
+        debugPrint("[RefreshToken] Failed decoding server response: ${response.body} -> $e");
       }
 
       return http.Response("OK", 200);
     }
 
+    debugPrint("[RefreshToken] Refresh failed with status ${response.statusCode}: ${response.body}");
     return response;
   }
 
   // WebSocket Requests
   void _scheduleReconnect() {
-    if (isConnected) return;
+    if (isConnected || _isConnecting) return;
 
     connectionState.value = ConnectionState.WaitingToReconnect;
 
     final delay = connectionAttempts == 0 ? 1 : min(5 * connectionAttempts, 30);
     connectionAttempts++;
 
-    debugPrint("[WebSocket] Reconnecting in $delay seconds...");
+    debugPrint("[WebSocket] Reconnecting in $delay seconds... (attempt #$connectionAttempts)");
 
     Future.delayed(Duration(seconds: delay), () {
-      if (!isConnected) connect();
+      if (!isConnected && !_isConnecting) connect();
     });
   }
 
-  void connect() async {
-    if (isConnected) return;
+  Future<void> connect() async {
+    if (isConnected) {
+      debugPrint("[WebSocket] Already connected, ignoring connect() call");
+      return;
+    }
+    if (_isConnecting) {
+      debugPrint("[WebSocket] Connection already in progress, ignoring connect() call");
+      return;
+    }
 
+    if (!(connectionState.value == ConnectionState.NotConnected || connectionState.value == ConnectionState.WaitingToReconnect)) {
+      debugPrint("[WebSocket] Invalid state for connection: ${connectionState.value}");
+      return;
+    }
+
+    _isConnecting = true;
     bool shouldScheduleReconnect = false;
 
     // Asking the server to refresh the token
@@ -157,11 +178,12 @@ class ConnectionController {
         throw Exception("[WebSocket] Could not refresh the access token. ${response.body}");
       } else if (response.statusCode != 200) {
         shouldScheduleReconnect = true;
-        throw Exception(response);
+        throw Exception("Token refresh failed: ${response.body}");
       }
     } catch (e) {
       debugPrint("[WebSocket] Token refresh failed: $e");
       connectionState.value = ConnectionState.NotConnected;
+      _isConnecting = false; // ← AGGIUNTO
       if (shouldScheduleReconnect) _scheduleReconnect();
       return;
     }
@@ -169,6 +191,7 @@ class ConnectionController {
     // Attemping a connection
     try {
       connectionState.value = ConnectionState.Connecting;
+      debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
 
       final socket = await WebSocket.connect(serverWebSocketAddress, headers: {'Authorization': 'Bearer ${data.token}'}).timeout(const Duration(seconds: 40));
 
@@ -199,6 +222,7 @@ class ConnectionController {
           debugPrint("[WebSocket] Closed by server");
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
+          _isConnecting = false; // ← AGGIUNTO
 
           if (_manuallyDisconnected) {
             // Avoiding reconnection attempts after manual disconnection
@@ -212,17 +236,21 @@ class ConnectionController {
           debugPrint("[WebSocket] Error: $err");
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
+          _isConnecting = false; // ← AGGIUNTO
           _scheduleReconnect();
         },
       );
 
       connectionState.value = ConnectionState.Connected;
       connectionAttempts = 0;
+      _isConnecting = false; // ← AGGIUNTO
+      debugPrint("[WebSocket] Connected successfully!");
     } catch (e) {
       debugPrint("[WebSocket] Connection FAILED: $e");
 
       connectionState.value = ConnectionState.NotConnected;
       _channel = null;
+      _isConnecting = false; // ← AGGIUNTO
       _scheduleReconnect();
     }
   }
@@ -258,12 +286,15 @@ class ConnectionController {
         if (content == null || rawSentAt == null) {
           throw FormatException("Missing Content or SentAt");
         }
+
         final sentAt = DateTime.parse(rawSentAt).toLocal();
         final messageData = {"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt};
 
         _messagesController.add(messageData);
 
-        if (messageId != null) sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
+        if (messageId != null) {
+          sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
+        }
 
         HapticFeedback.heavyImpact();
       }
@@ -273,21 +304,31 @@ class ConnectionController {
   }
 
   void send(String id, String recipientUsername, String messageContent) {
+    if (!isConnected) {
+      debugPrint("[WebSocket] Cannot send message: not connected");
+      return;
+    }
+
     final message = jsonEncode({"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
 
     _channel?.sink.add(message);
   }
 
   void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
+    if (!isConnected) return;
+
     _channel?.sink.add(jsonEncode({"RequestType": "StatusUpdate", "RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
   }
 
   void sendMessageDelete(List<String> forMessageIds, String forUsername) {
+    if (!isConnected) return;
+
     _channel?.sink.add(jsonEncode({"RequestType": "Deletion", "RecipientUsername": forUsername, "IDs": forMessageIds}));
   }
 
   void disconnect() {
     _manuallyDisconnected = true;
+    _isConnecting = false; // ← AGGIUNTO
 
     _channel?.sink.close();
     _channel = null;
