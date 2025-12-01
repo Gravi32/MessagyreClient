@@ -187,7 +187,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                           ),
                         ),
                         Text(
-                          "${incomingGrades.length} planifiées",
+                          "${plannedGrades.length} planifiées",
                           maxLines: 2,
                           overflow: TextOverflow.fade,
                           softWrap: true,
