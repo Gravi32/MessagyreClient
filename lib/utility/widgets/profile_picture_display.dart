@@ -23,10 +23,6 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
   final data = Data();
   double diameter = 0;
 
-  Widget buildErrorWidget(BuildContext context) {
-    return SizedBox.square(dimension: 30, child: HugeIcon(icon: HugeIcons.strokeRoundedWifiError02, size: 20));
-  }
-
   Widget withoutPicture() {
     final firstLetter = widget.accountUsername == null || widget.accountUsername!.isNotEmpty ? widget.accountUsername![0] : '?';
     final color = Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) % Colors.primaries.length];
@@ -60,7 +56,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
               width: diameter,
               height: diameter,
               fit: BoxFit.cover,
-              errorWidget: (context, _, _) => buildErrorWidget(context),
+              errorWidget: (context, _, _) => withoutPicture(),
             ),
           ),
         );
@@ -83,7 +79,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                   width: diameter,
                   height: diameter,
                   fit: BoxFit.cover,
-                  errorWidget: (context, _, _) => buildErrorWidget(context),
+                  errorWidget: (context, _, _) => withoutPicture(),
                 ),
               ),
             );
