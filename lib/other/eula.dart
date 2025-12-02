@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class EulaPage extends StatefulWidget {
   final bool readOnly;
@@ -103,9 +104,10 @@ Messagyre se reserve le droit de modifier les presentes conditions afin de respe
 *11. Acceptation finale*
 En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve l'ensemble de ces conditions et s'engage a respecter un comportement responsable, legal et respectueux envers les autres membres de la plateforme.
 
-Messagyre - Pietro Gravina
 
-""", style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
+
+*Messagyre* - *Pietro Gravina*
+""", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: CupertinoColors.label.resolveFrom(context))),
                   ),
                 ),
               ),
@@ -116,19 +118,27 @@ Messagyre - Pietro Gravina
                   backgroundColor: CupertinoColors.transparent,
                   children: [
                     CupertinoListTile(
-                      title: Text("J'ai lu et j'accepte les conditions", style: TextStyle(color: CupertinoColors.white)),
+                      title: Text(
+                        "J'ai lu et j'accepte les conditions",
+                        style: TextStyle(color: hasScrolledToEnd ? CupertinoColors.white : CupertinoColors.inactiveGray.resolveFrom(context)),
+                      ),
                       trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
+                      subtitle: hasScrolledToEnd ? null : Text("Lisez le document pour continuer"),
                       onTap: null,
                     ),
                   ],
                 ),
+
                 if (accepted)
                   CupertinoListSection.insetGrouped(
                     backgroundColor: CupertinoColors.transparent,
                     children: [
-                      CupertinoListTile(
-                        title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
-                        onTap: _acceptEula,
+                      Shimmer(
+                        interval: Duration(seconds: 5),
+                        child: CupertinoListTile(
+                          title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
+                          onTap: _acceptEula,
+                        ),
                       ),
                     ],
                   ),
