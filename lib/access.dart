@@ -96,6 +96,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
     }
 
     // Connecting to the WebSocket
+    router.isAccessOverlayOpen = false;
     router.connect();
 
     // Closing the page

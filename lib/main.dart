@@ -9,6 +9,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/other/eula.dart';
 import 'package:messagyre_client/other/firebase_api.dart';
+import 'package:messagyre_client/other/lifecycle_handler.dart';
 import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -34,7 +35,6 @@ void main() async {
 
   // Initializing Hive and other stuff
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsBinding.instance.addObserver(_AppLifecycleObserver());
 
   try {
     await Hive.initFlutter();
@@ -93,7 +93,7 @@ void main() async {
     ),
   );
 
-  runApp(Phoenix(child: App()));
+  runApp(Phoenix(child: LifecycleHandler(child: App())));
 }
 
 class App extends StatelessWidget {
@@ -204,16 +204,5 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             ),
           ),
     );
-  }
-}
-
-class _AppLifecycleObserver extends WidgetsBindingObserver {
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      final controller = ConnectionController();
-      controller.connectionAttempts = 0;
-      if (!controller.isConnected) controller.connect();
-    }
   }
 }

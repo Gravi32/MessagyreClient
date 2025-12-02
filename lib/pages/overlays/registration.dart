@@ -142,6 +142,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       }
       isWaitingForResponse = false;
 
+      router.isAccessOverlayOpen = false;
       router.connect();
     }
   }

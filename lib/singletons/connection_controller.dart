@@ -53,6 +53,8 @@ class ConnectionController {
   int connectionAttempts = 0;
   WebSocketChannel? _channel;
 
+  bool isAccessOverlayOpen = false;
+
   // Events
 
   /* Stream for the received WebSocket messages */
@@ -68,13 +70,14 @@ class ConnectionController {
   Stream<Map<String, Object>> get onMessageDeletionReceived => _messageDeletionController.stream;
 
   void onUnauthorized() {
-    if (navigatorKey.currentState?.widget is AccessOverlay) return;
+    if (isAccessOverlayOpen || navigatorKey.currentState?.widget is AccessOverlay) return;
+    isAccessOverlayOpen = true;
     navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
   }
 
   bool get isConnected => _channel != null;
   bool _manuallyDisconnected = false;
-  bool _isConnecting = false; // ← AGGIUNTO: flag per evitare connessioni multiple
+  bool _isConnecting = false;
 
   Future<void> start() async {
     data.token = await secureStorage.read(key: "AccessToken");
@@ -85,7 +88,7 @@ class ConnectionController {
       return;
     }
 
-    await connect(); // ← AGGIUNTO: await per aspettare la connessione
+    await connect();
   }
 
   Future<http.Response> refreshAccessToken() async {
@@ -143,6 +146,11 @@ class ConnectionController {
   }
 
   Future<void> connect() async {
+    if (isAccessOverlayOpen) {
+      debugPrint("[WebSocket] Tried to connect while on AccessOverlay.");
+      return;
+    }
+    
     if (isConnected) {
       debugPrint("[WebSocket] Already connected, ignoring connect() call");
       return;
