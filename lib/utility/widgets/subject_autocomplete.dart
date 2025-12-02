@@ -148,7 +148,10 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           },
         );
       },
-      optionsViewBuilder: (context, onSelected, options) {
+      optionsViewBuilder: (context, onSelected, rawOptions) {
+        final options = rawOptions.toList();
+        options.remove(Subject.NotSet);
+
         return Container(
           margin: const EdgeInsets.only(top: 8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
