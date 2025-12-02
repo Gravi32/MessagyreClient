@@ -1,14 +1,15 @@
 plugins {
     id("com.android.application")
-    id("kotlin-android") 
-    id("dev.flutter.flutter-gradle-plugin")
+    id("kotlin-android")
     id("com.google.gms.google-services")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.graviware.messagyre"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -17,9 +18,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
-        apiVersion = "2.1" 
-        languageVersion = "2.1"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     dependencies {
