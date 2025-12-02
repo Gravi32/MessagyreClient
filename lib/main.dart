@@ -146,6 +146,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final router = ConnectionController();
   late final data = Data();
   late final PageController pageController;
+  late final List<Widget> builtPages;
 
   bool isAnimating = false;
 
@@ -158,6 +159,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     NotificationController().init(context);
 
     pageController = PageController(initialPage: MainPage.pageIndex.value);
+    builtPages = App.pages.map((p) => KeepAliveWrapper(child: p.build())).toList();
 
     MainPage.pageIndex.addListener(() {
       if (isAnimating) return;
@@ -187,19 +189,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      body: PageView.builder(
+      body: PageView(
         controller: pageController,
-        itemCount: App.pages.length,
         allowImplicitScrolling: true,
         physics: const BouncingScrollPhysics(),
         onPageChanged: (index) {
           if (!isAnimating) MainPage.pageIndex.value = index;
         },
-
-        itemBuilder: (context, index) {
-          final page = App.pages[index].build();
-          return KeepAliveWrapper(child: page);
-        },
+        children: builtPages,
       ),
 
       bottomNavigationBar: ValueListenableBuilder<int>(
