@@ -338,12 +338,37 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
                 return chatsList.isEmpty
                     ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 10,
+                      spacing: 2,
                       children: [
-                        HugeIcon(icon: HugeIcons.strokeRoundedSparkles, strokeWidth: .5, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
+                        Opacity(
+                          opacity: .25,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedSleeping,
+                            strokeWidth: 1.5,
+                            size: 48,
+                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         Text(
-                          "Entamez une conversation !",
-                          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
+                          "Silence total...",
+                          style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 22),
+                        ),
+                        Text(
+                          "Messagyre est fait pour discuter !",
+                          style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        ),
+                        CupertinoButton(
+                          onPressed: () => MainPage.pageIndex.value = 3,
+                          padding: EdgeInsets.only(top: 40),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              Text("Briser la glace", style: TextStyle(fontWeight: FontWeight.w400)),
+                              HugeIcon(icon: HugeIcons.strokeRoundedBubbleChatAdd, size: 18),
+                            ],
+                          ),
                         ),
                       ],
                     )

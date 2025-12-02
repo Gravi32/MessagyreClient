@@ -24,21 +24,12 @@ class _GroupPageState extends State<GroupPage> {
       return gradeB.date.compareTo(gradeA.date);
     });
 
-    return widget.grades.isEmpty
-        ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 10,
-          children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 40, strokeWidth: .5, color: CupertinoColors.separator.resolveFrom(context)),
-            Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
-          ],
-        )
-        : ListView.builder(
-          padding: EdgeInsets.only(top: 8),
-          itemCount: widget.grades.length,
-          itemBuilder:
-              (context, index) => GradeBar(gradeData: widget.grades.elementAt(index), onTap: () => showNewGradePopup(toEdit: widget.grades.elementAt(index))),
-        );
+    return ListView.builder(
+      padding: EdgeInsets.only(top: 8),
+      itemCount: widget.grades.length,
+      itemBuilder:
+          (context, index) => GradeBar(gradeData: widget.grades.elementAt(index), onTap: () => showNewGradePopup(toEdit: widget.grades.elementAt(index))),
+    );
   }
 
   void showNewGradePopup({Grade? toEdit}) async {
@@ -52,7 +43,8 @@ class _GroupPageState extends State<GroupPage> {
             onDelete: () {
               widget.grades.remove(toEdit);
               setState(() {});
-              
+
+              // Closing the page if empty
               if (widget.grades.isEmpty && mounted) {
                 Navigator.of(context).pop();
               }
@@ -75,6 +67,7 @@ class _GroupPageState extends State<GroupPage> {
 
       await toEdit.save();
 
+      // Closing the page if empty
       if (widget.grades.length == 1 && newGrade.groupName == null) {
         if (mounted) Navigator.of(context).pop();
         return;

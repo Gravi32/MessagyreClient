@@ -157,57 +157,48 @@ class _SubjectPageState extends State<SubjectPage> {
       return gradeB.date.compareTo(gradeA.date);
     });
 
-    return subjectGrades.isEmpty
-        ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 10,
-          children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, size: 40, strokeWidth: .5, color: CupertinoColors.separator.resolveFrom(context)),
-            Text("Ajoutez une note !", style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.separator.resolveFrom(context))),
-          ],
-        )
-        : Column(
-          spacing: 1,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.only(top: 8),
-              itemCount: barsToBuild,
-              itemBuilder: (context, index) {
-                return index + 1 <= barsToBuild - groupNames.length
-                    ? GradeBar(gradeData: subjectGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: subjectGrades.elementAt(index)))
-                    : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
-              },
-            ),
+    return Column(
+      spacing: 1,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.only(top: 8),
+          itemCount: barsToBuild,
+          itemBuilder: (context, index) {
+            return index + 1 <= barsToBuild - groupNames.length
+                ? GradeBar(gradeData: subjectGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: subjectGrades.elementAt(index)))
+                : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
+          },
+        ),
 
-            if (subjectIncomingGrades.isNotEmpty) ...[
-              Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-              Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
-            ],
+        if (subjectIncomingGrades.isNotEmpty) ...[
+          Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+        ],
 
-            ListView.builder(
-              padding: EdgeInsets.zero,
-              itemBuilder: (context, index) {
-                final homework = subjectIncomingGrades[index];
-                final grade =
-                    Grade()
-                      ..title = homework.content
-                      ..date = homework.dueDate;
-                return GradeBar(
-                  gradeData: grade,
-                  onTap: () {},
-                  isGradeUnknown: true,
-                  isIncoming: homework.dueDate.isBefore(DateTime.now()),
-                  isPlanned: homework.dueDate.isAfter(DateTime.now()),
-                );
-              },
-              itemCount: subjectIncomingGrades.length,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-            ),
-          ],
-        );
+        ListView.builder(
+          padding: EdgeInsets.zero,
+          itemBuilder: (context, index) {
+            final homework = subjectIncomingGrades[index];
+            final grade =
+                Grade()
+                  ..title = homework.content
+                  ..date = homework.dueDate;
+            return GradeBar(
+              gradeData: grade,
+              onTap: () {},
+              isGradeUnknown: true,
+              isIncoming: homework.dueDate.isBefore(DateTime.now()),
+              isPlanned: homework.dueDate.isAfter(DateTime.now()),
+            );
+          },
+          itemCount: subjectIncomingGrades.length,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+        ),
+      ],
+    );
   }
 
   void showNewGradePopup({Grade? toEdit}) async {
@@ -222,6 +213,11 @@ class _SubjectPageState extends State<SubjectPage> {
               allGrades.delete(toEdit);
               loadGrades();
               setState(() {});
+
+              // Closing the page if empty
+              if (!allGrades.values.any((grade) => grade.subject == widget.subject)) {
+                if (mounted) Navigator.of(context).pop();
+              }
             },
           ),
     );

@@ -69,7 +69,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                   size: 48,
                   isIncoming: incomingGrades.isNotEmpty,
                   isPlanned: plannedGrades.isNotEmpty,
-                  roundGrade: false
+                  roundGrade: false,
                 ),
                 SizedBox(width: 12),
                 Expanded(
@@ -198,7 +198,7 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                   ),
                 ],
               ),
-              GradeDisplay(grade: average, size: 64, roundGrade: false,),
+              GradeDisplay(grade: average, size: 64, roundGrade: false),
             ],
           ),
           Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
@@ -285,12 +285,37 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
                     return subjectGradesList.isEmpty
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 10,
+                          spacing: 2,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedSparkles, strokeWidth: .5, size: 36, color: CupertinoColors.separator.resolveFrom(context)),
+                            Opacity(
+                              opacity: .25,
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedDashedLine02,
+                                strokeWidth: 1.5,
+                                size: 48,
+                                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
                             Text(
-                              "Ajoutez une note !",
-                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: CupertinoColors.separator.resolveFrom(context)),
+                              "Rien pour le moment...",
+                              style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 22),
+                            ),
+                            Text(
+                              "Vos résultats s'afficheront ici",
+                              style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            ),
+                            CupertinoButton(
+                              onPressed: () => showNewHomeworkPopup(),
+                              padding: EdgeInsets.only(top: 40),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                spacing: 6,
+                                children: [
+                                  Text("Ajouter une note", style: TextStyle(fontWeight: FontWeight.w400)),
+                                  HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18),
+                                ],
+                              ),
                             ),
                           ],
                         )
