@@ -21,7 +21,7 @@ class GradesPage extends StatefulWidget {
   State<StatefulWidget> createState() => _GradesPageState();
 }
 
-class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMixin {
+class _GradesPageState extends State<GradesPage> {
   final router = ConnectionController();
   final data = Data();
 
@@ -219,9 +219,6 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   void initState() {
     super.initState();
     allGrades = Hive.box<Grade>("Grades");
@@ -265,8 +262,6 @@ class _GradesPageState extends State<GradesPage> with AutomaticKeepAliveClientMi
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return CupertinoPageScaffold(
       child: Stack(
         children: [

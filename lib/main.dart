@@ -145,6 +145,9 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final router = ConnectionController();
   late final data = Data();
+  late final PageController pageController;
+
+  bool isAnimating = false;
 
   @override
   void initState() {
@@ -152,10 +155,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     router.start();
     WidgetsBinding.instance.addObserver(this);
-
     NotificationController().init(context);
 
-    MainPage.pageIndex.addListener(() => setState(() {}));
+    pageController = PageController(initialPage: MainPage.pageIndex.value);
+
+    MainPage.pageIndex.addListener(() {
+      if (isAnimating) return;
+
+      isAnimating = true;
+      pageController
+          .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)
+          .then((_) => isAnimating = false);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       askUserToAcceptEula(context);
@@ -165,6 +176,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    pageController.dispose();
     MainPage.pageIndex.dispose();
     router.disconnect();
     super.dispose();
@@ -172,13 +184,28 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: MainPage.pageIndex,
-      builder:
-          (context, currentIndex, _) => Scaffold(
-            extendBody: true,
-            body: IndexedStack(index: currentIndex, children: App.pages.map((page) => page.build()).toList()),
-            bottomNavigationBar: CustomNavigationBar(
+    return Scaffold(
+      extendBody: true,
+      resizeToAvoidBottomInset: false,
+      body: PageView.builder(
+        controller: pageController,
+        itemCount: App.pages.length,
+        allowImplicitScrolling: true,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: (index) {
+          if (!isAnimating) MainPage.pageIndex.value = index;
+        },
+
+        itemBuilder: (context, index) {
+          final page = App.pages[index].build();
+          return KeepAliveWrapper(child: page);
+        },
+      ),
+
+      bottomNavigationBar: ValueListenableBuilder<int>(
+        valueListenable: MainPage.pageIndex,
+        builder:
+            (context, currentIndex, _) => CustomNavigationBar(
               isFloating: true,
               borderRadius: const Radius.circular(12),
               backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
@@ -190,19 +217,38 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                   App.pages
                       .map(
                         (page) => CustomNavigationBarItem(
-                          icon: HugeIcon(icon: page.icon), //Icon(page.idleIcon),
+                          icon: HugeIcon(icon: page.icon),
                           selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
-                          // title: Text(
-                          //   page.name,
-                          //   overflow: TextOverflow.fade,
-                          //   softWrap: false,
-                          //   style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                          // ),
+                          title: Text(
+                            page.name,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          ),
                         ),
                       )
                       .toList(),
             ),
-          ),
+      ),
     );
+  }
+}
+
+class KeepAliveWrapper extends StatefulWidget {
+  final Widget child;
+  const KeepAliveWrapper({required this.child, super.key});
+
+  @override
+  State<KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<KeepAliveWrapper> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

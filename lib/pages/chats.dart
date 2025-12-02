@@ -21,7 +21,7 @@ class ChatsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ChatsPageState();
 }
 
-class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixin {
+class _ChatsPageState extends State<ChatsPage> {
   final router = ConnectionController();
   final data = Data();
 
@@ -169,8 +169,6 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
   }
 
   // Overrides
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -292,8 +290,6 @@ class _ChatsPageState extends State<ChatsPage> with AutomaticKeepAliveClientMixi
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return CupertinoPageScaffold(
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {

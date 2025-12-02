@@ -35,7 +35,7 @@ class SearchPage extends StatefulWidget {
   State<StatefulWidget> createState() => SearchPageState();
 }
 
-class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMixin {
+class SearchPageState extends State<SearchPage> {
   final router = ConnectionController();
   final data = Data();
   final searchBarController = TextEditingController();
@@ -230,9 +230,6 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   void initState() {
     super.initState();
 
@@ -257,8 +254,6 @@ class SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMix
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.translucent,
