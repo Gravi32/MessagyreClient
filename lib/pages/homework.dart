@@ -8,6 +8,7 @@ import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -1009,58 +1010,70 @@ class _HomeworkPageState extends State<HomeworkPage> {
               ),
             ),
             AnimatedBuilder(
-              animation: timelineController,
+              animation: Listenable.merge([timelineController, MainPage.pageIndex]),
               builder: (context, _) {
                 final currentPage =
                     (timelineController.hasClients ? timelineController.page ?? timelineController.initialPage : timelineController.initialPage).round();
                 final dayDistance = currentPage - tomorrowPageIndex;
                 final isAtTomorrow = dayDistance.abs() < 0.1;
+                final isAtThisPage = MainPage.pageIndex.value == 1;
 
                 return Positioned(
                   bottom: MediaQuery.paddingOf(context).bottom + 20,
                   right: 20,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CupertinoPressable(
-                        onTap:
-                            () => setState(() {
-                              currentViewingTestIndex = -1;
-                              animateToPage(tomorrowPageIndex);
-                            }),
-                        padding: EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(isAtTomorrow ? 0 : 1),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: CupertinoColors.black.withAlpha(isAtTomorrow ? 0 : 30),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child:
-                            isAtTomorrow
-                                ? SizedBox.shrink()
-                                : HugeIcon(
+                  child: AnimatedOpacity(
+                    opacity: isAtThisPage ? 1 : 0,
+                    duration: Duration(milliseconds: isAtThisPage ? 300 : 100),
+
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        AnimatedScale(
+                          scale: isAtTomorrow ? 0 : 1,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOutBack,
+                          child: AnimatedOpacity(
+                            opacity: isAtTomorrow ? 0 : 1,
+                            duration: const Duration(milliseconds: 100),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: CupertinoPressable(
+                                onTap:
+                                    isAtTomorrow
+                                        ? null
+                                        : () => setState(() {
+                                          currentViewingTestIndex = -1;
+                                          animateToPage(tomorrowPageIndex);
+                                        }),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
+                                  ],
+                                ),
+                                child: HugeIcon(
                                   icon: dayDistance > 0 ? HugeIcons.strokeRoundedCalendarCheckIn01 : HugeIcons.strokeRoundedCalendarCheckOut01,
                                   color: CupertinoColors.label.resolveFrom(context),
                                 ),
-                      ),
-                      SizedBox(height: 10),
-                      CupertinoPressable(
-                        onTap: showNewHomeworkPopup,
-                        padding: EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
+                              ),
+                            ),
+                          ),
                         ),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
-                      ),
-                    ],
+
+                        CupertinoPressable(
+                          onTap: showNewHomeworkPopup,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
+                          ),
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

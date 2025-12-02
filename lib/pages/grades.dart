@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -408,13 +409,24 @@ class _GradesPageState extends State<GradesPage> {
           Positioned(
             bottom: MediaQuery.paddingOf(context).bottom + 20,
             right: 20,
-            child: GestureDetector(
-              onTap: showNewHomeworkPopup,
-              child: Container(
-                padding: EdgeInsets.all(14),
-                decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
-              ),
+            child: ValueListenableBuilder(
+              valueListenable: MainPage.pageIndex,
+              builder:
+                  (context, pageIndex, _) => AnimatedOpacity(
+                    opacity: pageIndex == 0 ? 1 : 0,
+                    duration: Duration(milliseconds: 300),
+                    child: GestureDetector(
+                      onTap: showNewHomeworkPopup,
+                      child: Container(
+                        padding: EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                      ),
+                    ),
+                  ),
             ),
           ),
         ],

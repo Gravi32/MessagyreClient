@@ -189,14 +189,19 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      body: PageView(
-        controller: pageController,
-        allowImplicitScrolling: true,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (index) {
-          if (!isAnimating) MainPage.pageIndex.value = index;
-        },
-        children: builtPages,
+      body: Positioned.fill(
+        child: Container(
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: PageView(
+            controller: pageController,
+            allowImplicitScrolling: true,
+            physics: const BouncingScrollPhysics(),
+            onPageChanged: (index) {
+              if (!isAnimating) MainPage.pageIndex.value = index;
+            },
+            children: builtPages,
+          ),
+        ),
       ),
 
       bottomNavigationBar: ValueListenableBuilder<int>(

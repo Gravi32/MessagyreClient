@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
@@ -158,9 +159,8 @@ class SearchPageState extends State<SearchPage> {
                 child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0, end: backgroundFigureAnimation),
                   curve: Curves.easeOutCubic,
-                  duration: Duration(seconds: backgroundFigureAnimation > 0 ? 2 : 0),
-                  builder: (context, rawAlpha, child) {
-                    final double alpha = backgroundFigureAnimation > 0 ? rawAlpha : 0;
+                  duration: Duration(seconds: backgroundFigureAnimation > 0 ? 2 : 1),
+                  builder: (context, alpha, child) {
 
                     return Stack(
                       alignment: Alignment.center,
@@ -229,27 +229,21 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    Future.delayed(Duration(milliseconds: 100), () {
-      if (mounted) {
-        setState(() {
-          backgroundFigureAnimation = 1;
-        });
-      }
-    });
+  void triggerAnimation() {
+    print("called: ${MainPage.pageIndex.value}");
+    setState(() => backgroundFigureAnimation = MainPage.pageIndex.value == 3 ? 1 : 0);
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    setState(() => backgroundFigureAnimation = 0);
+  void initState() {
+    super.initState();
+    MainPage.pageIndex.addListener(triggerAnimation);
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() => backgroundFigureAnimation = 1);
-    });
+  @override
+  void dispose() {
+    MainPage.pageIndex.removeListener(triggerAnimation);
+    super.dispose();
   }
 
   @override
