@@ -5,7 +5,6 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -332,13 +331,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           builder:
                               (ctx) => CupertinoAlertDialog(
                                 title: Text("Importation terminée"),
-                                content: Text("Les données ont été importées avec succès."),
+                                content: Text(
+                                  "Les données ont été importées avec succès.\n\nPour qu'elles s'appliquent il est nécessaire de redémarrer Messagyre !",
+                                ),
                                 actions: [
                                   CupertinoDialogAction(
-                                    child: Text("OK"),
+                                    child: Text("Ok"),
                                     onPressed: () {
                                       Navigator.pop(ctx);
-                                      Phoenix.rebirth(context);
                                     },
                                   ),
                                 ],
