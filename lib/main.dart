@@ -21,6 +21,7 @@ import 'package:messagyre_client/singletons/notifications_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:upgrader/upgrader.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -50,7 +51,6 @@ void main() async {
     await Hive.openBox<Grade>("Grades");
     await Hive.openBox<List>("SubjectOrder");
     await Hive.openBox<Settings>("Settings");
-
   } catch (e) {
     debugPrint("Hive could not be initialized: $e");
   }
@@ -110,6 +110,8 @@ class App extends StatelessWidget {
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),
   ];
 
+  final upgader = Upgrader(debugDisplayAlways: true);
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Brightness>(
@@ -119,7 +121,7 @@ class App extends StatelessWidget {
           navigatorKey: navigatorKey,
           theme: CupertinoThemeData(brightness: brightness, primaryColor: Color.fromRGBO(100, 25, 104, 1)),
           localizationsDelegates: [DefaultMaterialLocalizations.delegate, DefaultCupertinoLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
-          home: MainPage(),
+          home: UpgradeAlert(upgrader: upgader, dialogStyle: UpgradeDialogStyle.cupertino, showIgnore: false, showLater: true, child: MainPage()),
         );
       },
     );
