@@ -253,7 +253,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
 
                   // Homework content
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
