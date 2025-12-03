@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
@@ -63,7 +64,7 @@ class _GradesPageState extends State<GradesPage> {
                     final firstPlannedGrade = plannedGrades.elementAtOrNull(0);
 
                     if (firstIncomingGrade != null) {
-                      showNewHomeworkPopup(toReference: firstIncomingGrade);
+                      showNewGradePopup(toReference: firstIncomingGrade);
                       return;
                     }
 
@@ -222,12 +223,16 @@ class _GradesPageState extends State<GradesPage> {
     );
   }
 
-  void showNewHomeworkPopup({Grade? toEdit, Homework? toReference}) async {
+  void showNewGradePopup({Grade? toEdit, Homework? toReference}) async {
     final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGrade(toReference: toReference));
 
     if (newGrade == null) return;
 
     if (toEdit != null) toEdit.delete();
+
+    if (allGrades.isEmpty && await InAppReview.instance.isAvailable()) {
+      InAppReview.instance.requestReview();
+    }
 
     allGrades.add(newGrade);
     setState(() {});
@@ -316,7 +321,7 @@ class _GradesPageState extends State<GradesPage> {
                               style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                             ),
                             CupertinoButton(
-                              onPressed: () => showNewHomeworkPopup(),
+                              onPressed: () => showNewGradePopup(),
                               padding: EdgeInsets.only(top: 40),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -430,7 +435,7 @@ class _GradesPageState extends State<GradesPage> {
                     opacity: pageIndex == 0 ? 1 : 0,
                     duration: Duration(milliseconds: 300),
                     child: GestureDetector(
-                      onTap: showNewHomeworkPopup,
+                      onTap: showNewGradePopup,
                       child: Container(
                         padding: EdgeInsets.all(14),
                         decoration: BoxDecoration(
