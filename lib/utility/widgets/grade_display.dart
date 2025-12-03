@@ -105,7 +105,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
               // Grade
               if (!isGradeHidden)
                 Text(
-                  animatedGrade % 1 == 0 ? animatedGrade.toInt().toString() : animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2),
+                  animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), ''),
+
                   style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
                 ),
 
