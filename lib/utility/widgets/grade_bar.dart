@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 
@@ -21,9 +22,9 @@ class GradeBar extends StatelessWidget {
 
     return Column(
       children: [
-        CupertinoButton(
+        CupertinoPressable(
           padding: EdgeInsets.zero,
-          onPressed: isGradeUnknown ? null : onTap,
+          onTap: isGradeUnknown ? null : onTap,
           child: Row(
             children: [
               GradeDisplay(
@@ -73,10 +74,11 @@ class GradeBar extends StatelessWidget {
                               ],
                             ),
                           ),
+
                         Text(
                           isGradeUnknown
                               ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                              : formatDate(gradeData.date).capitalize(),
+                              : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
                           maxLines: 2,
                           overflow: TextOverflow.fade,
                           softWrap: true,
@@ -86,6 +88,10 @@ class GradeBar extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              Opacity(
+                opacity: .75,
+                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
               ),
             ],
           ),
