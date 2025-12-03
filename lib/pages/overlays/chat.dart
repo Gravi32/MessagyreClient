@@ -49,7 +49,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   final messageFieldFocusNode = FocusNode();
   final Map<String, GlobalKey> bubbleKeys = {};
 
-  Set<Message> animatedMessages = {};
+  Set<String> messagesIdToAnimate = {};
   bool isLoading = false;
 
   int visibleMessageCount = 150;
@@ -67,6 +67,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     setState(() {
       chatData.content.add(newMessage);
+      messagesIdToAnimate.add(newMessage.id);
     });
 
     router.sendMessageStatusUpdate([newMessage.id], chatData.recipientUsername, MessageStatus.Read);
@@ -116,8 +117,8 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
       setState(() {
         chatData.content.add(message);
+        messagesIdToAnimate.add(message.id);
       });
-
       if (router.isConnected) {
         router.send(message.id, widget.recipientUsername, input);
         message.statusNotifier.value = MessageStatus.Sending;
@@ -563,9 +564,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, bool isPreview) {
-    final alreadyAnimated = animatedMessages.contains(data);
-    if (!alreadyAnimated) animatedMessages.add(data);
-
+    final shouldAnimate = messagesIdToAnimate.contains(data.id);
     bubbleKeys.putIfAbsent("${data.id}-${data.isOwned}", () => GlobalKey());
 
     BorderRadius getBubbleShape(bool isOwned) {
@@ -593,6 +592,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     Color getBubbleColor(bool isOwned) {
       final isDarkMode = CupertinoTheme.brightnessOf(context) == Brightness.dark;
       final color = isOwned ? (isDarkMode ? Color(0xFF56009C) : Color(0xFFE0AAFF)) : (isDarkMode ? const Color(0xFF3D3D3D) : CupertinoColors.systemGrey3);
+
       return data.isDeleted ? color.withAlpha(200) : color;
     }
 
@@ -600,7 +600,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       alignment: data.isOwned ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
         key: isPreview ? null : bubbleKeys["${data.id}-${data.isOwned}"],
-        onLongPressStart: isPreview || !data.isOwned && data.isDeleted ? null : (details) => showMessageContextMenu(context, data),
+        onLongPressStart: isPreview || (!data.isOwned && data.isDeleted) ? null : (details) => showMessageContextMenu(context, data),
         child: Container(
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
@@ -625,7 +625,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                         WidgetSpan(
                           alignment: PlaceholderAlignment.middle,
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 4),
+                            padding: EdgeInsets.only(right: 4),
                             child: Opacity(
                               opacity: .6,
                               child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.white.withAlpha(150)),
@@ -671,18 +671,11 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       ),
     );
 
-    if (alreadyAnimated) {
+    if (!shouldAnimate) {
       return bubbleContent;
     } else {
-      return TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: 1),
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeOutBack,
-        builder: (context, value, child) {
-          return Transform.translate(offset: Offset((data.isOwned ? -1 : 1) * -200 * (1 - value), 0), child: Transform.scale(scale: value, child: child));
-        },
-        child: bubbleContent,
-      );
+      print("animating");
+      return AnimatedMessageBubble(key: ValueKey(data.id), isOwned: data.isOwned, child: bubbleContent);
     }
   }
 
@@ -908,6 +901,56 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
           ),
         ],
       ),
+    );
+  }
+}
+
+class AnimatedMessageBubble extends StatefulWidget {
+  final Widget child;
+  final bool isOwned;
+  const AnimatedMessageBubble({required this.child, required this.isOwned, super.key});
+
+  @override
+  State<AnimatedMessageBubble> createState() => _AnimatedMessageBubbleState();
+}
+
+class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 600));
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (context.mounted) {
+          final parentState = context.findAncestorStateOfType<_ChatOverlayState>();
+          parentState?.messagesIdToAnimate.add((widget.key as ValueKey).value);
+        }
+      }
+    });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (_, child) {
+        final value = _animation.value;
+        return Transform.translate(offset: Offset(widget.isOwned ? -1 : 1, 50 * (1 - value)), child: Opacity(opacity: value.clamp(0, 1), child: child));
+      },
+      child: widget.child,
     );
   }
 }
