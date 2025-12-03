@@ -28,7 +28,7 @@ class MessageAdapter extends TypeAdapter<Message> {
       content: fields.get(0, "Une erreur s'est produite."),
       sentAt: fields.get(1, DateTime(0)),
       isOwned: fields.get(2, false),
-      isDeleted: fields.get(5, false)
+      isDeleted: fields.get(5, false),
     ).._status = MessageStatus.values.firstWhere((e) => e.name == fields.get(4, MessageStatus.Failed.name));
   }
 

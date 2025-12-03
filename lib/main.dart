@@ -50,6 +50,7 @@ void main() async {
     await Hive.openBox<Grade>("Grades");
     await Hive.openBox<List>("SubjectOrder");
     await Hive.openBox<Settings>("Settings");
+
   } catch (e) {
     debugPrint("Hive could not be initialized: $e");
   }

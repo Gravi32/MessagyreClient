@@ -8,6 +8,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class WallpaperSettingsPage extends StatefulWidget {
   const WallpaperSettingsPage({super.key});
@@ -38,6 +40,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
     if (!context.mounted) return;
     final mountedContext = context;
     final size = MediaQuery.of(mountedContext).size;
+
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile.path,
       aspectRatio: CropAspectRatio(ratioX: size.width, ratioY: size.height),
@@ -45,12 +48,26 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
     );
 
     if (croppedFile != null) {
+      final permanentPath = await saveToPermanentDir(croppedFile.path);
+
       setState(() {
-        savedWallpapers.add(croppedFile.path);
-        currentWallpaper = croppedFile.path;
+        savedWallpapers.add(permanentPath);
+        currentWallpaper = permanentPath;
       });
+
       saveData();
     }
+  }
+
+  Future<String> saveToPermanentDir(String originalPath) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final wallpapersDir = Directory(path.join(dir.path, "wallpapers"));
+    if (!wallpapersDir.existsSync()) wallpapersDir.createSync(recursive: true);
+
+    final newPath = path.join(wallpapersDir.path, "wallpaper_${DateTime.now().millisecondsSinceEpoch}${path.extension(originalPath)}");
+
+    final newFile = await File(originalPath).copy(newPath);
+    return newFile.path;
   }
 
   @override
@@ -127,10 +144,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                         child: SizedBox(
                                           width: MediaQuery.of(context).size.aspectRatio * 180,
                                           child: Center(
-                                            child: HugeIcon(
-                                              icon: HugeIcons.strokeRoundedAdd01,
-                                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                                            ),
+                                            child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                                           ),
                                         ),
                                       ),
@@ -211,7 +225,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     CupertinoListTile(
                       backgroundColor: cupertinoListTileColor,
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.label.resolveFrom(context)),
-                      title: Text("Ajoutez une photo de la galérie"),
+                      title: Text("Ajoutez une photo depuis la galérie"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),
                     CupertinoListTile(

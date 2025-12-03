@@ -9,10 +9,23 @@ class Data {
   static final Data _instance = Data._internal();
   factory Data() => _instance;
 
-  Data._internal();
+  Data._internal() {
+    loadSettings();
+  }
 
   late final ConnectionController router = ConnectionController();
-  late final Settings settings = Settings();
+  Settings settings = Settings();
+
+  // Settings
+  void loadSettings() async {
+    final box = Hive.box<Settings>("Settings");
+
+    settings = box.get("Settings", defaultValue: settings) ?? settings;
+
+    if (settings.isInBox == false) {
+      box.put("Settings", settings);
+    }
+  }
 
   // General app appearance
   ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(Brightness.light);
