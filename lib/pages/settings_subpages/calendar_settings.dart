@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 
 class CalendarSettingsPage extends StatefulWidget {
@@ -24,9 +25,11 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
             Column(
               children: [
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: CupertinoColors.transparent,
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
+                      backgroundColor: cupertinoListTileColor,
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: CupertinoColors.label.resolveFrom(context)),
                       title: Text("Inclure les week-ends"),
                       trailing: CupertinoSwitch(

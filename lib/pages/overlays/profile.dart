@@ -184,10 +184,12 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     Column(
                       children: [
                         CupertinoListSection.insetGrouped(
+                          backgroundColor: CupertinoColors.transparent,
                           header: Text("Pseudo"),
                           margin: EdgeInsets.zero,
                           children: [
                             CupertinoListTile(
+                              backgroundColor: cupertinoListTileColor,
                               title: DismissableTextField(
                                 controller: displayNameController,
                                 focusNode: displayNameFocusNode,
@@ -205,10 +207,12 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                         ),
 
                         CupertinoListSection.insetGrouped(
+                          backgroundColor: CupertinoColors.transparent,
                           header: Text("Entrez votre biographie"),
                           margin: EdgeInsets.zero,
                           children: [
                             CupertinoListTile(
+                              backgroundColor: cupertinoListTileColor,
                               title: DismissableTextField(
                                 controller: bioController,
                                 focusNode: bioFocusNode,
@@ -682,7 +686,12 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 : CupertinoColors.label.resolveFrom(context)
             : CupertinoColors.inactiveGray.resolveFrom(context);
 
-    return CupertinoListTile(leading: HugeIcon(icon: icon, color: color), title: Text(title, style: TextStyle(color: color)), onTap: onTap);
+    return CupertinoListTile(
+      backgroundColor: cupertinoListTileColor,
+      leading: HugeIcon(icon: icon, color: color),
+      title: Text(title, style: TextStyle(color: color)),
+      onTap: onTap,
+    );
   }
 
   @override
@@ -762,6 +771,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                 if (isBlocked)
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(
@@ -800,6 +810,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                 if (account.username != data.username) ...[
                   if (!widget.openedFromChat) // Temporary
                     CupertinoListSection.insetGrouped(
+                      backgroundColor: CupertinoColors.transparent,
                       margin: EdgeInsets.zero,
                       children: [
                         if (!widget.openedFromChat)
@@ -825,6 +836,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                 if (box.containsKey(account.username))
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(
@@ -844,6 +856,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                 if (account.username == data.username) ...[
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
@@ -853,6 +866,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     ],
                   ),
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
                   ),
@@ -860,6 +874,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
 
                 if (account.username != data.username) ...[
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       if (!isBlocked)

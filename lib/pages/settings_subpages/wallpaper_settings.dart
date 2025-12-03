@@ -64,9 +64,11 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
             spacing: 12,
             children: [
               CupertinoListSection.insetGrouped(
+                backgroundColor: CupertinoColors.transparent,
                 margin: EdgeInsets.zero,
                 children: [
                   CupertinoListTile(
+                    backgroundColor: cupertinoListTileColor,
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: CupertinoColors.label.resolveFrom(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
@@ -83,6 +85,8 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
               ),
               if (!data.settings.useDefaultWallpaper) ...[
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: CupertinoColors.transparent,
+                  decoration: cupertinoListTileColor != null ? BoxDecoration(color: cupertinoListTileColor) : null,
                   header: Text("Vos fonds d'écran"),
                   margin: EdgeInsets.zero,
                   footer:
@@ -113,7 +117,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                       padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 5),
                                       child: DottedBorder(
                                         options: RoundedRectDottedBorderOptions(
-                                          color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
                                           strokeWidth: 2,
                                           dashPattern: [4, 5],
                                           radius: Radius.circular(8),
@@ -125,7 +129,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                           child: Center(
                                             child: HugeIcon(
                                               icon: HugeIcons.strokeRoundedAdd01,
-                                              color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
                                             ),
                                           ),
                                         ),
@@ -192,6 +196,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     ),
                     if (isEditMode)
                       CupertinoListTile(
+                        backgroundColor: cupertinoListTileColor,
                         leading: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoColors.label.resolveFrom(context)),
                         title: Text("Terminé"),
                         onTap: () => setState(() => isEditMode = false),
@@ -199,14 +204,18 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: CupertinoColors.transparent,
+
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
+                      backgroundColor: cupertinoListTileColor,
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.label.resolveFrom(context)),
                       title: Text("Ajoutez une photo de la galérie"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),
                     CupertinoListTile(
+                      backgroundColor: cupertinoListTileColor,
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: CupertinoColors.label.resolveFrom(context)),
                       title: Text("Prenez une photo"),
                       onTap: () => pickImage(ImageSource.gallery),

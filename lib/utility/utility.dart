@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -44,6 +45,8 @@ extension DateTimeExtension on DateTime {
 Color adaptiveColor(Color light, Color dark) {
   return Data().appBrightness == Brightness.dark ? dark : light;
 }
+
+Color? get cupertinoListTileColor => Data().appBrightness == Brightness.dark ? null : CupertinoColors.secondarySystemBackground;
 
 String formatDate(DateTime targetDate, {bool includeTime = false, bool includeArticle = false}) {
   final now = DateTime.now();
