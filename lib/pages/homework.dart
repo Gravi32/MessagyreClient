@@ -776,6 +776,28 @@ class _HomeworkPageState extends State<HomeworkPage> {
     }
   }
 
+  Widget buildFilterButton(HomeworkViewMode viewMode, List<List> icon, String text) {
+    final isSelected = currentViewMode == viewMode;
+
+    return CupertinoPressable(
+      onTap: () => setState(() => currentViewMode = isSelected ? HomeworkViewMode.byDefault : viewMode),
+      decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+      child: Opacity(
+        opacity: isSelected ? 1 : 0.5,
+        child: Row(
+          spacing: 6,
+          children: [
+            isSelected
+                ? HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: CupertinoColors.destructiveRed.resolveFrom(context))
+                : HugeIcon(icon: icon, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+            Text(text),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     timelineController.dispose();
@@ -830,162 +852,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                       child: Row(
                                         spacing: 6,
                                         children: [
-                                          CupertinoPressable(
-                                            onTap: () => setState(() => currentViewMode = HomeworkViewMode.byDefault),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.byDefault ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(
-                                                    icon: HugeIcons.strokeRoundedCalendar03,
-                                                    size: 16,
-                                                    color: CupertinoColors.label.resolveFrom(context),
-                                                  ),
-                                                  Text("Calendrier"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          CupertinoPressable(
-                                            onTap:
-                                                () => setState(
-                                                  () =>
-                                                      currentViewMode =
-                                                          currentViewMode == HomeworkViewMode.byDueDate
-                                                              ? HomeworkViewMode.byDefault
-                                                              : HomeworkViewMode.byDueDate,
-                                                ),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.byDueDate ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(
-                                                    icon: HugeIcons.strokeRoundedCalendarUpload01,
-                                                    size: 16,
-                                                    color: CupertinoColors.label.resolveFrom(context),
-                                                  ),
-                                                  Text("Par date de remise"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          CupertinoPressable(
-                                            onTap:
-                                                () => setState(
-                                                  () =>
-                                                      currentViewMode =
-                                                          currentViewMode == HomeworkViewMode.bySubject
-                                                              ? HomeworkViewMode.byDefault
-                                                              : HomeworkViewMode.bySubject,
-                                                ),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.bySubject ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(
-                                                    icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                                                    size: 16,
-                                                    color: CupertinoColors.label.resolveFrom(context),
-                                                  ),
-                                                  Text("Par branche"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-
-                                          CupertinoPressable(
-                                            onTap:
-                                                () => setState(
-                                                  () =>
-                                                      currentViewMode =
-                                                          currentViewMode == HomeworkViewMode.testsFirst
-                                                              ? HomeworkViewMode.byDefault
-                                                              : HomeworkViewMode.testsFirst,
-                                                ),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.testsFirst ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, size: 16, color: CupertinoColors.label.resolveFrom(context)),
-                                                  Text("Les tests d'abord"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-
-                                          CupertinoPressable(
-                                            onTap:
-                                                () => setState(
-                                                  () =>
-                                                      currentViewMode =
-                                                          currentViewMode == HomeworkViewMode.testsOnly
-                                                              ? HomeworkViewMode.byDefault
-                                                              : HomeworkViewMode.testsOnly,
-                                                ),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.testsOnly ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, size: 16, color: CupertinoColors.label.resolveFrom(context)),
-                                                  Text("Seulement les tests"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-
-                                          CupertinoPressable(
-                                            onTap:
-                                                () => setState(
-                                                  () =>
-                                                      currentViewMode =
-                                                          currentViewMode == HomeworkViewMode.all ? HomeworkViewMode.byDefault : HomeworkViewMode.all,
-                                                ),
-                                            decoration: BoxDecoration(
-                                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                                            child: Opacity(
-                                              opacity: currentViewMode == HomeworkViewMode.all ? 1 : 0.5,
-                                              child: Row(
-                                                spacing: 6,
-                                                children: [
-                                                  HugeIcon(icon: HugeIcons.strokeRoundedMenu01, size: 16, color: CupertinoColors.label.resolveFrom(context)),
-                                                  Text("Tous"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
+                                          buildFilterButton(HomeworkViewMode.byDueDate, HugeIcons.strokeRoundedCalendarUpload01, "Par date de remise"),
+                                          buildFilterButton(HomeworkViewMode.bySubject, HugeIcons.strokeRoundedCheckmarkBadge04, "Par branche"),
+                                          buildFilterButton(HomeworkViewMode.testsFirst, HugeIcons.strokeRoundedTextCheck, "Les tests d'abord"),
+                                          buildFilterButton(HomeworkViewMode.testsOnly, HugeIcons.strokeRoundedTextCheck, "Seulement les tests"),
+                                          buildFilterButton(HomeworkViewMode.all, HugeIcons.strokeRoundedMenu01, "Tous"),
                                         ],
                                       ),
                                     ),
