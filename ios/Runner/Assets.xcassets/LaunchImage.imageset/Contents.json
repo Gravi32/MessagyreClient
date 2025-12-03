@@ -9,21 +9,10 @@
       "appearances" : [
         {
           "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
-      "filename" : "purple.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
           "value" : "dark"
         }
       ],
-      "filename" : "white.png",
+      "filename" : "LaunchImageDark.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -36,21 +25,10 @@
       "appearances" : [
         {
           "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
-      "filename" : "purple 1.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
           "value" : "dark"
         }
       ],
-      "filename" : "white 1.png",
+      "filename" : "LaunchImageDark@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
@@ -63,21 +41,10 @@
       "appearances" : [
         {
           "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
-      "filename" : "purple 2.png",
-      "idiom" : "universal",
-      "scale" : "3x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
           "value" : "dark"
         }
       ],
-      "filename" : "white 2.png",
+      "filename" : "LaunchImageDark@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

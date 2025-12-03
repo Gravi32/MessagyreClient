@@ -1,6 +1,6 @@
 name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
-publish_to: "none" 
+publish_to: "none"
 
 version: 1.28.420+420
 # 1.0   Initial release
@@ -53,10 +53,10 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   flutter_secure_storage: ^10.0.0-beta.4
   collection: ^1.17.0
-  firebase_core: ^2.32.0      
-  firebase_messaging: ^14.7.10  
-  firebase_auth: ^4.7.0        
-  cloud_firestore: ^4.7.0    
+  firebase_core: ^2.32.0
+  firebase_messaging: ^14.7.10
+  firebase_auth: ^4.7.0
+  cloud_firestore: ^4.7.0
   package_info_plus: ^9.0.0
   modal_bottom_sheet: ^3.0.0
   uuid: ^4.5.1
@@ -105,11 +105,15 @@ flutter_launcher_icons:
   image_path: "assets/icons/full.png"
 
 flutter_native_splash:
-  color: "#ffffff"        
-  image: assets/icons/purple.png
   android: true
   ios: true
+
+  image: assets/icons/purple.png
+  image_dark: assets/icons/white.png
+  
+  color: "#ffffff"
+  color_dark: "#000000"
+
   android_gravity: center
 
-  color_dark: "#000000"
-  image_dark: assets/icons/white.png
+  
