@@ -116,6 +116,7 @@ class ConnectionController {
 
         await secureStorage.write(key: "AccessToken", value: data.token);
         await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+        debugPrint("[!] RefreshToken saved by ConnectionController (${results["RefreshToken"]})");
 
         debugPrint("[RefreshToken] Token refreshed successfully ! New token: ${results["RefreshToken"]}");
       } catch (e) {
@@ -150,7 +151,7 @@ class ConnectionController {
       debugPrint("[WebSocket] Tried to connect while on AccessOverlay.");
       return;
     }
-    
+
     if (isConnected) {
       debugPrint("[WebSocket] Already connected, ignoring connect() call");
       return;
