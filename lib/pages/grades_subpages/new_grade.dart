@@ -16,11 +16,12 @@ import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGrade extends StatefulWidget {
   final Grade? toEdit;
+  final Homework? toReference;
   final Subject? subject;
   final VoidCallback? onDelete;
   final String? groupName;
 
-  const NewGrade({super.key, this.toEdit, this.subject, this.onDelete, this.groupName});
+  const NewGrade({super.key, this.toEdit, this.toReference, this.subject, this.onDelete, this.groupName});
 
   @override
   State<StatefulWidget> createState() => _NewGradeState();
@@ -111,6 +112,19 @@ class _NewGradeState extends State<NewGrade> {
     );
   }
 
+  void referenceHomework(Homework target) {
+    setState(() => referenceId = target.referenceId);
+    referencedHomework = target;
+    referenceId = target.referenceId;
+    subject = target.subject;
+
+    titleController.text = target.content;
+    subjectController.value = TextEditingValue(text: SubjectHelper.toFrenchOrNull(target.subject) ?? "");
+
+    titleFocusNode.unfocus();
+    subjectFocusNode.unfocus();
+  }
+
   Widget buildGradePicker() {
     final grades = List.generate(11, (i) => i * .5 + 1);
     final controller = FixedExtentScrollController(initialItem: grades.indexOf(grade));
@@ -195,6 +209,13 @@ class _NewGradeState extends State<NewGrade> {
     }
 
     return resultList;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.toReference != null) WidgetsBinding.instance.addPostFrameCallback((_) => referenceHomework(widget.toReference!));
   }
 
   @override
@@ -286,10 +307,7 @@ class _NewGradeState extends State<NewGrade> {
                             },
                             onSelected: (homework) {
                               if (homework is! Homework) return;
-                              setState(() => referenceId = homework.referenceId);
-                              referencedHomework = homework;
-                              subjectController.value = TextEditingValue(text: SubjectHelper.toFrenchOrNull(homework.subject) ?? "");
-                              titleFocusNode.unfocus();
+                              referenceHomework(homework);
                             },
                           ),
                           Text(

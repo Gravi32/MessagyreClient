@@ -30,7 +30,7 @@ class _GradesPageState extends State<GradesPage> {
   late Box<Homework> allHomework;
   late Box<List> subjectOrderBox;
   List<MapEntry<Subject, List<Grade>>> subjectGradesList = [];
-  List<Subject> subjectsWithIncomingGrades = [];
+  List<Subject> subjectsWithFutureGrades = [];
 
   bool isIncomingGradesInfoExpanded = false;
 
@@ -57,7 +57,17 @@ class _GradesPageState extends State<GradesPage> {
           padding: EdgeInsets.zero,
           onPressed:
               isGradeUnknown
-                  ? null
+                  ? () {
+                    final firstIncomingGrade = incomingGrades.elementAtOrNull(0);
+                    final firstPlannedGrade = plannedGrades.elementAtOrNull(0);
+
+                    print(firstIncomingGrade);
+
+                    if (firstIncomingGrade != null) {
+                      showNewHomeworkPopup(toReference: firstIncomingGrade);
+                      return;
+                    }
+                  }
                   : () {
                     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
                   },
@@ -208,8 +218,8 @@ class _GradesPageState extends State<GradesPage> {
     );
   }
 
-  void showNewHomeworkPopup({Grade? toEdit}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGrade());
+  void showNewHomeworkPopup({Grade? toEdit, Homework? toReference}) async {
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGrade(toReference: toReference));
 
     if (newGrade == null) return;
 
@@ -242,10 +252,10 @@ class _GradesPageState extends State<GradesPage> {
       subjectGradesMap[grade.subject]!.add(grade);
     }
 
-    subjectsWithIncomingGrades.clear();
+    subjectsWithFutureGrades.clear();
     for (final homework in allHomework.values.sortedBy((homework) => homework.dueDate)) {
       if ((homework.isGraded || homework.isTest) && homework.referenceId != null && !subjectGradesMap.containsKey(homework.subject)) {
-        subjectsWithIncomingGrades.add(homework.subject);
+        subjectsWithFutureGrades.add(homework.subject);
       }
     }
 
@@ -344,7 +354,7 @@ class _GradesPageState extends State<GradesPage> {
                                 },
                               ),
 
-                              if (subjectsWithIncomingGrades.isNotEmpty) ...[
+                              if (subjectsWithFutureGrades.isNotEmpty) ...[
                                 CupertinoPressable(
                                   onTap: () => setState(() => isIncomingGradesInfoExpanded = !isIncomingGradesInfoExpanded),
                                   child: Row(
@@ -391,10 +401,10 @@ class _GradesPageState extends State<GradesPage> {
                               ListView.builder(
                                 padding: EdgeInsets.zero,
                                 itemBuilder: (context, index) {
-                                  final subjectIncomingGrades = subjectsWithIncomingGrades.elementAt(index);
-                                  return buildSubjectBar(subjectIncomingGrades, isGradeUnknown: true);
+                                  final subjectFutureGrade = subjectsWithFutureGrades.elementAt(index);
+                                  return buildSubjectBar(subjectFutureGrade, isGradeUnknown: true);
                                 },
-                                itemCount: subjectsWithIncomingGrades.length,
+                                itemCount: subjectsWithFutureGrades.length,
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
                               ),

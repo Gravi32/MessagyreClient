@@ -45,7 +45,12 @@ class _SubjectPageState extends State<SubjectPage> {
 
     subjectIncomingGrades =
         allHomework.values
-            .where((homework) => homework.subject == widget.subject && (homework.isGraded || homework.isTest))
+            .where(
+              (homework) =>
+                  homework.subject == widget.subject &&
+                  (homework.isGraded || homework.isTest) &&
+                  !subjectGrades.any((grade) => grade.referenceId == homework.referenceId),
+            )
             .sortedBy((homework) => homework.dueDate)
             .toList();
   }
@@ -179,6 +184,9 @@ class _SubjectPageState extends State<SubjectPage> {
 
         ListView.builder(
           padding: EdgeInsets.zero,
+          itemCount: subjectIncomingGrades.length,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
             final homework = subjectIncomingGrades[index];
             final grade =
@@ -193,9 +201,6 @@ class _SubjectPageState extends State<SubjectPage> {
               isPlanned: homework.dueDate.isAfter(DateTime.now()),
             );
           },
-          itemCount: subjectIncomingGrades.length,
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
         ),
       ],
     );
