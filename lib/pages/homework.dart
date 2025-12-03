@@ -5,6 +5,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
+import 'package:flutter_dash/flutter_dash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +41,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   late Map<DateTime, List<Homework>> homeworkByDate;
   final Map<int, HomeworkCardController> homeworkCardControllers = {};
+  final Map<int, ScrollController> dayListViewControllers = {};
   final FocusNode searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
 
@@ -119,8 +121,19 @@ class _HomeworkPageState extends State<HomeworkPage> {
     }
 
     for (var list in grouped.values) {
-      list.sort((a, b) => b.dueDate.compareTo(a.dueDate));
+      list.sort((a, b) {
+        if (a.isTest != b.isTest) {
+          return a.isTest ? -1 : 1;
+        }
+
+        if (a.isGraded != b.isGraded) {
+          return a.isGraded ? -1 : 1;
+        }
+
+        return 0;
+      });
     }
+
     setState(() {
       homeworkByDate = grouped;
     });
@@ -229,16 +242,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   ),
                   child: Stack(
                     children: [
-                      Positioned(
-                        bottom: -10,
-                        right: -5,
-                        child: Transform.rotate(
-                          angle: pi / 40,
-                          child: Opacity(opacity: .6, child: Image.asset("assets/warningSign.png", width: 100, height: 120)),
-                        ),
-                      ),
                       Padding(
-                        padding: EdgeInsetsGeometry.all(6).add(EdgeInsets.only(bottom: 30)),
+                        padding: EdgeInsetsGeometry.all(6),
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +311,51 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     ),
                                   ],
                                 ),
+
+                            Padding(
+                              padding: EdgeInsetsGeometry.symmetric(vertical: 2).add(EdgeInsetsGeometry.only(bottom: 2)),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return Dash(
+                                    direction: Axis.horizontal,
+                                    length: constraints.maxWidth,
+                                    dashLength: 6,
+                                    dashGap: 3,
+                                    dashThickness: 2,
+                                    dashColor: CupertinoColors.quaternaryLabel.resolveFrom(context),
+                                    dashBorderRadius: 2,
+                                  );
+                                },
+                              ),
+                            ),
+
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              spacing: 4,
+                              children: [
+                                Opacity(
+                                  opacity: .6,
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedSearch01,
+                                    color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160),
+                                    size: 16,
+                                  ),
+                                ),
+                                Text(
+                                  "Appuyez pour voir",
+                                  style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160)),
+                                ),
+                              ],
+                            ),
                           ],
+                        ),
+                      ),
+                      Positioned(
+                        bottom: -10,
+                        right: -5,
+                        child: Transform.rotate(
+                          angle: pi / 40,
+                          child: Opacity(opacity: 1, child: Image.asset("assets/warningSign.png", width: 100, height: 120)),
                         ),
                       ),
                     ],
@@ -317,7 +366,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           ),
         ),
         Positioned(
-          top: 0,
+          top: 5,
           right: 10,
           child: GestureDetector(
             onTap: () => setState(() => isNearbyTestsNotifierHidden = true),
@@ -325,28 +374,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
               padding: EdgeInsets.all(4),
               decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
               child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: CupertinoColors.label.resolveFrom(context), size: 16),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 16,
-          left: 20,
-          child: GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 4,
-                children: [
-                  Opacity(
-                    opacity: .6,
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160), size: 16),
-                  ),
-                  Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160))),
-                ],
-              ),
             ),
           ),
         ),
@@ -390,6 +417,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+
           itemCount: sortedHomework.length,
           itemBuilder: (context, index) {
             final date = sortedHomework[index].dueDate;
@@ -723,67 +751,70 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     ],
                   ),
                   Expanded(
-                    child: ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(top: 6, bottom: 20),
-                      clipBehavior: Clip.none,
-                      itemCount: thisDaysHomework.length + 1,
-                      itemBuilder: (context, i) {
-                        if (i < thisDaysHomework.length) {
-                          final homework = thisDaysHomework[i];
+                    child: ClipPath(
+                      clipper: _VerticalClipper(),
+                      child: ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.only(top: 6, bottom: 20),
+                        clipBehavior: Clip.none,
+                        itemCount: thisDaysHomework.length + 1,
+                        itemBuilder: (context, i) {
+                          if (i < thisDaysHomework.length) {
+                            final homework = thisDaysHomework[i];
 
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: HomeworkCard(
-                              homework: homework,
-                              controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                              onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                              onDeleteButtonClicked: () => deleteHomework(homework),
-                              onMarkAsDoneButtonClicked: (isMarkedAsDone) {
-                                bool isAllDone = true;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: HomeworkCard(
+                                homework: homework,
+                                controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
+                                onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
+                                onDeleteButtonClicked: () => deleteHomework(homework),
+                                onMarkAsDoneButtonClicked: (isMarkedAsDone) {
+                                  bool isAllDone = true;
 
-                                for (var homework
-                                    in homeworkByDate.entries.where((entry) => entry.key.isSameDayAs(date)).expand((entry) => entry.value).toList()) {
-                                  if (!homework.isTest && !homework.isMarkedAsDone) isAllDone = false;
-                                }
+                                  for (var homework
+                                      in homeworkByDate.entries.where((entry) => entry.key.isSameDayAs(date)).expand((entry) => entry.value).toList()) {
+                                    if (!homework.isTest && !homework.isMarkedAsDone) isAllDone = false;
+                                  }
 
-                                if (isAllDone) {
-                                  Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
-                                  HapticFeedback.heavyImpact();
-                                }
-                              },
-                            ),
-                          );
-                        }
-                        return GestureDetector(
-                          onTap: () => showNewHomeworkPopup(dueDateOverride: date),
-                          behavior: HitTestBehavior.opaque,
-                          child: DottedBorder(
-                            options: RoundedRectDottedBorderOptions(
-                              color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                              strokeWidth: 2,
-                              dashPattern: [4, 5],
-                              radius: Radius.circular(8),
-                              strokeCap: StrokeCap.round,
-                              borderPadding: EdgeInsets.all(2),
-                            ),
-                            child: SizedBox(
-                              height: 100,
-                              child: Opacity(
-                                opacity: .2,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  spacing: 6,
-                                  children: [
-                                    Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
-                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: CupertinoColors.label.resolveFrom(context)),
-                                  ],
+                                  if (isAllDone) {
+                                    Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
+                                    HapticFeedback.heavyImpact();
+                                  }
+                                },
+                              ),
+                            );
+                          }
+                          return GestureDetector(
+                            onTap: () => showNewHomeworkPopup(dueDateOverride: date),
+                            behavior: HitTestBehavior.opaque,
+                            child: DottedBorder(
+                              options: RoundedRectDottedBorderOptions(
+                                color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                strokeWidth: 2,
+                                dashPattern: [4, 5],
+                                radius: Radius.circular(8),
+                                strokeCap: StrokeCap.round,
+                                borderPadding: EdgeInsets.all(2),
+                              ),
+                              child: SizedBox(
+                                height: 100,
+                                child: Opacity(
+                                  opacity: .2,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    spacing: 6,
+                                    children: [
+                                      Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
+                                      HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: CupertinoColors.label.resolveFrom(context)),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -975,3 +1006,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
 }
 
 enum HomeworkViewMode { byDefault, byDueDate, bySubject, testsFirst, testsOnly, all, searchMode }
+
+class _VerticalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()..addRect(Rect.fromLTWH(-10, 0, size.width + 20, size.height));
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
+}

@@ -12,6 +12,8 @@ import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
 class HomeworkCardController {
+  final key = GlobalKey();
+
   void Function()? _bounceEffectTrigger;
   void triggerBounceEffect() => _bounceEffectTrigger?.call();
 }
@@ -118,6 +120,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
         isTest ? "Test ${SubjectHelper.withPreposition(widget.homework.subject)}" : SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
 
     return AnimatedScale(
+      key: controller.key,
       scale: isBouncing ? 1.05 : 1,
       duration: widget.bounceDuration,
       curve: Curves.easeOutBack,
