@@ -1,109 +1,127 @@
-import 'package:custom_navigation_bar/custom_navigation_bar.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:messagyre_client/other/eula.dart';
-import 'package:messagyre_client/other/firebase_api.dart';
-import 'package:messagyre_client/other/lifecycle_handler.dart';
 import 'package:messagyre_client/pages/homework.dart';
-import 'package:messagyre_client/pages/search.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
+import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/pages/settings.dart';
 import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/notifications_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
-import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/other/lifecycle_handler.dart';
+import 'package:messagyre_client/other/firebase_api.dart';
+import 'package:messagyre_client/other/eula.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  // Overriding debugPrint
-  final originalDebugPrint = debugPrint;
+  WidgetsFlutterBinding.ensureInitialized();
 
+  // Logging globale
+  final originalDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
     Data().log(message);
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
 
-  // Initializing Hive and other stuff
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(() async {
+    final data = Data();
 
-  try {
-    await Hive.initFlutter();
-    Hive.registerAdapter(MessageAdapter());
-    Hive.registerAdapter(ChatAdapter());
-    Hive.registerAdapter(HomeworkAdapter());
-    Hive.registerAdapter(SubjectAdapter());
-    Hive.registerAdapter(GradeAdapter());
-    Hive.registerAdapter(SettingsAdapter());
+    try {
+      // Hive setup
+      await Hive.initFlutter();
+      Hive.registerAdapter(MessageAdapter());
+      Hive.registerAdapter(ChatAdapter());
+      Hive.registerAdapter(HomeworkAdapter());
+      Hive.registerAdapter(SubjectAdapter());
+      Hive.registerAdapter(GradeAdapter());
+      Hive.registerAdapter(SettingsAdapter());
 
-    await Hive.openBox<Chat>("Chats");
-    await Hive.openBox<Homework>("Homework");
-    await Hive.openBox<Grade>("Grades");
-    await Hive.openBox<List>("SubjectOrder");
-    await Hive.openBox<Settings>("Settings");
-  } catch (e) {
-    debugPrint("Hive could not be initialized: $e");
-  }
+      await Hive.openBox<Chat>("Chats");
+      await Hive.openBox<Homework>("Homework");
+      await Hive.openBox<Grade>("Grades");
+      await Hive.openBox<List>("SubjectOrder");
+      await Hive.openBox<Settings>("Settings");
 
-  initMessageNotifiers();
+      // Misc data
+      try {
+        final miscBox = await Hive.openBox("Misc");
+        data.username = miscBox.get("Username")?.toString();
+      } catch (e) {
+        debugPrint("Misc box could not be opened: $e");
+      }
 
-  final data = Data();
+      try {
+        await Hive.openBox("RegistrationData");
+      } catch (e) {
+        debugPrint("RegistrationData box could not be opened: $e");
+      }
 
-  try {
-    final miscBox = await Hive.openBox("Misc");
-    data.username = miscBox.get("Username")?.toString();
-  } catch (e) {
-    debugPrint("Misc box could not be opened: $e");
-  }
+      data.appBrightnessNotifier.value = Brightness.dark;
 
-  try {
-    await Hive.openBox("RegistrationData");
-  } catch (e) {
-    debugPrint("Misc box could not be opened: $e");
-  }
+      // Firebase
+      try {
+        await Firebase.initializeApp();
+        await FirebaseApi().initialize();
+      } catch (e) {
+        debugPrint("Firebase could not be initialized: $e");
+      }
 
-  data.appBrightnessNotifier.value = Brightness.dark;
+      // Initialize date formatting
+      await initializeDateFormatting('fr_CH', null);
 
-  // Initializing Firebase Messaging
-  try {
-    await Firebase.initializeApp();
-    await FirebaseApi().initialize();
-  } catch (e) {
-    debugPrint("Firebase could not be initialized: $e");
-  }
+      // System UI
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+        ),
+      );
 
-  // Initializing visual stuff
-  await initializeDateFormatting('fr_CH', null);
+      runApp(
+        Phoenix(
+          child: LifecycleHandler(
+            child: App(),
+          ),
+        ),
+      );
 
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
-
-  runApp(Phoenix(child: LifecycleHandler(child: App())));
+      // Post frame callback: Navigator è montato
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        NotificationController().init(navigatorKey.currentContext!);
+        askUserToAcceptEula(navigatorKey.currentContext!);
+      });
+    } catch (e, stack) {
+      debugPrint("Error during initialization: $e");
+      debugPrint(stack.toString());
+    }
+  }, (error, stack) {
+    debugPrint("UNCAUGHT ERROR: $error");
+    debugPrint(stack.toString());
+    Data().log("UNCAUGHT ERROR: $error\n$stack");
+  });
 }
 
 class App extends StatelessWidget {
   App({super.key});
-
   final data = Data();
 
   static List<AppPage> pages = [
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
-    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage(key: homeworkPageKey)),
+    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage()),
     AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsPage()),
     AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),
@@ -116,9 +134,16 @@ class App extends StatelessWidget {
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
-          theme: CupertinoThemeData(brightness: brightness, primaryColor: Color.fromRGBO(100, 25, 104, 1)),
-          localizationsDelegates: [DefaultMaterialLocalizations.delegate, DefaultCupertinoLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
-          home: MainPage(),
+          theme: CupertinoThemeData(
+            brightness: brightness,
+            primaryColor: const Color.fromRGBO(100, 25, 104, 1),
+          ),
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          home: const MainPage(),
         );
       },
     );
@@ -136,7 +161,7 @@ class AppPage {
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
-  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(2);
+  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(0);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -147,12 +172,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final data = Data();
   late final PageController pageController;
   late final List<Widget> builtPages;
-
   bool isAnimating = false;
 
   void swipeToPage() {
     if (isAnimating) return;
-
     isAnimating = true;
     pageController
         .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 200), curve: Curves.fastEaseInToSlowEaseOut)
@@ -165,16 +188,21 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     router.start();
     WidgetsBinding.instance.addObserver(this);
-    NotificationController().init(context);
 
     pageController = PageController(initialPage: MainPage.pageIndex.value);
-    builtPages = App.pages.map((p) => KeepAliveWrapper(child: p.build())).toList();
+
+    // Wrap every page build in try/catch to avoid crashing the whole PageView
+    builtPages = App.pages.map((p) {
+      try {
+        return KeepAliveWrapper(child: p.build());
+      } catch (e, stack) {
+        debugPrint("Error building page ${p.name}: $e");
+        debugPrint(stack.toString());
+        return Container(color: CupertinoColors.systemRed);
+      }
+    }).toList();
 
     MainPage.pageIndex.addListener(swipeToPage);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      askUserToAcceptEula(context);
-    });
   }
 
   @override
@@ -191,48 +219,40 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      body: Positioned.fill(
-        child: Container(
-          color: CupertinoColors.systemBackground.resolveFrom(context),
-          child: PageView(
-            controller: pageController,
-            allowImplicitScrolling: true,
-            physics: const BouncingScrollPhysics(),
-            onPageChanged: (index) {
-              if (!isAnimating) MainPage.pageIndex.value = index;
-            },
-            children: builtPages,
-          ),
-        ),
+      body: PageView(
+        controller: pageController,
+        allowImplicitScrolling: true,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: (index) {
+          if (!isAnimating) MainPage.pageIndex.value = index;
+        },
+        children: builtPages,
       ),
-
       bottomNavigationBar: ValueListenableBuilder<int>(
         valueListenable: MainPage.pageIndex,
-        builder:
-            (context, currentIndex, _) => CustomNavigationBar(
-              isFloating: true,
-              borderRadius: const Radius.circular(12),
-              backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-              selectedColor: CupertinoTheme.of(context).primaryColor,
-              strokeColor: CupertinoColors.transparent,
-              currentIndex: currentIndex,
-              onTap: (index) => MainPage.pageIndex.value = index,
-              items:
-                  App.pages
-                      .map(
-                        (page) => CustomNavigationBarItem(
-                          icon: HugeIcon(icon: page.icon),
-                          selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
-                          title: Text(
-                            page.name,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                          ),
-                        ),
-                      )
-                      .toList(),
-            ),
+        builder: (context, currentIndex, _) => CustomNavigationBar(
+          isFloating: true,
+          borderRadius: const Radius.circular(12),
+          backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+          selectedColor: CupertinoTheme.of(context).primaryColor,
+          strokeColor: CupertinoColors.transparent,
+          currentIndex: currentIndex,
+          onTap: (index) => MainPage.pageIndex.value = index,
+          items: App.pages
+              .map(
+                (page) => CustomNavigationBarItem(
+                  icon: HugeIcon(icon: page.icon),
+                  selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
+                  title: Text(
+                    page.name,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
+                    style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }
