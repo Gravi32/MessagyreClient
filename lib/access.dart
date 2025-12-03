@@ -90,7 +90,6 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
       data.username = username;
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
-      debugPrint("[!] RefreshToken saved by Access ($refreshToken)");
 
       await Hive.box("Misc").put("Username", username);
     } catch (e, s) {

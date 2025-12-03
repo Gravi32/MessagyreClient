@@ -134,7 +134,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
-      debugPrint("[!] RefreshToken saved by Registration ($refreshToken)");
 
       await Hive.box("Misc").put("Username", username);
       await registrationDataBox.clear();

@@ -116,7 +116,6 @@ class ConnectionController {
 
         await secureStorage.write(key: "AccessToken", value: data.token);
         await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
-        debugPrint("[!] RefreshToken saved by ConnectionController (${results["RefreshToken"]})");
 
         debugPrint("[RefreshToken] Token refreshed successfully ! New token: ${results["RefreshToken"]}");
       } catch (e) {
@@ -192,7 +191,7 @@ class ConnectionController {
     } catch (e) {
       debugPrint("[WebSocket] Token refresh failed: $e");
       connectionState.value = ConnectionState.NotConnected;
-      _isConnecting = false; // ← AGGIUNTO
+      _isConnecting = false;
       if (shouldScheduleReconnect) _scheduleReconnect();
       return;
     }
@@ -231,7 +230,7 @@ class ConnectionController {
           debugPrint("[WebSocket] Closed by server");
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
-          _isConnecting = false; // ← AGGIUNTO
+          _isConnecting = false;
 
           if (_manuallyDisconnected) {
             // Avoiding reconnection attempts after manual disconnection
@@ -245,21 +244,21 @@ class ConnectionController {
           debugPrint("[WebSocket] Error: $err");
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
-          _isConnecting = false; // ← AGGIUNTO
+          _isConnecting = false;
           _scheduleReconnect();
         },
       );
 
       connectionState.value = ConnectionState.Connected;
       connectionAttempts = 0;
-      _isConnecting = false; // ← AGGIUNTO
+      _isConnecting = false;
       debugPrint("[WebSocket] Connected successfully!");
     } catch (e) {
       debugPrint("[WebSocket] Connection FAILED: $e");
 
       connectionState.value = ConnectionState.NotConnected;
       _channel = null;
-      _isConnecting = false; // ← AGGIUNTO
+      _isConnecting = false;
       _scheduleReconnect();
     }
   }
@@ -337,7 +336,7 @@ class ConnectionController {
 
   void disconnect() {
     _manuallyDisconnected = true;
-    _isConnecting = false; // ← AGGIUNTO
+    _isConnecting = false;
 
     _channel?.sink.close();
     _channel = null;
