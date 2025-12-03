@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/other/eula.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
@@ -366,6 +367,18 @@ class _SettingsPageState extends State<SettingsPage> {
               SettingsSection(
                 title: Text("Autres"),
                 tiles: [
+                  SettingsTile(
+                    onPressed: (context) async {
+                      if (await InAppReview.instance.isAvailable()) {
+                        InAppReview.instance.requestReview();
+                      } else {
+                        InAppReview.instance.openStoreListing(appStoreId: "6752887226");
+                      }
+                    },
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedStar),
+                    title: Text("Laisser un avis"),
+                  ),
+
                   SettingsTile.navigation(
                     onPressed:
                         (context) => showCupertinoDialog(
