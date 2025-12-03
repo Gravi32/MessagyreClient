@@ -22,14 +22,16 @@ import 'package:messagyre_client/utility/widgets/homework_card.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
+final GlobalKey<HomeworkPageState> homeworkPageKey = GlobalKey<HomeworkPageState>();
+
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _HomeworkPageState();
+  State<StatefulWidget> createState() => HomeworkPageState();
 }
 
-class _HomeworkPageState extends State<HomeworkPage> {
+class HomeworkPageState extends State<HomeworkPage> {
   final router = ConnectionController();
   final data = Data();
   final calendar = DeviceCalendarPlugin();
@@ -76,36 +78,18 @@ class _HomeworkPageState extends State<HomeworkPage> {
     return result.isSuccess && result.data == true;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    allHomework = Hive.box<Homework>("Homework");
-    timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
-
-    data.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
-
-    groupHomeworkByDate();
-    allHomework.listenable().addListener(groupHomeworkByDate);
-
-    timelineController.addListener(() {
-      if (isAnimating) return;
-      if (currentViewingTestIndex != -1) {
-        setState(() => currentViewingTestIndex = -1);
-      }
-    });
-
-    searchFocusNode.addListener(() {
-      if (!searchFocusNode.hasFocus && currentViewMode == HomeworkViewMode.searchMode) {
-        setState(() => currentViewMode = HomeworkViewMode.byDefault);
-      }
-      searchFocusNode.addListener(() => setState(() {}));
-    });
-  }
-
   Future<void> animateToPage(int pageIndex) async {
     isAnimating = true;
     await timelineController.animateToPage(pageIndex, duration: const Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
     isAnimating = false;
+    return;
+  }
+
+  Future<void> showHomework(Homework target) async {
+    await animateToPage(allDays.indexWhere((date) => date.isSameDayAs(target.dueDate)));
+
+    homeworkCardControllers[target.key as int]?.triggerBounceEffect();
+
     return;
   }
 
@@ -204,9 +188,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
       });
 
       final targetTest = nearbyTests[currentViewingTestIndex];
-      await animateToPage(allDays.indexWhere((date) => date.isSameDayAs(targetTest.dueDate)));
-
-      homeworkCardControllers[targetTest.key as int]?.triggerBounceEffect();
+      showHomework(targetTest);
     }
 
     return Stack(
@@ -845,6 +827,32 @@ class _HomeworkPageState extends State<HomeworkPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    allHomework = Hive.box<Homework>("Homework");
+    timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
+
+    data.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
+
+    groupHomeworkByDate();
+    allHomework.listenable().addListener(groupHomeworkByDate);
+
+    timelineController.addListener(() {
+      if (isAnimating) return;
+      if (currentViewingTestIndex != -1) {
+        setState(() => currentViewingTestIndex = -1);
+      }
+    });
+
+    searchFocusNode.addListener(() {
+      if (!searchFocusNode.hasFocus && currentViewMode == HomeworkViewMode.searchMode) {
+        setState(() => currentViewMode = HomeworkViewMode.byDefault);
+      }
+      searchFocusNode.addListener(() => setState(() {}));
+    });
   }
 
   @override

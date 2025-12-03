@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
+import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -57,15 +58,18 @@ class _GradesPageState extends State<GradesPage> {
           padding: EdgeInsets.zero,
           onPressed:
               isGradeUnknown
-                  ? () {
+                  ? () async {
                     final firstIncomingGrade = incomingGrades.elementAtOrNull(0);
                     final firstPlannedGrade = plannedGrades.elementAtOrNull(0);
-
-                    print(firstIncomingGrade);
 
                     if (firstIncomingGrade != null) {
                       showNewHomeworkPopup(toReference: firstIncomingGrade);
                       return;
+                    }
+
+                    if (firstPlannedGrade != null) {
+                      MainPage.pageIndex.value = 1;
+                      homeworkPageKey.currentState?.showHomework(firstPlannedGrade);
                     }
                   }
                   : () {
