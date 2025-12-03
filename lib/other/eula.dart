@@ -123,7 +123,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
                         style: TextStyle(color: hasScrolledToEnd ? CupertinoColors.white : CupertinoColors.inactiveGray.resolveFrom(context)),
                       ),
                       trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
-                      subtitle: hasScrolledToEnd ? null : Text("Lisez le document pour continuer"),
+                      subtitle: hasScrolledToEnd ? null : Text("Lire le document pour continuer"),
                       onTap: null,
                     ),
                   ],
