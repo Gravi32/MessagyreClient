@@ -121,7 +121,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       });
       if (router.isConnected) {
         router.send(message.id, widget.recipientUsername, input);
-        message.statusNotifier.value = MessageStatus.Sending;
+        message.statusNotifier.value = MessageStatus.Sent;
       } else {
         message.statusNotifier.value = MessageStatus.Failed;
       }
@@ -674,7 +674,6 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     if (!shouldAnimate) {
       return bubbleContent;
     } else {
-      print("animating");
       return AnimatedMessageBubble(key: ValueKey(data.id), isOwned: data.isOwned, child: bubbleContent);
     }
   }
@@ -792,7 +791,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 8,
                     children: [
-                      GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedAddSquare, color: CupertinoColors.systemGrey.resolveFrom(context))),
+                      //GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedAddSquare, color: CupertinoColors.systemGrey.resolveFrom(context))),
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 6),

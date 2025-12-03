@@ -300,9 +300,9 @@ class ConnectionController {
 
         _messagesController.add(messageData);
 
-        if (messageId != null) {
-          sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
-        }
+        // if (messageId != null) { // This was commented out because now the Delivered status is received upon server reception.
+        //   sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
+        // }
 
         HapticFeedback.heavyImpact();
       }
