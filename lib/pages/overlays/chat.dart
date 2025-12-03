@@ -36,7 +36,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   final chats = Hive.box<Chat>("Chats");
   final misc = Hive.box("Misc");
 
-  late var chatData = chats.get(widget.recipientUsername);
+  late var chatData = chats.get(widget.recipientUsername) ?? Chat(recipientUsername: widget.recipientUsername);
   late var currentWallpaper = misc.get("CurrentWallpaper");
 
   StreamSubscription? _keyboardVisibilitySub;
@@ -61,24 +61,24 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   bool showScrollDownButton = false;
 
   void messagesListener(Map<String, Object> messageData) {
-    if (chatData == null || messageData["SenderUsername"] != chatData?.recipientUsername) return;
+    if (messageData["SenderUsername"] != chatData.recipientUsername) return;
 
     final newMessage = Message.fromMessageData(messageData);
 
     setState(() {
-      chatData!.content.add(newMessage);
+      chatData.content.add(newMessage);
     });
 
-    router.sendMessageStatusUpdate([newMessage.id], chatData!.recipientUsername, MessageStatus.Read);
+    router.sendMessageStatusUpdate([newMessage.id], chatData.recipientUsername, MessageStatus.Read);
 
     saveChatData();
     scrollDown();
   }
 
   void messageStatusUpdateListener(Map<String, Object> messageStatusUpdate) {
-    if (chatData == null || messageStatusUpdate["SenderUsername"] != chatData?.recipientUsername) return;
+    if (messageStatusUpdate["SenderUsername"] != chatData.recipientUsername) return;
 
-    final targetMessage = chatData!.content.firstWhere((message) => message.isOwned && message.id == messageStatusUpdate["ID"], orElse: () => Message.empty());
+    final targetMessage = chatData.content.firstWhere((message) => message.isOwned && message.id == messageStatusUpdate["ID"], orElse: () => Message.empty());
 
     targetMessage.status = (messageStatusUpdate["Status"] as MessageStatus?) ?? MessageStatus.Failed;
 
@@ -86,9 +86,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   void messageDeletionListener(Map<String, Object> messageDeletion) {
-    if (chatData == null || messageDeletion["SenderUsername"] != chatData?.recipientUsername) return;
+    if (messageDeletion["SenderUsername"] != chatData.recipientUsername) return;
 
-    final targetMessages = chatData!.content.where((message) => message.id == messageDeletion["ID"]);
+    final targetMessages = chatData.content.where((message) => message.id == messageDeletion["ID"]);
 
     setState(() {
       for (var message in targetMessages) {
@@ -112,15 +112,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     HapticFeedback.mediumImpact();
 
     try {
-      if (chatData == null) {
-        chatData = Chat(recipientUsername: widget.recipientUsername);
-        saveChatData();
-      }
-
       final message = Message(id: Uuid().v4(), content: input, sentAt: DateTime.now(), isOwned: true);
 
       setState(() {
-        chatData!.content.add(message);
+        chatData.content.add(message);
       });
 
       if (router.isConnected) {
@@ -140,24 +135,23 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   void saveChatData() async {
-    if (chatData == null) return;
-    chats.put(widget.recipientUsername, chatData!);
+    chats.put(widget.recipientUsername, chatData);
   }
 
   void updateAllMessagesToRead() async {
-    if ((chatData?.unreadMessages ?? 0) <= 0) return;
-    chatData!.unreadMessages = 0;
+    if (chatData.unreadMessages <= 0) return;
+    chatData.unreadMessages = 0;
 
     List<String> justReadMessages = [];
 
-    for (var message in chatData!.content) {
+    for (var message in chatData.content) {
       if (!message.isOwned && message.status != MessageStatus.Read) {
         message.status = MessageStatus.Read;
         justReadMessages.add(message.id);
       }
     }
 
-    router.sendMessageStatusUpdate(justReadMessages, chatData!.recipientUsername, MessageStatus.Read);
+    router.sendMessageStatusUpdate(justReadMessages, chatData.recipientUsername, MessageStatus.Read);
   }
 
   void showMessageContextMenu(BuildContext context, Message message) {
@@ -268,7 +262,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                               CupertinoActionSheetAction(
                                                 onPressed: () {
                                                   setState(() {
-                                                    chatData?.content.remove(message);
+                                                    chatData.content.remove(message);
                                                     saveChatData();
                                                   });
 
@@ -287,8 +281,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                                 CupertinoActionSheetAction(
                                                   onPressed: () {
                                                     try {
-                                                      final savedMessage = chatData?.content.firstWhere((element) => element.id == message.id);
-                                                      if (savedMessage == null) return;
+                                                      final savedMessage = chatData.content.firstWhere((element) => element.id == message.id);
 
                                                       setState(() {
                                                         savedMessage.isDeleted = true;
@@ -359,16 +352,14 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                               if (!message.isDeleted)
                                                 CupertinoActionSheetAction(
                                                   onPressed: () {
-                                                    if (chatData != null) {
-                                                      data.blockUser(chatData!.recipientUsername);
-                                                    }
+                                                    data.blockUser(chatData.recipientUsername);
                                                     Navigator.pop(popupContext);
                                                   },
                                                   child: Row(
                                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                     children: [
                                                       Text(
-                                                        "Signaler et bloquer ${chatData?.recipientUsername ?? "cet utilisateur"}",
+                                                        "Signaler et bloquer ${chatData.recipientUsername}",
                                                         style: TextStyle(color: CupertinoColors.systemRed, fontSize: 18),
                                                       ),
                                                       HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, size: 20, color: CupertinoColors.systemRed),
@@ -462,7 +453,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     scrollDown();
 
-    router.getAccount(widget.recipientUsername).then((account) => setState(() => chatData?.recipientDisplayUsername = account?.displayName));
+    router.getAccount(widget.recipientUsername).then((account) => setState(() => chatData.recipientDisplayUsername = account?.displayName));
   }
 
   @override
@@ -541,7 +532,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                 child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                               ),
                             Text(
-                              chatData?.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
+                              chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
                               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
                             ),
                             if (isLoading) LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
@@ -699,10 +690,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     return ListView.builder(
       controller: chatScrollController,
       padding: EdgeInsets.symmetric(horizontal: 10),
-      itemCount:
-          (chatData == null ? 0 : (chatData!.content.length < visibleMessageCount ? chatData!.content.length : visibleMessageCount)) + 1,
+      itemCount: (chatData.content.length < visibleMessageCount ? chatData.content.length : visibleMessageCount) + 1,
       itemBuilder: (context, index) {
-        if (chatData == null || index == 0) {
+        if (index == 0) {
           return Container(
             margin: EdgeInsets.only(bottom: 12, top: 30),
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -715,7 +705,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                 ProfilePictureDisplay(accountUsername: widget.recipientUsername, radius: 30),
                 SizedBox(height: 6),
                 Text(
-                  chatData?.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
+                  chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
                 Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
@@ -752,7 +742,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
         final msgIndex = index - 1;
 
-        var allMessagesList = chatData!.content;
+        var allMessagesList = chatData.content;
         var visibleMessagesList = allMessagesList.sublist((allMessagesList.length - visibleMessageCount).clamp(0, allMessagesList.length));
 
         var currentMessage = visibleMessagesList[msgIndex];
