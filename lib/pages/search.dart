@@ -161,7 +161,6 @@ class SearchPageState extends State<SearchPage> {
                   curve: Curves.easeOutCubic,
                   duration: Duration(seconds: backgroundFigureAnimation > 0 ? 2 : 1),
                   builder: (context, alpha, child) {
-
                     return Stack(
                       alignment: Alignment.center,
                       children: [
@@ -230,7 +229,6 @@ class SearchPageState extends State<SearchPage> {
   }
 
   void triggerAnimation() {
-    print("called: ${MainPage.pageIndex.value}");
     setState(() => backgroundFigureAnimation = MainPage.pageIndex.value == 3 ? 1 : 0);
   }
 

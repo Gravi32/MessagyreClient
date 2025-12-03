@@ -150,6 +150,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   bool isAnimating = false;
 
+  void swipeToPage() {
+    if (isAnimating) return;
+
+    isAnimating = true;
+    pageController
+        .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 200), curve: Curves.fastEaseInToSlowEaseOut)
+        .then((_) => isAnimating = false);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -161,14 +170,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     pageController = PageController(initialPage: MainPage.pageIndex.value);
     builtPages = App.pages.map((p) => KeepAliveWrapper(child: p.build())).toList();
 
-    MainPage.pageIndex.addListener(() {
-      if (isAnimating) return;
-
-      isAnimating = true;
-      pageController
-          .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)
-          .then((_) => isAnimating = false);
-    });
+    MainPage.pageIndex.addListener(swipeToPage);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       askUserToAcceptEula(context);
