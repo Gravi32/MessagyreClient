@@ -5,6 +5,7 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -291,7 +292,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             (ctx) => CupertinoAlertDialog(
                               title: Text("Confirmer l'importation"),
                               content: Text(
-                                "L'importation du backup va remplacer vos données actuelles. "
+                                "L'importation de nouvelles données va remplacer vos données actuelles. "
                                 "Voulez-vous continuer ?",
                               ),
                               actions: [
@@ -331,8 +332,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           builder:
                               (ctx) => CupertinoAlertDialog(
                                 title: Text("Importation terminée"),
-                                content: Text("Le backup a été importé avec succès."),
-                                actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                                content: Text("Les données ont été importées avec succès."),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text("OK"),
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      Phoenix.rebirth(context);
+                                    },
+                                  ),
+                                ],
                               ),
                         );
                       } catch (e) {
@@ -342,7 +351,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           builder:
                               (ctx) => CupertinoAlertDialog(
                                 title: Text("Erreur"),
-                                content: Text("Impossible d'importer le backup : $e"),
+                                content: Text("Impossible d'importer les données :\n$e"),
                                 actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
                               ),
                         );
