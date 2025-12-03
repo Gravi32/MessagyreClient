@@ -164,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   SettingsTile.navigation(
                     onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground),
-                    title: Text("Fond d'écran"),
+                    title: Text("Fond d'écran des conversations"),
                   ),
                 ],
               ),
