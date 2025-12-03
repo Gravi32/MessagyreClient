@@ -19,6 +19,7 @@ import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/homework_card.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage({super.key});
@@ -113,7 +114,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
     for (var hw in allHomework.values) {
       final daysLeft = hw.dueDate.difference(DateTime.now()).inDays;
 
-      if (hw.isTest && daysLeft > 0 && daysLeft < 7) nearbyTests.add(hw);
+      if (hw.isTest && daysLeft >= 0 && daysLeft < 7) nearbyTests.add(hw);
       grouped.putIfAbsent(hw.dueDate, () => []).add(hw);
     }
 
@@ -197,104 +198,121 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
     return Stack(
       children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            constraints: BoxConstraints(minHeight: 100),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            padding: EdgeInsets.only(left: 4),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                  CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(data.appBrightness == Brightness.dark ? .1 : .02),
-                ],
-                stops: [0, 1],
-                center: AlignmentGeometry.bottomRight,
-                radius: 3,
-              ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: GestureDetector(
+            onTap: onTap,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: -10,
-                  right: -5,
-                  child: Transform.rotate(angle: pi / 40, child: Opacity(opacity: .6, child: Image.asset("assets/warningSign.png", width: 100, height: 120))),
-                ),
-                Padding(
-                  padding: EdgeInsetsGeometry.all(6).add(EdgeInsets.only(bottom: 30)),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              child: Shimmer(
+                duration: Duration(seconds: 10),
+                interval: Duration(seconds: 10),
+                color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(0.15),
+                colorOpacity: 0.3,
+                enabled: true,
+                direction: ShimmerDirection.fromLeftToRight(),
+                child: Container(
+                  width: double.infinity,
+                  constraints: BoxConstraints(minHeight: 100),
+                  padding: EdgeInsets.only(left: 4),
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      colors: [
+                        CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                        CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(data.appBrightness == Brightness.dark ? .1 : .02),
+                      ],
+                      stops: [0, 1],
+                      center: Alignment.bottomRight,
+                      radius: 3,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Stack(
                     children: [
-                      CustomText(
-                        nearbyTests.length > 1
-                            ? "*Plusieurs* tests approchent !"
-                            : "Test *${SubjectHelper.withPreposition(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
-                        boldWeight: FontWeight.w800,
+                      Positioned(
+                        bottom: -10,
+                        right: -5,
+                        child: Transform.rotate(
+                          angle: pi / 40,
+                          child: Opacity(opacity: .6, child: Image.asset("assets/warningSign.png", width: 100, height: 120)),
+                        ),
                       ),
-                      nearbyTests.length > 1
-                          ? Padding(
-                            padding: EdgeInsetsGeometry.symmetric(vertical: 6),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              spacing: 2,
-                              children:
-                                  nearbyTests.map((test) {
-                                    final isSelected = nearbyTests.indexOf(test) == currentViewingTestIndex;
-
-                                    return TweenAnimationBuilder<double>(
-                                      key: ValueKey(test.key),
-                                      tween: Tween<double>(begin: 1.0, end: isSelected ? 0.6 : 1.0),
-                                      duration: Duration(milliseconds: isSelected ? 500 : 1000),
-                                      onEnd: () {
-                                        if (isSelected) {
-                                          Future.delayed(Duration(milliseconds: 500), () {
-                                            if (mounted) setState(() {});
-                                          });
-                                        }
-                                      },
-                                      builder: (context, value, _) {
-                                        final baseColor = CupertinoColors.secondaryLabel.resolveFrom(context);
-                                        return Opacity(
-                                          opacity: value,
-                                          child: CustomText(
-                                            "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
-                                            style: TextStyle(fontSize: 16, color: baseColor.withAlpha(isSelected ? 255 : 160)),
-                                            boldWeight: FontWeight.w600,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  }).toList(),
+                      Padding(
+                        padding: EdgeInsetsGeometry.all(6).add(EdgeInsets.only(bottom: 30)),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              nearbyTests.length > 1
+                                  ? "*Plusieurs* tests approchent !"
+                                  : "Test *${SubjectHelper.withPreposition(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
+                              boldWeight: FontWeight.w800,
                             ),
-                          )
-                          : Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            spacing: 4,
-                            children: [
-                              Opacity(
-                                opacity: .6,
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCalendar04,
-                                  color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160),
-                                  size: 16,
+                            nearbyTests.length > 1
+                                ? Padding(
+                                  padding: EdgeInsetsGeometry.symmetric(vertical: 6),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.max,
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    spacing: 2,
+                                    children:
+                                        nearbyTests.map((test) {
+                                          final isSelected = nearbyTests.indexOf(test) == currentViewingTestIndex;
+
+                                          return TweenAnimationBuilder<double>(
+                                            key: ValueKey(test.key),
+                                            tween: Tween<double>(begin: 1.0, end: isSelected ? 0.6 : 1.0),
+                                            duration: Duration(milliseconds: isSelected ? 500 : 1000),
+                                            onEnd: () {
+                                              if (isSelected) {
+                                                Future.delayed(Duration(milliseconds: 500), () {
+                                                  if (mounted) setState(() {});
+                                                });
+                                              }
+                                            },
+                                            builder: (context, value, _) {
+                                              final baseColor = CupertinoColors.secondaryLabel.resolveFrom(context);
+                                              return Opacity(
+                                                opacity: value,
+                                                child: CustomText(
+                                                  "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
+                                                  style: TextStyle(fontSize: 16, color: baseColor.withAlpha(isSelected ? 255 : 160)),
+                                                  boldWeight: FontWeight.w600,
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }).toList(),
+                                  ),
+                                )
+                                : Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  spacing: 4,
+                                  children: [
+                                    Opacity(
+                                      opacity: .6,
+                                      child: HugeIcon(
+                                        icon: HugeIcons.strokeRoundedCalendar04,
+                                        color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160),
+                                        size: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      DateFormat('d MMMM', 'fr_CH').format(nearbyTests.first.dueDate),
+                                      style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160)),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              Text(
-                                DateFormat('d MMMM', 'fr_CH').format(nearbyTests.first.dueDate),
-                                style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160)),
-                              ),
-                            ],
-                          ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
