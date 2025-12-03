@@ -422,6 +422,7 @@ class _GradesPageState extends State<GradesPage> {
                         decoration: BoxDecoration(
                           color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
                           borderRadius: BorderRadius.circular(20),
+                          boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                         ),
                         child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
                       ),
