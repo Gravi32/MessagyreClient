@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:animated_line_through/animated_line_through.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dash/flutter_dash.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -113,7 +114,8 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
     final isMarkedAsDone = widget.homework.isMarkedAsDone;
     final isGraded = widget.homework.isGraded;
 
-    final title = SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
+    final title =
+        isTest ? "Test ${SubjectHelper.withPreposition(widget.homework.subject)}" : SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
 
     return AnimatedScale(
       scale: isBouncing ? 1.05 : 1,
@@ -172,19 +174,12 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                     child: Row(
                       spacing: 6,
                       children: [
+                        // Icon or checkbox
                         SizedBox(
                           height: 30,
                           child:
                               isTest
-                                  ? Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    textBaseline: TextBaseline.alphabetic,
-                                    spacing: 2,
-                                    children: [
-                                      HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 20),
-                                      const Text("TEST", style: TextStyle(color: CupertinoColors.systemRed, fontWeight: FontWeight.w700, fontSize: 20)),
-                                    ],
-                                  )
+                                  ? HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 22)
                                   : GestureDetector(
                                     onTap: isPreview ? null : markAsDone,
                                     child: HugeIcon(
@@ -195,6 +190,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                   ),
                         ),
 
+                        // Subject label
                         Expanded(
                           child: Row(
                             spacing: 4,
@@ -214,7 +210,10 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                   child: Text(
                                     title ?? "Branche",
                                     style: TextStyle(
-                                      color: CupertinoColors.label.resolveFrom(context).withOpacity((isMarkedAsDone || title == null) ? .5 : 1),
+                                      color:
+                                          isTest
+                                              ? CupertinoColors.systemRed.resolveFrom(context)
+                                              : CupertinoColors.label.resolveFrom(context).withOpacity((isMarkedAsDone || title == null) ? .5 : 1),
                                       fontWeight: title == null ? FontWeight.w500 : FontWeight.w700,
                                       fontSize: 20,
                                     ),
@@ -230,39 +229,65 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                     ),
                   ),
 
+                  // Dashed separator
+                  if (!isTest)
+                    Padding(
+                      padding: EdgeInsetsGeometry.only(top: 10),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Dash(
+                            direction: Axis.horizontal,
+                            length: constraints.maxWidth,
+                            dashLength: 6,
+                            dashGap: 3,
+                            dashThickness: 2,
+                            dashColor: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                            dashBorderRadius: 2,
+                          );
+                        },
+                      ),
+                    ),
+
+                  // Homework content
                   Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 5),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: CupertinoColors.tertiarySystemBackground.resolveFrom(context).withOpacity(isMarkedAsDone ? .2 : .5),
-                        boxShadow:
-                            isMarkedAsDone
-                                ? null
-                                : [BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 2, spreadRadius: 1, offset: const Offset(0, 2))],
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                      child: AnimatedLineThrough(
-                        duration: const Duration(milliseconds: 150),
-                        isCrossed: isMarkedAsDone,
-                        strokeWidth: .5,
-                        child: CustomText(
-                          isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
-                          style: TextStyle(
-                            color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AnimatedLineThrough(
+                          duration: const Duration(milliseconds: 150),
+                          isCrossed: isMarkedAsDone,
+                          strokeWidth: .5,
+                          child: CustomText(
+                            isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
+                            style: TextStyle(
+                              color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                              fontWeight: isTest ? FontWeight.w600 : null,
+                              fontSize: isTest ? 20 : null,
+                            ),
+
+                            boldWeight: FontWeight.w800,
+                            overflow: TextOverflow.fade,
+                            maxLines: isPreview ? 3 : null,
                           ),
-                          boldWeight: FontWeight.w800,
-                          overflow: TextOverflow.fade,
-                          maxLines: isPreview ? 3 : null,
                         ),
-                      ),
+                        if (!isPreview)
+                          Opacity(
+                            opacity: .3,
+                            child: HugeIcon(
+                              icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                              size: 18,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
           ),
-         // Positioned(top: -5, right: -5, child: Opacity(opacity: isMarkedAsDone ? .5 : 1, child: Image.asset("assets/pin.png", width: 30, height: 30))),
+          // Positioned(top: -5, right: -5, child: Opacity(opacity: isMarkedAsDone ? .5 : 1, child: Image.asset("assets/pin.png", width: 30, height: 30))),
         ],
       ),
     );
