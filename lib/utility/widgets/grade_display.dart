@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +58,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       builder: (context, animatedGrade, _) {
+        final gradeAlpha = animatedGrade / 6;
+
         return SizedBox(
           width: size,
           height: size + 14,
@@ -84,15 +88,15 @@ class _GradeDisplayState extends State<GradeDisplay> {
                         : Stack(
                           fit: StackFit.expand,
                           children: [
-                            CircularProgressIndicator(value: animatedGrade / 6, strokeWidth: 3, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
+                            CircularProgressIndicator(value: gradeAlpha, strokeWidth: 3, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
 
                             Transform.flip(
                               flipX: true,
                               child: Transform.rotate(
-                                angle: 3.14 * .1,
+                                angle: pi / .25 / size,
                                 child: CircularProgressIndicator(
-                                  value: 1 - animatedGrade / 6 - 0.1,
-                                  strokeWidth: 4,
+                                  value: 1 - gradeAlpha - 1 / (.25 * size),
+                                  strokeWidth: 3,
                                   strokeCap: StrokeCap.round,
                                   color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
                                 ),
