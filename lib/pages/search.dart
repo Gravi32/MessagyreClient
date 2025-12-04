@@ -39,11 +39,13 @@ class SearchPageState extends State<SearchPage> {
   final router = ConnectionController();
   final data = Data();
   final searchBarController = TextEditingController();
+  final searchBarFocusNode = FocusNode();
 
   bool isSearcing = false;
   String? usernameBeingLoaded;
   int searchCounter = 0;
   int latestSearch = 0;
+  bool showDecoration = true;
 
   double backgroundFigureAnimation = 0;
 
@@ -91,8 +93,10 @@ class SearchPageState extends State<SearchPage> {
         placeholder: "Rechercher un.e gymnasien.ne",
         padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
         controller: searchBarController,
+        focusNode: searchBarFocusNode,
         onChanged: search,
         autocorrect: false,
+        onTap: () => setState(() => showDecoration = false),
       ),
     );
   }
@@ -164,17 +168,21 @@ class SearchPageState extends State<SearchPage> {
                       alignment: Alignment.center,
                       children: [
                         Positioned.fill(
-                          child: ShaderMask(
-                            shaderCallback: (bounds) {
-                              return LinearGradient(
-                                begin: Alignment(0, 1.2),
-                                end: Alignment(0, 1 - alpha),
-                                colors: [CupertinoColors.white.withAlpha(30), CupertinoColors.white.withAlpha(40), CupertinoColors.transparent],
-                                stops: [.1, 0.3, 1],
-                              ).createShader(bounds);
-                            },
-                            blendMode: BlendMode.dstIn,
-                            child: Image.asset("assets/wallpaper.png", fit: BoxFit.cover),
+                          child: AnimatedOpacity(
+                            opacity: showDecoration ? 1 : 0,
+                            duration: Duration(milliseconds: showDecoration ? 200 : 100),
+                            child: ShaderMask(
+                              shaderCallback: (bounds) {
+                                return LinearGradient(
+                                  begin: Alignment(0, 1.2),
+                                  end: Alignment(0, 1 - alpha),
+                                  colors: [CupertinoColors.white.withAlpha(30), CupertinoColors.white.withAlpha(40), CupertinoColors.transparent],
+                                  stops: [.1, 0.3, 1],
+                                ).createShader(bounds);
+                              },
+                              blendMode: BlendMode.dstIn,
+                              child: Image.asset("assets/wallpaper.png", fit: BoxFit.cover),
+                            ),
                           ),
                         ),
                         Column(
@@ -203,10 +211,19 @@ class SearchPageState extends State<SearchPage> {
                             const SizedBox(height: 43),
                           ],
                         ),
-                        ClipRect(
-                          child: Align(
-                            alignment: Alignment(0, 5 - 2.25 * Curves.easeOutCubic.transform(alpha)),
-                            child: Image.asset("assets/messagyreGuy.png", errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png")),
+                        AnimatedOpacity(
+                          opacity: showDecoration ? 1 : 0,
+                          duration: Duration(milliseconds: showDecoration ? 200 : 100),
+                          child: ClipRect(
+                            child: Align(
+                              alignment: Alignment.bottomCenter.add(AlignmentGeometry.xy(0, 4 - 2 * Curves.easeOutCubic.transform(alpha))),
+                              child: Image.asset(
+                                "assets/messagyreGuy.png",
+                                fit: BoxFit.fitWidth,
+                                width: MediaQuery.widthOf(context),
+                                errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png"),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -235,6 +252,9 @@ class SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     MainPage.pageIndex.addListener(triggerAnimation);
+    searchBarFocusNode.addListener(() {
+      if (!searchBarFocusNode.hasFocus) Future.delayed(Duration(milliseconds: 200)).then((_) => setState(() => showDecoration = true));
+    });
   }
 
   @override
