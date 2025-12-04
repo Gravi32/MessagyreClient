@@ -943,7 +943,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (nearbyTests.isNotEmpty && !isNearbyTestsNotifierHidden) buildNearbyTestsNotifier(),
+                    if (nearbyTests.isNotEmpty && !isNearbyTestsNotifierHidden && currentViewMode == HomeworkViewMode.byDefault) buildNearbyTestsNotifier(),
                     SizedBox(height: 6),
                     Expanded(child: buildHomeworkList()),
                   ],
