@@ -185,7 +185,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                       ),
                     ),
                   ),
-                  if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withOpacity(.1)),
+                  if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withValues(alpha: .1)),
                 ],
               );
             },

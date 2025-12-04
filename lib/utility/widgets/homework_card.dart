@@ -216,7 +216,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                       color:
                                           isTest
                                               ? CupertinoColors.systemRed.resolveFrom(context)
-                                              : CupertinoColors.label.resolveFrom(context).withOpacity((isMarkedAsDone || title == null) ? .5 : 1),
+                                              : CupertinoColors.label.resolveFrom(context).withValues(alpha: (isMarkedAsDone || title == null) ? .5 : 1),
                                       fontWeight: title == null ? FontWeight.w500 : FontWeight.w700,
                                       fontSize: 20,
                                     ),
@@ -265,7 +265,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                           child: CustomText(
                             isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
                             style: TextStyle(
-                              color: CupertinoColors.label.resolveFrom(context).withOpacity(isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                              color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
                               fontWeight: isTest ? FontWeight.w600 : null,
                               fontSize: isTest ? 20 : null,
                             ),

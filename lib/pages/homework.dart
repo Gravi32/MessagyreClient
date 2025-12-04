@@ -202,7 +202,7 @@ class HomeworkPageState extends State<HomeworkPage> {
               child: Shimmer(
                 duration: Duration(seconds: 10),
                 interval: Duration(seconds: 10),
-                color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(0.15),
+                color: CupertinoColors.systemGrey.resolveFrom(context).withValues(alpha: 0.15),
                 colorOpacity: 0.3,
                 enabled: true,
                 direction: ShimmerDirection.fromLeftToRight(),
@@ -432,7 +432,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                     children: [
                       Text(
                         "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
                       ),
                       if (int.tryParse(formattedDate[0]) == null)
                         Text(
@@ -553,7 +553,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                   children: [
                     Text(
                       "Pour ${formatDate(date, includeArticle: true)}",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
                     ),
                     if (int.tryParse(formattedDate[0]) == null)
                       Text(
@@ -604,7 +604,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                   children: [
                     Text(
                       "Pour ${formatDate(date, includeArticle: true)}",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
                     ),
                     if (int.tryParse(formattedDate[0]) == null)
                       Text(
@@ -736,7 +736,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                     children: [
                       Text(
                         "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withOpacity(opacity)),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
                       ),
                       if (int.tryParse(formattedDate[0]) == null)
                         Text(

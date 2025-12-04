@@ -179,7 +179,7 @@ class _NewGradeState extends State<NewGrade> {
               child: Container(
                 width: 60,
                 height: 80,
-                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
@@ -615,7 +615,7 @@ class _NewGradeState extends State<NewGrade> {
                                         child: DismissableTextField(
                                           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                           decoration: BoxDecoration(
-                                            color: CupertinoColors.systemGrey.withOpacity(0.1),
+                                            color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           controller: controller,
@@ -778,7 +778,7 @@ class WeightButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: CupertinoColors.systemGrey.resolveFrom(context).withOpacity(isSelected ? .1 : .05),
+          color: CupertinoColors.systemGrey.resolveFrom(context).withValues(alpha: isSelected ? .1 : .05),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(

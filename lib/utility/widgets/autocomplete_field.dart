@@ -146,7 +146,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
                     onTap: () => onSelected(option),
                     child: Padding(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), child: widget.itemBuilder(option, _controller.text)),
                   ),
-                  if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withOpacity(.1)),
+                  if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withValues(alpha: .1)),
                 ],
               );
             },

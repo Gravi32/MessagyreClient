@@ -240,9 +240,9 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
 
                     Row(
                       children: [
-                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 30, endIndent: 10)),
+                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withValues(alpha: .25), indent: 30, endIndent: 10)),
                         const Text("ou", style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12)),
-                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withOpacity(.25), indent: 10, endIndent: 30)),
+                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withValues(alpha: .25), indent: 10, endIndent: 30)),
                       ],
                     ),
                     const SizedBox(height: 30),

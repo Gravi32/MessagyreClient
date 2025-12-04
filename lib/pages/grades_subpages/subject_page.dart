@@ -179,7 +179,7 @@ class _SubjectPageState extends State<SubjectPage> {
 
         if (subjectIncomingGrades.isNotEmpty) ...[
           Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
         ],
 
         ListView.builder(

@@ -603,7 +603,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                 keyboardType: TextInputType.visiblePassword,
                                 obscureText: true,
                                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                                 controller: controller,
                                 placeholder: "Votre mot de passe",
                               ),

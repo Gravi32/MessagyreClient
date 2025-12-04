@@ -116,7 +116,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(0.75),
+                color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: 0.75),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   spacing: 8,

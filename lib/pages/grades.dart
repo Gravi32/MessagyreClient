@@ -129,7 +129,7 @@ class _GradesPageState extends State<GradesPage> {
             ),
           ),
         ),
-        Divider(indent: 60, color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+        Divider(indent: 60, color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
       ],
     );
   }
@@ -217,7 +217,7 @@ class _GradesPageState extends State<GradesPage> {
               GradeDisplay(grade: average, size: 64, roundGrade: false),
             ],
           ),
-          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
         ],
       ),
     );
@@ -404,7 +404,7 @@ class _GradesPageState extends State<GradesPage> {
                                           : SizedBox(key: ValueKey("empty")),
                                 ),
 
-                                Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withOpacity(.4)),
+                                Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
                               ],
 
                               ListView.builder(
