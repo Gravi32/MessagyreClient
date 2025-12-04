@@ -168,12 +168,12 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                     BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: EdgeInsetsGeometry.symmetric(horizontal: 6).add(const EdgeInsets.only(top: 6)),
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 12).add(const EdgeInsets.only(top: 6)),
                     child: Row(
                       spacing: 6,
                       children: [
@@ -235,7 +235,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                   // Dashed separator
                   if (!isTest)
                     Padding(
-                      padding: EdgeInsetsGeometry.only(top: 10),
+                      padding: EdgeInsetsGeometry.only(top: 10, bottom: 4),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           return Dash(
@@ -243,7 +243,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                             length: constraints.maxWidth,
                             dashLength: 6,
                             dashGap: 3,
-                            dashThickness: 2,
+                            dashThickness: 1,
                             dashColor: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
                             dashBorderRadius: 2,
                           );
@@ -253,9 +253,10 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
 
                   // Homework content
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         AnimatedLineThrough(
                           duration: const Duration(milliseconds: 150),
