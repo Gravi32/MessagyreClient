@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:messagyre_client/l10n/app_localizations.dart';
 import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
@@ -128,7 +130,14 @@ class App extends StatelessWidget {
         return CupertinoApp(
           navigatorKey: navigatorKey,
           theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color.fromRGBO(100, 25, 104, 1)),
-          localizationsDelegates: const [DefaultMaterialLocalizations.delegate, DefaultCupertinoLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('fr')],
+          locale: Locale('fr'),
           home: const MainPage(),
         );
       },

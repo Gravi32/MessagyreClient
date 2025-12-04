@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 1.29.473+473
+version: 1.29.474+474
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Homework page
@@ -39,6 +39,8 @@ environment:
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
@@ -98,7 +100,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
+  generate: true
   assets:
     - assets/
     - assets/icons/
