@@ -380,8 +380,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
 
                   SettingsTile.navigation(
-                    onPressed:
-                        (context) => showCupertinoDialog(
+                    onPressed: (context) {
+                      try {
+                        showCupertinoDialog(
                           context: context,
                           builder:
                               (dialogContext) => CupertinoAlertDialog(
@@ -401,7 +402,25 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                 ],
                               ),
-                        ),
+                        );
+                      } catch (e, s) {
+                        debugPrint("[ERROR] Support page opening failed: $e. Stacktrace: $s");
+
+                        showCupertinoDialog(
+                          context: context,
+                          builder:
+                              (dialogContext) => CupertinoAlertDialog(
+                                title: Text("Erreur !"),
+                                content: Text(
+                                  "Une erreur est survenue pendant l'ouverture de la conversation avec le support. Vous trouverez ce qui s'est passé dans la page de débogage.",
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst), child: Text("Fermer")),
+                                ],
+                              ),
+                        );
+                      }
+                    },
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
                     title: Text("Support"),
                   ),
