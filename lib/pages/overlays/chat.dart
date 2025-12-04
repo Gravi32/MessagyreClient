@@ -158,6 +158,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   void showMessageContextMenu(BuildContext context, Message message) {
     HapticFeedback.heavyImpact();
     messageFieldFocusNode.unfocus();
+    print("Keyboard closed by showMessageContextMenu");
 
     try {
       final overlay = Overlay.of(context, rootOverlay: true);
@@ -427,6 +428,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         scrollDown();
       } else {
         messageFieldFocusNode.unfocus();
+        print("Keyboard closed by KeyboardVisibilityController");
       }
     });
 
@@ -445,10 +447,6 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         setState(() => showScrollDownButton = false);
       } else if (offset < maxOffset - 100 && !showScrollDownButton) {
         setState(() => showScrollDownButton = true);
-      }
-
-      if (offset < maxOffset - 300 && messageFieldFocusNode.hasFocus) {
-        messageFieldFocusNode.unfocus();
       }
     });
 
@@ -791,7 +789,8 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 8,
                     children: [
-                      //GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedAddSquare, color: CupertinoColors.systemGrey.resolveFrom(context))),
+                      if (messageFieldFocusNode.hasFocus)
+                        GestureDetector(onTap: () => messageFieldFocusNode.unfocus(), child: HugeIcon(icon: HugeIcons.strokeRoundedArrowDown01)),
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 6),
