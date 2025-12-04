@@ -177,8 +177,8 @@ class _ChatsPageState extends State<ChatsPage> {
     allChats = Hive.box<Chat>("Chats");
 
     router.connectionState.addListener(() {
-      // FOR THE APPLE VERIFICATION TEAM \\
-      if (data.username == "apple.verification" || data.username == "apple.verify.temp") {
+      // FOR THE REVIEW TEAMS \\
+      if (data.username == "apple.verification" || data.username == "google.verification") {
         final now = DateTime.now();
 
         final abusiveChat = Chat(recipientUsername: "test.1");

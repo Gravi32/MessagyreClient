@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 1.29.474+474
+version: 1.29.475+475
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Homework page
@@ -79,7 +79,6 @@ dependencies:
   flutter_local_notifications: 18.0.1
   image: ^4.5.4
   path_provider: ^2.1.5
-  flutter_app_badger: ^1.5.0
   device_calendar: ^4.3.3
   archive: ^4.0.7
   file_picker: ^10.3.7
@@ -87,6 +86,7 @@ dependencies:
   flutter_dash: ^1.0.0
   path: ^1.9.1
   in_app_review: ^2.0.11
+  app_badge_plus: ^1.2.4
 
 dev_dependencies:
   flutter_test:

@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/singletons/notifications_controller.dart';
 import 'package:path_provider/path_provider.dart';
@@ -37,7 +37,7 @@ class FirebaseApi {
         if (username != null && username.isNotEmpty) {
           navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: username)));
         }
-        _resetBadge();
+        resetBadge();
       },
     );
 
@@ -79,10 +79,10 @@ class FirebaseApi {
           final senderUsername = dataMap['SenderUsername'] ?? title;
           if (state == AppLifecycleState.resumed) {
             NotificationController().spawn(title, senderUsername, body);
-            _resetBadge();
+            resetBadge();
           } else {
             await _showNotification(title, body, imageUrl, senderUsername);
-            _incrementBadge();
+            incrementBadge();
           }
         } catch (e) {
           debugPrint("[Firebase] Error parsing notification data: $e");
@@ -93,7 +93,7 @@ class FirebaseApi {
         final username = message.data['SenderUsername'];
         if (username == null) return;
         navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: username)));
-        _resetBadge();
+        resetBadge();
       });
 
       firebaseMessaging.onTokenRefresh.listen((newToken) {
@@ -166,13 +166,13 @@ class FirebaseApi {
     }
   }
 
-  void _incrementBadge() {
+  void incrementBadge() {
     badgeCount++;
-    FlutterAppBadger.updateBadgeCount(badgeCount);
+    AppBadgePlus.updateBadge(badgeCount);
   }
 
-  void _resetBadge() {
+  void resetBadge() {
     badgeCount = 0;
-    FlutterAppBadger.removeBadge();
+    AppBadgePlus.updateBadge(0);
   }
 }
