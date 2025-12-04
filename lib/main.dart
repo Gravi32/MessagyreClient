@@ -22,6 +22,7 @@ import 'package:messagyre_client/other/lifecycle_handler.dart';
 import 'package:messagyre_client/other/firebase_api.dart';
 import 'package:messagyre_client/other/eula.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -35,84 +36,83 @@ void main() async {
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
 
-  runZonedGuarded(() async {
-    final data = Data();
-
-    try {
-      // Hive setup
-      await Hive.initFlutter();
-      Hive.registerAdapter(MessageAdapter());
-      Hive.registerAdapter(ChatAdapter());
-      Hive.registerAdapter(HomeworkAdapter());
-      Hive.registerAdapter(SubjectAdapter());
-      Hive.registerAdapter(GradeAdapter());
-      Hive.registerAdapter(SettingsAdapter());
-
-      await Hive.openBox<Chat>("Chats");
-      await Hive.openBox<Homework>("Homework");
-      await Hive.openBox<Grade>("Grades");
-      await Hive.openBox<List>("SubjectOrder");
-      await Hive.openBox<Settings>("Settings");
-
-      // Misc data
-      try {
-        final miscBox = await Hive.openBox("Misc");
-        data.username = miscBox.get("Username")?.toString();
-      } catch (e) {
-        debugPrint("Misc box could not be opened: $e");
-      }
+  runZonedGuarded(
+    () async {
+      final data = Data();
 
       try {
-        await Hive.openBox("RegistrationData");
-      } catch (e) {
-        debugPrint("RegistrationData box could not be opened: $e");
-      }
+        // Hive setup
+        await Hive.initFlutter();
+        Hive.registerAdapter(MessageAdapter());
+        Hive.registerAdapter(ChatAdapter());
+        Hive.registerAdapter(HomeworkAdapter());
+        Hive.registerAdapter(SubjectAdapter());
+        Hive.registerAdapter(GradeAdapter());
+        Hive.registerAdapter(SettingsAdapter());
 
-      data.appBrightnessNotifier.value = Brightness.dark;
+        await Hive.openBox<Chat>("Chats");
+        await Hive.openBox<Homework>("Homework");
+        await Hive.openBox<Grade>("Grades");
+        await Hive.openBox<List>("SubjectOrder");
+        await Hive.openBox<Settings>("Settings");
 
-      // Firebase
-      try {
-        await Firebase.initializeApp();
-        await FirebaseApi().initialize();
-      } catch (e) {
-        debugPrint("Firebase could not be initialized: $e");
-      }
+        initMessageNotifiers();
 
-      // Initialize date formatting
-      await initializeDateFormatting('fr_CH', null);
+        // Misc data
+        try {
+          final miscBox = await Hive.openBox("Misc");
+          data.username = miscBox.get("Username")?.toString();
+        } catch (e) {
+          debugPrint("Misc box could not be opened: $e");
+        }
 
-      // System UI
-      SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
-          systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarIconBrightness: Brightness.light,
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-        ),
-      );
+        try {
+          await Hive.openBox("RegistrationData");
+        } catch (e) {
+          debugPrint("RegistrationData box could not be opened: $e");
+        }
 
-      runApp(
-        Phoenix(
-          child: LifecycleHandler(
-            child: App(),
+        data.appBrightnessNotifier.value = Brightness.dark;
+
+        // Firebase
+        try {
+          await Firebase.initializeApp();
+          await FirebaseApi().initialize();
+        } catch (e) {
+          debugPrint("Firebase could not be initialized: $e");
+        }
+
+        // Initialize date formatting
+        await initializeDateFormatting('fr_CH', null);
+
+        // System UI
+        SystemChrome.setSystemUIOverlayStyle(
+          const SystemUiOverlayStyle(
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.light,
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
           ),
-        ),
-      );
+        );
 
-      // Post frame callback: Navigator è montato
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        NotificationController().init(navigatorKey.currentContext!);
-        askUserToAcceptEula(navigatorKey.currentContext!);
-      });
-    } catch (e, stack) {
-      debugPrint("Error during initialization: $e");
+        runApp(Phoenix(child: LifecycleHandler(child: App())));
+
+        // Post frame callback: Navigator è montato
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          NotificationController().init(navigatorKey.currentContext!);
+          askUserToAcceptEula(navigatorKey.currentContext!);
+        });
+      } catch (e, stack) {
+        debugPrint("Error during initialization: $e");
+        debugPrint(stack.toString());
+      }
+    },
+    (error, stack) {
+      debugPrint("UNCAUGHT ERROR: $error");
       debugPrint(stack.toString());
-    }
-  }, (error, stack) {
-    debugPrint("UNCAUGHT ERROR: $error");
-    debugPrint(stack.toString());
-    Data().log("UNCAUGHT ERROR: $error\n$stack");
-  });
+      Data().log("UNCAUGHT ERROR: $error\n$stack");
+    },
+  );
 }
 
 class App extends StatelessWidget {
@@ -121,7 +121,7 @@ class App extends StatelessWidget {
 
   static List<AppPage> pages = [
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
-    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage()),
+    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage(key: homeworkPageKey)),
     AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsPage()),
     AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),
@@ -134,15 +134,8 @@ class App extends StatelessWidget {
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
-          theme: CupertinoThemeData(
-            brightness: brightness,
-            primaryColor: const Color.fromRGBO(100, 25, 104, 1),
-          ),
-          localizationsDelegates: const [
-            DefaultMaterialLocalizations.delegate,
-            DefaultCupertinoLocalizations.delegate,
-            DefaultWidgetsLocalizations.delegate,
-          ],
+          theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color.fromRGBO(100, 25, 104, 1)),
+          localizationsDelegates: const [DefaultMaterialLocalizations.delegate, DefaultCupertinoLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
           home: const MainPage(),
         );
       },
@@ -161,7 +154,7 @@ class AppPage {
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
-  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(0);
+  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(2);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -192,15 +185,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     pageController = PageController(initialPage: MainPage.pageIndex.value);
 
     // Wrap every page build in try/catch to avoid crashing the whole PageView
-    builtPages = App.pages.map((p) {
-      try {
-        return KeepAliveWrapper(child: p.build());
-      } catch (e, stack) {
-        debugPrint("Error building page ${p.name}: $e");
-        debugPrint(stack.toString());
-        return Container(color: CupertinoColors.systemRed);
-      }
-    }).toList();
+    builtPages =
+        App.pages.map((p) {
+          try {
+            return KeepAliveWrapper(child: p.build());
+          } catch (e, stack) {
+            debugPrint("Error building page ${p.name}: $e");
+            debugPrint(stack.toString());
+            return Container(color: CupertinoColors.systemRed);
+          }
+        }).toList();
 
     MainPage.pageIndex.addListener(swipeToPage);
   }
@@ -230,29 +224,31 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       ),
       bottomNavigationBar: ValueListenableBuilder<int>(
         valueListenable: MainPage.pageIndex,
-        builder: (context, currentIndex, _) => CustomNavigationBar(
-          isFloating: true,
-          borderRadius: const Radius.circular(12),
-          backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-          selectedColor: CupertinoTheme.of(context).primaryColor,
-          strokeColor: CupertinoColors.transparent,
-          currentIndex: currentIndex,
-          onTap: (index) => MainPage.pageIndex.value = index,
-          items: App.pages
-              .map(
-                (page) => CustomNavigationBarItem(
-                  icon: HugeIcon(icon: page.icon),
-                  selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
-                  title: Text(
-                    page.name,
-                    overflow: TextOverflow.fade,
-                    softWrap: false,
-                    style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
+        builder:
+            (context, currentIndex, _) => CustomNavigationBar(
+              isFloating: true,
+              borderRadius: const Radius.circular(12),
+              backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+              selectedColor: CupertinoTheme.of(context).primaryColor,
+              strokeColor: CupertinoColors.transparent,
+              currentIndex: currentIndex,
+              onTap: (index) => MainPage.pageIndex.value = index,
+              items:
+                  App.pages
+                      .map(
+                        (page) => CustomNavigationBarItem(
+                          icon: HugeIcon(icon: page.icon),
+                          selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
+                          title: Text(
+                            page.name,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          ),
+                        ),
+                      )
+                      .toList(),
+            ),
       ),
     );
   }
