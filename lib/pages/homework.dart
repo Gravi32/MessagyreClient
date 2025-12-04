@@ -224,6 +224,14 @@ class HomeworkPageState extends State<HomeworkPage> {
                   ),
                   child: Stack(
                     children: [
+                      Positioned(
+                        bottom: -10,
+                        right: -10,
+                        child: Transform.rotate(
+                          angle: pi / 40,
+                          child: Opacity(opacity: 1, child: Image.asset("assets/warningSign.png", width: 100, height: 120)),
+                        ),
+                      ),
                       Padding(
                         padding: EdgeInsetsGeometry.all(6),
                         child: Column(
@@ -295,17 +303,30 @@ class HomeworkPageState extends State<HomeworkPage> {
                                 ),
 
                             Padding(
-                              padding: EdgeInsetsGeometry.symmetric(vertical: 2).add(EdgeInsetsGeometry.only(bottom: 2)),
+                              padding: EdgeInsetsGeometry.symmetric(vertical: 2).add(EdgeInsetsGeometry.only(bottom: 2, top: 6)),
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
-                                  return Dash(
-                                    direction: Axis.horizontal,
-                                    length: constraints.maxWidth,
-                                    dashLength: 6,
-                                    dashGap: 3,
-                                    dashThickness: 2,
-                                    dashColor: CupertinoColors.quaternaryLabel.resolveFrom(context),
-                                    dashBorderRadius: 2,
+                                  return ShaderMask(
+                                    shaderCallback: (rect) {
+                                      return LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          CupertinoColors.white,
+                                          CupertinoColors.transparent, 
+                                        ],
+                                      ).createShader(Rect.fromLTWH(0, 0, rect.width, rect.height));
+                                    },
+                                    blendMode: BlendMode.dstIn,
+                                    child: Dash(
+                                      direction: Axis.horizontal,
+                                      length: constraints.maxWidth - 40,
+                                      dashLength: 6,
+                                      dashGap: 3,
+                                      dashThickness: 1,
+                                      dashColor: CupertinoColors.quaternaryLabel.resolveFrom(context),
+                                      dashBorderRadius: 2,
+                                    ),
                                   );
                                 },
                               ),
@@ -330,14 +351,6 @@ class HomeworkPageState extends State<HomeworkPage> {
                               ],
                             ),
                           ],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: -10,
-                        right: -5,
-                        child: Transform.rotate(
-                          angle: pi / 40,
-                          child: Opacity(opacity: 1, child: Image.asset("assets/warningSign.png", width: 100, height: 120)),
                         ),
                       ),
                     ],
