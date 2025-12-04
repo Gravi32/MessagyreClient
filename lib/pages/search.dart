@@ -203,9 +203,11 @@ class SearchPageState extends State<SearchPage> {
                             const SizedBox(height: 43),
                           ],
                         ),
-                        Align(
-                          alignment: Alignment(0, 5 - 2.25 * Curves.easeOutCubic.transform(alpha)),
-                          child: Image.asset("assets/messagyreGuy.png", errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png")),
+                        ClipRect(
+                          child: Align(
+                            alignment: Alignment(0, 5 - 2.25 * Curves.easeOutCubic.transform(alpha)),
+                            child: Image.asset("assets/messagyreGuy.png", errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png")),
+                          ),
                         ),
                       ],
                     );
