@@ -38,8 +38,6 @@ void main() async {
 
   runZonedGuarded(
     () async {
-      final data = Data();
-
       try {
         // Hive setup
         await Hive.initFlutter();
@@ -57,6 +55,7 @@ void main() async {
         await Hive.openBox<Settings>("Settings");
 
         initMessageNotifiers();
+        final data = Data(); // DATA IS TO BE CALLED AFTER HIVE INITIALIZATION
 
         // Misc data
         try {
@@ -96,12 +95,6 @@ void main() async {
         );
 
         runApp(Phoenix(child: LifecycleHandler(child: App())));
-
-        // Post frame callback: Navigator è montato
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          NotificationController().init(navigatorKey.currentContext!);
-          askUserToAcceptEula(navigatorKey.currentContext!);
-        });
       } catch (e, stack) {
         debugPrint("Error during initialization: $e");
         debugPrint(stack.toString());
@@ -197,6 +190,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }).toList();
 
     MainPage.pageIndex.addListener(swipeToPage);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationController().init(context);
+      askUserToAcceptEula(context);
+    });
   }
 
   @override
