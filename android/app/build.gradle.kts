@@ -18,9 +18,18 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(property("RELEASE_STORE_FILE").toString())
+            storePassword = property("RELEASE_STORE_PASSWORD").toString()
+            keyAlias = property("RELEASE_KEY_ALIAS").toString()
+            keyPassword = property("RELEASE_KEY_PASSWORD").toString()
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -37,9 +46,10 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 }
+
 
 dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
