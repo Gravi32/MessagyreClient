@@ -44,3 +44,6 @@ windows/flutter/generated_plugins.cmake
 # Symbolication / obfuscation
 app.*.symbols
 app.*.map.json
+
+# Ignore local gradle properties with secrets
+/android/gradle.properties
