@@ -201,7 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         context: context,
                         builder:
                             (dialogContext) => CupertinoAlertDialog(
-                              title: Text("Sauvegarder en local ?"),
+                              title: Text("Exporter en local ?"),
                               content: Text(
                                 "Messagyre copiera vos notes et vos devoirs dans un nouveau fichier que vous pourrez utiliser pour passer les données sur un autre dispositif.",
                               ),
@@ -242,7 +242,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         context: context,
                                         builder:
                                             (ctx) => CupertinoAlertDialog(
-                                              title: Text("Sauvegarde terminée"),
+                                              title: Text("Exportation terminée"),
                                               content: Text(
                                                 "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour passer vos donnés sur un autre dispositif.",
                                               ),
@@ -259,7 +259,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         builder:
                                             (ctx) => CupertinoAlertDialog(
                                               title: Text("Erreur"),
-                                              content: Text("Impossible d'effectuer la sauvegarde :\n\n$e"),
+                                              content: Text("Impossible d'effectuer l'exporation :\n\n$e"),
                                               actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
                                             ),
                                       );
@@ -281,7 +281,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 Text("Exportation en cours", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
                               ],
                             )
-                            : Text("Exporter une sauvegarde"),
+                            : Text("Exporter les données"),
                   ),
 
                   SettingsTile(
@@ -359,7 +359,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       }
                     },
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
-                    title: Text("Importer une sauvegarde"),
+                    title: Text("Importer des données"),
                   ),
                 ],
               ),
