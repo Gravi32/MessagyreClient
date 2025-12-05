@@ -150,7 +150,10 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
             ],
           ),
           Container(
-            decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(-.02), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(-.02),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               children: [
                 if (isPreview)
@@ -161,7 +164,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                       child: Row(
                         spacing: 6,
                         children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, color: CupertinoColors.label.resolveFrom(context), size: 14,),
+                          HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, color: CupertinoColors.label.resolveFrom(context), size: 14),
                           Text("Aperçu du devoir", style: TextStyle(fontSize: 15)),
                         ],
                       ),
@@ -195,6 +198,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                         Padding(
                           padding: EdgeInsetsGeometry.symmetric(horizontal: 12).add(const EdgeInsets.only(top: 6)),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 6,
                             children: [
                               // Icon or checkbox
@@ -248,6 +252,15 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                   ],
                                 ),
                               ),
+                              if (!isPreview)
+                                Opacity(
+                                  opacity: .3,
+                                  child: HugeIcon(
+                                    icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                                    size: 18,
+                                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -295,16 +308,6 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                   maxLines: isPreview ? 3 : null,
                                 ),
                               ),
-
-                              if (!isPreview)
-                                Opacity(
-                                  opacity: .3,
-                                  child: HugeIcon(
-                                    icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                                    size: 18,
-                                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                  ),
-                                ),
                             ],
                           ),
                         ),
