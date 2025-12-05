@@ -253,7 +253,11 @@ class SearchPageState extends State<SearchPage> {
     super.initState();
     MainPage.pageIndex.addListener(triggerAnimation);
     searchBarFocusNode.addListener(() {
-      if (!searchBarFocusNode.hasFocus) Future.delayed(Duration(milliseconds: 200)).then((_) => setState(() => showDecoration = true));
+      if (searchBarFocusNode.hasFocus) {
+        setState(() => showDecoration = false);
+      } else {
+        Future.delayed(Duration(milliseconds: 200)).then((_) => setState(() => showDecoration = true));
+      }
     });
   }
 
