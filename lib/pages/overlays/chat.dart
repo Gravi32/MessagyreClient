@@ -703,32 +703,34 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
                 Text(widget.recipientUsername, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-                SizedBox(height: 6),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Opacity(
-                            opacity: .4,
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedInformationSquare,
-                              size: 16,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                if (widget.recipientUsername != "support.messagyre") ...[
+                  SizedBox(height: 6),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Opacity(
+                              opacity: .4,
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedInformationSquare,
+                                size: 16,
+                                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      ...CustomText.parseSpans(
-                        "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
-                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
-                      ),
-                    ],
+                        ...CustomText.parseSpans(
+                          "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
+                          style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
+                        ),
+                      ],
+                    ),
+                    softWrap: true,
                   ),
-                  softWrap: true,
-                ),
+                ],
               ],
             ),
           );
