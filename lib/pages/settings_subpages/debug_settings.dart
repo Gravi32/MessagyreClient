@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -81,24 +80,25 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               ],
             ),
             SettingsSection(
-              title: Text("Tokens"),
+              title: Text("Jetons"),
               tiles: [
-                SettingsTile(title: Text("Token d'accès (JWT)"), value: Text(data.token != null ? "Oui" : "Non")),
-                SettingsTile(title: Text("Token de renouvellement"), value: Text(isRefreshTokenStored ? "Oui" : "Non")),
+                SettingsTile(title: Text("Jeton d'accès JWT"), value: Text(data.token != null ? "Enregistré" : "Manquant")),
+                SettingsTile(title: Text("Jeton de renouvellement"), value: Text(isRefreshTokenStored ? "Enregistré" : "Manquant")),
                 SettingsTile(
-                  title: Text("Token FCM"),
-                  value: SizedBox(width: 150, child: Text(data.fcmToken ?? "-", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
-                ),
-                SettingsTile.navigation(
-                  title: Text("Supprimer le token FCM", style: TextStyle(color: CupertinoColors.systemRed)),
-                  onPressed: (context) => FirebaseMessaging.instance.deleteToken(),
+                  title: Text("Jeton FCM"),
+                  value: SizedBox(width: 150, child: Text(data.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
                 ),
               ],
             ),
             SettingsSection(
               title: Text("Logs de l'application"),
               tiles: [
-                SettingsTile(title: Text("Copier"), onPressed: (context) => copy(context, data.appLogs.join("\n"))),
+                SettingsTile(
+                  title: Text("Tout copier"),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCopy02, color: CupertinoColors.label.resolveFrom(context)),
+                  onPressed: (context) => copy(context, data.appLogs.join("\n")),
+                  description: SizedBox.shrink(),
+                ),
                 SettingsTile(
                   title:
                       data.appLogs.isNotEmpty
