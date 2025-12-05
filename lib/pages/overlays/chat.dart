@@ -19,6 +19,7 @@ import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatOverlay extends StatefulWidget {
@@ -412,6 +413,18 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     data.openChatUsername = widget.recipientUsername;
 
+    if (widget.recipientUsername == "support.messagyre") {
+      chatData.content.add(
+        Message(
+          id: Uuid().v4(),
+          content:
+              "Salut👋 !\n\nTu as une *question* sur *Messagyre* ou tu as rencontré un *problème* ? Je suis là pour t'aider!\n\nÉcris ici ce dont tu as besoin dans la conversation et je ferai de mon mieux pour te répondre le plus vite possible ! 😄\n\nLe support de Messagyre",
+          sentAt: DateTime.now(),
+          isOwned: false,
+        ),
+      );
+    }
+
     messageFieldController.addListener(() {
       setState(() {});
     });
@@ -603,68 +616,58 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         child: Container(
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
-          padding: EdgeInsets.only(left: 9, right: 8, bottom: 2, top: 5),
+          padding: EdgeInsets.fromLTRB(9, 5, 8, 5),
           decoration: BoxDecoration(
             color: getBubbleColor(data.isOwned),
             borderRadius: getBubbleShape(data.isOwned),
             boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10)],
           ),
-          child: Wrap(
-            alignment: WrapAlignment.end,
-            crossAxisAlignment: WrapCrossAlignment.end,
-            spacing: 9,
-            runSpacing: 4,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(bottom: 3.5),
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      if (data.isDeleted)
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: Padding(
-                            padding: EdgeInsets.only(right: 4),
-                            child: Opacity(
-                              opacity: .6,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.white.withAlpha(150)),
-                            ),
-                          ),
-                        ),
-                      ...CustomText.parseSpans(
-                        data.isDeleted ? "Supprimé" : data.content.trim(),
-                        style: TextStyle(
-                          color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white,
-                          fontSize: 17,
-                          fontStyle: data.isDeleted ? FontStyle.italic : null,
+          child: TextChatBubbleWithTimeStamp(
+            content: Text.rich(
+              TextSpan(
+                children: [
+                  if (data.isDeleted)
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 4),
+                        child: Opacity(
+                          opacity: 0.6,
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.white.withAlpha(150)),
                         ),
                       ),
-                    ],
+                    ),
+                  ...CustomText.parseSpans(
+                    data.isDeleted ? "Supprimé" : data.content.trim(),
+                    style: TextStyle(
+                      color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white,
+                      fontSize: 17,
+                      fontStyle: data.isDeleted ? FontStyle.italic : null,
+                    ),
                   ),
-                  softWrap: true,
-                ),
+                ],
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                spacing: 1,
-                children: [
-                  Text(
-                    DateFormat('HH:mm').format(data.sentAt),
-                    style: TextStyle(color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white, fontSize: 12),
-                  ),
-                  if (data.isOwned && !data.isDeleted)
-                    ValueListenableBuilder(
+            ),
+            timestamp: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  DateFormat('HH:mm').format(data.sentAt),
+                  style: TextStyle(color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white, fontSize: 12),
+                ),
+                if (data.isOwned && !data.isDeleted)
+                  Padding(
+                    padding: EdgeInsets.only(left: 2),
+                    child: ValueListenableBuilder(
                       valueListenable: data.statusNotifier,
                       builder: (context, status, _) {
                         final statusIconData = getStatusIcon(status);
                         return HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13);
                       },
                     ),
-                ],
-              ),
-            ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),
