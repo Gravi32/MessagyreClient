@@ -917,7 +917,7 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble> with Sing
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 600));
+    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
 
     _controller.addStatusListener((status) {
