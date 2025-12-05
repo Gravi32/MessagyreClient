@@ -14,6 +14,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -96,7 +97,7 @@ class _GradesPageState extends State<GradesPage> {
                     spacing: 2,
                     children: [
                       Text(
-                        "${SubjectHelper.toFrench(subject)}:",
+                        SubjectHelper.toFrench(subject),
                         style: TextStyle(
                           fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
                           fontSize: 18,
@@ -105,7 +106,7 @@ class _GradesPageState extends State<GradesPage> {
                         ),
                       ),
 
-                      Text(
+                      CustomText(
                         isGradeUnknown ? incomingGrades.join(", ") + plannedGrades.join(", ") : "${grades.length} note${grades.length > 1 ? 's' : ''}",
                         maxLines: 2,
                         overflow: TextOverflow.fade,
