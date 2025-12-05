@@ -498,7 +498,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
               mainAxisSize: MainAxisSize.max,
               children: [
                 CupertinoButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    Navigator.of(context).pop();
+                  },
                   padding: EdgeInsets.zero,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
