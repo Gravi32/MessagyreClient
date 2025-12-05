@@ -1,9 +1,11 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -83,7 +85,10 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               tiles: [
                 SettingsTile(title: Text("Token d'accès (JWT)"), value: Text(data.token != null ? "Oui" : "Non")),
                 SettingsTile(title: Text("Token de renouvellement"), value: Text(isRefreshTokenStored ? "Oui" : "Non")),
-                SettingsTile(title: Text("Token FCM"), value:SizedBox(width: 150, child: Text(data.fcmToken ?? "-", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end,),) ),
+                SettingsTile(
+                  title: Text("Token FCM"),
+                  value: SizedBox(width: 150, child: Text(data.fcmToken ?? "-", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
+                ),
                 SettingsTile.navigation(
                   title: Text("Supprimer le token FCM", style: TextStyle(color: CupertinoColors.systemRed)),
                   onPressed: (context) => FirebaseMessaging.instance.deleteToken(),
@@ -93,13 +98,27 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
             SettingsSection(
               title: Text("Logs de l'application"),
               tiles: [
+                SettingsTile(title: Text("Copier"), onPressed: (context) => copy(context, data.appLogs.join("\n"))),
                 SettingsTile(
                   title:
                       data.appLogs.isNotEmpty
                           ? ListView.builder(
                             itemBuilder: (context, index) {
                               final logIndex = data.appLogs.length - 1 - index;
-                              return Text(data.appLogs[logIndex]);
+                              final content = data.appLogs[logIndex].split(" ");
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(content.sublist(1).join(" ")),
+                                  Text(
+                                    content[0].replaceAll(RegExp(r'[\[\]]'), ''),
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                  ),
+                                  Divider(color: CupertinoColors.separator.resolveFrom(context).withAlpha(50)),
+                                ],
+                              );
                             },
                             itemCount: data.appLogs.length,
                             reverse: true,

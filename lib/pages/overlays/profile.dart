@@ -43,20 +43,6 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   bool isUploading = false;
   String? chosenPicturePath;
 
-  void copy(String content) async {
-    await Clipboard.setData(ClipboardData(text: content));
-    if (!mounted) return;
-    showCupertinoDialog(
-      context: context,
-      builder:
-          (dialogContext) => CupertinoAlertDialog(
-            title: Text("Copié"),
-            content: Text("Copié dans le presse-papiers."),
-            actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.of(dialogContext).pop())],
-          ),
-    );
-  }
-
   void changeProfilePicture() {
     void pickImage(ImageSource source) async {
       final picker = ImagePicker();
@@ -485,7 +471,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
           style: value == null ? TextStyle(color: CupertinoColors.inactiveGray) : null,
         ),
         description: description ? Text("Appuyez pour copier dans le presse-papiers.") : null,
-        onPressed: value != null ? (_) => copy(value) : null,
+        onPressed: value != null ? (_) => copy(context, value) : null,
       );
     }
   }

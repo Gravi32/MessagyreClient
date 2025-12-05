@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -192,4 +193,18 @@ void restartApp(BuildContext context) {
   if (!context.mounted) return;
   final mountedContext = context;
   Phoenix.rebirth(mountedContext);
+}
+
+void copy(BuildContext context, String content) async {
+  await Clipboard.setData(ClipboardData(text: content));
+  if (!context.mounted) return;
+  showCupertinoDialog(
+    context: context,
+    builder:
+        (dialogContext) => CupertinoAlertDialog(
+          title: Text("Copié"),
+          content: Text("Copié dans le presse-papiers."),
+          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.of(dialogContext).pop())],
+        ),
+  );
 }
