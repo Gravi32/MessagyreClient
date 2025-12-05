@@ -28,10 +28,12 @@ class _LifecycleHandlerState extends State<LifecycleHandler> with WidgetsBinding
 
     if (state == AppLifecycleState.resumed) {
       connection.connect();
+      FocusManager.instance.primaryFocus?.unfocus();
     }
 
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.detached) {
       connection.disconnect();
+      FocusManager.instance.primaryFocus?.unfocus();
     }
   }
 
