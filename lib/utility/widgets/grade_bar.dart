@@ -24,7 +24,7 @@ class GradeBar extends StatelessWidget {
       children: [
         CupertinoPressable(
           padding: EdgeInsets.zero,
-          onTap: isGradeUnknown ? null : onTap,
+          onTap: onTap,
           child: Row(
             children: [
               GradeDisplay(

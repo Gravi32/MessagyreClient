@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/group_page.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
+import 'package:messagyre_client/pages/homework.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -193,12 +195,24 @@ class _SubjectPageState extends State<SubjectPage> {
                 Grade()
                   ..title = homework.content
                   ..date = homework.dueDate;
+            final isIncoming = homework.dueDate.isBefore(DateTime.now());
+            final isPlanned = homework.dueDate.isAfter(DateTime.now());
+
             return GradeBar(
               gradeData: grade,
-              onTap: () {},
+              onTap: () {
+                if (isIncoming) {
+                  showNewGradePopup(toReference: homework);
+                  return;
+                }
+
+                Navigator.pop(context);
+                MainPage.pageIndex.value = 1;
+                homeworkPageKey.currentState?.showHomework(homework);
+              },
               isGradeUnknown: true,
-              isIncoming: homework.dueDate.isBefore(DateTime.now()),
-              isPlanned: homework.dueDate.isAfter(DateTime.now()),
+              isIncoming: isIncoming,
+              isPlanned: isPlanned,
             );
           },
         ),
@@ -206,7 +220,7 @@ class _SubjectPageState extends State<SubjectPage> {
     );
   }
 
-  void showNewGradePopup({Grade? toEdit}) async {
+  void showNewGradePopup({Grade? toEdit, Homework? toReference}) async {
     final newGrade = await showCupertinoModalBottomSheet<Grade?>(
       context: context,
       enableDrag: false,
@@ -224,6 +238,7 @@ class _SubjectPageState extends State<SubjectPage> {
                 if (mounted) Navigator.of(context).pop();
               }
             },
+            toReference: toReference,
           ),
     );
 
