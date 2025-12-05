@@ -225,6 +225,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         allowImplicitScrolling: true,
         physics: const BouncingScrollPhysics(),
         onPageChanged: (index) {
+          FocusManager.instance.primaryFocus?.unfocus();
           if (!isAnimating) MainPage.pageIndex.value = index;
         },
         children: builtPages,
