@@ -63,7 +63,6 @@ class FirebaseApi {
       }
 
       data.fcmToken = await firebaseMessaging.getToken();
-      debugPrint("[Firebase] FCM token: ${data.fcmToken}");
       sendTokenToServer();
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -155,12 +154,10 @@ class FirebaseApi {
     final token = data.fcmToken;
     if (token == null) return;
 
-    debugPrint("[Firebase] Uploading the FCM token...");
-
     final response = await router.post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token});
 
     if (response.statusCode == 200) {
-      debugPrint("[Firebase] Token sent successfully.");
+      debugPrint("[Firebase] FCM token successfully uploaded.");
     } else {
       debugPrint("[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${data.username}, token: ${data.token}");
     }

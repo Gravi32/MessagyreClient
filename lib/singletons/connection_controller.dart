@@ -99,8 +99,6 @@ class ConnectionController {
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
 
-    debugPrint("[RefreshToken] Requesting token refresh, sending $refreshToken...");
-
     final response = await post("/Auth/Refresh", {"RefreshToken": refreshToken}).timeout(
       const Duration(seconds: 15),
       onTimeout: () {
@@ -116,8 +114,6 @@ class ConnectionController {
 
         await secureStorage.write(key: "AccessToken", value: data.token);
         await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
-
-        debugPrint("[RefreshToken] Token refreshed successfully ! New token: ${results["RefreshToken"]}");
       } catch (e) {
         debugPrint("[RefreshToken] Failed decoding server response: ${response.body} -> $e");
       }
@@ -199,7 +195,7 @@ class ConnectionController {
     // Attemping a connection
     try {
       connectionState.value = ConnectionState.Connecting;
-      debugPrint("[WebSocket] Connecting to $serverWebSocketAddress...");
+      debugPrint("[WebSocket] Connecting...");
 
       final socket = await WebSocket.connect(serverWebSocketAddress, headers: {'Authorization': 'Bearer ${data.token}'}).timeout(const Duration(seconds: 40));
 
