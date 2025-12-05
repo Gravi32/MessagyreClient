@@ -218,6 +218,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
       extendBody: true,
       resizeToAvoidBottomInset: false,
       body: PageView(
