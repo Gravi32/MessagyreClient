@@ -158,7 +158,6 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   void showMessageContextMenu(BuildContext context, Message message) {
     HapticFeedback.heavyImpact();
     messageFieldFocusNode.unfocus();
-    print("Keyboard closed by showMessageContextMenu");
 
     try {
       final overlay = Overlay.of(context, rootOverlay: true);
@@ -428,7 +427,6 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         scrollDown();
       } else {
         messageFieldFocusNode.unfocus();
-        print("Keyboard closed by KeyboardVisibilityController");
       }
     });
 
