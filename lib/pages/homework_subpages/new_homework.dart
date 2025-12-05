@@ -156,6 +156,7 @@ class _NewHomeworkState extends State<NewHomework> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SubjectAutocomplete(
                       decoration: const BoxDecoration(),
@@ -167,7 +168,10 @@ class _NewHomeworkState extends State<NewHomework> {
                         padding: const EdgeInsets.only(right: 10),
                         child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                       ),
-                      suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      suffix: Opacity(
+                        opacity: .25,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      ),
                       suffixMode: OverlayVisibilityMode.notEditing,
                       style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
@@ -192,8 +196,8 @@ class _NewHomeworkState extends State<NewHomework> {
                     Padding(
                       padding: EdgeInsetsGeometry.symmetric(horizontal: 6),
                       child: Text(
-                        "Écrivez les mots entre astérisques pour les mettre en gras *",
-                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
+                        "Écrivez les mots entre astérisques pour les mettre en gras",
+                        style: TextStyle(color: CupertinoColors.quaternaryLabel.resolveFrom(context), fontSize: 14),
                       ),
                     ),
                   ],
@@ -265,7 +269,7 @@ class _NewHomeworkState extends State<NewHomework> {
                               ? Padding(
                                 padding: EdgeInsetsGeometry.only(top: 6),
                                 child: Text(
-                                  "Un événement sera créé sur ${newTargetCalendar == null ? "votre calendrier prédefini." : "${newTargetCalendar.name}."} Vous pouvez changer de calendrier dans les réglages de votre dispositif.",
+                                  "Un événement sera créé sur ${newTargetCalendar == null ? "votre calendrier prédefini." : "\"${newTargetCalendar.name}\"."} Vous pouvez changer de calendrier dans les réglages de votre dispositif.",
                                   style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 16),
                                 ),
                               )
@@ -273,12 +277,8 @@ class _NewHomeworkState extends State<NewHomework> {
                       margin: const EdgeInsets.symmetric(horizontal: 10),
                       children: [
                         CupertinoListTile(
-                          leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar03, color: CupertinoColors.label.resolveFrom(context)),
-                          title: Text(
-                            newTargetCalendar == null
-                                ? "${editMode ? "Syncroniser avec le" : "Ajouter au"} calendrier de système"
-                                : "${editMode ? "Syncroniser avec" : "Ajouter à"} ${newTargetCalendar.name}",
-                          ),
+                          leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                          title: Text("${editMode ? "Syncroniser avec le" : "Ajouter au"} calendrier du téléphone"),
                           trailing: CupertinoSwitch(
                             value: editsCalendar,
                             onChanged:
