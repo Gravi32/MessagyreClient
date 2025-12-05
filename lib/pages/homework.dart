@@ -311,10 +311,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                                       return LinearGradient(
                                         begin: Alignment.centerLeft,
                                         end: Alignment.centerRight,
-                                        colors: [
-                                          CupertinoColors.white,
-                                          CupertinoColors.transparent, 
-                                        ],
+                                        colors: [CupertinoColors.white, CupertinoColors.transparent],
                                       ).createShader(Rect.fromLTWH(0, 0, rect.width, rect.height));
                                     },
                                     blendMode: BlendMode.dstIn,
@@ -432,7 +429,11 @@ class HomeworkPageState extends State<HomeworkPage> {
                     children: [
                       Text(
                         "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
+                          color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity),
+                        ),
                       ),
                       if (int.tryParse(formattedDate[0]) == null)
                         Text(
@@ -736,7 +737,11 @@ class HomeworkPageState extends State<HomeworkPage> {
                     children: [
                       Text(
                         "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
+                          color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity),
+                        ),
                       ),
                       if (int.tryParse(formattedDate[0]) == null)
                         Text(
