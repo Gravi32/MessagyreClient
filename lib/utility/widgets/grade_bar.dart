@@ -89,9 +89,9 @@ class GradeBar extends StatelessWidget {
                   ],
                 ),
               ),
-              Opacity(
-                opacity: .75,
-                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
+              HugeIcon(
+                icon: isGradeUnknown ? HugeIcons.strokeRoundedAdd01 : HugeIcons.strokeRoundedPencilEdit02,
+                color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
               ),
             ],
           ),
