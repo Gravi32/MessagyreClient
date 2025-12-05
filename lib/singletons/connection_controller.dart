@@ -72,7 +72,9 @@ class ConnectionController {
   void onUnauthorized() {
     if (isAccessOverlayOpen || navigatorKey.currentState?.widget is AccessOverlay) return;
     isAccessOverlayOpen = true;
-    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => const AccessOverlay()));
+    navigatorKey.currentState?.push(
+      PageRouteBuilder(transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero, pageBuilder: (_, _, _) => const AccessOverlay()),
+    );
   }
 
   bool get isConnected => _channel != null;
