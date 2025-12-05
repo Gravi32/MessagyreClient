@@ -198,7 +198,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                         Padding(
                           padding: EdgeInsetsGeometry.symmetric(horizontal: 12).add(const EdgeInsets.only(top: 6)),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             spacing: 6,
                             children: [
                               // Icon or checkbox
