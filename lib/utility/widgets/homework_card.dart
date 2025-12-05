@@ -22,6 +22,7 @@ class HomeworkCard extends StatefulWidget {
   final Homework homework;
   final VoidCallback? onEditButtonClicked, onDeleteButtonClicked;
   final Function(bool isMarkedAsDone)? onMarkAsDoneButtonClicked;
+  final VoidCallback? onCardTap;
   final bool isPreview;
   final HomeworkCardController? controller;
 
@@ -34,6 +35,7 @@ class HomeworkCard extends StatefulWidget {
     this.onEditButtonClicked,
     this.onDeleteButtonClicked,
     this.onMarkAsDoneButtonClicked,
+    this.onCardTap,
     this.controller,
   });
 
@@ -147,148 +149,170 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
               if (!isTest) buildButton(2, "Terminé", HugeIcons.strokeRoundedCheckmarkSquare04, CupertinoColors.label.resolveFrom(context), markAsDone),
             ],
           ),
-          CupertinoPressable(
-            onTap:
-                isPreview
-                    ? null
-                    : () {
-                      toggleExpanded();
-                      HapticFeedback.lightImpact();
-                    },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeOutCubic,
-              key: mainContainerKey,
-              decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(isMarkedAsDone && !isExpanded ? -.025 : 0),
-                borderRadius: const BorderRadius.all(Radius.circular(12)),
-
-                boxShadow: [
-                  if (data.appBrightness == Brightness.dark || isPreview)
-                    BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+          Container(
+            decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(-.02), borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: [
+                if (isPreview)
                   Padding(
-                    padding: EdgeInsetsGeometry.symmetric(horizontal: 12).add(const EdgeInsets.only(top: 6)),
-                    child: Row(
-                      spacing: 6,
-                      children: [
-                        // Icon or checkbox
-                        SizedBox(
-                          height: 30,
-                          child:
-                              isTest
-                                  ? HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 22)
-                                  : GestureDetector(
-                                    onTap: isPreview ? null : markAsDone,
-                                    child: HugeIcon(
-                                      icon: isMarkedAsDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
-                                      size: 30,
-                                      color: isMarkedAsDone ? CupertinoColors.activeGreen : CupertinoColors.secondaryLabel.resolveFrom(context),
-                                    ),
-                                  ),
-                        ),
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 6),
+                    child: Opacity(
+                      opacity: .5,
+                      child: Row(
+                        spacing: 6,
+                        children: [
+                          HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, color: CupertinoColors.label.resolveFrom(context), size: 14,),
+                          Text("Aperçu du devoir", style: TextStyle(fontSize: 15)),
+                        ],
+                      ),
+                    ),
+                  ),
+                CupertinoPressable(
+                  onTap:
+                      isPreview
+                          ? widget.onCardTap
+                          : () {
+                            toggleExpanded();
+                            HapticFeedback.lightImpact();
+                          },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOutCubic,
+                    key: mainContainerKey,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(isMarkedAsDone && !isExpanded ? -.025 : 0),
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
 
-                        // Subject label
-                        Expanded(
+                      boxShadow: [
+                        if (data.appBrightness == Brightness.dark || isPreview)
+                          BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsetsGeometry.symmetric(horizontal: 12).add(const EdgeInsets.only(top: 6)),
                           child: Row(
-                            spacing: 4,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            spacing: 6,
                             children: [
-                              if (isGraded)
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                                  color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
-                                  size: 20,
-                                ),
+                              // Icon or checkbox
+                              SizedBox(
+                                height: 30,
+                                child:
+                                    isTest
+                                        ? HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 22)
+                                        : GestureDetector(
+                                          onTap: isPreview ? null : markAsDone,
+                                          child: HugeIcon(
+                                            icon: isMarkedAsDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
+                                            size: 30,
+                                            color: isMarkedAsDone ? CupertinoColors.activeGreen : CupertinoColors.secondaryLabel.resolveFrom(context),
+                                          ),
+                                        ),
+                              ),
+
+                              // Subject label
                               Expanded(
-                                child: AnimatedLineThrough(
-                                  duration: const Duration(milliseconds: 150),
-                                  isCrossed: isMarkedAsDone,
-                                  strokeWidth: 1,
-                                  child: Text(
-                                    title ?? "Branche",
-                                    style: TextStyle(
-                                      color:
-                                          isTest
-                                              ? CupertinoColors.systemRed.resolveFrom(context)
-                                              : CupertinoColors.label.resolveFrom(context).withValues(alpha: (isMarkedAsDone || title == null) ? .5 : 1),
-                                      fontWeight: title == null ? FontWeight.w500 : FontWeight.w700,
-                                      fontSize: 20,
+                                child: Row(
+                                  spacing: 4,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    if (isGraded)
+                                      HugeIcon(
+                                        icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                                        color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
+                                        size: 20,
+                                      ),
+                                    Expanded(
+                                      child: AnimatedLineThrough(
+                                        duration: const Duration(milliseconds: 150),
+                                        isCrossed: isMarkedAsDone,
+                                        strokeWidth: 1,
+                                        child: Text(
+                                          title ?? "Branche",
+                                          style: TextStyle(
+                                            color:
+                                                isTest
+                                                    ? CupertinoColors.systemRed.resolveFrom(context)
+                                                    : CupertinoColors.label.resolveFrom(context).withValues(alpha: (isMarkedAsDone || title == null) ? .5 : 1),
+                                            fontWeight: title == null ? FontWeight.w500 : FontWeight.w700,
+                                            fontSize: 20,
+                                          ),
+                                          softWrap: true,
+                                          overflow: TextOverflow.fade,
+                                        ),
+                                      ),
                                     ),
-                                    softWrap: true,
-                                    overflow: TextOverflow.fade,
-                                  ),
+                                  ],
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+
+                        // Dashed separator
+                        if (!isTest)
+                          Padding(
+                            padding: EdgeInsetsGeometry.only(top: 10, bottom: 4),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return Dash(
+                                  direction: Axis.horizontal,
+                                  length: constraints.maxWidth,
+                                  dashLength: 6,
+                                  dashGap: 3,
+                                  dashThickness: 1,
+                                  dashColor: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                  dashBorderRadius: 2,
+                                );
+                              },
+                            ),
+                          ),
+
+                        // Homework content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              AnimatedLineThrough(
+                                duration: const Duration(milliseconds: 150),
+                                isCrossed: isMarkedAsDone,
+                                strokeWidth: .5,
+                                child: CustomText(
+                                  isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
+                                  style: TextStyle(
+                                    color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                                    fontWeight: isTest ? FontWeight.w600 : null,
+                                    fontSize: isTest ? 20 : null,
+                                  ),
+
+                                  boldWeight: FontWeight.w800,
+                                  overflow: TextOverflow.fade,
+                                  maxLines: isPreview ? 3 : null,
+                                ),
+                              ),
+
+                              if (!isPreview)
+                                Opacity(
+                                  opacity: .3,
+                                  child: HugeIcon(
+                                    icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                                    size: 18,
+                                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // Dashed separator
-                  if (!isTest)
-                    Padding(
-                      padding: EdgeInsetsGeometry.only(top: 10, bottom: 4),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Dash(
-                            direction: Axis.horizontal,
-                            length: constraints.maxWidth,
-                            dashLength: 6,
-                            dashGap: 3,
-                            dashThickness: 1,
-                            dashColor: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
-                            dashBorderRadius: 2,
-                          );
-                        },
-                      ),
-                    ),
-
-                  // Homework content
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        AnimatedLineThrough(
-                          duration: const Duration(milliseconds: 150),
-                          isCrossed: isMarkedAsDone,
-                          strokeWidth: .5,
-                          child: CustomText(
-                            isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
-                            style: TextStyle(
-                              color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
-                              fontWeight: isTest ? FontWeight.w600 : null,
-                              fontSize: isTest ? 20 : null,
-                            ),
-
-                            boldWeight: FontWeight.w800,
-                            overflow: TextOverflow.fade,
-                            maxLines: isPreview ? 3 : null,
-                          ),
-                        ),
-                        if (!isPreview)
-                          Opacity(
-                            opacity: .3,
-                            child: HugeIcon(
-                              icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                              size: 18,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           // Positioned(top: -5, right: -5, child: Opacity(opacity: isMarkedAsDone ? .5 : 1, child: Image.asset("assets/pin.png", width: 30, height: 30))),
