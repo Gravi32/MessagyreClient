@@ -53,9 +53,6 @@ class FirebaseApi {
 
           if (apnsToken == null) {
             debugPrint("[Firebase] No APNs token retrieved. Retrying in 3 seconds...");
-          } else {
-            debugPrint("[Firebase] APNs token: $apnsToken");
-            break;
           }
 
           await Future.delayed(Duration(seconds: 3));

@@ -262,7 +262,6 @@ class ConnectionController {
   }
 
   void _handleMessage(Map<String, dynamic> rawMessageData) {
-    debugPrint("[Router] WebSocket message received. Raw data: $rawMessageData");
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
       final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
