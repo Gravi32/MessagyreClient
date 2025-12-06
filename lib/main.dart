@@ -136,8 +136,8 @@ class App extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('fr')],
-          locale: Locale('fr'),
+          supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
+          locale: Locale('fr', 'CH'),
           home: const MainPage(),
         );
       },
