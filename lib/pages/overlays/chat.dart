@@ -413,7 +413,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     data.openChatUsername = widget.recipientUsername;
 
-    if (widget.recipientUsername == "support.messagyre") {
+    if (widget.recipientUsername == "support.messagyre" && chatData.content.isEmpty) {
       chatData.content.add(
         Message(
           id: Uuid().v4(),
