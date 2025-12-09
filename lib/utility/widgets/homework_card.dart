@@ -119,7 +119,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
     final isGraded = widget.homework.isGraded;
 
     final title =
-        isTest ? "Test ${SubjectHelper.withPreposition(widget.homework.subject)}" : SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
+        isTest ? "Test ${SubjectHelper.withPreposition(widget.homework.subject) ?? ""}" : SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
 
     return AnimatedScale(
       key: controller.key,
@@ -288,24 +288,29 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              AnimatedLineThrough(
-                                duration: const Duration(milliseconds: 150),
-                                isCrossed: isMarkedAsDone,
-                                strokeWidth: .5,
-                                child: CustomText(
-                                  isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
-                                  style: TextStyle(
-                                    color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
-                                    fontWeight: isTest ? FontWeight.w600 : null,
-                                    fontSize: isTest ? 20 : null,
-                                  ),
+                              Expanded(
+                                child: AnimatedLineThrough(
+                                  duration: const Duration(milliseconds: 150),
+                                  isCrossed: isMarkedAsDone,
+                                  strokeWidth: .5,
+                                  child: CustomText(
+                                    isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
+                                    style: TextStyle(
+                                      color: CupertinoColors.label
+                                          .resolveFrom(context)
+                                          .withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                                      fontWeight: isTest ? FontWeight.w600 : null,
+                                      fontSize: isTest ? 20 : null,
+                                    ),
 
-                                  boldWeight: FontWeight.w800,
-                                  overflow: TextOverflow.fade,
-                                  maxLines: isPreview ? 3 : null,
+                                    boldWeight: FontWeight.w800,
+                                    overflow: TextOverflow.fade,
+                                    maxLines: isPreview ? 3 : null,
+                                  ),
                                 ),
                               ),
                             ],
