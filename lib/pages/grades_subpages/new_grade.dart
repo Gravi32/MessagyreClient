@@ -118,7 +118,7 @@ class _NewGradeState extends State<NewGrade> {
     referenceId = target.referenceId;
     subject = target.subject;
 
-    titleController.text = target.content;
+    titleController.text = target.title ?? target.content;
     subjectController.value = TextEditingValue(text: SubjectHelper.toFrenchOrNull(target.subject) ?? "");
 
     titleFocusNode.unfocus();
@@ -286,7 +286,7 @@ class _NewGradeState extends State<NewGrade> {
                                             ),
                                           ),
                                           WidgetSpan(child: SizedBox(width: 4)),
-                                          ...highlightSearchMatch(homework.content, query, useCache: true),
+                                          ...highlightSearchMatch(homework.title ?? homework.content, query, useCache: true),
                                         ],
                                         style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
                                       ),
@@ -349,7 +349,7 @@ class _NewGradeState extends State<NewGrade> {
                         if (isReferenceTileExpanded && referencedHomework != null) ...[
                           const SizedBox(height: 10),
 
-                          Opacity(opacity: .9, child: HomeworkCard(homework: referencedHomework!)),
+                          Opacity(opacity: .9, child: HomeworkCard(homework: referencedHomework!, isPreview: true,)),
                           const SizedBox(height: 10),
                           Text(
                             "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans dissocier la note.",

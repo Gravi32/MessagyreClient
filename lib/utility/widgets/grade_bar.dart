@@ -38,59 +38,75 @@ class GradeBar extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 4,
-                      children: [
-                        CustomText(
-                          gradeData.title,
-                          style: TextStyle(
-                            fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
-                            fontSize: isGradeUnknown ? 16 : 18,
-                            color: isGradeUnknown ? CupertinoColors.secondaryLabel.resolveFrom(context) : CupertinoColors.label.resolveFrom(context),
-                          ),
-                        ),
-                        if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [
                           Padding(
-                            padding: EdgeInsetsGeometry.symmetric(vertical: 4),
-                            child: Row(
-                              spacing: 6,
-                              children: [
-                                Opacity(
-                                  opacity: .5,
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedTextAlignLeft,
-                                    size: 16,
-                                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                  ),
-                                ),
-                                CustomText(
-                                  gradeData.details!,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: CupertinoColors.separator.resolveFrom(context), fontSize: 15),
-                                ),
-                              ],
+                            padding: EdgeInsets.only(right: 20),
+                            child: CustomText(
+                              gradeData.title,
+                              style: TextStyle(
+                                fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
+                                fontSize: isGradeUnknown ? 16 : 18,
+                                color: isGradeUnknown ? CupertinoColors.tertiaryLabel.resolveFrom(context) : CupertinoColors.label.resolveFrom(context),
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsetsGeometry.only(top: 2, right: 20),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(right: 2),
+                                        child: Opacity(
+                                          opacity: .6,
+                                          child: HugeIcon(
+                                            icon: HugeIcons.strokeRoundedTextAlignLeft,
+                                            size: 14,
+                                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    ...CustomText.parseSpans(
+                                      gradeData.details!,
+                                      style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 17),
+                                    ),
+                                  ],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
 
-                        Text(
-                          isGradeUnknown
-                              ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                              : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
-                          maxLines: 2,
-                          overflow: TextOverflow.fade,
-                          softWrap: true,
-                          style: TextStyle(color: CupertinoColors.separator.resolveFrom(context), fontSize: 15),
-                        ),
-                      ],
+                          Text(
+                            isGradeUnknown
+                                ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
+                                : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
+                            maxLines: 2,
+                            overflow: TextOverflow.fade,
+                            softWrap: true,
+                            style: TextStyle(color: CupertinoColors.separator.resolveFrom(context), fontSize: 15),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
               HugeIcon(
-                icon: isGradeUnknown ? HugeIcons.strokeRoundedAdd01 : HugeIcons.strokeRoundedPencilEdit02,
+                icon:
+                    isGradeUnknown
+                        ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
+                        : HugeIcons.strokeRoundedPencilEdit02,
                 color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
               ),
             ],

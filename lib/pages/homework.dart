@@ -158,6 +158,11 @@ class HomeworkPageState extends State<HomeworkPage> {
         title = "Test ${SubjectHelper.withPreposition(homework.subject)}";
       }
 
+      String description = "";
+      if (homework.title != null) description += "${homework.title}\n\n";
+      if (homework.content?.isNotEmpty) description += homework.content;
+      if (description.isNotEmpty) description += "\n\nCréé par Messagyre.";
+
       final timeZone = getLocation("Europe/Zurich");
 
       final event = Event(
@@ -167,7 +172,7 @@ class HomeworkPageState extends State<HomeworkPage> {
         start: TZDateTime.from(homework.dueDate, timeZone),
         end: TZDateTime.from(homework.dueDate.add(const Duration(minutes: 45)), timeZone),
         allDay: true,
-        description: "${(homework.content?.isEmpty ?? true) ? "" : "${homework.content}\n\n"}Créé par Messagyre.",
+        description: description,
       );
 
       final result = await calendar.createOrUpdateEvent(event);

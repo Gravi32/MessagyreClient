@@ -106,6 +106,9 @@ class Homework extends HiveObject {
   @HiveField(0)
   Subject subject = Subject.Maths;
 
+  @HiveField(9)
+  String? title;
+
   @HiveField(1)
   String content = "Exercices";
 
@@ -130,8 +133,10 @@ class Homework extends HiveObject {
   @HiveField(8)
   String? calendarEventId;
 
+  // HiveField 9 taken by title
+
   @override
-  String toString() => content;
+  String toString() => title ?? content;
 }
 
 // Subject uses HiveType 3

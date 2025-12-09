@@ -114,6 +114,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final isTest = widget.homework.isTest;
     final isPreview = widget.isPreview;
+    final isPreviewTitleEmpty = isPreview && (widget.homework.title == null || widget.homework.title!.isEmpty);
     final isPreviewDescriptionEmpty = isPreview && widget.homework.content.isEmpty;
     final isMarkedAsDone = widget.homework.isMarkedAsDone;
     final isGraded = widget.homework.isGraded;
@@ -139,13 +140,10 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                 CupertinoColors.label.resolveFrom(context),
                 () => widget.onDeleteButtonClicked?.call(),
               ),
-              buildButton(
-                1,
-                "Modifier",
-                HugeIcons.strokeRoundedPencilEdit02,
-                CupertinoColors.label.resolveFrom(context),
-                () => widget.onEditButtonClicked?.call(),
-              ),
+              buildButton(1, "Modifier", HugeIcons.strokeRoundedPencilEdit02, CupertinoColors.label.resolveFrom(context), () {
+                toggleExpanded();
+                widget.onEditButtonClicked?.call();
+              }),
               if (!isTest) buildButton(2, "Terminé", HugeIcons.strokeRoundedCheckmarkSquare04, CupertinoColors.label.resolveFrom(context), markAsDone),
             ],
           ),
@@ -284,38 +282,43 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                             ),
                           ),
 
-                        // Homework content
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: AnimatedLineThrough(
-                                  duration: const Duration(milliseconds: 150),
-                                  isCrossed: isMarkedAsDone,
-                                  strokeWidth: .5,
-                                  child: CustomText(
-                                    isPreviewDescriptionEmpty ? "Description du ${isTest ? "test" : "devoir"}" : widget.homework.content,
-                                    style: TextStyle(
-                                      color: CupertinoColors.label
-                                          .resolveFrom(context)
-                                          .withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
-                                      fontWeight: isTest ? FontWeight.w600 : null,
-                                      fontSize: isTest ? 20 : null,
-                                    ),
-
-                                    boldWeight: FontWeight.w800,
-                                    overflow: TextOverflow.fade,
-                                    maxLines: isPreview ? 3 : null,
-                                  ),
-                                ),
+                        // Title
+                        if ((isTest || isGraded) && (isPreview || widget.homework.title != null))
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
+                            child: CustomText(
+                              isPreviewTitleEmpty ? "Titre du ${isTest ? "test" : "devoir noté"}" : widget.homework.title!,
+                              style: TextStyle(
+                                color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewTitleEmpty || isMarkedAsDone ? .5 : .9),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 20,
                               ),
-                            ],
+
+                              boldWeight: FontWeight.w800,
+                              overflow: TextOverflow.fade,
+                              maxLines: isPreview ? 3 : null,
+                            ),
                           ),
-                        ),
+
+                        // Homework content
+                        if (isPreview || (!isGraded && !isTest) || (isPreview && (!isPreviewDescriptionEmpty || widget.homework.content.isNotEmpty)))
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
+                            child: AnimatedLineThrough(
+                              duration: const Duration(milliseconds: 150),
+                              isCrossed: isMarkedAsDone,
+                              strokeWidth: .5,
+                              child: CustomText(
+                                isPreviewDescriptionEmpty ? "Description du devoir" : widget.homework.content,
+                                style: TextStyle(
+                                  color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                                ),
+                                boldWeight: FontWeight.w800,
+                                overflow: TextOverflow.fade,
+                                maxLines: isPreview ? 3 : null,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

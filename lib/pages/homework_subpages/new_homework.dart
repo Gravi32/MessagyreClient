@@ -8,6 +8,7 @@ import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/homework_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:uuid/uuid.dart';
@@ -29,9 +30,11 @@ class _NewHomeworkState extends State<NewHomework> {
   late final editMode = widget.toEdit != null;
 
   late final subjectController = TextEditingController(text: subject == null ? null : SubjectHelper.toFrench(subject!));
+  late final titleController = TextEditingController(text: widget.toEdit?.title);
   late final contentController = TextEditingController(text: widget.toEdit?.content);
 
   final subjectFocusNode = FocusNode();
+  final titleFocusNode = FocusNode();
   final contentFocusNode = FocusNode();
 
   late Subject? subject = widget.toEdit?.subject;
@@ -50,6 +53,7 @@ class _NewHomeworkState extends State<NewHomework> {
 
     homework
       ..subject = subject ?? Subject.NotSet
+      ..title = titleController.text.isEmpty ? null : titleController.text.trim()
       ..content = contentController.text.trim()
       ..dueDate = dueDate
       ..isGraded = isGraded
@@ -81,13 +85,36 @@ class _NewHomeworkState extends State<NewHomework> {
 
   void unfocusFields() {
     subjectFocusNode.unfocus();
+    titleFocusNode.unfocus();
     contentFocusNode.unfocus();
+  }
+
+  //(subject != null && subject != Subject.NotSet) && ((isTest || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
+
+  void showMissingInfoPopup() {
+    showCupertinoDialog(
+      context: context,
+      builder: (dialogContext) {
+        final missingInfos = [
+          if (subject == null || subject == Subject.NotSet) "la *branche*",
+          if ((isTest || isGraded) && titleController.text.isEmpty) "un *titre*",
+          if (!(isTest || isGraded) && contentController.text.isEmpty) "une *description*",
+        ];
+
+        return CupertinoAlertDialog(
+          title: Text("Informations manquantes"),
+          content: CustomText("Vous n'oubliez pas quelque chose ?\nPour créer ce devoir entrez ${missingInfos.join(" et ")} !", textAlign: TextAlign.center),
+          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
+        );
+      },
+    );
   }
 
   @override
   void initState() {
     super.initState();
     subjectController.addListener(() => setState(() {}));
+    titleController.addListener(() => setState(() {}));
     contentController.addListener(() => setState(() {}));
     data.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
@@ -95,8 +122,10 @@ class _NewHomeworkState extends State<NewHomework> {
   @override
   void dispose() {
     subjectController.dispose();
+    titleController.dispose();
     contentController.dispose();
     subjectFocusNode.dispose();
+    titleFocusNode.dispose();
     contentFocusNode.dispose();
     super.dispose();
   }
@@ -106,10 +135,14 @@ class _NewHomeworkState extends State<NewHomework> {
     final previewHomework =
         Homework()
           ..subject = subject ?? Subject.NotSet
+          ..title = titleController.text.isEmpty ? null : titleController.text.trim()
           ..content = contentController.text.trim()
           ..dueDate = dueDate
           ..isGraded = isGraded
           ..isTest = isTest;
+
+    final canBeSubmitted =
+        (subject != null && subject != Subject.NotSet) && ((isTest || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
 
     return GestureDetector(
       onTap: unfocusFields,
@@ -122,11 +155,11 @@ class _NewHomeworkState extends State<NewHomework> {
           ),
           trailing: CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: contentController.text.isNotEmpty ? confirmHomework : null,
+            onPressed: canBeSubmitted ? confirmHomework : showMissingInfoPopup,
             child: Text(
               editMode ? "Terminé" : "Ajouter",
               style: TextStyle(
-                color: contentController.text.isEmpty ? CupertinoColors.secondaryLabel : CupertinoColors.label.resolveFrom(context),
+                color: canBeSubmitted ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.inactiveGray.resolveFrom(context),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -178,6 +211,23 @@ class _NewHomeworkState extends State<NewHomework> {
                       onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
                     ),
                     SizedBox(height: 12),
+                    if (isTest || isGraded) ...[
+                      CupertinoTextField(
+                        controller: titleController,
+                        focusNode: titleFocusNode,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(Radius.circular(8)),
+                          border: Border.all(width: 0, color: CupertinoColors.separator.resolveFrom(context)),
+                        ),
+                        placeholder: "Titre",
+                        minLines: 1,
+                        maxLines: 2,
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+                        placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w400),
+                        onTapOutside: (event) => titleFocusNode.unfocus(),
+                      ),
+                      SizedBox(height: 6),
+                    ],
                     CupertinoTextField(
                       controller: contentController,
                       focusNode: contentFocusNode,
@@ -185,8 +235,8 @@ class _NewHomeworkState extends State<NewHomework> {
                         borderRadius: const BorderRadius.all(Radius.circular(8)),
                         border: Border.all(width: 0, color: CupertinoColors.separator.resolveFrom(context)),
                       ),
-                      placeholder: isTest ? "Nom ou description du test..." : "Ce que je dois faire...",
-                      minLines: 5,
+                      placeholder: isTest ? "Description du test..." : "Ce que je dois faire...",
+                      minLines: isTest ? 4 : 5,
                       maxLines: 10,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w400),
