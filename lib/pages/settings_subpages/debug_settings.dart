@@ -64,9 +64,9 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
             SettingsSection(
               title: Text("Connexion"),
               tiles: [
-                SettingsTile(title: Text("Mode de test local"), value: Text(ConnectionController.useLocalhost ? "Oui" : "Non")),
+                SettingsTile(title: Text("Mode de test local"), value: Text(ConnectionController().isLocalhost ? "Oui" : "Non")),
 
-                SettingsTile(title: Text("Adresse du serveur"), value: Text(ConnectionController.serverHTTPAddress.substring(7))),
+                SettingsTile(title: Text("Adresse du serveur"), value: Text(ConnectionController().getBackendUri().host)),
 
                 SettingsTile(
                   title: Text("État du WebSocket"),

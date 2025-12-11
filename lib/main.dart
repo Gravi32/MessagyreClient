@@ -31,12 +31,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Logging globale
+  // Print override
   final originalDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
     Data().log(message);
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
+
+  await ConnectionController().checkLocalhostAvailability();
 
   runZonedGuarded(
     () async {

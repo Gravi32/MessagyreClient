@@ -19,25 +19,7 @@ import 'package:web_socket_channel/io.dart';
 
 class ConnectionController {
   // Configuration
-  static const String localhostAddress = "192.168.1.230:5066";
-  static const String linuxServerAddress = "152.228.173.250:5066";
-
-  static final bool useLocalhost = false;
-  static final bool useLinuxServer = true;
-
-  static final String serverWebSocketAddress =
-      useLocalhost
-          ? "ws://$localhostAddress"
-          : useLinuxServer
-          ? "ws://$linuxServerAddress"
-          : "wss://messagyre.fly.dev";
-
-  static final String serverHTTPAddress =
-      useLocalhost
-          ? "http://$localhostAddress"
-          : useLinuxServer
-          ? "http://$linuxServerAddress"
-          : "https://messagyre.fly.dev";
+  bool isLocalhost = false;
 
   // Declaring this singleton
   static final _instance = ConnectionController._internal();
@@ -81,6 +63,17 @@ class ConnectionController {
   bool _manuallyDisconnected = false;
   bool _isConnecting = false;
 
+  dynamic getBackendUri({String? route, bool useWebsocket = false, bool forceLocalhost = false}) {
+    final useLocalhost = isLocalhost || forceLocalhost;
+
+    if (useWebsocket) {
+      return useLocalhost ? "ws://192.168.1.230:5066" : "wss://api.graviapps.com/messagyre/";
+    }
+
+    final url = useLocalhost ? "http://192.168.1.230:5066${route ?? ""}" : "https://api.graviapps.com/messagyre${route ?? ""}";
+    return Uri.parse(url);
+  }
+
   Future<void> start() async {
     data.token = await secureStorage.read(key: "AccessToken");
 
@@ -91,6 +84,15 @@ class ConnectionController {
     }
 
     await connect();
+  }
+
+  Future<void> checkLocalhostAvailability() async {
+    debugPrint("[Boot] Checking for a localhost backend...");
+    final response = await get("/ping", forceLocalhost: true, timeout: 1);
+
+    if (response.statusCode == 200) isLocalhost = true;
+
+    return;
   }
 
   Future<http.Response> refreshAccessToken() async {
@@ -197,9 +199,12 @@ class ConnectionController {
     // Attemping a connection
     try {
       connectionState.value = ConnectionState.Connecting;
-      debugPrint("[WebSocket] Connecting...");
+      debugPrint("[WebSocket] Connecting to ${getBackendUri(useWebsocket: true).toString()}...");
 
-      final socket = await WebSocket.connect(serverWebSocketAddress, headers: {'Authorization': 'Bearer ${data.token}'}).timeout(const Duration(seconds: 40));
+      final socket = await WebSocket.connect(
+        getBackendUri(useWebsocket: true),
+        headers: {'Authorization': 'Bearer ${data.token}'},
+      ).timeout(const Duration(seconds: 40));
 
       socket.done.catchError((e) {
         debugPrint("[WebSocket] Socket done with error: $e");
@@ -225,7 +230,7 @@ class ConnectionController {
         },
 
         onDone: () {
-          debugPrint("[WebSocket] Closed by server");
+          debugPrint("[WebSocket] Disconnected by the server: ${_channel?.closeCode} ${_channel?.closeReason}");
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
           _isConnecting = false;
@@ -262,6 +267,7 @@ class ConnectionController {
   }
 
   void _handleMessage(Map<String, dynamic> rawMessageData) {
+    print("WS MESSAGE RECEIVED $rawMessageData");
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
       final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
@@ -303,6 +309,7 @@ class ConnectionController {
 
         HapticFeedback.heavyImpact();
       }
+      print("TREATED CORRECTLY");
     } catch (e) {
       debugPrint("[WebSocket] Invalid message format: $e");
     }
@@ -316,19 +323,25 @@ class ConnectionController {
 
     final message = jsonEncode({"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
 
+    print("SENDING WS MESSAGE");
     _channel?.sink.add(message);
+    print("SENT WS MESSAGE");
   }
 
   void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
     if (!isConnected) return;
 
+    print("SENDING WS MESSAGE STATUS UPDATE");
     _channel?.sink.add(jsonEncode({"RequestType": "StatusUpdate", "RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
+    print("SENDING WS MESSAGE STATUS UPDATE");
   }
 
   void sendMessageDelete(List<String> forMessageIds, String forUsername) {
     if (!isConnected) return;
 
+    print("SENDING WS MESSAGE DELETION");
     _channel?.sink.add(jsonEncode({"RequestType": "Deletion", "RecipientUsername": forUsername, "IDs": forMessageIds}));
+    print("SENDING WS MESSAGE DELETION");
   }
 
   void disconnect() {
@@ -347,7 +360,7 @@ class ConnectionController {
     try {
       final response = await http
           .post(
-            Uri.parse(serverHTTPAddress + route),
+            getBackendUri(route: route),
             headers: {"Content-Type": "application/json", if (data.token != null) "Authorization": "Bearer ${data.token!}"},
             body: jsonEncode(body),
           )
@@ -363,11 +376,11 @@ class ConnectionController {
     }
   }
 
-  Future<http.Response> get(String route, {int timeout = 30}) async {
+  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false}) async {
     try {
       final response = await http
           .get(
-            Uri.parse(serverHTTPAddress + route),
+            getBackendUri(route: route, forceLocalhost: forceLocalhost),
             headers: {"Content-Type": "application/json", if (data.token != null) "Authorization": "Bearer ${data.token!}"},
           )
           .timeout(Duration(seconds: timeout));
@@ -385,7 +398,7 @@ class ConnectionController {
   // HTTP Requests
 
   Future<bool> uploadProfile(String? displayName, Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
-    final uri = Uri.parse('$serverHTTPAddress/Accounts/Me/UploadProfile');
+    final uri = getBackendUri(route: "messagyre/Accounts/Me/UploadProfile");
     final request = http.MultipartRequest('POST', uri);
 
     request.headers['Authorization'] = 'Bearer ${data.token}';
