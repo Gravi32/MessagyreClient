@@ -31,9 +31,11 @@ class _SubjectPageState extends State<SubjectPage> {
 
   Box<Grade> allGrades = Hive.box<Grade>("Grades");
   Box<Homework> allHomework = Hive.box<Homework>("Homework");
-  List<Grade> subjectGrades = [];
+
+  List<Grade> allSubjectGrades = [];
+  List<Grade> singleGrades = [];
+  Map<String, List> groups = {};
   List<Homework> subjectIncomingGrades = [];
-  List<String> groupNames = [];
 
   @override
   void initState() {
@@ -42,23 +44,36 @@ class _SubjectPageState extends State<SubjectPage> {
   }
 
   void loadGrades() {
-    subjectGrades.clear();
-    subjectGrades = allGrades.values.where((grade) => grade.subject == widget.subject).toList();
+    // Loading all this subject' grades
+    allSubjectGrades.clear();
+    allSubjectGrades = allGrades.values.where((grade) => grade.subject == widget.subject).toList();
 
+    // Loading single grades
+    singleGrades = allSubjectGrades.where((grade) => grade.groupName == null).toList().sorted((gradeA, gradeB) {
+      return gradeB.date.compareTo(gradeA.date);
+    });
+
+    // Loading groups
+    for (var grade in allSubjectGrades) {
+      if (grade.groupName == null) continue;
+      groups.putIfAbsent(grade.groupName!, () => []).add(grade);
+    }
+
+    // Loading incoming grades
     subjectIncomingGrades =
         allHomework.values
             .where(
               (homework) =>
                   homework.subject == widget.subject &&
                   (homework.isGraded || homework.isTest) &&
-                  !subjectGrades.any((grade) => grade.referenceId == homework.referenceId),
+                  !allSubjectGrades.any((grade) => grade.referenceId == homework.referenceId),
             )
             .sortedBy((homework) => homework.dueDate)
             .toList();
   }
 
   Widget buildGroupBar(String groupName) {
-    final gradesInGroup = subjectGrades.where((grade) => grade.groupName == groupName).toList();
+    final gradesInGroup = allSubjectGrades.where((grade) => grade.groupName == groupName).toList();
 
     return Column(
       children: [
@@ -128,10 +143,7 @@ class _SubjectPageState extends State<SubjectPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).push(CupertinoPageRoute(builder: (context) => GroupPage(grades: gradesInGroup, existingGroupNames: groupNames))).then((_) {
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => GroupPage(grades: gradesInGroup))).then((_) {
               loadGrades();
               setState(() {});
             });
@@ -144,77 +156,57 @@ class _SubjectPageState extends State<SubjectPage> {
   Widget buildList() {
     loadGrades();
 
-    int barsToBuild = 0;
-
-    // Reading group names from grades
-    groupNames.clear();
-    for (final grade in subjectGrades) {
-      if (grade.groupName != null) {
-        if (!groupNames.contains(grade.groupName!)) {
-          groupNames.add(grade.groupName!);
-          barsToBuild++;
-        }
-      } else {
-        barsToBuild++;
-      }
-    }
-
-    // Sorting grades by date
-    subjectGrades.sort((gradeA, gradeB) {
-      return gradeB.date.compareTo(gradeA.date);
-    });
-
     return Column(
       spacing: 1,
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.max,
       children: [
-        ListView.builder(
-          shrinkWrap: true,
-          padding: EdgeInsets.only(top: 8),
-          itemCount: barsToBuild,
-          itemBuilder: (context, index) {
-            return index + 1 <= barsToBuild - groupNames.length
-                ? GradeBar(gradeData: subjectGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: subjectGrades.elementAt(index)))
-                : buildGroupBar(groupNames[index - (barsToBuild - groupNames.length)]);
-          },
-        ),
+        Expanded(
+          child: ListView(
+            shrinkWrap: true,
+            padding: EdgeInsets.only(top: 8),
 
-        if (subjectIncomingGrades.isNotEmpty) ...[
-          Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
-        ],
+            children: [
+              ...singleGrades.map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
+              ...groups.keys.map((groupName) => buildGroupBar(groupName)),
 
-        ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: subjectIncomingGrades.length,
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            final homework = subjectIncomingGrades[index];
-            final grade =
-                Grade()
-                  ..title = homework.content
-                  ..date = homework.dueDate;
-            final isIncoming = homework.dueDate.isBefore(DateTime.now());
-            final isPlanned = homework.dueDate.isAfter(DateTime.now());
+              if (subjectIncomingGrades.isNotEmpty) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                    Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
+                  ],
+                ),
 
-            return GradeBar(
-              gradeData: grade,
-              onTap: () {
-                if (isIncoming) {
-                  showNewGradePopup(toReference: homework);
-                  return;
-                }
+                ...subjectIncomingGrades.map((homework) {
+                  final grade =
+                      Grade()
+                        ..title = homework.content
+                        ..date = homework.dueDate;
+                  final isIncoming = homework.dueDate.isBefore(DateTime.now());
+                  final isPlanned = homework.dueDate.isAfter(DateTime.now());
 
-                Navigator.pop(context);
-                MainPage.pageIndex.value = 1;
-                homeworkPageKey.currentState?.showHomework(homework);
-              },
-              isGradeUnknown: true,
-              isIncoming: isIncoming,
-              isPlanned: isPlanned,
-            );
-          },
+                  return GradeBar(
+                    gradeData: grade,
+                    onTap: () {
+                      if (isIncoming) {
+                        showNewGradePopup(toReference: homework);
+                        return;
+                      }
+
+                      Navigator.pop(context);
+                      MainPage.pageIndex.value = 1;
+                      homeworkPageKey.currentState?.showHomework(homework);
+                    },
+                    isGradeUnknown: true,
+                    isIncoming: isIncoming,
+                    isPlanned: isPlanned,
+                  );
+                }),
+              ],
+            ],
+          ),
         ),
       ],
     );

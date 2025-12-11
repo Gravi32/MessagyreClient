@@ -269,6 +269,10 @@ class _NewGradeState extends State<NewGrade> {
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                             placeholderStyle: TextStyle(color: CupertinoColors.placeholderText, fontWeight: FontWeight.w500),
                             items: getPlannedGrades(),
+                            header: Padding(
+                              padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8),
+                              child: Text("Depuis la page des devoirs :", style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                            ),
                             itemBuilder: (homework, query) {
                               if (homework is! Homework) return SizedBox.shrink();
                               return Column(
@@ -292,8 +296,9 @@ class _NewGradeState extends State<NewGrade> {
                                       ),
                                     ),
                                   ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    spacing: 4,
                                     children: [
                                       Text(
                                         SubjectHelper.toFrench(homework.subject),
@@ -349,7 +354,7 @@ class _NewGradeState extends State<NewGrade> {
                         if (isReferenceTileExpanded && referencedHomework != null) ...[
                           const SizedBox(height: 10),
 
-                          Opacity(opacity: .9, child: HomeworkCard(homework: referencedHomework!, isPreview: true,)),
+                          Opacity(opacity: .9, child: HomeworkCard(homework: referencedHomework!, isPreview: true)),
                           const SizedBox(height: 10),
                           Text(
                             "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans dissocier la note.",

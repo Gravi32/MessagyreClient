@@ -7,9 +7,8 @@ import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 
 class GroupPage extends StatefulWidget {
   final List<Grade> grades;
-  final List<String> existingGroupNames;
 
-  const GroupPage({super.key, required this.grades, required this.existingGroupNames});
+  const GroupPage({super.key, required this.grades});
 
   @override
   State<StatefulWidget> createState() => _GroupPageState();

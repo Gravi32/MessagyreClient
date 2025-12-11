@@ -17,6 +17,7 @@ class AutocompleteField extends StatefulWidget {
   final EdgeInsets? padding;
   final double optionsMaxHeight;
   final bool forceValid;
+  final Widget? header;
 
   const AutocompleteField({
     super.key,
@@ -35,6 +36,7 @@ class AutocompleteField extends StatefulWidget {
     this.padding,
     this.optionsMaxHeight = 180,
     this.forceValid = true,
+    this.header,
   });
 
   @override
@@ -135,8 +137,18 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
           child: ListView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
-            itemCount: options.length,
+            itemCount: options.length + (widget.header == null ? 0 : 1),
             itemBuilder: (context, index) {
+              if (widget.header != null) {
+                index -= 1;
+                if (index == -1) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [widget.header!, Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withValues(alpha: .1))],
+                  );
+                }
+              }
+
               final option = options.elementAt(index);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

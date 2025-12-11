@@ -44,6 +44,7 @@ class _GradesPageState extends State<GradesPage> {
               (homework) =>
                   homework.subject == subject &&
                   homework.referenceId != null &&
+                  (homework.isTest || homework.isGraded) &&
                   !grades.any((grade) => grade.referenceId != null && grade.referenceId == homework.referenceId),
             )
             .toList();
