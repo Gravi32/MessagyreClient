@@ -103,7 +103,7 @@ class ConnectionController {
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
 
-    final response = await post("/Auth/Refresh", {"RefreshToken": refreshToken}).timeout(
+    final response = await post("/auth/refresh", {"RefreshToken": refreshToken}).timeout(
       const Duration(seconds: 15),
       onTimeout: () {
         debugPrint("[RefreshToken] Request timed out");
@@ -368,7 +368,7 @@ class ConnectionController {
     }
   }
 
-  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false}) async {
+  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false, }) async {
     try {
       final response = await http
           .get(
@@ -457,7 +457,7 @@ class ConnectionController {
   }
 
   void logout() async {
-    get("/Auth/Logout"); // Notifies the server
+    get("/auth/logout"); // Notifies the server
 
     disconnect();
 

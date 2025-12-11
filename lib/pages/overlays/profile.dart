@@ -607,7 +607,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                               final password = controller.text.trim();
                               if (password.isEmpty) return;
 
-                              final success = await router.post("/Accounts/Me/Delete", {"Password": password});
+                              final success = await router.post("/accounts/me/delete", {"Password": password});
                               if (!dialogContext.mounted) return;
 
                               if (success.statusCode != 200) {

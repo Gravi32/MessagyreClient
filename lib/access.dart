@@ -55,7 +55,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
     debugPrint("[Access] Logging in as $username...");
     setState(() => isWaitingForResponse = true);
 
-    var response = await router.post("/Auth/Login", {"Username": username, "Password": password});
+    var response = await router.post("/auth/login", {"Username": username, "Password": password});
 
     setState(() => isWaitingForResponse = false);
 
@@ -108,7 +108,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
   void tryToResetPassword() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("/Auth/Registration", {"PasswordResetUsername": usernameController.value.text});
+    final response = await router.post("/auth/registration", {"PasswordResetUsername": usernameController.value.text});
 
     isWaitingForResponse = false;
 

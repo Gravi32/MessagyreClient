@@ -58,7 +58,7 @@ class SearchPageState extends State<SearchPage> {
       isSearcing = true;
     });
 
-    final response = await router.get("/Accounts/Search?Query=$query");
+    final response = await router.get("/accounts/search?query=$query");
 
     if (thisSearch < latestSearch) return;
     setState(() {

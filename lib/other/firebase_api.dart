@@ -151,7 +151,7 @@ class FirebaseApi {
     final token = data.fcmToken;
     if (token == null) return;
 
-    final response = await router.post("/Accounts/Me/UploadFirebaseToken", {"FirebaseToken": token});
+    final response = await router.post("/accounts/me/upload-firebase-token", {"FirebaseToken": token});
 
     if (response.statusCode == 200) {
       debugPrint("[Firebase] FCM token successfully uploaded.");
