@@ -429,7 +429,7 @@ class ConnectionController {
   }
 
   Future<String?> getProfilePicture(String accountUsername) async {
-    final response = await get("/Accounts/GetProfilePictureURL?Username=$accountUsername");
+    final response = await get("/accounts/get-profile-picture-url?Username=$accountUsername");
 
     if (response.statusCode != 200) {
       if (response.statusCode != 404) {
@@ -444,7 +444,7 @@ class ConnectionController {
   }
 
   Future<Account?> getAccount(String accountUsername) async {
-    final response = await get("/Accounts/Get?Username=$accountUsername");
+    final response = await get("/accounts/get?Username=$accountUsername");
 
     if (response.statusCode != 200) {
       debugPrint("[Account Get Failed] Error ${response.statusCode}: ${response.body}");
