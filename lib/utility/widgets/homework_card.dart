@@ -283,11 +283,11 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                           ),
 
                         // Title
-                        if ((isTest || isGraded) && (isPreview || widget.homework.title != null))
+                        if (isTest || isGraded)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                             child: CustomText(
-                              isPreviewTitleEmpty ? "Titre du ${isTest ? "test" : "devoir noté"}" : widget.homework.title!,
+                              isPreviewTitleEmpty ? "Titre du ${isTest ? "test" : "devoir noté"}" : widget.homework.title ?? "${isTest ? "Test" : "Devoir noté"} sans titre",
                               style: TextStyle(
                                 color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewTitleEmpty || isMarkedAsDone ? .5 : .9),
                                 fontWeight: FontWeight.w600,
@@ -301,7 +301,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                           ),
 
                         // Homework content
-                        if (isPreview || (!isGraded && !isTest) || (isPreview && (!isPreviewDescriptionEmpty || widget.homework.content.isNotEmpty)))
+                        if (isPreview || widget.homework.content.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                             child: AnimatedLineThrough(
