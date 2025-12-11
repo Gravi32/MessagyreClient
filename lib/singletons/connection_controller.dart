@@ -267,7 +267,6 @@ class ConnectionController {
   }
 
   void _handleMessage(Map<String, dynamic> rawMessageData) {
-    print("WS MESSAGE RECEIVED $rawMessageData");
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
       final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
@@ -309,7 +308,6 @@ class ConnectionController {
 
         HapticFeedback.heavyImpact();
       }
-      print("TREATED CORRECTLY");
     } catch (e) {
       debugPrint("[WebSocket] Invalid message format: $e");
     }
@@ -323,25 +321,19 @@ class ConnectionController {
 
     final message = jsonEncode({"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
 
-    print("SENDING WS MESSAGE");
     _channel?.sink.add(message);
-    print("SENT WS MESSAGE");
   }
 
   void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
     if (!isConnected) return;
 
-    print("SENDING WS MESSAGE STATUS UPDATE");
     _channel?.sink.add(jsonEncode({"RequestType": "StatusUpdate", "RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
-    print("SENDING WS MESSAGE STATUS UPDATE");
   }
 
   void sendMessageDelete(List<String> forMessageIds, String forUsername) {
     if (!isConnected) return;
 
-    print("SENDING WS MESSAGE DELETION");
     _channel?.sink.add(jsonEncode({"RequestType": "Deletion", "RecipientUsername": forUsername, "IDs": forMessageIds}));
-    print("SENDING WS MESSAGE DELETION");
   }
 
   void disconnect() {
