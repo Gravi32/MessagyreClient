@@ -44,7 +44,7 @@ class Data {
   // Calendar
   Future<Calendar?> getTargetCalendar() async {
     final calendarsResult = await DeviceCalendarPlugin().retrieveCalendars();
-    if (!calendarsResult.isSuccess || calendarsResult.data == null) return null;
+    if (!calendarsResult.isSuccess || calendarsResult.data == null || calendarsResult.data!.isEmpty) return null;
 
     return calendarsResult.data!.firstWhere((c) => c.isDefault ?? false, orElse: () => calendarsResult.data!.first);
   }

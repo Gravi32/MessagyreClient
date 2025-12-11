@@ -100,11 +100,13 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   }
 
   void scrollDown() {
-    Future.delayed(Duration(milliseconds: 200), () {
-      setState(() => showScrollDownButton = false);
-      if (chatScrollController.hasClients) {
-        chatScrollController.animateTo(chatScrollController.position.maxScrollExtent, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
-      }
+    setState(() => showScrollDownButton = false);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!chatScrollController.hasClients || chatScrollController.positions.isEmpty) return;
+
+      final max = chatScrollController.position.maxScrollExtent;
+      chatScrollController.animateTo(max, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
     });
   }
 
@@ -651,6 +653,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
             timestamp: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const SizedBox(width: 6),
                 Text(
                   DateFormat('HH:mm').format(data.sentAt),
                   style: TextStyle(color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white, fontSize: 12),
@@ -739,11 +742,11 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         final msgIndex = index - 1;
 
         var allMessagesList = chatData.content;
-        var visibleMessagesList = allMessagesList.sublist((allMessagesList.length - visibleMessageCount).clamp(0, allMessagesList.length));
+        var visibleMessagesList = allMessagesList.sublist(max(0, allMessagesList.length - visibleMessageCount));
 
         var currentMessage = visibleMessagesList[msgIndex];
-        var previousMessage = visibleMessagesList[max(msgIndex - 1, 0)];
-        var nextMessage = visibleMessagesList[min(msgIndex + 1, visibleMessagesList.length - 1)];
+        var previousMessage = msgIndex > 0 ? visibleMessagesList[msgIndex - 1] : currentMessage;
+        var nextMessage = msgIndex < visibleMessagesList.length - 1 ? visibleMessagesList[msgIndex + 1] : currentMessage;
 
         final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
