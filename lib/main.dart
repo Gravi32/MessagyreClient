@@ -240,8 +240,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               isFloating: true,
               borderRadius: const Radius.circular(12),
               backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-              selectedColor: CupertinoTheme.of(context).primaryColor,
               strokeColor: CupertinoColors.transparent,
+              selectedColor: CupertinoColors.label.resolveFrom(context),
               currentIndex: currentIndex,
               onTap: (index) => MainPage.pageIndex.value = index,
               items:
@@ -249,12 +249,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                       .map(
                         (page) => CustomNavigationBarItem(
                           icon: HugeIcon(icon: page.icon),
-                          selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 2),
+                          selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 1.5),
                           title: Text(
                             page.name,
                             overflow: TextOverflow.fade,
                             softWrap: false,
-                            style: TextStyle(fontSize: 10, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            style: TextStyle(fontSize: 10, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                          ),
+                          selectedTitle: Text(
+                            page.name,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: TextStyle(fontSize: 10, color: CupertinoColors.label.resolveFrom(context)),
                           ),
                         ),
                       )
