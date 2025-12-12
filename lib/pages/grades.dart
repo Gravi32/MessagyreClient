@@ -35,6 +35,7 @@ class _GradesPageState extends State<GradesPage> {
   List<MapEntry<Subject, List<Grade>>> subjectGradesList = [];
   List<Subject> subjectsWithFutureGrades = [];
 
+  bool isAverageBarExpanded = false;
   bool isIncomingGradesInfoExpanded = false;
 
   Widget buildSubjectBar(Subject subject, {List<Grade> grades = const [], int index = 0, bool isGradeUnknown = false}) {
@@ -151,76 +152,130 @@ class _GradesPageState extends State<GradesPage> {
 
     return Padding(
       padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Moyenne générale",
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
-                  ),
-                  Text(
-                    "${allGrades.length} note${allGrades.length > 1 ? 's' : ''} au total",
-                    maxLines: 2,
-                    overflow: TextOverflow.fade,
-                    softWrap: true,
-                    style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 18),
-                  ),
-                  Row(
-                    spacing: 3,
-                    children: [
-                      if (incomingGrades.isNotEmpty) ...[
-                        Opacity(
-                          opacity: .3,
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedClock01,
-                            size: 14,
-                            strokeWidth: 2,
-                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+      child: CupertinoPressable(
+        onTap: () => setState(() => isAverageBarExpanded = !isAverageBarExpanded),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Moyenne générale",
+                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                    ),
+                    Text(
+                      "${allGrades.length} note${allGrades.length > 1 ? 's' : ''} au total",
+                      maxLines: 2,
+                      overflow: TextOverflow.fade,
+                      softWrap: true,
+                      style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 18),
+                    ),
+                    Row(
+                      spacing: 3,
+                      children: [
+                        if (incomingGrades.isNotEmpty) ...[
+                          Opacity(
+                            opacity: .3,
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedClock01,
+                              size: 14,
+                              strokeWidth: 2,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            ),
                           ),
-                        ),
-                        Text(
-                          "${incomingGrades.length} passées",
-                          maxLines: 2,
-                          overflow: TextOverflow.fade,
-                          softWrap: true,
-                          style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
-                        ),
-                        const SizedBox(width: 2),
-                      ],
-                      if (plannedGrades.isNotEmpty) ...[
-                        Opacity(
-                          opacity: .3,
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCalendar04,
-                            size: 14,
-                            strokeWidth: 2,
-                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                          Text(
+                            "${incomingGrades.length} passées",
+                            maxLines: 2,
+                            overflow: TextOverflow.fade,
+                            softWrap: true,
+                            style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
                           ),
-                        ),
-                        Text(
-                          "${plannedGrades.length} planifiées",
-                          maxLines: 2,
-                          overflow: TextOverflow.fade,
-                          softWrap: true,
-                          style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
-                        ),
+                          const SizedBox(width: 2),
+                        ],
+                        if (plannedGrades.isNotEmpty) ...[
+                          Opacity(
+                            opacity: .3,
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCalendar04,
+                              size: 14,
+                              strokeWidth: 2,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            ),
+                          ),
+                          Text(
+                            "${plannedGrades.length} planifiées",
+                            maxLines: 2,
+                            overflow: TextOverflow.fade,
+                            softWrap: true,
+                            style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
+                  ],
+                ),
+                GradeDisplay(grade: average, size: 64, roundGrade: false),
+              ],
+            ),
+
+            AnimatedSwitcher(
+              duration: Duration(milliseconds: 300),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(opacity: animation, child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, axisAlignment: 1, child: child));
+              },
+              child:
+                  isAverageBarExpanded
+                      ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 10),
+                          Text(
+                            "Informations supplémentaires",
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                          ),
+                          Text(
+                            "Total des points: ${subjectGradesList.map((entry) => calculateAverage(entry.value).round()).sum}",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          Text(
+                            "Plusieurs options seront disponibles dans les prochaines mises à jours...",
+                            style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                      )
+                      : const SizedBox.shrink(),
+            ),
+
+            Row(
+              spacing: 3,
+              children: [
+                Text(
+                  "Voir ${isAverageBarExpanded ? "moins" : "plus"}",
+                  style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                ),
+                Opacity(
+                  opacity: .3,
+                  child: HugeIcon(
+                    icon: isAverageBarExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                    size: 18,
+                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                   ),
-                ],
-              ),
-              GradeDisplay(grade: average, size: 64, roundGrade: false),
-            ],
-          ),
-          Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
-        ],
+                ),
+              ],
+            ),
+
+            Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
+          ],
+        ),
       ),
     );
   }
