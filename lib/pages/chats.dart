@@ -299,12 +299,17 @@ class _ChatsPageState extends State<ChatsPage> {
               builder:
                   (context, connectionState, _) => CupertinoSliverNavigationBar(
                     leading:
-                        connectionState != ConnectionState.Connected
+                        (connectionState != ConnectionState.Connected || router.isLocalhost)
                             ? Row(
                               spacing: 8,
                               children: [
-                                Text("Connexion en cours", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-                                LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
+                                Text(
+                                  router.isLocalhost ? "Connecté au Localhost" : "Connexion en cours",
+                                  style: TextStyle(color: router.isLocalhost ? CupertinoColors.systemRed : CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                ),
+                                router.isLocalhost
+                                    ? HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.systemRed, size: 20, strokeWidth: 1.5)
+                                    : LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
                               ],
                             )
                             : null,
