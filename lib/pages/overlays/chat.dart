@@ -8,7 +8,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
@@ -631,21 +631,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
             content: Text.rich(
               TextSpan(
                 children: [
-                  if (data.isDeleted)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: Padding(
-                        padding: EdgeInsets.only(right: 4),
-                        child: Opacity(
-                          opacity: 0.6,
-                          child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.white.withAlpha(150)),
-                        ),
-                      ),
-                    ),
                   ...CustomText.parseSpans(
                     data.isDeleted ? "Supprimé" : data.content.trim(),
                     style: TextStyle(
-                      color: data.isDeleted ? CupertinoColors.white.withAlpha(150) : CupertinoColors.white,
+                      color: data.isDeleted ? CupertinoColors.label.resolveFrom(context).withValues(alpha: .5) : CupertinoColors.white,
                       fontSize: 17,
                       fontStyle: data.isDeleted ? FontStyle.italic : null,
                     ),
