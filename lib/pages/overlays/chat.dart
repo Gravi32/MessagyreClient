@@ -20,6 +20,7 @@ import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';
+import 'package:pointycastle/export.dart' show RSAPublicKey;
 import 'package:uuid/uuid.dart';
 
 class ChatOverlay extends StatefulWidget {
@@ -50,16 +51,16 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   final messageFieldFocusNode = FocusNode();
   final Map<String, GlobalKey> bubbleKeys = {};
 
-  Set<String> messagesIdToAnimate = {};
-  bool isLoading = false;
-
   int visibleMessageCount = 150;
   double blurAmount = 6;
   Color barLightColor = CupertinoColors.systemGrey5.withAlpha(150);
   Color barDarkColor = CupertinoColors.darkBackgroundGray.withAlpha(150);
 
+  RSAPublicKey? recipientPublicKey;
   Account? lastAccountCache;
   bool showScrollDownButton = false;
+  Set<String> messagesIdToAnimate = {};
+  bool isLoading = false;
 
   void messagesListener(Map<String, Object> messageData) {
     if (messageData["SenderUsername"] != chatData.recipientUsername) return;
@@ -123,7 +124,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         messagesIdToAnimate.add(message.id);
       });
       if (router.isConnected) {
-        router.send(message.id, widget.recipientUsername, input);
+        router.send(message.id, widget.recipientUsername, recipientPublicKey, input);
         message.statusNotifier.value = MessageStatus.Sent;
       } else {
         message.statusNotifier.value = MessageStatus.Failed;
@@ -414,6 +415,8 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     super.initState();
 
     data.openChatUsername = widget.recipientUsername;
+
+    router.getPublicKey(widget.recipientUsername).then((result) => recipientPublicKey = result);
 
     if (widget.recipientUsername == "support.messagyre" && chatData.content.isEmpty) {
       chatData.content.add(

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart' hide ConnectionState;
+import 'package:basic_utils/basic_utils.dart';
+import 'package:encrypt/encrypt.dart';
+import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,6 +15,7 @@ import 'package:messagyre_client/other/firebase_api.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:pointycastle/export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
@@ -37,7 +40,7 @@ class ConnectionController {
 
   bool isAccessOverlayOpen = false;
 
-  // Events
+  // #region -> Event streams
 
   /* Stream for the received WebSocket messages */
   final _messagesController = StreamController<Map<String, Object>>.broadcast();
@@ -50,18 +53,9 @@ class ConnectionController {
   /* Stream for the received WebSocket messages deletion */
   final _messageDeletionController = StreamController<Map<String, Object>>.broadcast();
   Stream<Map<String, Object>> get onMessageDeletionReceived => _messageDeletionController.stream;
+  // #endregion
 
-  void onUnauthorized() {
-    if (isAccessOverlayOpen || navigatorKey.currentState?.widget is AccessOverlay) return;
-    isAccessOverlayOpen = true;
-    navigatorKey.currentState?.push(
-      PageRouteBuilder(transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero, pageBuilder: (_, _, _) => const AccessOverlay()),
-    );
-  }
-
-  bool get isConnected => _channel != null;
-  bool _manuallyDisconnected = false;
-  bool _isConnecting = false;
+  // #region -> Initialization
 
   dynamic getBackendUri({String? route, bool useWebsocket = false, bool forceLocalhost = false}) {
     final useLocalhost = isLocalhost || forceLocalhost;
@@ -74,18 +68,6 @@ class ConnectionController {
     return Uri.parse(url);
   }
 
-  Future<void> start() async {
-    data.token = await secureStorage.read(key: "AccessToken");
-
-    if (data.token == null || data.username == null) {
-      debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
-      onUnauthorized();
-      return;
-    }
-
-    await connect();
-  }
-
   Future<void> checkLocalhostAvailability() async {
     debugPrint("[Boot] Checking for a localhost backend...");
     final response = await get("/ping", forceLocalhost: true, timeout: 1);
@@ -95,41 +77,35 @@ class ConnectionController {
     return;
   }
 
-  Future<http.Response> refreshAccessToken() async {
-    final refreshToken = await secureStorage.read(key: "RefreshToken");
+  Future<void> start() async {
+    data.token = await secureStorage.read(key: "AccessToken");
 
-    if (refreshToken == null) {
-      debugPrint("[RefreshToken] No refresh token found in SecureStorage.");
-      return http.Response("No refresh token found in SecureStorage.", 401);
+    if (data.token == null || data.username == null) {
+      debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
+      onUnauthorized();
+      return;
     }
 
-    final response = await post("/auth/refresh", {"RefreshToken": refreshToken}).timeout(
-      const Duration(seconds: 15),
-      onTimeout: () {
-        debugPrint("[RefreshToken] Request timed out");
-        throw Exception("Refresh token request timed out");
-      },
+    await uploadPublicKey();
+
+    await connect();
+  }
+  // #endregion
+
+  // #region -> WebSocket handling
+
+  bool get isConnected => _channel != null;
+  bool _manuallyDisconnected = false;
+  bool _isConnecting = false;
+
+  void onUnauthorized() {
+    if (isAccessOverlayOpen || navigatorKey.currentState?.widget is AccessOverlay) return;
+    isAccessOverlayOpen = true;
+    navigatorKey.currentState?.push(
+      PageRouteBuilder(transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero, pageBuilder: (_, _, _) => const AccessOverlay()),
     );
-
-    if (response.statusCode == 200) {
-      try {
-        final results = jsonDecode(response.body);
-        data.token = results["AccessToken"];
-
-        await secureStorage.write(key: "AccessToken", value: data.token);
-        await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
-      } catch (e) {
-        debugPrint("[RefreshToken] Failed decoding server response: ${response.body} -> $e");
-      }
-
-      return http.Response("OK", 200);
-    }
-
-    debugPrint("[RefreshToken] Refresh failed with status ${response.statusCode}: ${response.body}");
-    return response;
   }
 
-  // WebSocket Requests
   void _scheduleReconnect() {
     if (isConnected || _isConnecting) return;
 
@@ -266,7 +242,35 @@ class ConnectionController {
     }
   }
 
-  void _handleMessage(Map<String, dynamic> rawMessageData) {
+  void send(String id, String recipientUsername, RSAPublicKey? recipientPublicKeyPem, String messageContent) {
+    if (!isConnected) return;
+
+    Map<String, dynamic> payload = {"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername};
+
+    if (recipientPublicKeyPem != null) {
+      final aesKey = Key.fromSecureRandom(32); // 32 bytes = 256 bit
+      final iv = IV.fromSecureRandom(12); // 12 bytes for GCM
+
+      final encrypter = Encrypter(AES(aesKey, mode: AESMode.gcm));
+      final encryptedMessage = encrypter.encrypt(messageContent, iv: iv);
+
+      final rsaEncryptor = OAEPEncoding(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(recipientPublicKeyPem));
+
+      final encryptedKeyBytes = rsaEncryptor.process(aesKey.bytes);
+
+      final base64CipherText = encryptedMessage.base64;
+      final base64IV = base64.encode(iv.bytes);
+      final base64EncryptedKey = base64.encode(encryptedKeyBytes);
+
+      payload.addAll({"CipherText": base64CipherText, "IV": base64IV, "EncryptedKey": base64EncryptedKey});
+    } else {
+      payload["Content"] = messageContent;
+    }
+
+    _channel?.sink.add(jsonEncode(payload));
+  }
+
+  void _handleMessage(Map<String, dynamic> rawMessageData) async {
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
       final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
@@ -278,50 +282,73 @@ class ConnectionController {
       final messageId = rawMessageData["ID"]?.toString();
 
       if (isMessageStatusUpdate) {
-        // If the received WebSocket message is a Status Update
         final status = MessageStatus.values.firstWhere((status) => status.name == rawMessageData["Status"]?.toString(), orElse: () => MessageStatus.Failed);
 
         if (messageId == null) throw FormatException("Missing Message ID");
 
         _messageStatusUpdatesController.add({"SenderUsername": sender, "ID": messageId, "Status": status});
       } else if (isMessageDeletion) {
-        // If the received WebSocket message is for a Message Deletion
         if (messageId == null) throw FormatException("Missing Message ID");
+
         _messageDeletionController.add({"SenderUsername": sender, "ID": messageId});
       } else {
-        // If the received WebSocket message is a simple Message
-        final content = rawMessageData["Content"]?.toString();
         final rawSentAt = rawMessageData["SentAt"]?.toString();
+        if (rawSentAt == null) throw FormatException("Missing SentAt");
 
-        if (content == null || rawSentAt == null) {
-          throw FormatException("Missing Content or SentAt");
+        String content;
+
+        final hasCipherText = rawMessageData.containsKey("CipherText") && rawMessageData["CipherText"] != null;
+        final hasIV = rawMessageData.containsKey("IV") && rawMessageData["IV"] != null;
+        final hasEncryptedKey = rawMessageData.containsKey("EncryptedKey") && rawMessageData["EncryptedKey"] != null;
+
+        if (hasCipherText && hasIV && hasEncryptedKey) {
+          try {
+            final cipherText = base64.decode(rawMessageData["CipherText"]);
+            final iv = base64.decode(rawMessageData["IV"]);
+            final encryptedKeyString = rawMessageData["EncryptedKey"] as String;
+
+            final encryptedKeyBytes = base64.decode(encryptedKeyString);
+
+            final privateKey = await data.privateKey;
+
+            if (privateKey.modulus == null || privateKey.privateExponent == null) {
+              throw Exception("Invalid private key: missing modulus or exponent");
+            }
+
+            final rsaDecryptor = OAEPEncoding(RSAEngine())..init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
+
+            final aesKeyBytes = rsaDecryptor.process(encryptedKeyBytes);
+
+            final cipher = GCMBlockCipher(AESEngine())..init(
+              false,
+              AEADParameters(
+                KeyParameter(aesKeyBytes),
+                128, // tag length in bits
+                iv,
+                Uint8List(0), // additional data
+              ),
+            );
+
+            final decryptedBytes = cipher.process(cipherText);
+            content = utf8.decode(decryptedBytes);
+          } catch (e) {
+            throw FormatException("Decryption failed: $e");
+          }
+        } else {
+          final plain = rawMessageData["Content"]?.toString();
+          if (plain == null) throw FormatException("Missing Content");
+          content = plain;
         }
 
         final sentAt = DateTime.parse(rawSentAt).toLocal();
-        final messageData = {"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt};
 
-        _messagesController.add(messageData);
-
-        // if (messageId != null) { // This was commented out because now the Delivered status is received upon server reception.
-        //   sendMessageStatusUpdate([messageId], sender, MessageStatus.Delivered);
-        // }
+        _messagesController.add({"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt});
 
         HapticFeedback.heavyImpact();
       }
     } catch (e) {
       debugPrint("[WebSocket] Invalid message format: $e");
     }
-  }
-
-  void send(String id, String recipientUsername, String messageContent) {
-    if (!isConnected) {
-      debugPrint("[WebSocket] Cannot send message: not connected");
-      return;
-    }
-
-    final message = jsonEncode({"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername, "Content": messageContent});
-
-    _channel?.sink.add(message);
   }
 
   void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
@@ -346,6 +373,10 @@ class ConnectionController {
     debugPrint("[WebSocket] Connection closed manually");
   }
 
+  // #endregion
+
+  // #region -> HTTP handling
+
   // HTTP Shorthands
 
   Future<http.Response> post(String route, Object body, {int timeout = 30}) async {
@@ -368,7 +399,7 @@ class ConnectionController {
     }
   }
 
-  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false, }) async {
+  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false}) async {
     try {
       final response = await http
           .get(
@@ -456,6 +487,64 @@ class ConnectionController {
     return result;
   }
 
+  Future<http.Response> refreshAccessToken() async {
+    final refreshToken = await secureStorage.read(key: "RefreshToken");
+
+    if (refreshToken == null) {
+      debugPrint("[RefreshToken] No refresh token found in SecureStorage.");
+      return http.Response("No refresh token found in SecureStorage.", 401);
+    }
+
+    final response = await post("/auth/refresh", {"RefreshToken": refreshToken}).timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        debugPrint("[RefreshToken] Request timed out");
+        throw Exception("Refresh token request timed out");
+      },
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        final results = jsonDecode(response.body);
+        data.token = results["AccessToken"];
+
+        await secureStorage.write(key: "AccessToken", value: data.token);
+        await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+      } catch (e) {
+        debugPrint("[RefreshToken] Failed decoding server response: ${response.body} -> $e");
+      }
+
+      return http.Response("OK", 200);
+    }
+
+    debugPrint("[RefreshToken] Refresh failed with status ${response.statusCode}: ${response.body}");
+    return response;
+  }
+
+  Future<void> uploadPublicKey() async {
+    final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await data.publicKey);
+    final response = await post("/accounts/me/upload-public-key", {"PublicKey": stringPublicKey});
+
+    if (response.statusCode != 200) {
+      debugPrint("[RSA] Uploading the public key failed. Server response: ${response.body}");
+    }
+
+    return;
+  }
+
+  Future<RSAPublicKey?> getPublicKey(String username) async {
+    final response = await get("/accounts/get-public-key?of=$username");
+
+    if (response.statusCode != 200 || response.body.isEmpty) return null;
+
+    try {
+      String pemKey = jsonDecode(response.body);
+      return CryptoUtils.rsaPublicKeyFromPem(pemKey);
+    } catch (e) {
+      return null;
+    }
+  }
+
   void logout() async {
     get("/auth/logout"); // Notifies the server
 
@@ -466,12 +555,16 @@ class ConnectionController {
 
     await secureStorage.delete(key: "AccessToken");
     await secureStorage.delete(key: "RefreshToken");
+    await secureStorage.delete(key: "PublicKey");
+    await secureStorage.delete(key: "PrivateKey");
     await Hive.box("Misc").delete("Username");
 
     onUnauthorized();
 
     MainPage.pageIndex.value = 2;
   }
+
+  // #endregion
 }
 
 enum ConnectionState { NotConnected, WaitingForAuthorization, Connecting, WaitingToReconnect, Connected }

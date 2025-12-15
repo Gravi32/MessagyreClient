@@ -1,9 +1,14 @@
+import 'dart:math';
+
+import 'package:basic_utils/basic_utils.dart';
 import 'package:device_calendar/device_calendar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:pointycastle/key_generators/api.dart';
+import 'package:pointycastle/key_generators/rsa_key_generator.dart';
 
 class Data {
   static final Data _instance = Data._internal();
@@ -13,10 +18,16 @@ class Data {
     loadSettings();
   }
 
-  late final ConnectionController router = ConnectionController();
+  String? token;
+  String? username;
+
+  final secureStorage = FlutterSecureStorage();
+  late final router = ConnectionController();
+
+  // #region -> Settings
+
   Settings settings = Settings();
 
-  // Settings
   void loadSettings() async {
     final box = Hive.box<Settings>("Settings");
 
@@ -27,21 +38,22 @@ class Data {
     }
   }
 
-  // General app appearance
+  // #endregion
+
+  // #region -> App brightness
+
   ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(Brightness.light);
   Brightness get appBrightness => appBrightnessNotifier.value;
   set appBrightness(Brightness value) => appBrightnessNotifier.value = value;
 
-  // Main
-  String? token;
-  String? username;
+  // #endregion
 
-  // School year
+  // #region -> Calendars
+
   final _now = DateTime.now();
   DateTime get schoolStart => DateTime(_now.year, 8, 18);
   DateTime get schoolEnd => _now.isBefore(schoolStart) ? DateTime(_now.year, 6, 6) : DateTime(_now.year + 1, 6, 6);
 
-  // Calendar
   Future<Calendar?> getTargetCalendar() async {
     final calendarsResult = await DeviceCalendarPlugin().retrieveCalendars();
     if (!calendarsResult.isSuccess || calendarsResult.data == null || calendarsResult.data!.isEmpty) return null;
@@ -49,14 +61,105 @@ class Data {
     return calendarsResult.data!.firstWhere((c) => c.isDefault ?? false, orElse: () => calendarsResult.data!.first);
   }
 
-  // Chats
+  // #endregion
+
+  // #region -> Chats
+
   String? openChatUsername;
   String? fcmToken;
 
-  // Accounts
+  // #endregion
+
+  // Sostituisci la sezione Encryption in data.dart con questa:
+
+  // #region -> Encryption
+
+  AsymmetricKeyPair? _keyPairCache;
+
+  Future<RSAPublicKey> get publicKey async {
+    if (_keyPairCache?.publicKey != null) {
+      return _keyPairCache!.publicKey as RSAPublicKey;
+    }
+
+    final storedPublic = await secureStorage.read(key: "RSAPublicKey");
+    final storedPrivate = await secureStorage.read(key: "RSAPrivateKey");
+
+    if (storedPublic != null && storedPublic.isNotEmpty && storedPrivate != null && storedPrivate.isNotEmpty) {
+      final newPublicKey = CryptoUtils.rsaPublicKeyFromPem(storedPublic);
+      final newPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(storedPrivate);
+      _keyPairCache = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(newPublicKey, newPrivateKey);
+      return newPublicKey;
+    }
+
+    return _generateRSAKeyPair().publicKey as RSAPublicKey;
+  }
+
+  Future<RSAPrivateKey> get privateKey async {
+    if (_keyPairCache?.privateKey != null) {
+      return _keyPairCache!.privateKey as RSAPrivateKey;
+    }
+
+    final storedPublic = await secureStorage.read(key: "RSAPublicKey");
+    final storedPrivate = await secureStorage.read(key: "RSAPrivateKey");
+
+    if (storedPublic != null && storedPublic.isNotEmpty && storedPrivate != null && storedPrivate.isNotEmpty) {
+      final newPublicKey = CryptoUtils.rsaPublicKeyFromPem(storedPublic);
+      final newPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(storedPrivate);
+      _keyPairCache = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(newPublicKey, newPrivateKey);
+      return newPrivateKey;
+    }
+
+    return _generateRSAKeyPair().privateKey as RSAPrivateKey;
+  }
+
+  AsymmetricKeyPair _generateRSAKeyPair({int bitLength = 2048}) {
+    debugPrint("[RSA] Generating new RSA key pair...");
+
+    final keyGenerator =
+        RSAKeyGenerator()..init(
+          ParametersWithRandom(
+            RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
+            SecureRandom("Fortuna")..seed(KeyParameter(Uint8List.fromList(List<int>.generate(32, (_) => Random.secure().nextInt(256))))),
+          ),
+        );
+
+    final pair = keyGenerator.generateKeyPair();
+    final publicKey = pair.publicKey as RSAPublicKey;
+    final privateKey = pair.privateKey as RSAPrivateKey;
+    final result = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(publicKey, privateKey);
+
+    _keyPairCache = result;
+
+    final publicPem = CryptoUtils.encodeRSAPublicKeyToPem(publicKey);
+    final privatePem = CryptoUtils.encodeRSAPrivateKeyToPem(privateKey);
+
+    secureStorage.write(key: "RSAPublicKey", value: publicPem);
+    secureStorage.write(key: "RSAPrivateKey", value: privatePem);
+
+    debugPrint("[RSA] New key pair generated and saved");
+    router.uploadPublicKey();
+
+    return result;
+  }
+
+  // #endregion
+
+  // #region -> Profile pictures
+
   Map<String, ValueNotifier<String?>> pfpNotifiersCache = {};
 
-  // Debug
+  ValueNotifier<String?> getPfpNotifier(String accountUsername) {
+    var cachedURL = pfpNotifiersCache[accountUsername];
+    if (cachedURL != null) return cachedURL;
+    pfpNotifiersCache[accountUsername] = ValueNotifier<String?>(null);
+    router.getProfilePicture(accountUsername);
+    return pfpNotifiersCache[accountUsername]!;
+  }
+
+  // #endregion
+
+  // #region -> Debugging
+
   List<String> appLogs = [];
 
   void log(String? message) {
@@ -68,15 +171,10 @@ class Data {
     } catch (_) {}
   }
 
-  ValueNotifier<String?> getPfpNotifier(String accountUsername) {
-    var cachedURL = pfpNotifiersCache[accountUsername];
-    if (cachedURL != null) return cachedURL;
-    pfpNotifiersCache[accountUsername] = ValueNotifier<String?>(null);
-    router.getProfilePicture(accountUsername);
-    return pfpNotifiersCache[accountUsername]!;
-  }
+  // #endregion
 
-  // Blocked users
+  // #region -> Blocked users
+
   List<String>? _blockedUsers;
   final ValueNotifier<List<String>> blockedUsersNotifier = ValueNotifier([]);
 
@@ -103,4 +201,6 @@ class Data {
     blockedUsersNotifier.value = blockedUsers.where((u) => u != id).toList();
     await _saveBlockedUsers();
   }
+
+  // #endregion
 }

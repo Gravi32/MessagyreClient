@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
+// #region -> Strings
 extension StringCasingExtension on String {
   String capitalize({bool everyWord = false}) {
     if (everyWord) {
@@ -30,59 +31,18 @@ extension StringNormalizeExtension on String {
   }
 }
 
-extension ColorExtension on Color {
-  Color withBrightness(double brightness) {
-    final hsl = HSLColor.fromColor(this);
-    final adjustedHsl = hsl.withLightness((hsl.lightness + brightness).clamp(0.0, 1.0));
-    return adjustedHsl.toColor();
-  }
-}
-
-extension DateTimeExtension on DateTime {
-  bool isSameDayAs(DateTime other) => year == other.year && month == other.month && day == other.day;
-  DateTime dateOnly() => DateTime(year, month, day);
-}
-
-Color adaptiveColor(Color light, Color dark) {
-  return Data().appBrightness == Brightness.dark ? dark : light;
-}
-
-Color? get cupertinoListTileColor => Data().appBrightness == Brightness.dark ? null : CupertinoColors.secondarySystemBackground;
-
-String formatDate(DateTime targetDate, {bool includeTime = false, bool includeArticle = false}) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final date = DateTime(targetDate.year, targetDate.month, targetDate.day);
-
-  final difference = date.difference(today).inDays;
-  final dayName = DateFormat.EEEE('fr_CH').format(targetDate);
-
-  String result;
-
-  if (difference == 0) {
-    result = "aujourd'hui";
-  } else if (difference == 1) {
-    result = "demain";
-  } else if (difference == -1) {
-    result = "hier";
-  } else if (difference > 1 && difference <= 6) {
-    result = dayName;
-  } else if (difference >= 7 && difference <= 13) {
-    result = "$dayName prochain";
-  } else if (difference < -1 && difference >= -13) {
-    result = "$dayName passé";
-  } else {
-    result = (includeArticle ? "le " : "") + DateFormat("d MMMM", 'fr_CH').format(targetDate);
-  }
-
-  if (date.year != today.year) result += " ${date.year}";
-
-  if (includeTime) {
-    final time = DateFormat.Hm('fr_CH').format(targetDate);
-    result += " à $time";
-  }
-
-  return result;
+void copy(BuildContext context, String content) async {
+  await Clipboard.setData(ClipboardData(text: content));
+  if (!context.mounted) return;
+  showCupertinoDialog(
+    context: context,
+    builder:
+        (dialogContext) => CupertinoAlertDialog(
+          title: Text("Copié"),
+          content: Text("Copié dans le presse-papiers."),
+          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.of(dialogContext).pop())],
+        ),
+  );
 }
 
 String formatSwissPhoneNumber(String input) {
@@ -98,54 +58,6 @@ String formatSwissPhoneNumber(String input) {
   if (digits.length > 9) buffer.write(' ${digits.substring(9)}');
 
   return buffer.toString();
-}
-
-double calculateAverage(List<Grade> grades) {
-  if (grades.isEmpty) return 0.0;
-
-  double total = 0.0;
-  double totalWeight = 0.0;
-
-  for (var gradeData in grades) {
-    total += gradeData.grade * gradeData.weight;
-    totalWeight += gradeData.weight;
-  }
-
-  return totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
-}
-
-void initMessageNotifiers() {
-  for (var chat in Hive.box<Chat>("Chats").values) {
-    for (var message in chat.content) {
-      message.initNotifier();
-    }
-  }
-}
-
-Map<double, String> fractions = {0.0: "0", 0.25: "¼", 0.33: "⅓", 0.5: "½", 0.66: "⅔", 0.75: "¾", 1.0: "1"};
-
-String? getFractionString(double value) {
-  for (var fraction in fractions.keys) {
-    if ((value - fraction).abs() < 0.01) {
-      return fractions[fraction]!;
-    }
-  }
-  return null;
-}
-
-({List<List<dynamic>> icon, Color color}) getStatusIcon(MessageStatus status) {
-  switch (status) {
-    case MessageStatus.Failed:
-      return (icon: HugeIcons.strokeRoundedCancel01, color: Colors.red);
-    case MessageStatus.Sending:
-      return (icon: HugeIcons.strokeRoundedMoreHorizontal, color: Colors.white);
-    case MessageStatus.Sent:
-      return (icon: HugeIcons.strokeRoundedTick02, color: Colors.white);
-    case MessageStatus.Delivered:
-      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Colors.white);
-    case MessageStatus.Read:
-      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Color(0xFF641968).withBrightness(.25));
-  }
 }
 
 final Map<String, List<TextSpan>> _highlightSearchCache = {};
@@ -189,22 +101,127 @@ List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCach
   return spans;
 }
 
+// #endregion
+
+// #region -> Colors
+extension ColorExtension on Color {
+  Color withBrightness(double brightness) {
+    final hsl = HSLColor.fromColor(this);
+    final adjustedHsl = hsl.withLightness((hsl.lightness + brightness).clamp(0.0, 1.0));
+    return adjustedHsl.toColor();
+  }
+}
+
+Color adaptiveColor(Color light, Color dark) {
+  return Data().appBrightness == Brightness.dark ? dark : light;
+}
+
+Color? get cupertinoListTileColor => Data().appBrightness == Brightness.dark ? null : CupertinoColors.secondarySystemBackground;
+// #endregion
+
+// #region -> Dates
+
+extension DateTimeExtension on DateTime {
+  bool isSameDayAs(DateTime other) => year == other.year && month == other.month && day == other.day;
+  DateTime dateOnly() => DateTime(year, month, day);
+}
+
+String formatDate(DateTime targetDate, {bool includeTime = false, bool includeArticle = false}) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final date = DateTime(targetDate.year, targetDate.month, targetDate.day);
+
+  final difference = date.difference(today).inDays;
+  final dayName = DateFormat.EEEE('fr_CH').format(targetDate);
+
+  String result;
+
+  if (difference == 0) {
+    result = "aujourd'hui";
+  } else if (difference == 1) {
+    result = "demain";
+  } else if (difference == -1) {
+    result = "hier";
+  } else if (difference > 1 && difference <= 6) {
+    result = dayName;
+  } else if (difference >= 7 && difference <= 13) {
+    result = "$dayName prochain";
+  } else if (difference < -1 && difference >= -13) {
+    result = "$dayName passé";
+  } else {
+    result = (includeArticle ? "le " : "") + DateFormat("d MMMM", 'fr_CH').format(targetDate);
+  }
+
+  if (date.year != today.year) result += " ${date.year}";
+
+  if (includeTime) {
+    final time = DateFormat.Hm('fr_CH').format(targetDate);
+    result += " à $time";
+  }
+
+  return result;
+}
+
+// #endregion
+
+// #region -> Grades
+double calculateAverage(List<Grade> grades) {
+  if (grades.isEmpty) return 0.0;
+
+  double total = 0.0;
+  double totalWeight = 0.0;
+
+  for (var gradeData in grades) {
+    total += gradeData.grade * gradeData.weight;
+    totalWeight += gradeData.weight;
+  }
+
+  return totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
+}
+
+Map<double, String> fractions = {0.0: "0", 0.25: "¼", 0.33: "⅓", 0.5: "½", 0.66: "⅔", 0.75: "¾", 1.0: "1"};
+
+String? getFractionString(double value) {
+  for (var fraction in fractions.keys) {
+    if ((value - fraction).abs() < 0.01) {
+      return fractions[fraction]!;
+    }
+  }
+  return null;
+}
+// #endregion
+
+// #region -> Messages
+void initMessageNotifiers() {
+  for (var chat in Hive.box<Chat>("Chats").values) {
+    for (var message in chat.content) {
+      message.initNotifier();
+    }
+  }
+}
+
+({List<List<dynamic>> icon, Color color}) getStatusIcon(MessageStatus status) {
+  switch (status) {
+    case MessageStatus.Failed:
+      return (icon: HugeIcons.strokeRoundedCancel01, color: Colors.red);
+    case MessageStatus.Sending:
+      return (icon: HugeIcons.strokeRoundedMoreHorizontal, color: Colors.white);
+    case MessageStatus.Sent:
+      return (icon: HugeIcons.strokeRoundedTick02, color: Colors.white);
+    case MessageStatus.Delivered:
+      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Colors.white);
+    case MessageStatus.Read:
+      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Color(0xFF641968).withBrightness(.25));
+  }
+}
+// #endregion
+
+// #region -> Miscellaneous
+
 void restartApp(BuildContext context) {
   if (!context.mounted) return;
   final mountedContext = context;
   Phoenix.rebirth(mountedContext);
 }
 
-void copy(BuildContext context, String content) async {
-  await Clipboard.setData(ClipboardData(text: content));
-  if (!context.mounted) return;
-  showCupertinoDialog(
-    context: context,
-    builder:
-        (dialogContext) => CupertinoAlertDialog(
-          title: Text("Copié"),
-          content: Text("Copié dans le presse-papiers."),
-          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.of(dialogContext).pop())],
-        ),
-  );
-}
+// #endregion
