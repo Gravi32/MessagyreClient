@@ -690,7 +690,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
     return ListView.builder(
       controller: chatScrollController,
       padding: EdgeInsets.symmetric(horizontal: 10),
-      itemCount: (chatData.content.length < visibleMessageCount ? chatData.content.length : visibleMessageCount) + 1,
+      itemCount: (chatData.content.length < visibleMessageCount ? chatData.content.length : visibleMessageCount) + 2,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Container(
@@ -742,7 +742,44 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
           );
         }
 
-        final msgIndex = index - 1;
+        if (index == 1) {
+          final color = (recipientPublicKey != null ? CupertinoColors.tertiaryLabel : CupertinoColors.systemYellow).resolveFrom(context);
+
+          return Container(
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            decoration: BoxDecoration(
+              color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(150),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text.rich(
+              textAlign: TextAlign.center,
+              TextSpan(
+                children: [
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: HugeIcon(
+                        icon: recipientPublicKey == null ? HugeIcons.strokeRoundedKnightShield : HugeIcons.strokeRoundedShieldKey,
+                        size: 16,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                  ...CustomText.parseSpans(
+                    recipientPublicKey == null
+                        ? "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout."
+                        : "Les messages dans cette conversation sont chiffrés de bout en bout : seuls toi et ${chatData.recipientDisplayUsername ?? chatData.recipientUsername} pouvez les lire.",
+                    style: TextStyle(color: color, fontSize: 16),
+                  ),
+                ],
+              ),
+              softWrap: true,
+            ),
+          );
+        }
+
+        final msgIndex = index - 2;
 
         var allMessagesList = chatData.content;
         var visibleMessagesList = allMessagesList.sublist(max(0, allMessagesList.length - visibleMessageCount));
