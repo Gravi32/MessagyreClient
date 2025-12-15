@@ -61,6 +61,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   bool showScrollDownButton = false;
   Set<String> messagesIdToAnimate = {};
   bool isLoading = false;
+  bool isEncryptionAvailable = true;
 
   void messagesListener(Map<String, Object> messageData) {
     if (messageData["SenderUsername"] != chatData.recipientUsername) return;
@@ -416,7 +417,14 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     data.openChatUsername = widget.recipientUsername;
 
-    router.getPublicKey(widget.recipientUsername).then((result) => recipientPublicKey = result);
+    router
+        .getPublicKey(widget.recipientUsername)
+        .then(
+          (result) => setState(() {
+            recipientPublicKey = result;
+            if (result == null) isEncryptionAvailable = false;
+          }),
+        );
 
     if (widget.recipientUsername == "support.messagyre" && chatData.content.isEmpty) {
       chatData.content.add(
@@ -726,7 +734,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         }
 
         if (index == 1) {
-          final color = (recipientPublicKey != null ? CupertinoColors.tertiaryLabel : CupertinoColors.systemYellow).resolveFrom(context);
+          final color =
+              isEncryptionAvailable
+                  ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                  : CupertinoColors.systemYellow.resolveFrom(context).withValues(alpha: .5);
 
           return Container(
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -743,16 +754,16 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     child: Padding(
                       padding: const EdgeInsets.only(right: 4),
                       child: HugeIcon(
-                        icon: recipientPublicKey == null ? HugeIcons.strokeRoundedKnightShield : HugeIcons.strokeRoundedShieldKey,
+                        icon: isEncryptionAvailable ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedKnightShield,
                         size: 16,
                         color: color,
                       ),
                     ),
                   ),
                   ...CustomText.parseSpans(
-                    recipientPublicKey == null
-                        ? "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout."
-                        : "Les messages dans cette conversation sont chiffrés de bout en bout : seuls toi et ${chatData.recipientDisplayUsername ?? chatData.recipientUsername} pouvez les lire.",
+                    isEncryptionAvailable
+                        ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls toi et ${chatData.recipientDisplayUsername ?? chatData.recipientUsername} pouvez les lire."
+                        : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
                     style: TextStyle(color: color, fontSize: 16),
                   ),
                 ],
