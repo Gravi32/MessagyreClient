@@ -199,12 +199,9 @@ class _NewHomeworkState extends State<NewHomework> {
                       placeholder: "Branche",
                       prefix: Padding(
                         padding: const EdgeInsets.only(right: 10),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: CupertinoColors.label.resolveFrom(context)),
                       ),
-                      suffix: Opacity(
-                        opacity: .25,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
-                      ),
+                      suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                       suffixMode: OverlayVisibilityMode.notEditing,
                       style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                       placeholderStyle: TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context), fontWeight: FontWeight.w500),
@@ -259,9 +256,9 @@ class _NewHomeworkState extends State<NewHomework> {
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 children: [
                   CupertinoListTile(
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                    title: Text(formatDate(dueDate).capitalize()),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.label.resolveFrom(context)),
+                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                    title: Text("Pour ${formatDate(dueDate)}"),
                     onTap: showDatePicker,
                   ),
                 ],
@@ -274,7 +271,7 @@ class _NewHomeworkState extends State<NewHomework> {
                   CupertinoListTile(
                     leading: HugeIcon(
                       icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                      color: isTest ? CupertinoColors.inactiveGray.resolveFrom(context) : adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
+                      color: (isTest ? CupertinoColors.inactiveGray : CupertinoColors.label).resolveFrom(context),
                     ),
                     title: Text(
                       "Devoir noté",
@@ -302,7 +299,7 @@ class _NewHomeworkState extends State<NewHomework> {
                   margin: const EdgeInsets.symmetric(horizontal: 10).add(EdgeInsetsGeometry.only(top: 10)),
                   children: [
                     CupertinoListTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: CupertinoColors.label.resolveFrom(context)),
                       title: Text("Ajouter à la page des notes", style: TextStyle(color: CupertinoColors.label.resolveFrom(context))),
                       trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
                     ),

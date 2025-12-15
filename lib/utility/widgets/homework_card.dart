@@ -222,11 +222,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     if (isGraded)
-                                      HugeIcon(
-                                        icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                                        color: adaptiveColor(CupertinoColors.tertiaryLabel, CupertinoColors.white),
-                                        size: 20,
-                                      ),
+                                      HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: CupertinoColors.label.resolveFrom(context), size: 20),
                                     Expanded(
                                       child: AnimatedLineThrough(
                                         duration: const Duration(milliseconds: 150),
@@ -251,13 +247,10 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                                 ),
                               ),
                               if (!isPreview)
-                                Opacity(
-                                  opacity: .3,
-                                  child: HugeIcon(
-                                    icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                                    size: 18,
-                                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                  ),
+                                HugeIcon(
+                                  icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                                  size: 18,
+                                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                                 ),
                             ],
                           ),
@@ -287,7 +280,9 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                             child: CustomText(
-                              isPreviewTitleEmpty ? "Titre du ${isTest ? "test" : "devoir noté"}" : widget.homework.title ?? "${isTest ? "Test" : "Devoir noté"} sans titre",
+                              isPreviewTitleEmpty
+                                  ? "Titre du ${isTest ? "test" : "devoir noté"}"
+                                  : widget.homework.title ?? "${isTest ? "Test" : "Devoir noté"} sans titre",
                               style: TextStyle(
                                 color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewTitleEmpty || isMarkedAsDone ? .5 : .9),
                                 fontWeight: FontWeight.w600,

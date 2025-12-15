@@ -218,11 +218,11 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                           spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.inactiveGray.resolveFrom(context), size: 16),
+                            HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 16),
                             Expanded(
                               child: Text(
                                 "Votre bio sera visible par tout les utilisateurs de Messagyre.",
-                                style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                                 softWrap: true,
                               ),
                             ),
@@ -694,11 +694,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
           spacing: 4,
           children: [
             Text(editMode ? "Mon profil" : account.username),
-            if (isBlocked)
-              Opacity(
-                opacity: .5,
-                child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-              ),
+            if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
           ],
         ),
         trailing: buildTrailing(),
@@ -732,7 +728,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                         Row(
                           spacing: 6,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                            HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                             Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                           ],
                         ),

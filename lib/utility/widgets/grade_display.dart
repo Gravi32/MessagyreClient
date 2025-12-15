@@ -145,9 +145,11 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   child: Container(
                     decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.systemBackground.resolveFrom(context)),
                     padding: const EdgeInsets.only(left: 4, top: 5),
-                    child: Opacity(
-                      opacity: widget.isGroup ? 1 : .3,
-                      child: HugeIcon(icon: badge, size: 16, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                    child: HugeIcon(
+                      icon: badge,
+                      size: 16,
+                      strokeWidth: 2,
+                      color: (widget.isGroup ? CupertinoColors.label : CupertinoColors.tertiaryLabel).resolveFrom(context),
                     ),
                   ),
                 ),

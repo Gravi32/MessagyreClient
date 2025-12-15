@@ -264,7 +264,7 @@ class _NewGradeState extends State<NewGrade> {
                             padding: EdgeInsets.zero,
                             placeholder: "Titre",
                             forceValid: false,
-                            suffix: Opacity(opacity: .4, child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText)),
+                            suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                             placeholderStyle: TextStyle(color: CupertinoColors.placeholderText, fontWeight: FontWeight.w500),
@@ -340,12 +340,12 @@ class _NewGradeState extends State<NewGrade> {
                           child: Row(
                             spacing: 6,
                             children: [
-                              HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                              HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                               Text("Cette note est associée à un devoir.", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
                               Spacer(),
                               HugeIcon(
                                 icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                                color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
                               ),
                             ],
                           ),
@@ -520,7 +520,7 @@ class _NewGradeState extends State<NewGrade> {
                       ),
                       trailing:
                           referenceId == null
-                              ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.inactiveGray.resolveFrom(context))
+                              ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context))
                               : null,
                       title: SubjectAutocomplete(
                         controller: subjectController,
@@ -663,7 +663,7 @@ class _NewGradeState extends State<NewGrade> {
                   children: [
                     CupertinoListTile(
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.placeholderText.resolveFrom(context)),
                       title: Text("Reçu ${formatDate(date, includeArticle: true)}"),
                       onTap: showDatePicker,
                     ),
@@ -676,7 +676,7 @@ class _NewGradeState extends State<NewGrade> {
                   children: [
                     CupertinoListTile(
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
                       title: StatefulBuilder(
                         builder: (context, setInnerState) {
                           final focusNode = FocusNode();

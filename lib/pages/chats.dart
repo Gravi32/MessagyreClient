@@ -58,10 +58,8 @@ class _ChatsPageState extends State<ChatsPage> {
                         spacing: 6,
                         children: [
                           if (isBlocked)
-                            Opacity(
-                              opacity: .5,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                            ),
+                            HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+
                           Text(
                             chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(chatData.recipientUsername),
                             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
@@ -80,7 +78,7 @@ class _ChatsPageState extends State<ChatsPage> {
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: Opacity(opacity: .6, child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color)),
+                                            child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color.withValues(alpha: .6)),
                                           ),
                                         ),
                                       if (lastMessage.isDeleted)
@@ -88,14 +86,11 @@ class _ChatsPageState extends State<ChatsPage> {
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 3),
-                                            child: Opacity(
-                                              opacity: .6,
-                                              child: HugeIcon(
-                                                icon: HugeIcons.strokeRoundedUnavailable,
-                                                size: 14,
-                                                strokeWidth: hasUnreadMessages ? 3 : 2,
-                                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                                              ),
+                                            child: HugeIcon(
+                                              icon: HugeIcons.strokeRoundedUnavailable,
+                                              size: 14,
+                                              strokeWidth: hasUnreadMessages ? 3 : 2,
+                                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
                                             ),
                                           ),
                                         ),
@@ -134,10 +129,8 @@ class _ChatsPageState extends State<ChatsPage> {
                         spacing: 4,
                         children: [
                           if (chatData.isPinned)
-                            Opacity(
-                              opacity: .5,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                            ),
+                            HugeIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+
                           if (hasUnreadMessages)
                             Container(
                               margin: EdgeInsets.only(top: 4),
@@ -341,22 +334,15 @@ class _ChatsPageState extends State<ChatsPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 2,
                       children: [
-                        Opacity(
-                          opacity: .25,
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedSleeping,
-                            strokeWidth: 1.5,
-                            size: 48,
-                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                          ),
-                        ),
+                        HugeIcon(icon: HugeIcons.strokeRoundedSleeping, strokeWidth: 1.5, size: 48, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+
                         const SizedBox(height: 8),
                         Text(
                           "Silence total...",
                           style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 22),
                         ),
                         Text(
-                          "Messagyre est fait pour discuter !",
+                          "Messagyre est faite aussi pour discuter !",
                           style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                         ),
                         CupertinoButton(

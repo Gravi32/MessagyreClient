@@ -121,7 +121,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: Opacity(opacity: .6, child: HugeIcon(icon: badge, color: CupertinoColors.label.resolveFrom(context), size: cutoutSize * 0.8)),
+                      child: HugeIcon(icon: badge, color: CupertinoColors.label.resolveFrom(context), size: cutoutSize * 0.8),
                     ),
                   ),
                 ],

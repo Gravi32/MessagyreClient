@@ -132,7 +132,7 @@ class _SubjectPageState extends State<SubjectPage> {
                               ],
                             ),
                           ),
-                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.systemGrey),
+                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                         ],
                       ),
                     ),

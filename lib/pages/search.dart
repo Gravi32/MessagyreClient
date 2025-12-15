@@ -135,7 +135,7 @@ class SearchPageState extends State<SearchPage> {
       ),
       leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 26),
       leadingSize: 50,
-      additionalInfo: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.systemGrey),
+      additionalInfo: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
       onTap: () async {
         setState(() {
           usernameBeingLoaded = result.username;
@@ -189,14 +189,11 @@ class SearchPageState extends State<SearchPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
                           children: [
-                            Opacity(
-                              opacity: .25,
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedSearch01,
-                                strokeWidth: 1.5,
-                                size: 48,
-                                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                              ),
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedSearch01,
+                              strokeWidth: 1.5,
+                              size: 48,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -236,9 +233,9 @@ class SearchPageState extends State<SearchPage> {
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: CupertinoColors.systemGrey, size: 40),
+                  HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 40),
                   SizedBox(height: 10),
-                  Text("Aucun utilisateur trouvé.", style: TextStyle(color: CupertinoColors.systemGrey)),
+                  Text("Aucun utilisateur trouvé.", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
                 ],
               ),
     );

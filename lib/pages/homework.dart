@@ -250,62 +250,60 @@ class HomeworkPageState extends State<HomeworkPage> {
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
                               boldWeight: FontWeight.w800,
                             ),
-                            nearbyTests.length > 1
-                                ? Padding(
-                                  padding: EdgeInsetsGeometry.symmetric(vertical: 6),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    spacing: 2,
-                                    children:
-                                        nearbyTests.map((test) {
-                                          final isSelected = nearbyTests.indexOf(test) == currentViewingTestIndex;
+                            Padding(
+                              padding: EdgeInsetsGeometry.symmetric(vertical: 6),
+                              child:
+                                  nearbyTests.length > 1
+                                      ? Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.max,
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        spacing: 2,
+                                        children:
+                                            nearbyTests.map((test) {
+                                              final isSelected = nearbyTests.indexOf(test) == currentViewingTestIndex;
 
-                                          return TweenAnimationBuilder<double>(
-                                            key: ValueKey(test.key),
-                                            tween: Tween<double>(begin: 1.0, end: isSelected ? 0.6 : 1.0),
-                                            duration: Duration(milliseconds: isSelected ? 500 : 1000),
-                                            onEnd: () {
-                                              if (isSelected) {
-                                                Future.delayed(Duration(milliseconds: 500), () {
-                                                  if (mounted) setState(() {});
-                                                });
-                                              }
-                                            },
-                                            builder: (context, value, _) {
-                                              final baseColor = CupertinoColors.secondaryLabel.resolveFrom(context);
-                                              return Opacity(
-                                                opacity: value,
-                                                child: CustomText(
-                                                  "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
-                                                  style: TextStyle(fontSize: 16, color: baseColor.withAlpha(isSelected ? 255 : 160)),
-                                                  boldWeight: FontWeight.w600,
-                                                ),
+                                              return TweenAnimationBuilder<double>(
+                                                key: ValueKey(test.key),
+                                                tween: Tween<double>(begin: 1.0, end: isSelected ? 0.6 : 1.0),
+                                                duration: Duration(milliseconds: isSelected ? 500 : 1000),
+                                                onEnd: () {
+                                                  if (isSelected) {
+                                                    Future.delayed(Duration(milliseconds: 500), () {
+                                                      if (mounted) setState(() {});
+                                                    });
+                                                  }
+                                                },
+                                                builder: (context, value, _) {
+                                                  final baseColor = CupertinoColors.secondaryLabel.resolveFrom(context);
+                                                  return Opacity(
+                                                    opacity: value,
+                                                    child: CustomText(
+                                                      "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
+                                                      style: TextStyle(fontSize: 16, color: baseColor.withAlpha(isSelected ? 255 : 160)),
+                                                      boldWeight: FontWeight.w600,
+                                                    ),
+                                                  );
+                                                },
                                               );
-                                            },
-                                          );
-                                        }).toList(),
-                                  ),
-                                )
-                                : Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  spacing: 4,
-                                  children: [
-                                    Opacity(
-                                      opacity: .6,
-                                      child: HugeIcon(
-                                        icon: HugeIcons.strokeRoundedCalendar04,
-                                        color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160),
-                                        size: 16,
+                                            }).toList(),
+                                      )
+                                      : Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        spacing: 4,
+                                        children: [
+                                          HugeIcon(
+                                            icon: HugeIcons.strokeRoundedCalendar04,
+                                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                            size: 16,
+                                          ),
+                                          Text(
+                                            DateFormat('d MMMM', 'fr_CH').format(nearbyTests.first.dueDate),
+                                            style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Text(
-                                      DateFormat('d MMMM', 'fr_CH').format(nearbyTests.first.dueDate),
-                                      style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160)),
-                                    ),
-                                  ],
-                                ),
+                            ),
 
                             Padding(
                               padding: EdgeInsetsGeometry.symmetric(vertical: 2).add(EdgeInsetsGeometry.only(bottom: 2, top: 6)),
@@ -338,18 +336,8 @@ class HomeworkPageState extends State<HomeworkPage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               spacing: 4,
                               children: [
-                                Opacity(
-                                  opacity: .6,
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedSearch01,
-                                    color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160),
-                                    size: 16,
-                                  ),
-                                ),
-                                Text(
-                                  "Appuyez pour voir",
-                                  style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context).withAlpha(160)),
-                                ),
+                                HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 16),
+                                Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context))),
                               ],
                             ),
                           ],
@@ -804,16 +792,13 @@ class HomeworkPageState extends State<HomeworkPage> {
                               ),
                               child: SizedBox(
                                 height: 100,
-                                child: Opacity(
-                                  opacity: .2,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    spacing: 6,
-                                    children: [
-                                      Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
-                                      HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: CupertinoColors.label.resolveFrom(context)),
-                                    ],
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 6,
+                                  children: [
+                                    Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                  ],
                                 ),
                               ),
                             ),

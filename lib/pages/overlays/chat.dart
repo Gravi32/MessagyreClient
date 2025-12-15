@@ -545,10 +545,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                           spacing: 6,
                           children: [
                             if (isBlocked)
-                              Opacity(
-                                opacity: .5,
-                                child: HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                              ),
+                              HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                             Text(
                               chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
                               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
@@ -707,13 +704,10 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                           alignment: PlaceholderAlignment.middle,
                           child: Padding(
                             padding: const EdgeInsets.only(right: 4),
-                            child: Opacity(
-                              opacity: .4,
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedInformationSquare,
-                                size: 16,
-                                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                              ),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedInformationSquare,
+                              size: 16,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                             ),
                           ),
                         ),
@@ -796,10 +790,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     mainAxisSize: MainAxisSize.min,
                     spacing: 8,
                     children: [
-                      Opacity(
-                        opacity: .25,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      ),
+                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                       Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
                     ],
                   ),

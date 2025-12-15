@@ -125,7 +125,7 @@ class _GradesPageState extends State<GradesPage> {
 
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedUnfoldMore, color: CupertinoColors.systemGrey),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedUnfoldMore, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                     ),
                   ),
               ],
@@ -180,15 +180,8 @@ class _GradesPageState extends State<GradesPage> {
                       spacing: 3,
                       children: [
                         if (incomingGrades.isNotEmpty) ...[
-                          Opacity(
-                            opacity: .3,
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedClock01,
-                              size: 14,
-                              strokeWidth: 2,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                            ),
-                          ),
+                          HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+
                           Text(
                             "${incomingGrades.length} passées",
                             maxLines: 2,
@@ -199,14 +192,11 @@ class _GradesPageState extends State<GradesPage> {
                           const SizedBox(width: 2),
                         ],
                         if (plannedGrades.isNotEmpty) ...[
-                          Opacity(
-                            opacity: .3,
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedCalendar04,
-                              size: 14,
-                              strokeWidth: 2,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                            ),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCalendar04,
+                            size: 14,
+                            strokeWidth: 2,
+                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                           ),
                           Text(
                             "${plannedGrades.length} planifiées",
@@ -262,13 +252,11 @@ class _GradesPageState extends State<GradesPage> {
                   "Voir ${isAverageBarExpanded ? "moins" : "plus"}",
                   style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                 ),
-                Opacity(
-                  opacity: .3,
-                  child: HugeIcon(
-                    icon: isAverageBarExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                    size: 18,
-                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                  ),
+
+                HugeIcon(
+                  icon: isAverageBarExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                  size: 18,
+                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                 ),
               ],
             ),
@@ -359,14 +347,11 @@ class _GradesPageState extends State<GradesPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
                           children: [
-                            Opacity(
-                              opacity: .25,
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedDashedLine02,
-                                strokeWidth: 1.5,
-                                size: 48,
-                                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                              ),
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedDashedLine02,
+                              strokeWidth: 1.5,
+                              size: 48,
+                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -427,13 +412,10 @@ class _GradesPageState extends State<GradesPage> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text("Branches prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-                                      Opacity(
-                                        opacity: .3,
-                                        child: HugeIcon(
-                                          icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
-                                          size: 18,
-                                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                        ),
+                                      HugeIcon(
+                                        icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
+                                        size: 18,
+                                        color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                                       ),
                                     ],
                                   ),

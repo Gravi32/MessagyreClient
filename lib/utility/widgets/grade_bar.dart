@@ -65,14 +65,11 @@ class GradeBar extends StatelessWidget {
                                     WidgetSpan(
                                       alignment: PlaceholderAlignment.middle,
                                       child: Padding(
-                                        padding: const EdgeInsets.only(right: 2),
-                                        child: Opacity(
-                                          opacity: .6,
-                                          child: HugeIcon(
-                                            icon: HugeIcons.strokeRoundedTextAlignLeft,
-                                            size: 14,
-                                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                          ),
+                                        padding: const EdgeInsets.only(right: 4),
+                                        child: HugeIcon(
+                                          icon: HugeIcons.strokeRoundedTextAlignLeft,
+                                          size: 14,
+                                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                                         ),
                                       ),
                                     ),
@@ -107,7 +104,7 @@ class GradeBar extends StatelessWidget {
                     isGradeUnknown
                         ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
                         : HugeIcons.strokeRoundedPencilEdit02,
-                color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
               ),
             ],
           ),
