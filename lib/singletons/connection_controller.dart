@@ -524,9 +524,9 @@ class ConnectionController {
   Future<void> uploadPublicKey() async {
     final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await data.publicKey);
     final response = await post("/accounts/me/upload-public-key", {"PublicKey": stringPublicKey});
-
+    
     if (response.statusCode != 200) {
-      debugPrint("[RSA] Uploading the public key failed. Server response: ${response.body}");
+      debugPrint("[RSA] Uploading the public key failed. Server response: ${response.statusCode} ${response.body}");
     }
 
     return;
