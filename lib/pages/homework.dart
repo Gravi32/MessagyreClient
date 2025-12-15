@@ -835,7 +835,7 @@ class HomeworkPageState extends State<HomeworkPage> {
 
     return CupertinoPressable(
       onTap: () => setState(() => currentViewMode = isSelected ? HomeworkViewMode.byDefault : viewMode),
-      decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(8)),
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
       child: Opacity(
         opacity: isSelected ? 1 : 0.5,
