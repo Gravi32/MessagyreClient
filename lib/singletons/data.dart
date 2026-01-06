@@ -51,8 +51,16 @@ class Data {
   // #region -> Calendars
 
   final _now = DateTime.now();
-  DateTime get schoolStart => DateTime(_now.year, 8, 18);
-  DateTime get schoolEnd => _now.isBefore(schoolStart) ? DateTime(_now.year, 6, 6) : DateTime(_now.year + 1, 6, 6);
+
+  DateTime get schoolStart {
+    final startThisYear = DateTime(_now.year, 8, 18);
+    return _now.isBefore(startThisYear) ? DateTime(_now.year - 1, 8, 18) : startThisYear;
+  }
+
+  DateTime get schoolEnd {
+    final start = schoolStart;
+    return DateTime(start.year + 1, 6, 6);
+  }
 
   Future<Calendar?> getTargetCalendar() async {
     final calendarsResult = await DeviceCalendarPlugin().retrieveCalendars();
