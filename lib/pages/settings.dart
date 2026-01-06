@@ -9,7 +9,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:messagyre_client/other/eula.dart';
+import 'package:messagyre_client/other/privacy_policy.dart';
+import 'package:messagyre_client/other/terms_of_service.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
 import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
@@ -365,6 +366,23 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
               SettingsSection(
+                title: Text("Informations légales"),
+                tiles: [
+                  SettingsTile.navigation(
+                    onPressed: (context) => showEulaReadOnly(context),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
+                    title: Text("Conditions d'utilisation"),
+                  ),
+
+                  SettingsTile.navigation(
+                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PrivacyPolicyPage(readOnly: true))),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedPolicy),
+                    title: Text("Politique de confidentialité"),
+                  ),
+                ],
+              ),
+
+              SettingsSection(
                 title: Text("Autres"),
                 tiles: [
                   SettingsTile(
@@ -423,12 +441,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
                     title: Text("Support"),
-                  ),
-
-                  SettingsTile.navigation(
-                    onPressed: (context) => showEulaReadOnly(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
-                    title: Text("Conditions d'utilisation"),
                   ),
 
                   SettingsTile.navigation(

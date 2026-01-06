@@ -22,7 +22,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/other/lifecycle_handler.dart';
 import 'package:messagyre_client/other/firebase_api.dart';
-import 'package:messagyre_client/other/eula.dart';
+import 'package:messagyre_client/other/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
