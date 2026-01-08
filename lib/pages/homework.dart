@@ -38,6 +38,7 @@ class HomeworkPageState extends State<HomeworkPage> {
 
   late final PageController timelineController;
   late final Box<Homework> allHomework;
+  late final Box<Grade> allGrades;
 
   HomeworkViewMode currentViewMode = HomeworkViewMode.byDefault;
 
@@ -138,7 +139,17 @@ class HomeworkPageState extends State<HomeworkPage> {
 
     if (homework == null) return;
 
-    if (toEdit != null) toEdit.delete();
+    if (toEdit != null) {
+      // If the subject was changed while editing, updates the linked grade.
+      if (homework.referenceId != null) {
+        allGrades.values.where((grade) => grade.referenceId == homework.referenceId).forEach((grade) {
+          grade.subject = homework.subject;
+          grade.save();
+        });
+      }
+
+      toEdit.delete();
+    }
 
     allHomework.add(homework);
 
@@ -841,6 +852,7 @@ class HomeworkPageState extends State<HomeworkPage> {
   void initState() {
     super.initState();
     allHomework = Hive.box<Homework>("Homework");
+    allGrades = Hive.box<Grade>("Grades");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 
     data.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);

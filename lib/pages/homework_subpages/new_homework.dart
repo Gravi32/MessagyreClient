@@ -26,6 +26,7 @@ class NewHomework extends StatefulWidget {
 class _NewHomeworkState extends State<NewHomework> {
   final data = Data();
   final miscBox = Hive.box("Misc");
+  final gradesBox = Hive.box<Grade>("Grades");
 
   late final editMode = widget.toEdit != null;
 
@@ -58,8 +59,10 @@ class _NewHomeworkState extends State<NewHomework> {
       ..dueDate = dueDate
       ..isGraded = isGraded
       ..isTest = isTest
-      ..referenceId = addingToGradesPage ? Uuid().v4() : null
+      ..referenceId = addingToGradesPage ? widget.toEdit?.referenceId ?? Uuid().v4() : null
       ..calendarEventId = editsCalendar == false ? null : widget.toEdit?.calendarEventId;
+
+
 
     Navigator.of(context).pop((homework: homework, editsCalendar: editsCalendar));
   }
