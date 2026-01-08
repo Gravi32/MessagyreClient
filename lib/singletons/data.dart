@@ -53,8 +53,11 @@ class Data {
   final _now = DateTime.now();
 
   DateTime get schoolStart {
-    final startThisYear = DateTime(_now.year, 8, 18);
-    return _now.isBefore(startThisYear) ? DateTime(_now.year - 1, 8, 18) : startThisYear;
+    // August 18th of the current or previous year
+    final startYear = _now.month >= 8 ? _now.year : _now.year - 1;
+    final result = DateTime(startYear, 8, 18);
+    
+    return result;
   }
 
   DateTime get schoolEnd {

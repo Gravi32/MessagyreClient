@@ -39,11 +39,9 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     tempDate = widget.initialDate;
 
     final now = DateTime.now();
-    final schoolStart = DateTime(now.year, 8, 18);
-    final schoolEnd = now.isBefore(schoolStart) ? DateTime(now.year, 6, 6) : DateTime(now.year + 1, 6, 6);
 
-    minDate = widget.allowPast ? schoolStart : now;
-    maxDate = widget.allowFuture ? schoolEnd : now;
+    minDate = widget.allowPast ? data.schoolStart : now;
+    maxDate = widget.allowFuture ? data.schoolEnd : now;
 
     final monthDiff = (widget.initialDate.year - minDate.year) * 12 + (widget.initialDate.month - minDate.month);
 
@@ -61,9 +59,9 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(
-      height: 400,
       decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (!widget.isPreviewMode)
             Container(
@@ -84,118 +82,135 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                 ],
               ),
             ),
-          Expanded(
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: PageView.builder(
-                  controller: monthController,
-                  itemCount: 12,
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  physics: PageScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final date = DateTime(minDate.year, minDate.month + index, 1);
-                    final allDays = daysInMonth(date.year, date.month);
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SizedBox(
+                    height: constraints.maxWidth, // Usa una proporzione basata sulla larghezza
+                    child: PageView.builder(
+                      controller: monthController,
+                      itemCount: 12,
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      physics: PageScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final date = DateTime(minDate.year, minDate.month + index, 1);
+                        final allDays = daysInMonth(date.year, date.month);
 
-                    final visibleDays = includeWeekends ? allDays : allDays.where((d) => d.weekday >= DateTime.monday && d.weekday <= DateTime.friday).toList();
+                        final visibleDays =
+                            includeWeekends ? allDays : allDays.where((d) => d.weekday >= DateTime.monday && d.weekday <= DateTime.friday).toList();
 
-                    int offset;
-                    if (visibleDays.isEmpty) {
-                      offset = 0;
-                    } else {
-                      if (includeWeekends) {
-                        offset = DateTime(date.year, date.month, 1).weekday - 1;
-                      } else {
-                        offset = visibleDays.first.weekday - 1; // 0..4
-                      }
-                    }
+                        int offset;
+                        if (visibleDays.isEmpty) {
+                          offset = 0;
+                        } else {
+                          if (includeWeekends) {
+                            offset = DateTime(date.year, date.month, 1).weekday - 1;
+                          } else {
+                            offset = visibleDays.first.weekday - 1;
+                          }
+                        }
 
-                    final totalCells = offset + visibleDays.length;
-                    final crossAxisCount = includeWeekends ? 7 : 5;
+                        final totalCells = offset + visibleDays.length;
+                        final crossAxisCount = includeWeekends ? 7 : 5;
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
-                          ),
-                          SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children:
-                                daysOfTheWeek
-                                    .map(
-                                      (d) => Expanded(
-                                        child: Center(
-                                          child: Text(
-                                            d,
-                                            style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 7),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                              ),
+                              SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children:
+                                    daysOfTheWeek
+                                        .map(
+                                          (d) => Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                d,
+                                                style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                          ),
-                          SizedBox(height: 6),
-                          Expanded(
-                            child: GridView.builder(
-                              padding: EdgeInsets.zero,
-                              physics: ClampingScrollPhysics(),
-                              shrinkWrap: true,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: crossAxisCount, crossAxisSpacing: 4, mainAxisSpacing: 4),
-                              itemCount: totalCells,
-                              itemBuilder: (context, i) {
-                                if (i < offset) return SizedBox();
-
-                                final dayIndex = i - offset;
-                                if (dayIndex >= visibleDays.length) return SizedBox();
-
-                                final dayDate = visibleDays[dayIndex];
-                                final dayNumber = dayDate.day;
-
-                                final today = DateTime.now();
-                                final isSelected = tempDate.isSameDayAs(dayDate);
-                                final isToday = today.isSameDayAs(dayDate);
-
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() => tempDate = dayDate);
-                                  },
-                                  child: Stack(
-                                    children: [
-                                      Container(
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              isSelected
-                                                  ? CupertinoTheme.of(context).primaryColor
-                                                  : CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(dayNumber.toString(), style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context))),
-                                      ),
-                                      if (isToday)
-                                        Positioned(
-                                          top: 5,
-                                          left: 5,
-                                          child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 10, color: CupertinoColors.label.resolveFrom(context)),
-                                        ),
-                                    ],
+                                        )
+                                        .toList(),
+                              ),
+                              SizedBox(height: 6),
+                              Expanded(
+                                child: GridView.builder(
+                                  padding: EdgeInsets.zero,
+                                  physics: NeverScrollableScrollPhysics(), // Disabilita lo scroll interno
+                                  shrinkWrap: true,
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 4,
+                                    mainAxisSpacing: 4,
                                   ),
-                                );
-                              },
-                            ),
+                                  itemCount: totalCells,
+                                  itemBuilder: (context, i) {
+                                    if (i < offset) return SizedBox();
+
+                                    final dayIndex = i - offset;
+                                    if (dayIndex >= visibleDays.length) return SizedBox();
+
+                                    final dayDate = visibleDays[dayIndex];
+                                    final dayNumber = dayDate.day;
+
+                                    final today = DateTime.now();
+                                    final isSelected = tempDate.isSameDayAs(dayDate);
+                                    final isToday = today.isSameDayAs(dayDate);
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() => tempDate = dayDate);
+                                      },
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  isSelected
+                                                      ? CupertinoTheme.of(context).primaryColor
+                                                      : CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              dayNumber.toString(),
+                                              style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                            ),
+                                          ),
+                                          if (isToday)
+                                            Positioned(
+                                              top: 5,
+                                              left: 5,
+                                              child: HugeIcon(
+                                                icon: HugeIcons.strokeRoundedCalendar04,
+                                                size: 10,
+                                                color: CupertinoColors.label.resolveFrom(context),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ),
           ),
