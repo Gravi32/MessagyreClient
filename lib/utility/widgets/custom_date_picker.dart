@@ -89,7 +89,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return SizedBox(
-                    height: constraints.maxWidth, // Usa una proporzione basata sulla larghezza
+                    height: constraints.maxWidth,
                     child: PageView.builder(
                       controller: monthController,
                       itemCount: 12,
@@ -147,7 +147,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                               Expanded(
                                 child: GridView.builder(
                                   padding: EdgeInsets.zero,
-                                  physics: NeverScrollableScrollPhysics(), // Disabilita lo scroll interno
                                   shrinkWrap: true,
                                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: crossAxisCount,
