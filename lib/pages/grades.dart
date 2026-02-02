@@ -154,63 +154,62 @@ class _GradesPageState extends State<GradesPage> {
       padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
       child: CupertinoPressable(
         onTap: () => setState(() => isAverageBarExpanded = !isAverageBarExpanded),
+        decoration: BoxDecoration(
+          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+          border: Border.all(color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 10,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Moyenne générale",
-                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
-                    ),
-                    Text(
-                      "${allGrades.length} note${allGrades.length > 1 ? 's' : ''} au total",
-                      maxLines: 2,
-                      overflow: TextOverflow.fade,
-                      softWrap: true,
-                      style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 18),
-                    ),
-                    Row(
-                      spacing: 3,
-                      children: [
-                        if (incomingGrades.isNotEmpty) ...[
-                          HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                GradeDisplay(
+                  grade: average,
+                  size: 100,
+                  strokeWidth: 5,
+                  roundGrade: false,
+                  textBelow: "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
+                ),
+                Text(
+                  "Moyenne générale",
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                ),
 
-                          Text(
-                            "${incomingGrades.length} passées",
-                            maxLines: 2,
-                            overflow: TextOverflow.fade,
-                            softWrap: true,
-                            style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
-                          ),
-                          const SizedBox(width: 2),
-                        ],
-                        if (plannedGrades.isNotEmpty) ...[
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCalendar04,
-                            size: 14,
-                            strokeWidth: 2,
-                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                          ),
-                          Text(
-                            "${plannedGrades.length} planifiées",
-                            maxLines: 2,
-                            overflow: TextOverflow.fade,
-                            softWrap: true,
-                            style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
-                          ),
-                        ],
-                      ],
-                    ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 3,
+                  children: [
+                    if (incomingGrades.isNotEmpty) ...[
+                      HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+
+                      Text(
+                        incomingGrades.length.toString(),
+                        maxLines: 2,
+                        overflow: TextOverflow.fade,
+                        softWrap: true,
+                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
+                      ),
+                      const SizedBox(width: 2),
+                    ],
+                    if (plannedGrades.isNotEmpty) ...[
+                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      Text(
+                        plannedGrades.length.toString(),
+                        maxLines: 2,
+                        overflow: TextOverflow.fade,
+                        softWrap: true,
+                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
+                      ),
+                    ],
                   ],
                 ),
-                GradeDisplay(grade: average, size: 64, roundGrade: false),
               ],
             ),
 
@@ -260,8 +259,6 @@ class _GradesPageState extends State<GradesPage> {
                 ),
               ],
             ),
-
-            Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
           ],
         ),
       ),
@@ -378,6 +375,7 @@ class _GradesPageState extends State<GradesPage> {
                         )
                         : SingleChildScrollView(
                           child: Column(
+                            spacing: 20,
                             children: [
                               buildAverageBar(),
                               ReorderableListView.builder(

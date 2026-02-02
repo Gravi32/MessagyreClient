@@ -10,6 +10,8 @@ class GradeDisplay extends StatefulWidget {
   final double grade;
   final double size;
   final double weight;
+  final double strokeWidth;
+  final String? textBelow;
   final bool isIncoming;
   final bool isPlanned;
   final bool isGroup;
@@ -19,7 +21,9 @@ class GradeDisplay extends StatefulWidget {
     super.key,
     required this.grade,
     this.size = 48,
+    this.strokeWidth = 3,
     this.weight = 1.0,
+    this.textBelow,
     this.isIncoming = false,
     this.isPlanned = false,
     this.isGroup = false,
@@ -39,7 +43,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
 
     final color =
         widget.grade >= 4
-            ? CupertinoColors.activeGreen
+            ? CupertinoTheme.of(context).primaryColor
             : widget.grade > 3.75
             ? CupertinoColors.activeOrange
             : CupertinoColors.systemRed;
@@ -77,7 +81,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                         ? DottedBorder(
                           options: RoundedRectDottedBorderOptions(
                             color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                            strokeWidth: 2,
+                            strokeWidth: widget.strokeWidth,
                             dashPattern: [4, 5],
                             radius: Radius.circular(200),
                             strokeCap: StrokeCap.round,
@@ -88,7 +92,12 @@ class _GradeDisplayState extends State<GradeDisplay> {
                         : Stack(
                           fit: StackFit.expand,
                           children: [
-                            CircularProgressIndicator(value: gradeAlpha, strokeWidth: 3, strokeCap: StrokeCap.round, color: color.withAlpha(alpha)),
+                            CircularProgressIndicator(
+                              value: gradeAlpha,
+                              strokeWidth: widget.strokeWidth,
+                              strokeCap: StrokeCap.round,
+                              color: color.withAlpha(alpha),
+                            ),
 
                             Transform.flip(
                               flipX: true,
@@ -96,7 +105,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                                 angle: pi / .25 / size,
                                 child: CircularProgressIndicator(
                                   value: 1 - gradeAlpha - 1 / (.25 * size),
-                                  strokeWidth: 3,
+                                  strokeWidth: widget.strokeWidth,
                                   strokeCap: StrokeCap.round,
                                   color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
                                 ),
@@ -108,10 +117,27 @@ class _GradeDisplayState extends State<GradeDisplay> {
 
               // Grade
               if (!isGradeHidden)
-                Text(
-                  animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), ''),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 2,
+                  children: [
+                    Text(
+                      animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), ''),
+                      style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, height: 1.0, color: CupertinoColors.label.resolveFrom(context)),
+                    ),
 
-                  style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                    if (widget.textBelow != null)
+                      Text(
+                        widget.textBelow!,
+                        style: TextStyle(
+                          fontSize: size / 6,
+                          fontWeight: FontWeight.w400,
+                          height: 1.0,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        ),
+                      ),
+                  ],
                 ),
 
               // Weight

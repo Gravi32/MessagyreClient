@@ -131,7 +131,7 @@ class App extends StatelessWidget {
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
-          theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color.fromRGBO(100, 25, 104, 1)),
+          theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color(0xFFAB0CB3)),
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
