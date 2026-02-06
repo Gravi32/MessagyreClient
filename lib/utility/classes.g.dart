@@ -96,16 +96,16 @@ class ChatAdapter extends TypeAdapter<Chat> {
   bool operator ==(Object other) => identical(this, other) || other is ChatAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
-class HomeworkAdapter extends TypeAdapter<Homework> {
+class AssignmentAdapter extends TypeAdapter<Assignment> {
   @override
   final int typeId = 2;
 
   @override
-  Homework read(BinaryReader reader) {
+  Assignment read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
 
-    return Homework()
+    return Assignment()
       ..subject = fields.get(0, Subject.Other)
       ..content = fields.get(1, "")
       ..dueDate = fields.get(2, DateTime(0))
@@ -119,7 +119,7 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
   }
 
   @override
-  void write(BinaryWriter writer, Homework obj) {
+  void write(BinaryWriter writer, Assignment obj) {
     writer
       ..writeByte(10)
       ..writeByte(0)
@@ -148,7 +148,7 @@ class HomeworkAdapter extends TypeAdapter<Homework> {
   int get hashCode => typeId.hashCode;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is HomeworkAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+  bool operator ==(Object other) => identical(this, other) || other is AssignmentAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }
 
 class GradeAdapter extends TypeAdapter<Grade> {

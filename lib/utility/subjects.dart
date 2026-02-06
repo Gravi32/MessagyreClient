@@ -184,10 +184,10 @@ class SubjectHelper {
     return list;
   }
 
-  static List<Homework> searchBySimilarity(String query, Map<Subject, Homework> allHomework) {
+  static List<Assignment> searchBySimilarity(String query, Map<Subject, Assignment> allAssignment) {
     final lowerQuery = query.toLowerCase().trim();
 
-    int similarityScore(Homework hw) {
+    int similarityScore(Assignment hw) {
       int score = 0;
       if (hw.content.toLowerCase().contains(lowerQuery)) score += 10;
       if (hw.subject.name.toLowerCase().contains(lowerQuery)) score += 5;
@@ -195,7 +195,7 @@ class SubjectHelper {
     }
 
     final filtered =
-        allHomework.values.where((hw) => hw.content.toLowerCase().contains(lowerQuery) || hw.subject.name.toLowerCase().contains(lowerQuery)).toList();
+        allAssignment.values.where((hw) => hw.content.toLowerCase().contains(lowerQuery) || hw.subject.name.toLowerCase().contains(lowerQuery)).toList();
 
     filtered.sort((a, b) => similarityScore(b).compareTo(similarityScore(a)));
 

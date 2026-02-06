@@ -10,7 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/homework_subpages/new_homework.dart';
+import 'package:messagyre_client/pages/assignments_subpages/new_assignment.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -18,38 +18,38 @@ import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/homework_card.dart';
+import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
-final GlobalKey<HomeworkPageState> homeworkPageKey = GlobalKey<HomeworkPageState>();
+final GlobalKey<AssignmentPageState> assignmentPageKey = GlobalKey<AssignmentPageState>();
 
-class HomeworkPage extends StatefulWidget {
-  const HomeworkPage({super.key});
+class AssignmentPage extends StatefulWidget {
+  const AssignmentPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => HomeworkPageState();
+  State<StatefulWidget> createState() => AssignmentPageState();
 }
 
-class HomeworkPageState extends State<HomeworkPage> {
+class AssignmentPageState extends State<AssignmentPage> {
   final router = ConnectionController();
   final data = Data();
   final calendar = DeviceCalendarPlugin();
 
   late final PageController timelineController;
-  late final Box<Homework> allHomework;
+  late final Box<Assignment> allAssignment;
   late final Box<Grade> allGrades;
 
-  HomeworkViewMode currentViewMode = HomeworkViewMode.byDefault;
+  AssignmentViewMode currentViewMode = AssignmentViewMode.byDefault;
 
-  late Map<DateTime, List<Homework>> homeworkByDate;
-  final Map<int, HomeworkCardController> homeworkCardControllers = {};
+  late Map<DateTime, List<Assignment>> assignmentByDate;
+  final Map<int, AssignmentCardController> assignmentCardControllers = {};
   final Map<int, ScrollController> dayListViewControllers = {};
   final FocusNode searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
 
   Calendar? targetCalendar;
-  List<Homework> nearbyTests = [];
+  List<Assignment> nearbyTests = [];
   bool isNearbyTestsNotifierHidden = false;
   int currentViewingTestIndex = -1;
   bool isAnimating = false;
@@ -86,19 +86,19 @@ class HomeworkPageState extends State<HomeworkPage> {
     return;
   }
 
-  Future<void> showHomework(Homework target) async {
+  Future<void> showAssignment(Assignment target) async {
     await animateToPage(allDays.indexWhere((date) => date.isSameDayAs(target.dueDate)));
 
-    homeworkCardControllers[target.key as int]?.triggerBounceEffect();
+    assignmentCardControllers[target.key as int]?.triggerBounceEffect();
 
     return;
   }
 
-  void groupHomeworkByDate() {
-    final grouped = <DateTime, List<Homework>>{};
+  void groupAssignmentByDate() {
+    final grouped = <DateTime, List<Assignment>>{};
     nearbyTests.clear();
 
-    for (var hw in allHomework.values) {
+    for (var hw in allAssignment.values) {
       final daysLeft = hw.dueDate.difference(DateTime.now()).inDays;
 
       if (hw.isTest && daysLeft >= 0 && daysLeft < 7) nearbyTests.add(hw);
@@ -120,11 +120,11 @@ class HomeworkPageState extends State<HomeworkPage> {
     }
 
     setState(() {
-      homeworkByDate = grouped;
+      assignmentByDate = grouped;
     });
   }
 
-  void showNewHomeworkPopup({Homework? toEdit, DateTime? dueDateOverride}) async {
+  void showNewAssignmentPopup({Assignment? toEdit, DateTime? dueDateOverride}) async {
     final result = await showCupertinoModalBottomSheet(
       expand: false,
       enableDrag: false,
@@ -132,18 +132,18 @@ class HomeworkPageState extends State<HomeworkPage> {
       clipBehavior: Clip.none,
       backgroundColor: CupertinoColors.transparent,
       context: context,
-      builder: (context) => NewHomework(toEdit: toEdit, dueDateOverride: dueDateOverride),
+      builder: (context) => NewAssignment(toEdit: toEdit, dueDateOverride: dueDateOverride),
     );
 
-    final homework = result.homework;
+    final assignment = result.assignment;
 
-    if (homework == null) return;
+    if (assignment == null) return;
 
     if (toEdit != null) {
       // If the subject was changed while editing, updates the linked grade.
-      if (homework.referenceId != null) {
-        allGrades.values.where((grade) => grade.referenceId == homework.referenceId).forEach((grade) {
-          grade.subject = homework.subject;
+      if (assignment.referenceId != null) {
+        allGrades.values.where((grade) => grade.referenceId == assignment.referenceId).forEach((grade) {
+          grade.subject = assignment.subject;
           grade.save();
         });
       }
@@ -151,7 +151,7 @@ class HomeworkPageState extends State<HomeworkPage> {
       toEdit.delete();
     }
 
-    allHomework.add(homework);
+    allAssignment.add(assignment);
 
     if (result.editsCalendar) {
       final permissionResult = await calendar.hasPermissions();
@@ -162,33 +162,33 @@ class HomeworkPageState extends State<HomeworkPage> {
 
       if (targetCalendar == null) return;
 
-      String title = "Devoir ${SubjectHelper.withPreposition(homework.subject)}";
-      if (homework.isGraded) {
-        title = "Devoir noté ${SubjectHelper.withPreposition(homework.subject)}";
-      } else if (homework.isTest) {
-        title = "Test ${SubjectHelper.withPreposition(homework.subject)}";
+      String title = "Devoir ${SubjectHelper.withPreposition(assignment.subject)}";
+      if (assignment.isGraded) {
+        title = "Devoir noté ${SubjectHelper.withPreposition(assignment.subject)}";
+      } else if (assignment.isTest) {
+        title = "Test ${SubjectHelper.withPreposition(assignment.subject)}";
       }
 
       String description = "";
-      if (homework.title != null) description += "${homework.title}\n\n";
-      if (homework.content?.isNotEmpty) description += homework.content;
+      if (assignment.title != null) description += "${assignment.title}\n\n";
+      if (assignment.content?.isNotEmpty) description += assignment.content;
       if (description.isNotEmpty) description += "\n\nCréé par Messagyre.";
 
       final timeZone = getLocation("Europe/Zurich");
 
       final event = Event(
         targetCalendar!.id,
-        eventId: homework.calendarEventId,
+        eventId: assignment.calendarEventId,
         title: title,
-        start: TZDateTime.from(homework.dueDate, timeZone),
-        end: TZDateTime.from(homework.dueDate.add(const Duration(minutes: 45)), timeZone),
+        start: TZDateTime.from(assignment.dueDate, timeZone),
+        end: TZDateTime.from(assignment.dueDate.add(const Duration(minutes: 45)), timeZone),
         allDay: true,
         description: description,
       );
 
       final result = await calendar.createOrUpdateEvent(event);
-      homework.calendarEventId = result?.data ?? homework.calendarEventId;
-      homework.save();
+      assignment.calendarEventId = result?.data ?? assignment.calendarEventId;
+      assignment.save();
     }
   }
 
@@ -204,7 +204,7 @@ class HomeworkPageState extends State<HomeworkPage> {
       });
 
       final targetTest = nearbyTests[currentViewingTestIndex];
-      showHomework(targetTest);
+      showAssignment(targetTest);
     }
 
     return Stack(
@@ -377,10 +377,10 @@ class HomeworkPageState extends State<HomeworkPage> {
     );
   }
 
-  Widget buildHomeworkList() {
+  Widget buildAssignmentList() {
     final now = DateTime.now();
 
-    void deleteHomework(Homework target) {
+    void deleteAssignment(Assignment target) {
       showCupertinoDialog(
         context: context,
         builder:
@@ -408,23 +408,23 @@ class HomeworkPageState extends State<HomeworkPage> {
     }
 
     switch (currentViewMode) {
-      case HomeworkViewMode.byDueDate:
-        final sortedHomework = allHomework.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+      case AssignmentViewMode.byDueDate:
+        final sortedAssignment = allAssignment.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
 
-          itemCount: sortedHomework.length,
+          itemCount: sortedAssignment.length,
           itemBuilder: (context, index) {
-            final date = sortedHomework[index].dueDate;
+            final date = sortedAssignment[index].dueDate;
             final formattedDate = formatDate(date);
             final opacity = date.isBefore(now) ? 0.5 : 1.0;
-            final homework = sortedHomework[index];
+            final assignment = sortedAssignment[index];
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (index == 0 || !sortedHomework[index - 1].dueDate.isSameDayAs(date)) ...[
+                if (index == 0 || !sortedAssignment[index - 1].dueDate.isSameDayAs(date)) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -452,12 +452,12 @@ class HomeworkPageState extends State<HomeworkPage> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Opacity(
                     opacity: opacity,
-                    child: HomeworkCard(
-                      homework: homework,
-                      controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                      onDeleteButtonClicked: () => deleteHomework(homework),
-                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                    child: AssignmentCard(
+                      assignment: assignment,
+                      controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                      onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                      onDeleteButtonClicked: () => deleteAssignment(assignment),
+                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
                     ),
                   ),
                 ),
@@ -466,11 +466,11 @@ class HomeworkPageState extends State<HomeworkPage> {
           },
         );
 
-      case HomeworkViewMode.bySubject:
-        final homeworkListBySubject = <Subject, List<Homework>>{};
+      case AssignmentViewMode.bySubject:
+        final assignmentListBySubject = <Subject, List<Assignment>>{};
 
-        for (var hw in allHomework.values) {
-          homeworkListBySubject.putIfAbsent(hw.subject, () => []).add(hw);
+        for (var hw in allAssignment.values) {
+          assignmentListBySubject.putIfAbsent(hw.subject, () => []).add(hw);
         }
 
         return ListView.builder(
@@ -478,9 +478,9 @@ class HomeworkPageState extends State<HomeworkPage> {
           itemCount: SubjectHelper.sortedSubjects.length,
           itemBuilder: (context, index) {
             final subject = SubjectHelper.sortedSubjects[index];
-            final subjectHomework = homeworkListBySubject[subject];
+            final subjectAssignment = assignmentListBySubject[subject];
 
-            return subjectHomework == null
+            return subjectAssignment == null
                 ? SizedBox.shrink()
                 : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -501,23 +501,23 @@ class HomeworkPageState extends State<HomeworkPage> {
                         ),
 
                         Text(
-                          "${subjectHomework.length} ${subjectHomework.length == 1 ? "Devoir" : "Devoirs"}",
+                          "${subjectAssignment.length} ${subjectAssignment.length == 1 ? "Devoir" : "Devoirs"}",
                           style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                         ),
                       ],
                     ),
                     SizedBox(height: 4),
-                    ...subjectHomework.map(
-                      (homework) => Padding(
+                    ...subjectAssignment.map(
+                      (assignment) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Opacity(
-                          opacity: homework.dueDate.isBefore(now) ? 0.5 : 1.0,
-                          child: HomeworkCard(
-                            homework: homework,
-                            controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                            onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                            onDeleteButtonClicked: () => deleteHomework(homework),
-                            onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                          opacity: assignment.dueDate.isBefore(now) ? 0.5 : 1.0,
+                          child: AssignmentCard(
+                            assignment: assignment,
+                            controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                            onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                            onDeleteButtonClicked: () => deleteAssignment(assignment),
+                            onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
                           ),
                         ),
                       ),
@@ -528,9 +528,9 @@ class HomeworkPageState extends State<HomeworkPage> {
           },
         );
 
-      case HomeworkViewMode.testsFirst:
-        final sortedHomework =
-            allHomework.values.toList()
+      case AssignmentViewMode.testsFirst:
+        final sortedAssignment =
+            allAssignment.values.toList()
               ..sort((a, b) => b.dueDate.compareTo(a.dueDate))
               ..sort((a, b) {
                 if (a.isTest && !b.isTest) return -1;
@@ -540,12 +540,12 @@ class HomeworkPageState extends State<HomeworkPage> {
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          itemCount: sortedHomework.length,
+          itemCount: sortedAssignment.length,
           itemBuilder: (context, index) {
-            final date = sortedHomework[index].dueDate;
+            final date = sortedAssignment[index].dueDate;
             final formattedDate = formatDate(date);
             final opacity = date.isBefore(now) ? 0.5 : 1.0;
-            final homework = sortedHomework[index];
+            final assignment = sortedAssignment[index];
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -572,12 +572,12 @@ class HomeworkPageState extends State<HomeworkPage> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Opacity(
                     opacity: opacity,
-                    child: HomeworkCard(
-                      homework: homework,
-                      controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                      onDeleteButtonClicked: () => deleteHomework(homework),
-                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                    child: AssignmentCard(
+                      assignment: assignment,
+                      controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                      onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                      onDeleteButtonClicked: () => deleteAssignment(assignment),
+                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
                     ),
                   ),
                 ),
@@ -586,17 +586,17 @@ class HomeworkPageState extends State<HomeworkPage> {
           },
         );
 
-      case HomeworkViewMode.testsOnly:
-        final sortedHomework = allHomework.values.where((hw) => hw.isTest).toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+      case AssignmentViewMode.testsOnly:
+        final sortedAssignment = allAssignment.values.where((hw) => hw.isTest).toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          itemCount: sortedHomework.length,
+          itemCount: sortedAssignment.length,
           itemBuilder: (context, index) {
-            final date = sortedHomework[index].dueDate;
+            final date = sortedAssignment[index].dueDate;
             final formattedDate = formatDate(date);
             final opacity = date.isBefore(now) ? 0.5 : 1.0;
-            final homework = sortedHomework[index];
+            final assignment = sortedAssignment[index];
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -623,12 +623,12 @@ class HomeworkPageState extends State<HomeworkPage> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Opacity(
                     opacity: opacity,
-                    child: HomeworkCard(
-                      homework: homework,
-                      controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                      onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                      onDeleteButtonClicked: () => deleteHomework(homework),
-                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                    child: AssignmentCard(
+                      assignment: assignment,
+                      controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                      onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                      onDeleteButtonClicked: () => deleteAssignment(assignment),
+                      onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
                     ),
                   ),
                 ),
@@ -637,36 +637,36 @@ class HomeworkPageState extends State<HomeworkPage> {
           },
         );
 
-      case HomeworkViewMode.all:
-        final sortedHomework = allHomework.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+      case AssignmentViewMode.all:
+        final sortedAssignment = allAssignment.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          itemCount: sortedHomework.length,
+          itemCount: sortedAssignment.length,
           itemBuilder: (context, index) {
-            final homework = sortedHomework[index];
-            final opacity = homework.dueDate.isBefore(now) ? 0.5 : 1.0;
+            final assignment = sortedAssignment[index];
+            final opacity = assignment.dueDate.isBefore(now) ? 0.5 : 1.0;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Opacity(
                 opacity: opacity,
-                child: HomeworkCard(
-                  homework: homework,
-                  controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                  onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                  onDeleteButtonClicked: () => deleteHomework(homework),
-                  onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                child: AssignmentCard(
+                  assignment: assignment,
+                  controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                  onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                  onDeleteButtonClicked: () => deleteAssignment(assignment),
+                  onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
                 ),
               ),
             );
           },
         );
 
-      case HomeworkViewMode.searchMode:
+      case AssignmentViewMode.searchMode:
         final query = searchController.text.trim().toLowerCase();
-        final sortedHomework =
-            query.isEmpty ? [] : SubjectHelper.searchBySimilarity(query, allHomework.toMap().map((key, value) => MapEntry(value.subject, value)));
+        final sortedAssignment =
+            query.isEmpty ? [] : SubjectHelper.searchBySimilarity(query, allAssignment.toMap().map((key, value) => MapEntry(value.subject, value)));
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -674,19 +674,19 @@ class HomeworkPageState extends State<HomeworkPage> {
             Padding(
               padding: EdgeInsetsGeometry.symmetric(horizontal: 14, vertical: 10),
               child: Text(
-                sortedHomework.isEmpty
+                sortedAssignment.isEmpty
                     ? "Recherchéz un devoir..."
-                    : "${sortedHomework.length} ${sortedHomework.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
+                    : "${sortedAssignment.length} ${sortedAssignment.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
               ),
             ),
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                itemCount: sortedHomework.length,
+                itemCount: sortedAssignment.length,
                 itemBuilder: (context, index) {
-                  final date = sortedHomework[index].dueDate;
-                  final homework = sortedHomework[index];
+                  final date = sortedAssignment[index].dueDate;
+                  final assignment = sortedAssignment[index];
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -698,12 +698,12 @@ class HomeworkPageState extends State<HomeworkPage> {
                       SizedBox(height: 6),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: HomeworkCard(
-                          homework: homework,
-                          controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                          onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                          onDeleteButtonClicked: () => deleteHomework(homework),
-                          onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => homework.isMarkedAsDone = isMarkedAsDone),
+                        child: AssignmentCard(
+                          assignment: assignment,
+                          controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                          onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                          onDeleteButtonClicked: () => deleteAssignment(assignment),
+                          onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
                         ),
                       ),
                     ],
@@ -726,7 +726,7 @@ class HomeworkPageState extends State<HomeworkPage> {
             final isPassed = date.isBefore(now);
             final opacity = isPassed ? 0.5 : 1.0;
 
-            final thisDaysHomework = homeworkByDate[date] ?? [];
+            final thisDaysAssignment = assignmentByDate[date] ?? [];
             final formattedDate = formatDate(date);
 
             return Padding(
@@ -761,24 +761,24 @@ class HomeworkPageState extends State<HomeworkPage> {
                         physics: NeverScrollableScrollPhysics(),
                         padding: EdgeInsets.only(top: 6, bottom: 20),
                         clipBehavior: Clip.none,
-                        itemCount: thisDaysHomework.length + 1,
+                        itemCount: thisDaysAssignment.length + 1,
                         itemBuilder: (context, i) {
-                          if (i < thisDaysHomework.length) {
-                            final homework = thisDaysHomework[i];
+                          if (i < thisDaysAssignment.length) {
+                            final assignment = thisDaysAssignment[i];
 
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
-                              child: HomeworkCard(
-                                homework: homework,
-                                controller: homeworkCardControllers.putIfAbsent(homework.key as int, () => HomeworkCardController()),
-                                onEditButtonClicked: () => showNewHomeworkPopup(toEdit: homework),
-                                onDeleteButtonClicked: () => deleteHomework(homework),
+                              child: AssignmentCard(
+                                assignment: assignment,
+                                controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                                onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                                onDeleteButtonClicked: () => deleteAssignment(assignment),
                                 onMarkAsDoneButtonClicked: (isMarkedAsDone) {
                                   bool isAllDone = true;
 
-                                  for (var homework
-                                      in homeworkByDate.entries.where((entry) => entry.key.isSameDayAs(date)).expand((entry) => entry.value).toList()) {
-                                    if (!homework.isTest && !homework.isMarkedAsDone) isAllDone = false;
+                                  for (var assignment
+                                      in assignmentByDate.entries.where((entry) => entry.key.isSameDayAs(date)).expand((entry) => entry.value).toList()) {
+                                    if (!assignment.isTest && !assignment.isMarkedAsDone) isAllDone = false;
                                   }
 
                                   if (isAllDone) {
@@ -790,7 +790,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                             );
                           }
                           return GestureDetector(
-                            onTap: () => showNewHomeworkPopup(dueDateOverride: date),
+                            onTap: () => showNewAssignmentPopup(dueDateOverride: date),
                             behavior: HitTestBehavior.opaque,
                             child: DottedBorder(
                               options: RoundedRectDottedBorderOptions(
@@ -826,11 +826,11 @@ class HomeworkPageState extends State<HomeworkPage> {
     }
   }
 
-  Widget buildFilterButton(HomeworkViewMode viewMode, List<List> icon, String text) {
+  Widget buildFilterButton(AssignmentViewMode viewMode, List<List> icon, String text) {
     final isSelected = currentViewMode == viewMode;
 
     return CupertinoPressable(
-      onTap: () => setState(() => currentViewMode = isSelected ? HomeworkViewMode.byDefault : viewMode),
+      onTap: () => setState(() => currentViewMode = isSelected ? AssignmentViewMode.byDefault : viewMode),
       decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(8)),
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
       child: Opacity(
@@ -851,14 +851,14 @@ class HomeworkPageState extends State<HomeworkPage> {
   @override
   void initState() {
     super.initState();
-    allHomework = Hive.box<Homework>("Homework");
+    allAssignment = Hive.box<Assignment>("Assignment");
     allGrades = Hive.box<Grade>("Grades");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 
     data.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
 
-    groupHomeworkByDate();
-    allHomework.listenable().addListener(groupHomeworkByDate);
+    groupAssignmentByDate();
+    allAssignment.listenable().addListener(groupAssignmentByDate);
 
     timelineController.addListener(() {
       if (isAnimating) return;
@@ -868,8 +868,8 @@ class HomeworkPageState extends State<HomeworkPage> {
     });
 
     searchFocusNode.addListener(() {
-      if (!searchFocusNode.hasFocus && currentViewMode == HomeworkViewMode.searchMode) {
-        setState(() => currentViewMode = HomeworkViewMode.byDefault);
+      if (!searchFocusNode.hasFocus && currentViewMode == AssignmentViewMode.searchMode) {
+        setState(() => currentViewMode = AssignmentViewMode.byDefault);
       }
       searchFocusNode.addListener(() => setState(() {}));
     });
@@ -884,7 +884,7 @@ class HomeworkPageState extends State<HomeworkPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double goalHeight = currentViewMode != HomeworkViewMode.searchMode ? 80 : 40;
+    final double goalHeight = currentViewMode != AssignmentViewMode.searchMode ? 80 : 40;
 
     return GestureDetector(
       onTap: () => searchFocusNode.unfocus(),
@@ -915,25 +915,25 @@ class HomeworkPageState extends State<HomeworkPage> {
                                     onChanged: (value) => setState(() {}),
                                     onTap:
                                         () => setState(() {
-                                          currentViewMode = HomeworkViewMode.searchMode;
+                                          currentViewMode = AssignmentViewMode.searchMode;
                                           searchFocusNode.requestFocus();
                                         }),
                                     focusNode: searchFocusNode,
                                     placeholder: "Rechercher des devoirs",
                                   ),
 
-                                  if (currentViewMode != HomeworkViewMode.searchMode)
+                                  if (currentViewMode != AssignmentViewMode.searchMode)
                                     SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       physics: BouncingScrollPhysics(),
                                       child: Row(
                                         spacing: 6,
                                         children: [
-                                          buildFilterButton(HomeworkViewMode.byDueDate, HugeIcons.strokeRoundedCalendarUpload01, "Par date de remise"),
-                                          buildFilterButton(HomeworkViewMode.bySubject, HugeIcons.strokeRoundedCheckmarkBadge04, "Par branche"),
-                                          buildFilterButton(HomeworkViewMode.testsFirst, HugeIcons.strokeRoundedTextCheck, "Les tests d'abord"),
-                                          buildFilterButton(HomeworkViewMode.testsOnly, HugeIcons.strokeRoundedTextCheck, "Seulement les tests"),
-                                          buildFilterButton(HomeworkViewMode.all, HugeIcons.strokeRoundedMenu01, "Tous"),
+                                          buildFilterButton(AssignmentViewMode.byDueDate, HugeIcons.strokeRoundedCalendarUpload01, "Par date de remise"),
+                                          buildFilterButton(AssignmentViewMode.bySubject, HugeIcons.strokeRoundedCheckmarkBadge04, "Par branche"),
+                                          buildFilterButton(AssignmentViewMode.testsFirst, HugeIcons.strokeRoundedTextCheck, "Les tests d'abord"),
+                                          buildFilterButton(AssignmentViewMode.testsOnly, HugeIcons.strokeRoundedTextCheck, "Seulement les tests"),
+                                          buildFilterButton(AssignmentViewMode.all, HugeIcons.strokeRoundedMenu01, "Tous"),
                                         ],
                                       ),
                                     ),
@@ -950,9 +950,9 @@ class HomeworkPageState extends State<HomeworkPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (nearbyTests.isNotEmpty && !isNearbyTestsNotifierHidden && currentViewMode == HomeworkViewMode.byDefault) buildNearbyTestsNotifier(),
+                    if (nearbyTests.isNotEmpty && !isNearbyTestsNotifierHidden && currentViewMode == AssignmentViewMode.byDefault) buildNearbyTestsNotifier(),
                     SizedBox(height: 6),
-                    Expanded(child: buildHomeworkList()),
+                    Expanded(child: buildAssignmentList()),
                   ],
                 ),
               ),
@@ -1011,7 +1011,7 @@ class HomeworkPageState extends State<HomeworkPage> {
                         ),
 
                         CupertinoPressable(
-                          onTap: showNewHomeworkPopup,
+                          onTap: showNewAssignmentPopup,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
@@ -1033,7 +1033,7 @@ class HomeworkPageState extends State<HomeworkPage> {
   }
 }
 
-enum HomeworkViewMode { byDefault, byDueDate, bySubject, testsFirst, testsOnly, all, searchMode }
+enum AssignmentViewMode { byDefault, byDueDate, bySubject, testsFirst, testsOnly, all, searchMode }
 
 class _VerticalClipper extends CustomClipper<Path> {
   @override

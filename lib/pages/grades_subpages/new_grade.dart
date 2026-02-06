@@ -11,12 +11,12 @@ import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/homework_card.dart';
+import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGrade extends StatefulWidget {
   final Grade? toEdit;
-  final Homework? toReference;
+  final Assignment? toReference;
   final Subject? subject;
   final VoidCallback? onDelete;
   final String? groupName;
@@ -29,7 +29,7 @@ class NewGrade extends StatefulWidget {
 
 class _NewGradeState extends State<NewGrade> {
   final allGrades = Hive.box<Grade>("Grades");
-  final allHomework = Hive.box<Homework>("Homework");
+  final allAssignment = Hive.box<Assignment>("Assignment");
 
   late final editMode = widget.toEdit != null;
 
@@ -41,7 +41,7 @@ class _NewGradeState extends State<NewGrade> {
   late String? referenceId = widget.toEdit?.referenceId;
 
   late final titleController = TextEditingController(text: widget.toEdit?.title);
-  late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject ?? referencedHomework?.subject));
+  late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject ?? referencedAssignment?.subject));
   late final detailsController = TextEditingController(text: widget.toEdit?.details);
   final titleFocusNode = FocusNode();
   final subjectFocusNode = FocusNode();
@@ -50,7 +50,7 @@ class _NewGradeState extends State<NewGrade> {
 
   bool isValuePickerExpanded = false;
   bool isReferenceTileExpanded = false;
-  Homework? referencedHomework;
+  Assignment? referencedAssignment;
 
   void confirmGrade() {
     if (titleController.text.isEmpty) {
@@ -112,9 +112,9 @@ class _NewGradeState extends State<NewGrade> {
     );
   }
 
-  void referenceHomework(Homework target) {
+  void referenceAssignment(Assignment target) {
     setState(() => referenceId = target.referenceId);
-    referencedHomework = target;
+    referencedAssignment = target;
     referenceId = target.referenceId;
     subject = target.subject;
 
@@ -188,9 +188,9 @@ class _NewGradeState extends State<NewGrade> {
     );
   }
 
-  List<Homework> getPlannedGrades() {
-    return allHomework.values
-        .where((homework) => homework.referenceId != null && !allGrades.values.any((grade) => grade.referenceId == homework.referenceId))
+  List<Assignment> getPlannedGrades() {
+    return allAssignment.values
+        .where((assignment) => assignment.referenceId != null && !allGrades.values.any((grade) => grade.referenceId == assignment.referenceId))
         .toList();
   }
 
@@ -215,7 +215,7 @@ class _NewGradeState extends State<NewGrade> {
   void initState() {
     super.initState();
 
-    if (widget.toReference != null) WidgetsBinding.instance.addPostFrameCallback((_) => referenceHomework(widget.toReference!));
+    if (widget.toReference != null) WidgetsBinding.instance.addPostFrameCallback((_) => referenceAssignment(widget.toReference!));
   }
 
   @override
@@ -273,8 +273,8 @@ class _NewGradeState extends State<NewGrade> {
                               padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8),
                               child: Text("Depuis la page des devoirs :", style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
                             ),
-                            itemBuilder: (homework, query) {
-                              if (homework is! Homework) return SizedBox.shrink();
+                            itemBuilder: (assignment, query) {
+                              if (assignment is! Assignment) return SizedBox.shrink();
                               return Column(
                                 spacing: 4,
                                 children: [
@@ -285,12 +285,12 @@ class _NewGradeState extends State<NewGrade> {
                                         children: [
                                           WidgetSpan(
                                             child: HugeIcon(
-                                              icon: homework.isTest ? HugeIcons.strokeRoundedTextCheck : HugeIcons.strokeRoundedCheckmarkBadge04,
+                                              icon: assignment.isTest ? HugeIcons.strokeRoundedTextCheck : HugeIcons.strokeRoundedCheckmarkBadge04,
                                               color: CupertinoColors.inactiveGray.resolveFrom(context),
                                             ),
                                           ),
                                           WidgetSpan(child: SizedBox(width: 4)),
-                                          ...highlightSearchMatch(homework.title ?? homework.content, query, useCache: true),
+                                          ...highlightSearchMatch(assignment.title ?? assignment.content, query, useCache: true),
                                         ],
                                         style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
                                       ),
@@ -301,18 +301,18 @@ class _NewGradeState extends State<NewGrade> {
                                     spacing: 4,
                                     children: [
                                       Text(
-                                        SubjectHelper.toFrench(homework.subject),
+                                        SubjectHelper.toFrench(assignment.subject),
                                         style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                                       ),
-                                      Text(formatDate(homework.dueDate), style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                      Text(formatDate(assignment.dueDate), style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
                                     ],
                                   ),
                                 ],
                               );
                             },
-                            onSelected: (homework) {
-                              if (homework is! Homework) return;
-                              referenceHomework(homework);
+                            onSelected: (assignment) {
+                              if (assignment is! Assignment) return;
+                              referenceAssignment(assignment);
                             },
                           ),
                           Text(
@@ -351,10 +351,10 @@ class _NewGradeState extends State<NewGrade> {
                           ),
                         ),
 
-                        if (isReferenceTileExpanded && referencedHomework != null) ...[
+                        if (isReferenceTileExpanded && referencedAssignment != null) ...[
                           const SizedBox(height: 10),
 
-                          Opacity(opacity: .9, child: HomeworkCard(homework: referencedHomework!, isPreview: true)),
+                          Opacity(opacity: .9, child: AssignmentCard(assignment: referencedAssignment!, isPreview: true)),
                           const SizedBox(height: 10),
                           Text(
                             "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans dissocier la note.",
@@ -371,7 +371,7 @@ class _NewGradeState extends State<NewGrade> {
                                     (dialogContext) => CupertinoAlertDialog(
                                       title: Text("Dissocier la note ?"),
                                       content: Text(
-                                        "Vous pourrez la réassocier en changeant le titre à \"${referencedHomework?.content}\" et en appuyant sur le résultat.",
+                                        "Vous pourrez la réassocier en changeant le titre à \"${referencedAssignment?.content}\" et en appuyant sur le résultat.",
                                       ),
                                       actions: [
                                         CupertinoActionSheetAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Non")),
@@ -381,7 +381,7 @@ class _NewGradeState extends State<NewGrade> {
                                               referenceId = null;
                                               isReferenceTileExpanded = false;
                                             });
-                                            referencedHomework = null;
+                                            referencedAssignment = null;
                                             Navigator.pop(dialogContext);
                                           },
                                           isDestructiveAction: true,

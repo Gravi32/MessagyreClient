@@ -102,7 +102,7 @@ class Chat extends HiveObject {
 }
 
 @HiveType(typeId: 2)
-class Homework extends HiveObject {
+class Assignment extends HiveObject {
   @HiveField(0)
   Subject subject = Subject.Maths;
 

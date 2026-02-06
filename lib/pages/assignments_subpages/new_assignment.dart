@@ -9,21 +9,21 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/homework_card.dart';
+import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:uuid/uuid.dart';
 
-class NewHomework extends StatefulWidget {
-  final Homework? toEdit;
+class NewAssignment extends StatefulWidget {
+  final Assignment? toEdit;
   final DateTime? dueDateOverride;
 
-  const NewHomework({super.key, this.toEdit, this.dueDateOverride});
+  const NewAssignment({super.key, this.toEdit, this.dueDateOverride});
 
   @override
-  State<StatefulWidget> createState() => _NewHomeworkState();
+  State<StatefulWidget> createState() => _NewAssignmentState();
 }
 
-class _NewHomeworkState extends State<NewHomework> {
+class _NewAssignmentState extends State<NewAssignment> {
   final data = Data();
   final miscBox = Hive.box("Misc");
   final gradesBox = Hive.box<Grade>("Grades");
@@ -47,12 +47,12 @@ class _NewHomeworkState extends State<NewHomework> {
 
   final targetCalendar = ValueNotifier<Calendar?>(null);
 
-  void confirmHomework() {
-    var homework = widget.toEdit ?? Homework();
+  void confirmAssignment() {
+    var assignment = widget.toEdit ?? Assignment();
 
     if (subject == null) return;
 
-    homework
+    assignment
       ..subject = subject ?? Subject.NotSet
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
       ..content = contentController.text.trim()
@@ -64,7 +64,7 @@ class _NewHomeworkState extends State<NewHomework> {
 
 
 
-    Navigator.of(context).pop((homework: homework, editsCalendar: editsCalendar));
+    Navigator.of(context).pop((assignment: assignment, editsCalendar: editsCalendar));
   }
 
   void showSubjectPicker() {
@@ -135,8 +135,8 @@ class _NewHomeworkState extends State<NewHomework> {
 
   @override
   Widget build(BuildContext context) {
-    final previewHomework =
-        Homework()
+    final previewAssignment =
+        Assignment()
           ..subject = subject ?? Subject.NotSet
           ..title = titleController.text.isEmpty ? null : titleController.text.trim()
           ..content = contentController.text.trim()
@@ -158,7 +158,7 @@ class _NewHomeworkState extends State<NewHomework> {
           ),
           trailing: CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: canBeSubmitted ? confirmHomework : showMissingInfoPopup,
+            onPressed: canBeSubmitted ? confirmAssignment : showMissingInfoPopup,
             child: Text(
               editMode ? "Terminé" : "Ajouter",
               style: TextStyle(
@@ -173,11 +173,11 @@ class _NewHomeworkState extends State<NewHomework> {
           child: ListView(
             physics: const ClampingScrollPhysics(),
             children: [
-              // Preview HomeworkCard
+              // Preview AssignmentCard
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-                child: HomeworkCard(
-                  homework: previewHomework,
+                child: AssignmentCard(
+                  assignment: previewAssignment,
                   isPreview: true,
                   onCardTap: () {
                     if (subjectFocusNode.hasFocus || contentFocusNode.hasFocus) {

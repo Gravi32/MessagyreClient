@@ -10,7 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/l10n/app_localizations.dart';
-import 'package:messagyre_client/pages/homework.dart';
+import 'package:messagyre_client/pages/assignments.dart';
 import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
 import 'package:messagyre_client/pages/search.dart';
@@ -47,13 +47,13 @@ void main() async {
         await Hive.initFlutter();
         Hive.registerAdapter(MessageAdapter());
         Hive.registerAdapter(ChatAdapter());
-        Hive.registerAdapter(HomeworkAdapter());
+        Hive.registerAdapter(AssignmentAdapter());
         Hive.registerAdapter(SubjectAdapter());
         Hive.registerAdapter(GradeAdapter());
         Hive.registerAdapter(SettingsAdapter());
 
         await Hive.openBox<Chat>("Chats");
-        await Hive.openBox<Homework>("Homework");
+        await Hive.openBox<Assignment>("Assignment");
         await Hive.openBox<Grade>("Grades");
         await Hive.openBox<List>("SubjectOrder");
         await Hive.openBox<Settings>("Settings");
@@ -118,7 +118,7 @@ class App extends StatelessWidget {
 
   static List<AppPage> pages = [
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
-    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => HomeworkPage(key: homeworkPageKey)),
+    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => AssignmentPage(key: assignmentPageKey)),
     AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsPage()),
     AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),

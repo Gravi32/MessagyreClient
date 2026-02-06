@@ -5,14 +5,14 @@ Built with **Flutter**, it runs on **iOS and Android**, providing a smooth exper
 
 ## Why Messagyre?
 This app was created for the school’s **Travail de Maturité**, combining messaging with a student agenda.  
-Stay connected with classmates, track your homework and grades, and get notifications in real-time — all in a single app designed for student life.
+Stay connected with classmates, track your assignment and grades, and get notifications in real-time — all in a single app designed for student life.
 
 ## Main Features
 - Secure authentication with JWT  
 - Real-time messaging via WebSocket  
 - Profile picture management  
 - Push notifications with Firebase Cloud Messaging (FCM)  
-- Student agenda for grades and homework  
+- Student agenda for grades and assignment  
 - Modular and easily extensible architecture  
 
 ## Technologies

@@ -6,7 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/group_page.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
-import 'package:messagyre_client/pages/homework.dart';
+import 'package:messagyre_client/pages/assignments.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -30,12 +30,12 @@ class _SubjectPageState extends State<SubjectPage> {
   final data = Data();
 
   Box<Grade> allGrades = Hive.box<Grade>("Grades");
-  Box<Homework> allHomework = Hive.box<Homework>("Homework");
+  Box<Assignment> allAssignment = Hive.box<Assignment>("Assignment");
 
   List<Grade> allSubjectGrades = [];
   List<Grade> singleGrades = [];
   Map<String, List> groups = {};
-  List<Homework> subjectIncomingGrades = [];
+  List<Assignment> subjectIncomingGrades = [];
 
   @override
   void initState() {
@@ -61,14 +61,14 @@ class _SubjectPageState extends State<SubjectPage> {
 
     // Loading incoming grades
     subjectIncomingGrades =
-        allHomework.values
+        allAssignment.values
             .where(
-              (homework) =>
-                  homework.subject == widget.subject &&
-                  (homework.isGraded || homework.isTest) &&
-                  !allSubjectGrades.any((grade) => grade.referenceId == homework.referenceId),
+              (assignment) =>
+                  assignment.subject == widget.subject &&
+                  (assignment.isGraded || assignment.isTest) &&
+                  !allSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
             )
-            .sortedBy((homework) => homework.dueDate)
+            .sortedBy((assignment) => assignment.dueDate)
             .toList();
   }
 
@@ -179,25 +179,25 @@ class _SubjectPageState extends State<SubjectPage> {
                   ],
                 ),
 
-                ...subjectIncomingGrades.map((homework) {
+                ...subjectIncomingGrades.map((assignment) {
                   final grade =
                       Grade()
-                        ..title = homework.content
-                        ..date = homework.dueDate;
-                  final isIncoming = homework.dueDate.isBefore(DateTime.now());
-                  final isPlanned = homework.dueDate.isAfter(DateTime.now());
+                        ..title = assignment.content
+                        ..date = assignment.dueDate;
+                  final isIncoming = assignment.dueDate.isBefore(DateTime.now());
+                  final isPlanned = assignment.dueDate.isAfter(DateTime.now());
 
                   return GradeBar(
                     gradeData: grade,
                     onTap: () {
                       if (isIncoming) {
-                        showNewGradePopup(toReference: homework);
+                        showNewGradePopup(toReference: assignment);
                         return;
                       }
 
                       Navigator.pop(context);
                       MainPage.pageIndex.value = 1;
-                      homeworkPageKey.currentState?.showHomework(homework);
+                      assignmentPageKey.currentState?.showAssignment(assignment);
                     },
                     isGradeUnknown: true,
                     isIncoming: isIncoming,
@@ -212,7 +212,7 @@ class _SubjectPageState extends State<SubjectPage> {
     );
   }
 
-  void showNewGradePopup({Grade? toEdit, Homework? toReference}) async {
+  void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
     final newGrade = await showCupertinoModalBottomSheet<Grade?>(
       context: context,
       enableDrag: false,

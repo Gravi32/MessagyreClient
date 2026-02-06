@@ -13,7 +13,7 @@ class StorageSettingsPage extends StatefulWidget {
 }
 
 class _StorageSettingsPageState extends State<StorageSettingsPage> {
-  int chatsSize = 0, homeworkSize = 0, gradesSize = 0;
+  int chatsSize = 0, assignmentSize = 0, gradesSize = 0;
 
   @override
   void initState() {
@@ -23,13 +23,13 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 
   Future<void> _loadBoxSizes() async {
     final chats = await getBoxSize<Chat>("Chats");
-    final homework = await getBoxSize<Homework>("Homework");
+    final assignment = await getBoxSize<Assignment>("Assignment");
     final grades = await getBoxSize<Grade>("Grades");
 
     if (mounted) {
       setState(() {
         chatsSize = chats;
-        homeworkSize = homework;
+        assignmentSize = assignment;
         gradesSize = grades;
       });
     }
@@ -53,8 +53,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
 
       if (name == "Chats") {
         box = isOpen ? Hive.box<Chat>(name) : await Hive.openBox<Chat>(name);
-      } else if (name == "Homework") {
-        box = isOpen ? Hive.box<Homework>(name) : await Hive.openBox<Homework>(name);
+      } else if (name == "Assignment") {
+        box = isOpen ? Hive.box<Assignment>(name) : await Hive.openBox<Assignment>(name);
       } else if (name == "Grades") {
         box = isOpen ? Hive.box<Grade>(name) : await Hive.openBox<Grade>(name);
       }
@@ -103,7 +103,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () async {
-                  for (var boxName in ["Chats", "Grades", "Homework"]) {
+                  for (var boxName in ["Chats", "Grades", "Assignment"]) {
                     deleteBox(boxName);
                   }
                   await _loadBoxSizes();
@@ -142,8 +142,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
                 SettingsTile(
                   leading: HugeIcon(icon: HugeIcons.strokeRoundedWork, color: CupertinoColors.destructiveRed),
                   title: Text("Effacer les devoirs", style: TextStyle(color: CupertinoColors.destructiveRed)),
-                  trailing: Text(formatBytes(homeworkSize)),
-                  onPressed: (_) => confirmDeleteBox("Homework", "Effacer les devoirs", "Tous les devoirs seront effacés, cette action est irréversible."),
+                  trailing: Text(formatBytes(assignmentSize)),
+                  onPressed: (_) => confirmDeleteBox("Assignment", "Effacer les devoirs", "Tous les devoirs seront effacés, cette action est irréversible."),
                 ),
               ],
             ),
@@ -152,7 +152,7 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
                 SettingsTile(
                   leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed),
                   title: Text("Tout effacer", style: TextStyle(color: CupertinoColors.destructiveRed)),
-                  trailing: Text(formatBytes(chatsSize + homeworkSize + gradesSize)),
+                  trailing: Text(formatBytes(chatsSize + assignmentSize + gradesSize)),
                   onPressed: (_) => confirmDeleteAll(),
                 ),
               ],

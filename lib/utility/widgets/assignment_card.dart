@@ -11,26 +11,26 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
-class HomeworkCardController {
+class AssignmentCardController {
   final key = GlobalKey();
 
   void Function()? _bounceEffectTrigger;
   void triggerBounceEffect() => _bounceEffectTrigger?.call();
 }
 
-class HomeworkCard extends StatefulWidget {
-  final Homework homework;
+class AssignmentCard extends StatefulWidget {
+  final Assignment assignment;
   final VoidCallback? onEditButtonClicked, onDeleteButtonClicked;
   final Function(bool isMarkedAsDone)? onMarkAsDoneButtonClicked;
   final VoidCallback? onCardTap;
   final bool isPreview;
-  final HomeworkCardController? controller;
+  final AssignmentCardController? controller;
 
   final bounceDuration = const Duration(milliseconds: 600);
 
-  const HomeworkCard({
+  const AssignmentCard({
     super.key,
-    required this.homework,
+    required this.assignment,
     this.isPreview = false,
     this.onEditButtonClicked,
     this.onDeleteButtonClicked,
@@ -40,13 +40,13 @@ class HomeworkCard extends StatefulWidget {
   });
 
   @override
-  State<HomeworkCard> createState() => _HomeworkCardState();
+  State<AssignmentCard> createState() => _AssignmentCardState();
 }
 
-class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderStateMixin {
+class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProviderStateMixin {
   final data = Data();
   final mainContainerKey = GlobalKey();
-  late final controller = widget.controller ?? HomeworkCardController();
+  late final controller = widget.controller ?? AssignmentCardController();
 
   double? mainContainerHeight;
   bool isExpanded = false;
@@ -78,12 +78,12 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
   }
 
   void markAsDone() {
-    final newValue = !widget.homework.isMarkedAsDone;
-    setState(() => widget.homework.isMarkedAsDone = newValue);
+    final newValue = !widget.assignment.isMarkedAsDone;
+    setState(() => widget.assignment.isMarkedAsDone = newValue);
     HapticFeedback.mediumImpact();
     widget.onMarkAsDoneButtonClicked?.call(newValue);
 
-    widget.homework.save();
+    widget.assignment.save();
   }
 
   void toggleExpanded() {
@@ -112,15 +112,15 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final isTest = widget.homework.isTest;
+    final isTest = widget.assignment.isTest;
     final isPreview = widget.isPreview;
-    final isPreviewTitleEmpty = isPreview && (widget.homework.title == null || widget.homework.title!.isEmpty);
-    final isPreviewDescriptionEmpty = isPreview && widget.homework.content.isEmpty;
-    final isMarkedAsDone = widget.homework.isMarkedAsDone;
-    final isGraded = widget.homework.isGraded;
+    final isPreviewTitleEmpty = isPreview && (widget.assignment.title == null || widget.assignment.title!.isEmpty);
+    final isPreviewDescriptionEmpty = isPreview && widget.assignment.content.isEmpty;
+    final isMarkedAsDone = widget.assignment.isMarkedAsDone;
+    final isGraded = widget.assignment.isGraded;
 
     final title =
-        isTest ? "Test ${SubjectHelper.withPreposition(widget.homework.subject) ?? ""}" : SubjectHelper.toFrenchOrNull(widget.homework.subject)?.capitalize();
+        isTest ? "Test ${SubjectHelper.withPreposition(widget.assignment.subject) ?? ""}" : SubjectHelper.toFrenchOrNull(widget.assignment.subject)?.capitalize();
 
     return AnimatedScale(
       key: controller.key,
@@ -282,7 +282,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                             child: CustomText(
                               isPreviewTitleEmpty
                                   ? "Titre du ${isTest ? "test" : "devoir noté"}"
-                                  : widget.homework.title ?? "${isTest ? "Test" : "Devoir noté"} sans titre",
+                                  : widget.assignment.title ?? "${isTest ? "Test" : "Devoir noté"} sans titre",
                               style: TextStyle(
                                 color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewTitleEmpty || isMarkedAsDone ? .5 : .9),
                                 fontWeight: FontWeight.w600,
@@ -295,8 +295,8 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                             ),
                           ),
 
-                        // Homework content
-                        if (isPreview || widget.homework.content.isNotEmpty)
+                        // Assignment content
+                        if (isPreview || widget.assignment.content.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12).add(EdgeInsetsGeometry.only(top: 6, bottom: 10)),
                             child: AnimatedLineThrough(
@@ -304,7 +304,7 @@ class _HomeworkCardState extends State<HomeworkCard> with SingleTickerProviderSt
                               isCrossed: isMarkedAsDone,
                               strokeWidth: .5,
                               child: CustomText(
-                                isPreviewDescriptionEmpty ? "Description du devoir" : widget.homework.content,
+                                isPreviewDescriptionEmpty ? "Description du devoir" : widget.assignment.content,
                                 style: TextStyle(
                                   color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
                                 ),

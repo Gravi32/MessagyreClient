@@ -5,7 +5,7 @@ publish_to: "none"
 version: 1.31.543+543
 # 1.0   Initial release
 # 1.1   Added Settings page
-# 1.2   Added Homework page
+# 1.2   Added Assignment page
 # 1.3   Added Grades page
 # 1.4   Automatic login
 # 1.5   Added profile pictures
@@ -16,20 +16,20 @@ version: 1.31.543+543
 # 1.10  Improved chat and chats page graphics
 # 1.11  Build for iOS devices
 # 1.12  Added custom navigation bar and improved UI
-# 1.13  Revamped homework system
+# 1.13  Revamped assignment system
 # 1.14  All pages redesign + Added DisplayName
 # 1.15  Added custom wallpapers, changed pickers, improved UI/UX
 # 1.16  Added iOS notifications
-# 1.17  Homework page major upgrade
+# 1.17  Assignment page major upgrade
 # 1.18  Added chat messages options (focusing)
 # 1.19  Added a reset password option
 # 1.20  Added chat banner
 # 1.21  Added EULA requirements
-# 1.22  Added homework page searchbar and tags
+# 1.22  Added assignment page searchbar and tags
 # 1.23  Increased possible grade weights
 # 1.24  Added a grade display to the new grade page
-# 1.25  Added incoming grades from the homework page
-# 1.26  Implemented device calendar syncronization with the app's homework
+# 1.25  Added incoming grades from the assignment page
+# 1.26  Implemented device calendar syncronization with the app's assignment
 # 1.27  Support can now be contacted from the settings page
 # 1.28  Added local data backup options
 # 1.29  Complete revision with multiple changes here and there

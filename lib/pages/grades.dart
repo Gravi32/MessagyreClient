@@ -7,7 +7,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
-import 'package:messagyre_client/pages/homework.dart';
+import 'package:messagyre_client/pages/assignments.dart';
 import 'package:messagyre_client/singletons/connection_controller.dart';
 import 'package:messagyre_client/singletons/data.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -30,7 +30,7 @@ class _GradesPageState extends State<GradesPage> {
   final data = Data();
 
   late Box<Grade> allGrades;
-  late Box<Homework> allHomework;
+  late Box<Assignment> allAssignment;
   late Box<List> subjectOrderBox;
   List<MapEntry<Subject, List<Grade>>> subjectGradesList = [];
   List<Subject> subjectsWithFutureGrades = [];
@@ -39,22 +39,22 @@ class _GradesPageState extends State<GradesPage> {
   bool isIncomingGradesInfoExpanded = false;
 
   Widget buildSubjectBar(Subject subject, {List<Grade> grades = const [], int index = 0, bool isGradeUnknown = false}) {
-    final thisSubjectGradedHomework =
-        allHomework.values
+    final thisSubjectGradedAssignment =
+        allAssignment.values
             .where(
-              (homework) =>
-                  homework.subject == subject &&
-                  homework.referenceId != null &&
-                  (homework.isTest || homework.isGraded) &&
-                  !grades.any((grade) => grade.referenceId != null && grade.referenceId == homework.referenceId),
+              (assignment) =>
+                  assignment.subject == subject &&
+                  assignment.referenceId != null &&
+                  (assignment.isTest || assignment.isGraded) &&
+                  !grades.any((grade) => grade.referenceId != null && grade.referenceId == assignment.referenceId),
             )
             .toList();
 
     // Passed tests that have not yet been graded
-    final incomingGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isBefore(DateTime.now())).toList();
+    final incomingGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isBefore(DateTime.now())).toList();
 
     // Tests that are planned in the future
-    final plannedGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isAfter(DateTime.now())).toList();
+    final plannedGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isAfter(DateTime.now())).toList();
 
     return Column(
       children: [
@@ -73,7 +73,7 @@ class _GradesPageState extends State<GradesPage> {
 
                     if (firstPlannedGrade != null) {
                       MainPage.pageIndex.value = 1;
-                      homeworkPageKey.currentState?.showHomework(firstPlannedGrade);
+                      assignmentPageKey.currentState?.showAssignment(firstPlannedGrade);
                     }
                   }
                   : () {
@@ -139,16 +139,16 @@ class _GradesPageState extends State<GradesPage> {
 
   Widget buildAverageBar() {
     final average = calculateAverage(allGrades.values.toList());
-    final thisSubjectGradedHomework =
-        allHomework.values
+    final thisSubjectGradedAssignment =
+        allAssignment.values
             .where(
-              (homework) =>
-                  homework.referenceId != null && !allGrades.values.any((grade) => grade.referenceId != null && grade.referenceId == homework.referenceId),
+              (assignment) =>
+                  assignment.referenceId != null && !allGrades.values.any((grade) => grade.referenceId != null && grade.referenceId == assignment.referenceId),
             )
             .toList();
 
-    final incomingGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isBefore(DateTime.now())).toList();
-    final plannedGrades = thisSubjectGradedHomework.where((homework) => homework.dueDate.isAfter(DateTime.now())).toList();
+    final incomingGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isBefore(DateTime.now())).toList();
+    final plannedGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isAfter(DateTime.now())).toList();
 
     return Padding(
       padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
@@ -265,7 +265,7 @@ class _GradesPageState extends State<GradesPage> {
     );
   }
 
-  void showNewGradePopup({Grade? toEdit, Homework? toReference}) async {
+  void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
     final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGrade(toReference: toReference));
 
     if (newGrade == null) return;
@@ -284,10 +284,10 @@ class _GradesPageState extends State<GradesPage> {
   void initState() {
     super.initState();
     allGrades = Hive.box<Grade>("Grades");
-    allHomework = Hive.box<Homework>("Homework");
+    allAssignment = Hive.box<Assignment>("Assignment");
     subjectOrderBox = Hive.box<List>("SubjectOrder");
 
-    allHomework.listenable().addListener(() {
+    allAssignment.listenable().addListener(() {
       setState(() {});
       loadSubjects();
     });
@@ -304,9 +304,9 @@ class _GradesPageState extends State<GradesPage> {
     }
 
     subjectsWithFutureGrades.clear();
-    for (final homework in allHomework.values.sortedBy((homework) => homework.dueDate)) {
-      if ((homework.isGraded || homework.isTest) && homework.referenceId != null && !subjectGradesMap.containsKey(homework.subject)) {
-        subjectsWithFutureGrades.add(homework.subject);
+    for (final assignment in allAssignment.values.sortedBy((assignment) => assignment.dueDate)) {
+      if ((assignment.isGraded || assignment.isTest) && assignment.referenceId != null && !subjectGradesMap.containsKey(assignment.subject)) {
+        subjectsWithFutureGrades.add(assignment.subject);
       }
     }
 
