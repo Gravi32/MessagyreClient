@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -81,12 +82,12 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
             spacing: 12,
             children: [
               CupertinoListSection.insetGrouped(
-                backgroundColor: CupertinoColors.transparent,
+                backgroundColor: AppColors.transparent,
                 margin: EdgeInsets.zero,
                 children: [
                   CupertinoListTile(
                     backgroundColor: cupertinoListTileColor,
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: CupertinoColors.label.resolveFrom(context)),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
                       value: globals.settings.useDefaultWallpaper,
@@ -102,7 +103,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
               ),
               if (!globals.settings.useDefaultWallpaper) ...[
                 CupertinoListSection.insetGrouped(
-                  backgroundColor: CupertinoColors.transparent,
+                  backgroundColor: AppColors.transparent,
                   decoration: cupertinoListTileColor != null ? BoxDecoration(color: cupertinoListTileColor) : null,
                   header: Text("Vos fonds d'écran"),
                   margin: EdgeInsets.zero,
@@ -111,7 +112,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                           ? null
                           : Text(
                             "Appuyez longuement pour modifier.",
-                            style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
                           ),
                   children: [
                     SizedBox(
@@ -134,7 +135,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                       padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 5),
                                       child: DottedBorder(
                                         options: RoundedRectDottedBorderOptions(
-                                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                          color: AppColors.secondaryText.adaptTo(context),
                                           strokeWidth: 2,
                                           dashPattern: [4, 5],
                                           radius: Radius.circular(8),
@@ -144,7 +145,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                         child: SizedBox(
                                           width: MediaQuery.of(context).size.aspectRatio * 180,
                                           child: Center(
-                                            child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                            child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context)),
                                           ),
                                         ),
                                       ),
@@ -195,10 +196,10 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                             padding: EdgeInsets.all(2),
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                              color: AppColors.tertiaryBackground.adaptTo(context),
                                               boxShadow: [BoxShadow(blurRadius: 20, spreadRadius: 2)],
                                             ),
-                                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: CupertinoColors.white),
+                                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: AppColors.white),
                                           ),
                                         ),
                                       ),
@@ -211,26 +212,26 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     if (isEditMode)
                       CupertinoListTile(
                         backgroundColor: cupertinoListTileColor,
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoColors.label.resolveFrom(context)),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.text.adaptTo(context)),
                         title: Text("Terminé"),
                         onTap: () => setState(() => isEditMode = false),
                       ),
                   ],
                 ),
                 CupertinoListSection.insetGrouped(
-                  backgroundColor: CupertinoColors.transparent,
+                  backgroundColor: AppColors.transparent,
 
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
                       backgroundColor: cupertinoListTileColor,
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.label.resolveFrom(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.text.adaptTo(context)),
                       title: Text("Ajoutez une photo depuis la galérie"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),
                     CupertinoListTile(
                       backgroundColor: cupertinoListTileColor,
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: CupertinoColors.label.resolveFrom(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
                       title: Text("Prenez une photo"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),

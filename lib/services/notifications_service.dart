@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
@@ -116,7 +118,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: 0.75),
+                color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.75.toByte()),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   spacing: 8,
@@ -133,10 +135,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    widget.title,
-                                    style: TextStyle(fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context), fontSize: 18),
-                                  ),
+                                  Text(widget.title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context), fontSize: 18)),
                                   if (unreadMessages != null && unreadMessages - 1 > 0)
                                     Container(
                                       margin: EdgeInsets.only(top: 4),
@@ -144,7 +143,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                                       decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
                                       child: Text(
                                         "+ ${unreadMessages - 1}",
-                                        style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                                        style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),
                                       ),
                                     ),
                                 ],
@@ -164,7 +163,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
                     Container(
                       width: 100,
                       height: 4,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: CupertinoColors.quaternaryLabel.resolveFrom(context)),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: AppColors.quaternaryText.adaptTo(context)),
                     ),
                   ],
                 ),

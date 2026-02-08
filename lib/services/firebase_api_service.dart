@@ -156,7 +156,9 @@ class FirebaseApi {
     if (response.statusCode == 200) {
       debugPrint("[Firebase] FCM token successfully uploaded.");
     } else {
-      debugPrint("[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${globals.username}, token: ${globals.token}");
+      debugPrint(
+        "[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${globals.username}, token: ${globals.token}",
+      );
     }
   }
 

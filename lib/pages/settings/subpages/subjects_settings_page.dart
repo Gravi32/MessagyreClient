@@ -16,9 +16,7 @@ class _SubjectsSettingsPageState extends State<SubjectsSettingsPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Branches")),
-      child: SafeArea(
-        child: Center(child: HugeIcon(icon: HugeIcons.strokeRoundedCrane)),
-      ),
+      child: SafeArea(child: Center(child: HugeIcon(icon: HugeIcons.strokeRoundedCrane))),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -57,12 +58,11 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       Row(
                         spacing: 6,
                         children: [
-                          if (isBlocked)
-                            HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                          if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
                           Text(
                             chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(chatData.recipientUsername),
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white)),
                           ),
                         ],
                       ),
@@ -78,7 +78,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color.withValues(alpha: .6)),
+                                            child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color.withAlpha(.6.toByte())),
                                           ),
                                         ),
                                       if (lastMessage.isDeleted)
@@ -90,7 +90,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                               icon: HugeIcons.strokeRoundedUnavailable,
                                               size: 14,
                                               strokeWidth: hasUnreadMessages ? 3 : 2,
-                                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                              color: AppColors.secondaryText.adaptTo(context),
                                             ),
                                           ),
                                         ),
@@ -98,7 +98,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                         lastMessage.isDeleted ? "Message supprimé" : lastMessage.content.trim(),
                                         style: TextStyle(
                                           fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
-                                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                          color: AppColors.secondaryText.adaptTo(context),
                                         ),
                                       ),
                                     ],
@@ -107,10 +107,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                   softWrap: true,
                                   overflow: TextOverflow.ellipsis,
                                 )
-                                : Text(
-                                  "Envoyez un message...",
-                                  style: TextStyle(fontStyle: FontStyle.italic, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                                ),
+                                : Text("Envoyez un message...", style: TextStyle(fontStyle: FontStyle.italic, color: AppColors.tertiaryText.adaptTo(context))),
                       ),
                     ],
                   ),
@@ -122,14 +119,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       SizedBox(height: 4),
                       Text(
                         lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
-                        style: TextStyle(fontSize: 14, color: CupertinoColors.systemGrey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
+                        style: TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
                       ),
 
                       Row(
                         spacing: 4,
                         children: [
-                          if (chatData.isPinned)
-                            HugeIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                          if (chatData.isPinned) HugeIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
                           if (hasUnreadMessages)
                             Container(
@@ -138,7 +134,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                               decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
                               child: Text(
                                 chatData.unreadMessages.toString(),
-                                style: TextStyle(color: CupertinoColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                                style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),
                               ),
                             ),
                         ],
@@ -149,10 +145,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).push(CupertinoPageRoute(builder: (builder) => ChatPage(recipientUsername: chatData.recipientUsername)));
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatPage(recipientUsername: chatData.recipientUsername)));
           },
         ),
 
@@ -298,11 +291,11 @@ class _ChatsListPageState extends State<ChatsListPage> {
                               children: [
                                 Text(
                                   network.isLocalhost ? "Connecté au Localhost" : "Connexion en cours",
-                                  style: TextStyle(color: network.isLocalhost ? CupertinoColors.systemRed : CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                  style: TextStyle(color: network.isLocalhost ? AppColors.red : AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 network.isLocalhost
-                                    ? HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.systemRed, size: 20, strokeWidth: 1.5)
-                                    : LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
+                                    ? HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.red, size: 20, strokeWidth: 1.5)
+                                    : LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
                               ],
                             )
                             : null,
@@ -334,16 +327,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 2,
                       children: [
-                        HugeIcon(icon: HugeIcons.strokeRoundedSleeping, strokeWidth: 1.5, size: 48, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        HugeIcon(icon: HugeIcons.strokeRoundedSleeping, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
 
                         const SizedBox(height: 8),
-                        Text(
-                          "Silence total...",
-                          style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 22),
-                        ),
+                        Text("Silence total...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
                         Text(
                           "Messagyre est faite aussi pour discuter !",
-                          style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
                         ),
                         CupertinoButton(
                           onPressed: () => MainPage.pageIndex.value = 3,

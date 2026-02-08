@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
@@ -89,7 +90,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
                   largeTitle: Row(
                     spacing: 10,
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.label.resolveFrom(context), size: 28),
+                      HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.text.adaptTo(context), size: 28),
                       Text(widget.grades.isNotEmpty ? (widget.grades.first.groupName ?? "Groupe") : "Groupe"),
                     ],
                   ),
@@ -107,8 +108,8 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
               onTap: showNewGradePopup,
               child: Container(
                 padding: EdgeInsets.all(14),
-                decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(20)),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
               ),
             ),
           ),

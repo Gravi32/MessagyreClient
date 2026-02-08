@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -92,7 +94,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
     if (account == null) getAccount();
 
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: AppColors.secondaryBackground,
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [CupertinoSliverNavigationBar(largeTitle: Text("Réglages"), stretch: true)];
@@ -110,7 +112,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                       ? SettingsTile(
                         title: SizedBox(
                           height: 39,
-                          child: Center(child: LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)),
+                          child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
                         ),
                       )
                       : SettingsTile.navigation(
@@ -157,6 +159,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                       setState(() {
                         isDarkMode = value;
                         globals.appBrightness = value ? Brightness.dark : Brightness.light;
+                        Phoenix.rebirth(context);
                       });
                     },
                     initialValue: isDarkMode,
@@ -278,8 +281,8 @@ class _SettingsListPageState extends State<SettingsListPage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               spacing: 6,
                               children: [
-                                LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
-                                Text("Exportation en cours", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                                LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+                                Text("Exportation en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                               ],
                             )
                             : Text("Exporter les données"),

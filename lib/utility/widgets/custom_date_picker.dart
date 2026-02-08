@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -59,13 +60,13 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(
-      decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (!widget.isPreviewMode)
             Container(
-              color: CupertinoColors.systemBackground.resolveFrom(context),
+              color: AppColors.background.adaptTo(context),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -124,7 +125,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                             children: [
                               Text(
                                 DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
                               ),
                               SizedBox(height: 12),
                               Row(
@@ -136,7 +137,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                             child: Center(
                                               child: Text(
                                                 d,
-                                                style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.tertiaryText.adaptTo(context)),
                                               ),
                                             ),
                                           ),
@@ -179,12 +180,12 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                               color:
                                                   isSelected
                                                       ? CupertinoTheme.of(context).primaryColor
-                                                      : CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                                      : AppColors.secondaryBackground.adaptTo(context),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Text(
                                               dayNumber.toString(),
-                                              style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
+                                              style: TextStyle(fontSize: 16, color: AppColors.text.adaptTo(context)),
                                             ),
                                           ),
                                           if (isToday)
@@ -194,7 +195,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                               child: HugeIcon(
                                                 icon: HugeIcons.strokeRoundedCalendar04,
                                                 size: 10,
-                                                color: CupertinoColors.label.resolveFrom(context),
+                                                color: AppColors.text.adaptTo(context),
                                               ),
                                             ),
                                         ],

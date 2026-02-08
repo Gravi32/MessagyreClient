@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -77,9 +78,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: CupertinoColors.label.resolveFrom(context)),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
                     ),
-                    Text("Prendre une photo", style: TextStyle(fontSize: 20, color: CupertinoColors.label.resolveFrom(context))),
+                    Text("Prendre une photo", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
                   ],
                 ),
               ),
@@ -93,9 +94,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedAlbum02, color: CupertinoColors.label.resolveFrom(context)),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedAlbum02, color: AppColors.text.adaptTo(context)),
                     ),
-                    Text("Choisir une photo de la galérie", style: TextStyle(fontSize: 20, color: CupertinoColors.label.resolveFrom(context))),
+                    Text("Choisir une photo de la galérie", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
                   ],
                 ),
               ),
@@ -112,10 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Row(
                   spacing: 8,
                   children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
-                    ),
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red)),
                     Text("Supprimer la photo", style: TextStyle(fontSize: 20)),
                   ],
                 ),
@@ -169,7 +167,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Column(
                       children: [
                         CupertinoListSection.insetGrouped(
-                          backgroundColor: CupertinoColors.transparent,
+                          backgroundColor: AppColors.transparent,
                           header: Text("Pseudo"),
                           margin: EdgeInsets.zero,
                           children: [
@@ -192,7 +190,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
 
                         CupertinoListSection.insetGrouped(
-                          backgroundColor: CupertinoColors.transparent,
+                          backgroundColor: AppColors.transparent,
                           header: Text("Entrez votre biographie"),
                           margin: EdgeInsets.zero,
                           children: [
@@ -218,11 +216,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 16),
+                            HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.secondaryText.adaptTo(context), size: 16),
                             Expanded(
                               child: Text(
                                 "Votre bio sera visible par tout les utilisateurs de Messagyre.",
-                                style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 softWrap: true,
                               ),
                             ),
@@ -467,7 +465,7 @@ class _ProfilePageState extends State<ProfilePage> {
           value ?? "Ajouter",
           overflow: TextOverflow.fade,
           softWrap: false,
-          style: value == null ? TextStyle(color: CupertinoColors.inactiveGray) : null,
+          style: value == null ? TextStyle(color: AppColors.inactive.adaptTo(context)) : null,
         ),
         description: description ? Text("Appuyez pour copier dans le presse-papiers.") : null,
         onPressed: value != null ? (_) => copy(context, value) : null,
@@ -505,7 +503,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context).pop();
                 }
               },
-      child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isUploading ? CupertinoColors.inactiveGray : null, size: 30),
+      child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isUploading ? AppColors.inactive.adaptTo(context) : null, size: 30),
     );
   }
 
@@ -515,7 +513,7 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: EdgeInsets.zero,
           child:
               isUploading
-                  ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
                   : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
           onPressed: () async {
             setState(() => isUploading = true);
@@ -588,7 +586,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 keyboardType: TextInputType.visiblePassword,
                                 obscureText: true,
                                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                                decoration: BoxDecoration(color: AppColors.grey.withAlpha(0.1.toByte()), borderRadius: BorderRadius.circular(12)),
                                 controller: controller,
                                 placeholder: "Votre mot de passe",
                               ),
@@ -667,9 +665,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final color =
         enabled
             ? isDestructive
-                ? CupertinoColors.destructiveRed.resolveFrom(context)
-                : CupertinoColors.label.resolveFrom(context)
-            : CupertinoColors.inactiveGray.resolveFrom(context);
+                ? AppColors.red
+                : AppColors.text.adaptTo(context)
+            : AppColors.inactive.adaptTo(context);
 
     return CupertinoListTile(
       backgroundColor: cupertinoListTileColor,
@@ -694,7 +692,7 @@ class _ProfilePageState extends State<ProfilePage> {
           spacing: 4,
           children: [
             Text(editMode ? "Mon profil" : account.username),
-            if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+            if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
           ],
         ),
         trailing: buildTrailing(),
@@ -728,15 +726,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         Row(
                           spacing: 6,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                            HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: AppColors.secondaryText.adaptTo(context)),
                             Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                           ],
                         ),
-                        Text(account.username, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                        Text(account.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                         SizedBox(height: 0),
 
-                        if (account.classOrRole != null)
-                          Text(account.classOrRole!, style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                        if (account.classOrRole != null) Text(account.classOrRole!, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       ],
                     ),
                   ],
@@ -745,14 +742,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 if (profile["Bio"] != null) CustomText(profile["Bio"], style: TextStyle(fontSize: 16)),
                 Text(
                   "Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}.",
-                  style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                  style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
                 ),
 
                 SizedBox(height: 6),
 
                 if (isBlocked)
                   CupertinoListSection.insetGrouped(
-                    backgroundColor: CupertinoColors.transparent,
+                    backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(
@@ -791,7 +788,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 if (account.username != globals.username) ...[
                   if (!widget.openedFromChat) // Temporary
                     CupertinoListSection.insetGrouped(
-                      backgroundColor: CupertinoColors.transparent,
+                      backgroundColor: AppColors.transparent,
                       margin: EdgeInsets.zero,
                       children: [
                         if (!widget.openedFromChat)
@@ -817,7 +814,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 if (box.containsKey(account.username))
                   CupertinoListSection.insetGrouped(
-                    backgroundColor: CupertinoColors.transparent,
+                    backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(
@@ -837,7 +834,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 if (account.username == globals.username) ...[
                   CupertinoListSection.insetGrouped(
-                    backgroundColor: CupertinoColors.transparent,
+                    backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
@@ -847,7 +844,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                   CupertinoListSection.insetGrouped(
-                    backgroundColor: CupertinoColors.transparent,
+                    backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
                   ),
@@ -855,7 +852,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 if (account.username != globals.username) ...[
                   CupertinoListSection.insetGrouped(
-                    backgroundColor: CupertinoColors.transparent,
+                    backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       if (!isBlocked)

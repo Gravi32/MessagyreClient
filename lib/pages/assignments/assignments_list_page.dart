@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:flutter_dash/flutter_dash.dart';
@@ -130,7 +131,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       enableDrag: false,
       previousRouteAnimationCurve: Curves.ease,
       clipBehavior: Clip.none,
-      backgroundColor: CupertinoColors.transparent,
+      backgroundColor: AppColors.transparent,
       context: context,
       builder: (context) => NewAssignmentPage(toEdit: toEdit, dueDateOverride: dueDateOverride),
     );
@@ -218,7 +219,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
               child: Shimmer(
                 duration: Duration(seconds: 10),
                 interval: Duration(seconds: 10),
-                color: CupertinoColors.systemGrey.resolveFrom(context).withValues(alpha: 0.15),
+                //color: AppColors.grey.adaptTo(context).withAlpha( 0.15),
                 colorOpacity: 0.3,
                 enabled: true,
                 direction: ShimmerDirection.fromLeftToRight(),
@@ -229,8 +230,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
                       colors: [
-                        CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                        CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(globals.appBrightness == Brightness.dark ? .1 : .02),
+                        AppColors.secondaryBackground.adaptTo(context),
+                        AppColors.secondaryBackground.adaptTo(context).withBrightness(globals.appBrightness == Brightness.dark ? .1 : .02),
                       ],
                       stops: [0, 1],
                       center: Alignment.bottomRight,
@@ -258,7 +259,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                               nearbyTests.length > 1
                                   ? "*Plusieurs* tests approchent !"
                                   : "Test *${SubjectHelper.withPreposition(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
                               boldWeight: FontWeight.w800,
                             ),
                             Padding(
@@ -286,7 +287,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                                   }
                                                 },
                                                 builder: (context, value, _) {
-                                                  final baseColor = CupertinoColors.secondaryLabel.resolveFrom(context);
+                                                  final baseColor = AppColors.secondaryText.adaptTo(context);
                                                   return Opacity(
                                                     opacity: value,
                                                     child: CustomText(
@@ -303,14 +304,10 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                         crossAxisAlignment: CrossAxisAlignment.center,
                                         spacing: 4,
                                         children: [
-                                          HugeIcon(
-                                            icon: HugeIcons.strokeRoundedCalendar04,
-                                            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                            size: 16,
-                                          ),
+                                          HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: AppColors.tertiaryText.adaptTo(context), size: 16),
                                           Text(
                                             DateFormat('d MMMM', 'fr_CH').format(nearbyTests.first.dueDate),
-                                            style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                            style: TextStyle(fontSize: 18, color: AppColors.tertiaryText.adaptTo(context)),
                                           ),
                                         ],
                                       ),
@@ -325,7 +322,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                       return LinearGradient(
                                         begin: Alignment.centerLeft,
                                         end: Alignment.centerRight,
-                                        colors: [CupertinoColors.white, CupertinoColors.transparent],
+                                        colors: [AppColors.white, AppColors.transparent],
                                       ).createShader(Rect.fromLTWH(0, 0, rect.width, rect.height));
                                     },
                                     blendMode: BlendMode.dstIn,
@@ -335,7 +332,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                       dashLength: 6,
                                       dashGap: 3,
                                       dashThickness: 1,
-                                      dashColor: CupertinoColors.quaternaryLabel.resolveFrom(context),
+                                      dashColor: AppColors.quaternaryText.adaptTo(context),
                                       dashBorderRadius: 2,
                                     ),
                                   );
@@ -347,8 +344,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               spacing: 4,
                               children: [
-                                HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 16),
-                                Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                                HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: AppColors.secondaryText.adaptTo(context), size: 16),
+                                Text("Appuyez pour voir", style: TextStyle(fontSize: 16, color: AppColors.secondaryText.adaptTo(context))),
                               ],
                             ),
                           ],
@@ -368,8 +365,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
             onTap: () => setState(() => isNearbyTestsNotifierHidden = true),
             child: Container(
               padding: EdgeInsets.all(4),
-              decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.secondarySystemBackground.resolveFrom(context)),
-              child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: CupertinoColors.label.resolveFrom(context), size: 16),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.secondaryBackground.adaptTo(context)),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.text.adaptTo(context), size: 16),
             ),
           ),
         ),
@@ -400,7 +397,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     target.delete();
                     Navigator.pop(dialogContext);
                   },
-                  child: Text("Supprimer", style: TextStyle(color: CupertinoColors.systemRed.resolveFrom(context))),
+                  child: Text("Supprimer", style: TextStyle(color: AppColors.red)),
                 ),
               ],
             ),
@@ -433,16 +430,12 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     children: [
                       Text(
                         "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500,
-                          color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity),
-                        ),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context).withAlpha(opacity.toByte())),
                       ),
                       if (int.tryParse(formattedDate[0]) == null)
                         Text(
                           DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                          style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
                         ),
                     ],
                   ),
@@ -495,14 +488,14 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 140),
                           child: Text(
                             SubjectHelper.toFrench(subject),
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
 
                         Text(
                           "${subjectAssignment.length} ${subjectAssignment.length == 1 ? "Devoir" : "Devoirs"}",
-                          style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
                         ),
                       ],
                     ),
@@ -558,12 +551,12 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   children: [
                     Text(
                       "Pour ${formatDate(date, includeArticle: true)}",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context).withAlpha(opacity.toByte())),
                     ),
                     if (int.tryParse(formattedDate[0]) == null)
                       Text(
                         DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                        style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
                       ),
                   ],
                 ),
@@ -609,12 +602,12 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   children: [
                     Text(
                       "Pour ${formatDate(date, includeArticle: true)}",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity)),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context).withAlpha(opacity.toByte())),
                     ),
                     if (int.tryParse(formattedDate[0]) == null)
                       Text(
                         DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                        style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
                       ),
                   ],
                 ),
@@ -677,7 +670,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                 sortedAssignment.isEmpty
                     ? "Recherchéz un devoir..."
                     : "${sortedAssignment.length} ${sortedAssignment.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.label.resolveFrom(context)),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
               ),
             ),
             Expanded(
@@ -693,7 +686,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     children: [
                       Text(
                         "pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context)),
                       ),
                       SizedBox(height: 6),
                       Padding(
@@ -741,16 +734,12 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     children: [
                       Text(
                         "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500,
-                          color: CupertinoColors.label.resolveFrom(context).withValues(alpha: opacity),
-                        ),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context).withAlpha(opacity.toByte())),
                       ),
                       if (int.tryParse(formattedDate[0]) == null)
                         Text(
                           DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                          style: TextStyle(fontSize: 18, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                          style: TextStyle(fontSize: 18, color: AppColors.tertiaryText.adaptTo(context)),
                         ),
                     ],
                   ),
@@ -794,7 +783,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                             behavior: HitTestBehavior.opaque,
                             child: DottedBorder(
                               options: RoundedRectDottedBorderOptions(
-                                color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                color: AppColors.secondaryBackground.adaptTo(context),
                                 strokeWidth: 2,
                                 dashPattern: [4, 5],
                                 radius: Radius.circular(8),
@@ -807,8 +796,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   spacing: 6,
                                   children: [
-                                    Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                    Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: AppColors.tertiaryText.adaptTo(context)),
                                   ],
                                 ),
                               ),
@@ -831,7 +820,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
     return CupertinoPressable(
       onTap: () => setState(() => currentViewMode = isSelected ? AssignmentViewMode.byDefault : viewMode),
-      decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(8)),
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
       child: Opacity(
         opacity: isSelected ? 1 : 0.5,
@@ -839,8 +828,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           spacing: 6,
           children: [
             isSelected
-                ? HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: CupertinoColors.destructiveRed.resolveFrom(context))
-                : HugeIcon(icon: icon, size: 16, color: CupertinoColors.label.resolveFrom(context)),
+                ? HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.red)
+                : HugeIcon(icon: icon, size: 16, color: AppColors.text.adaptTo(context)),
             Text(text),
           ],
         ),
@@ -855,7 +844,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
     allGrades = Hive.box<Grade>("Grades");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 
-   globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
+    globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
 
     groupAssignmentByDate();
     allAssignment.listenable().addListener(groupAssignmentByDate);
@@ -995,15 +984,13 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                         }),
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                                  color: AppColors.secondaryBackground.adaptTo(context),
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
-                                  ],
+                                  boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                                 ),
                                 child: HugeIcon(
                                   icon: dayDistance > 0 ? HugeIcons.strokeRoundedCalendarCheckIn01 : HugeIcons.strokeRoundedCalendarCheckOut01,
-                                  color: CupertinoColors.label.resolveFrom(context),
+                                  color: AppColors.text.adaptTo(context),
                                 ),
                               ),
                             ),
@@ -1014,11 +1001,11 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                           onTap: showNewAssignmentPopup,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                            color: AppColors.secondaryBackground.adaptTo(context),
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
+                            boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                           ),
-                          child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
                         ),
                       ],
                     ),

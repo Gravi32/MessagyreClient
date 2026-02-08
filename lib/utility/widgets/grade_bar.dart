@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -51,7 +51,7 @@ class GradeBar extends StatelessWidget {
                               style: TextStyle(
                                 fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
                                 fontSize: isGradeUnknown ? 16 : 18,
-                                color: isGradeUnknown ? CupertinoColors.tertiaryLabel.resolveFrom(context) : CupertinoColors.label.resolveFrom(context),
+                                color: isGradeUnknown ? AppColors.tertiaryText.adaptTo(context) : AppColors.text.adaptTo(context),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -66,16 +66,12 @@ class GradeBar extends StatelessWidget {
                                       alignment: PlaceholderAlignment.middle,
                                       child: Padding(
                                         padding: const EdgeInsets.only(right: 4),
-                                        child: HugeIcon(
-                                          icon: HugeIcons.strokeRoundedTextAlignLeft,
-                                          size: 14,
-                                          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                                        ),
+                                        child: HugeIcon(icon: HugeIcons.strokeRoundedTextAlignLeft, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
                                       ),
                                     ),
                                     ...CustomText.parseSpans(
                                       gradeData.details!,
-                                      style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 17),
+                                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
                                     ),
                                   ],
                                 ),
@@ -91,7 +87,7 @@ class GradeBar extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.fade,
                             softWrap: true,
-                            style: TextStyle(color: CupertinoColors.separator.resolveFrom(context), fontSize: 15),
+                            style: TextStyle(color: AppColors.separator.adaptTo(context), fontSize: 15),
                           ),
                         ],
                       ),
@@ -104,12 +100,12 @@ class GradeBar extends StatelessWidget {
                     isGradeUnknown
                         ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
                         : HugeIcons.strokeRoundedPencilEdit02,
-                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                color: AppColors.tertiaryText.adaptTo(context),
               ),
             ],
           ),
         ),
-        Divider(indent: 60, color: CupertinoColors.separator.resolveFrom(context).withAlpha(30)),
+        Divider(indent: 60, color: AppColors.separator.adaptTo(context).withAlpha(30)),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/main.dart';
@@ -122,20 +123,20 @@ class SearchPageState extends State<SearchPage> {
                     ),
                   ),
                   if (result.classOrRole != null)
-                    Text(result.classOrRole ?? "", style: TextStyle(color: CupertinoColors.systemGrey2, fontSize: 14, fontWeight: FontWeight.w400)),
+                    Text(result.classOrRole ?? "", style: TextStyle(color: AppColors.grey, fontSize: 14, fontWeight: FontWeight.w400)),
                 ],
               ),
             ],
           ),
           if (usernameBeingLoaded == result.username) ...[
             SizedBox(width: 10),
-            LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
+            LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
           ],
         ],
       ),
       leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 26),
       leadingSize: 50,
-      additionalInfo: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+      additionalInfo: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
       onTap: () async {
         setState(() {
           usernameBeingLoaded = result.username;
@@ -176,7 +177,7 @@ class SearchPageState extends State<SearchPage> {
                                 return LinearGradient(
                                   begin: Alignment(0, 1.2),
                                   end: Alignment(0, 1 - alpha),
-                                  colors: [CupertinoColors.white.withAlpha(30), CupertinoColors.white.withAlpha(40), CupertinoColors.transparent],
+                                  colors: [AppColors.white.withAlpha(30), AppColors.white.withAlpha(40), AppColors.transparent],
                                   stops: [.1, 0.3, 1],
                                 ).createShader(bounds);
                               },
@@ -193,17 +194,17 @@ class SearchPageState extends State<SearchPage> {
                               icon: HugeIcons.strokeRoundedSearch01,
                               strokeWidth: 1.5,
                               size: 48,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                              color: AppColors.tertiaryText.adaptTo(context),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               "Recherchez un utilisateur",
-                              style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 22),
+                              style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
                             ),
                             Text(
                               "Et appuyez sur son profil\npour entamer une conversation !",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                              style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
                             ),
                             const SizedBox(height: 43),
                           ],
@@ -229,13 +230,13 @@ class SearchPageState extends State<SearchPage> {
                 ),
               )
               : isSearcing
-              ? Center(child: LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14))
+              ? Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14))
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 40),
+                  HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
                   SizedBox(height: 10),
-                  Text("Aucun utilisateur trouvé.", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                  Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                 ],
               ),
     );

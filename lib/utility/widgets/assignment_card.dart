@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:animated_line_through/animated_line_through.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dash/flutter_dash.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -100,7 +101,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
           duration: Duration(milliseconds: 300 + 50 * popupOrderIndex),
           curve: isExpanded ? Curves.easeOutBack : Curves.easeInBack,
           decoration: BoxDecoration(
-            color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withAlpha(isExpanded ? 255 : 200),
+            color: AppColors.secondaryBackground.adaptTo(context).withAlpha(isExpanded ? 255 : 200),
             borderRadius: const BorderRadius.all(Radius.circular(12)),
           ),
           padding: EdgeInsets.only(top: isExpanded ? (mainContainerHeight?.abs() ?? 10) + 10 : 10, bottom: 10),
@@ -120,7 +121,9 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
     final isGraded = widget.assignment.isGraded;
 
     final title =
-        isTest ? "Test ${SubjectHelper.withPreposition(widget.assignment.subject) ?? ""}" : SubjectHelper.toFrenchOrNull(widget.assignment.subject)?.capitalize();
+        isTest
+            ? "Test ${SubjectHelper.withPreposition(widget.assignment.subject) ?? ""}"
+            : SubjectHelper.toFrenchOrNull(widget.assignment.subject)?.capitalize();
 
     return AnimatedScale(
       key: controller.key,
@@ -133,25 +136,16 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              buildButton(
-                0,
-                "Supprimer",
-                HugeIcons.strokeRoundedDelete04,
-                CupertinoColors.label.resolveFrom(context),
-                () => widget.onDeleteButtonClicked?.call(),
-              ),
-              buildButton(1, "Modifier", HugeIcons.strokeRoundedPencilEdit02, CupertinoColors.label.resolveFrom(context), () {
+              buildButton(0, "Supprimer", HugeIcons.strokeRoundedDelete04, AppColors.text.adaptTo(context), () => widget.onDeleteButtonClicked?.call()),
+              buildButton(1, "Modifier", HugeIcons.strokeRoundedPencilEdit02, AppColors.text.adaptTo(context), () {
                 toggleExpanded();
                 widget.onEditButtonClicked?.call();
               }),
-              if (!isTest) buildButton(2, "Terminé", HugeIcons.strokeRoundedCheckmarkSquare04, CupertinoColors.label.resolveFrom(context), markAsDone),
+              if (!isTest) buildButton(2, "Terminé", HugeIcons.strokeRoundedCheckmarkSquare04, AppColors.text.adaptTo(context), markAsDone),
             ],
           ),
           Container(
-            decoration: BoxDecoration(
-              color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(-.02),
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withBrightness(-.02), borderRadius: BorderRadius.circular(12)),
             child: Column(
               children: [
                 if (isPreview)
@@ -162,7 +156,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                       child: Row(
                         spacing: 6,
                         children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, color: CupertinoColors.label.resolveFrom(context), size: 14),
+                          HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, color: AppColors.text.adaptTo(context), size: 14),
                           Text("Aperçu du devoir", style: TextStyle(fontSize: 15)),
                         ],
                       ),
@@ -181,12 +175,12 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                     curve: Curves.easeOutCubic,
                     key: mainContainerKey,
                     decoration: BoxDecoration(
-                      color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(isMarkedAsDone && !isExpanded ? -.025 : 0),
+                      color: AppColors.secondaryBackground.adaptTo(context).withBrightness(isMarkedAsDone && !isExpanded ? -.025 : 0),
                       borderRadius: const BorderRadius.all(Radius.circular(12)),
 
                       boxShadow: [
                         if (globals.appBrightness == Brightness.dark || isPreview)
-                          BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
+                          BoxShadow(color: AppColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
                       ],
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 2),
@@ -204,13 +198,13 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                                 height: 30,
                                 child:
                                     isTest
-                                        ? HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: CupertinoColors.systemRed, size: 22)
+                                        ? HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: AppColors.red, size: 22)
                                         : GestureDetector(
                                           onTap: isPreview ? null : markAsDone,
                                           child: HugeIcon(
                                             icon: isMarkedAsDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
                                             size: 30,
-                                            color: isMarkedAsDone ? CupertinoColors.activeGreen : CupertinoColors.secondaryLabel.resolveFrom(context),
+                                            color: isMarkedAsDone ? AppColors.green : AppColors.secondaryText.adaptTo(context),
                                           ),
                                         ),
                               ),
@@ -221,8 +215,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                                   spacing: 4,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    if (isGraded)
-                                      HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: CupertinoColors.label.resolveFrom(context), size: 20),
+                                    if (isGraded) HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: AppColors.text.adaptTo(context), size: 20),
                                     Expanded(
                                       child: AnimatedLineThrough(
                                         duration: const Duration(milliseconds: 150),
@@ -233,8 +226,8 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                                           style: TextStyle(
                                             color:
                                                 isTest
-                                                    ? CupertinoColors.systemRed.resolveFrom(context)
-                                                    : CupertinoColors.label.resolveFrom(context).withValues(alpha: (isMarkedAsDone || title == null) ? .5 : 1),
+                                                    ? AppColors.red
+                                                    : AppColors.text.adaptTo(context).withAlpha(((isMarkedAsDone || title == null) ? .5 : 1.0).toByte()),
                                             fontWeight: title == null ? FontWeight.w500 : FontWeight.w700,
                                             fontSize: 20,
                                           ),
@@ -250,7 +243,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                                 HugeIcon(
                                   icon: isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                                   size: 18,
-                                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                  color: AppColors.tertiaryText.adaptTo(context),
                                 ),
                             ],
                           ),
@@ -268,7 +261,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                                   dashLength: 6,
                                   dashGap: 3,
                                   dashThickness: 1,
-                                  dashColor: CupertinoColors.tertiarySystemBackground.resolveFrom(context),
+                                  dashColor: AppColors.tertiaryBackground.adaptTo(context),
                                   dashBorderRadius: 2,
                                 );
                               },
@@ -284,7 +277,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                                   ? "Titre du ${isTest ? "test" : "devoir noté"}"
                                   : widget.assignment.title ?? "${isTest ? "Test" : "Devoir noté"} sans titre",
                               style: TextStyle(
-                                color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewTitleEmpty || isMarkedAsDone ? .5 : .9),
+                                color: AppColors.text.adaptTo(context).withAlpha((isPreviewTitleEmpty || isMarkedAsDone ? .5 : .9).toByte()),
                                 fontWeight: FontWeight.w600,
                                 fontSize: 20,
                               ),
@@ -306,7 +299,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                               child: CustomText(
                                 isPreviewDescriptionEmpty ? "Description du devoir" : widget.assignment.content,
                                 style: TextStyle(
-                                  color: CupertinoColors.label.resolveFrom(context).withValues(alpha: isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9),
+                                  color: AppColors.text.adaptTo(context).withAlpha((isPreviewDescriptionEmpty || isMarkedAsDone ? .5 : .9).toByte()),
                                 ),
                                 boldWeight: FontWeight.w800,
                                 overflow: TextOverflow.fade,

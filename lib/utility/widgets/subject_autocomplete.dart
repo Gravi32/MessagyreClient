@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -105,8 +106,8 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         prefix: widget.prefix,
         suffix: widget.suffix,
         suffixMode: widget.suffixMode,
-        style: widget.style ?? TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
-        placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context)),
+        style: widget.style ?? TextStyle(color: AppColors.inactive.adaptTo(context)),
+        placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.inactive.adaptTo(context)),
         decoration: widget.decoration ?? const BoxDecoration(),
         padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
         enabled: false,
@@ -132,7 +133,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           suffix: widget.suffix,
           suffixMode: widget.suffixMode,
           style: widget.style,
-          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context)),
+          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
           onSubmitted: (value) {
@@ -156,9 +157,9 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           margin: const EdgeInsets.only(top: 8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
           decoration: BoxDecoration(
-            color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+            color: AppColors.secondaryBackground.adaptTo(context),
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(150), blurRadius: 10)],
+            boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
           ),
           child: ListView.builder(
             shrinkWrap: true,
@@ -185,7 +186,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                       ),
                     ),
                   ),
-                  if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withValues(alpha: .1)),
+                  if (index < options.length - 1) Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte())),
                 ],
               );
             },

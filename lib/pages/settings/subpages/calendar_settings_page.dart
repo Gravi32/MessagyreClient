@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -25,12 +26,12 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
             Column(
               children: [
                 CupertinoListSection.insetGrouped(
-                  backgroundColor: CupertinoColors.transparent,
+                  backgroundColor: AppColors.transparent,
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
                       backgroundColor: cupertinoListTileColor,
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: CupertinoColors.label.resolveFrom(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: AppColors.text.adaptTo(context)),
                       title: Text("Inclure les week-ends"),
                       trailing: CupertinoSwitch(
                         value: globals.settings.includeWeekends,

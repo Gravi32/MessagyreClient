@@ -19,14 +19,9 @@ class _FeedbackSettingsPageState extends State<FeedbackSettingsPage> {
       builder:
           (dialogContext) => CupertinoAlertDialog(
             title: Text("Envoyez un commentaire"),
-            content: Text(
-              "Toutes les conversations seront effacées, cette action est irréversible.",
-            ),
+            content: Text("Toutes les conversations seront effacées, cette action est irréversible."),
             actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text("Annuler"),
-              ),
+              CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text("Annuler")),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () async {
@@ -55,10 +50,7 @@ class _FeedbackSettingsPageState extends State<FeedbackSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        previousPageTitle: "Réglages",
-        middle: Text("Envoyer un commentaire"),
-      ),
+      navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Envoyer un commentaire")),
       child: SafeArea(
         child: SettingsList(
           platform: DevicePlatform.iOS,

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 class CupertinoPressable extends StatefulWidget {
@@ -34,7 +35,7 @@ class _CupertinoPressableState extends State<CupertinoPressable> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultHighlight = adaptiveColor(CupertinoColors.white.withAlpha(50), CupertinoColors.black.withAlpha(25));
+    final defaultHighlight = adaptiveColor(AppColors.white.withAlpha(50), AppColors.black.withAlpha(25));
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,

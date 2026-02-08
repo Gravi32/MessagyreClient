@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -105,18 +106,14 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                                   children: [
                                     Text(
                                       groupName,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 20,
-                                        color: adaptiveColor(CupertinoColors.black, CupertinoColors.white),
-                                      ),
+                                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white)),
                                     ),
 
                                     Text(
                                       "contient ${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(fontSize: 15, color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontWeight: FontWeight.w400),
+                                      style: TextStyle(fontSize: 15, color: AppColors.tertiaryText.adaptTo(context), fontWeight: FontWeight.w400),
                                     ),
                                   ],
                                 ),
@@ -126,19 +123,19 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                                       gradesInGroup.map((data) => "• ${data.title}").join("\n"),
                                       maxLines: 2,
                                       overflow: TextOverflow.fade,
-                                      style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
+                                      style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 15),
                                     )
                                     : const SizedBox.shrink(),
                               ],
                             ),
                           ),
-                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
                         ],
                       ),
                     ),
                   ],
                 ),
-                Divider(indent: 60, color: CupertinoColors.separator.resolveFrom(context).withAlpha(30)),
+                Divider(indent: 60, color: AppColors.separator.adaptTo(context).withAlpha(30)),
               ],
             ),
           ),
@@ -174,8 +171,8 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text("Notes prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
-                    Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
+                    Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                    Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
                   ],
                 ),
 
@@ -274,8 +271,8 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
               onTap: showNewGradePopup,
               child: Container(
                 padding: EdgeInsets.all(14),
-                decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(20)),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(20)),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
               ),
             ),
           ),

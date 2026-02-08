@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -44,7 +45,7 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.black,
+      backgroundColor: AppColors.black,
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -52,13 +53,13 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text("Conditions d'utilisation", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: CupertinoColors.white)),
+                child: Text("Conditions d'utilisation", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
               ),
               SizedBox(height: 16),
               Expanded(
                 child: Container(
                   margin: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
                   padding: EdgeInsets.all(16),
                   child: SingleChildScrollView(
                     controller: scrollController,
@@ -107,7 +108,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
 
 *Messagyre* - *Pietro Gravina*
-""", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: CupertinoColors.label.resolveFrom(context))),
+""", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: AppColors.text.adaptTo(context))),
                   ),
                 ),
               ),
@@ -115,12 +116,12 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
               if (!widget.readOnly) ...[
                 CupertinoListSection.insetGrouped(
-                  backgroundColor: CupertinoColors.transparent,
+                  backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
                       title: Text(
                         "J'ai lu et j'accepte les conditions",
-                        style: TextStyle(color: hasScrolledToEnd ? CupertinoColors.white : CupertinoColors.inactiveGray.resolveFrom(context)),
+                        style: TextStyle(color: hasScrolledToEnd ? AppColors.white : AppColors.inactive.adaptTo(context)),
                       ),
                       trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
                       subtitle: hasScrolledToEnd ? null : Text("Lire le document pour continuer"),
@@ -131,12 +132,12 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
                 if (accepted)
                   CupertinoListSection.insetGrouped(
-                    backgroundColor: CupertinoColors.transparent,
+                    backgroundColor: AppColors.transparent,
                     children: [
                       Shimmer(
                         interval: Duration(seconds: 5),
                         child: CupertinoListTile(
-                          title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
+                          title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
                           onTap: _acceptTermsOfService,
                         ),
                       ),
@@ -146,10 +147,10 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
               if (widget.readOnly)
                 CupertinoListSection.insetGrouped(
-                  backgroundColor: CupertinoColors.transparent,
+                  backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
-                      title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
+                      title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
                       onTap: _acceptTermsOfService,
                     ),
                   ],

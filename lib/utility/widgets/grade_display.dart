@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -45,8 +46,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
         widget.grade >= 4
             ? CupertinoTheme.of(context).primaryColor
             : widget.grade > 3.75
-            ? CupertinoColors.activeOrange
-            : CupertinoColors.systemRed;
+            ? AppColors.orange
+            : AppColors.red;
 
     List<List<dynamic>>? badge;
     if (widget.isIncoming) {
@@ -80,7 +81,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     isGradeHidden
                         ? DottedBorder(
                           options: RoundedRectDottedBorderOptions(
-                            color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                            color: AppColors.secondaryBackground.adaptTo(context),
                             strokeWidth: widget.strokeWidth,
                             dashPattern: [4, 5],
                             radius: Radius.circular(200),
@@ -107,7 +108,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                                   value: 1 - gradeAlpha - 1 / (.25 * size),
                                   strokeWidth: widget.strokeWidth,
                                   strokeCap: StrokeCap.round,
-                                  color: adaptiveColor(CupertinoColors.black, CupertinoColors.white).withAlpha(30),
+                                  color: adaptiveColor(AppColors.black, AppColors.white).withAlpha(30),
                                 ),
                               ),
                             ),
@@ -124,18 +125,13 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   children: [
                     Text(
                       animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), ''),
-                      style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, height: 1.0, color: CupertinoColors.label.resolveFrom(context)),
+                      style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, height: 1.0, color: AppColors.text.adaptTo(context)),
                     ),
 
                     if (widget.textBelow != null)
                       Text(
                         widget.textBelow!,
-                        style: TextStyle(
-                          fontSize: size / 6,
-                          fontWeight: FontWeight.w400,
-                          height: 1.0,
-                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                        ),
+                        style: TextStyle(fontSize: size / 6, fontWeight: FontWeight.w400, height: 1.0, color: AppColors.secondaryText.adaptTo(context)),
                       ),
                   ],
                 ),
@@ -149,15 +145,13 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        boxShadow: [
-                          BoxShadow(color: CupertinoColors.systemBackground.resolveFrom(context).withAlpha(200), blurRadius: 4, offset: const Offset(0, 2)),
-                        ],
+                        boxShadow: [BoxShadow(color: AppColors.background.adaptTo(context).withAlpha(200), blurRadius: 4, offset: const Offset(0, 2))],
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Text(
                         getFractionString(widget.weight) ?? "${(widget.weight * 100).round()}%",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: CupertinoColors.label.resolveFrom(context)),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: AppColors.text.adaptTo(context)),
                       ),
                     ),
                   ),
@@ -169,14 +163,9 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoColors.systemBackground.resolveFrom(context)),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.background.adaptTo(context)),
                     padding: const EdgeInsets.only(left: 4, top: 5),
-                    child: HugeIcon(
-                      icon: badge,
-                      size: 16,
-                      strokeWidth: 2,
-                      color: (widget.isGroup ? CupertinoColors.label : CupertinoColors.tertiaryLabel).resolveFrom(context),
-                    ),
+                    child: HugeIcon(icon: badge, size: 16, strokeWidth: 2, color: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context)),
                   ),
                 ),
             ],

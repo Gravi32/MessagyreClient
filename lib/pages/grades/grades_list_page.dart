@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -103,8 +104,7 @@ class _GradesListPageState extends State<GradesListPage> {
                         style: TextStyle(
                           fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
                           fontSize: 18,
-                          color:
-                              isGradeUnknown ? CupertinoColors.tertiaryLabel.resolveFrom(context) : adaptiveColor(CupertinoColors.black, CupertinoColors.white),
+                          color: isGradeUnknown ? AppColors.tertiaryText.adaptTo(context) : adaptiveColor(AppColors.black, AppColors.white),
                         ),
                       ),
 
@@ -113,7 +113,7 @@ class _GradesListPageState extends State<GradesListPage> {
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 16),
+                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 16),
                       ),
                     ],
                   ),
@@ -125,14 +125,14 @@ class _GradesListPageState extends State<GradesListPage> {
 
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedUnfoldMore, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedUnfoldMore, color: AppColors.tertiaryText.adaptTo(context)),
                     ),
                   ),
               ],
             ),
           ),
         ),
-        Divider(indent: 60, color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
+        Divider(indent: 60, color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
       ],
     );
   }
@@ -155,8 +155,8 @@ class _GradesListPageState extends State<GradesListPage> {
       child: CupertinoPressable(
         onTap: () => setState(() => isAverageBarExpanded = !isAverageBarExpanded),
         decoration: BoxDecoration(
-          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-          border: Border.all(color: CupertinoColors.tertiarySystemBackground.resolveFrom(context)),
+          color: AppColors.secondaryBackground.adaptTo(context),
+          border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -177,35 +177,32 @@ class _GradesListPageState extends State<GradesListPage> {
                   roundGrade: false,
                   textBelow: "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
                 ),
-                Text(
-                  "Moyenne générale",
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
-                ),
+                Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 3,
                   children: [
                     if (incomingGrades.isNotEmpty) ...[
-                      HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, strokeWidth: 2, color: AppColors.tertiaryText.adaptTo(context)),
 
                       Text(
                         incomingGrades.length.toString(),
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
+                        style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 18),
                       ),
                       const SizedBox(width: 2),
                     ],
                     if (plannedGrades.isNotEmpty) ...[
-                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, strokeWidth: 2, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, strokeWidth: 2, color: AppColors.tertiaryText.adaptTo(context)),
                       Text(
                         plannedGrades.length.toString(),
                         maxLines: 2,
                         overflow: TextOverflow.fade,
                         softWrap: true,
-                        style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 18),
+                        style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 18),
                       ),
                     ],
                   ],
@@ -228,7 +225,7 @@ class _GradesListPageState extends State<GradesListPage> {
                           const SizedBox(height: 10),
                           Text(
                             "Informations supplémentaires",
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white)),
                           ),
                           Text(
                             "Total des points: ${subjectGradesList.map((entry) => calculateAverage(entry.value).round()).sum}",
@@ -236,7 +233,7 @@ class _GradesListPageState extends State<GradesListPage> {
                           ),
                           Text(
                             "Plusieurs options seront disponibles dans les prochaines mises à jours...",
-                            style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                            style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
                           ),
                           const SizedBox(height: 6),
                         ],
@@ -247,15 +244,12 @@ class _GradesListPageState extends State<GradesListPage> {
             Row(
               spacing: 3,
               children: [
-                Text(
-                  "Voir ${isAverageBarExpanded ? "moins" : "plus"}",
-                  style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                ),
+                Text("Voir ${isAverageBarExpanded ? "moins" : "plus"}", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
 
                 HugeIcon(
                   icon: isAverageBarExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                   size: 18,
-                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                  color: AppColors.tertiaryText.adaptTo(context),
                 ),
               ],
             ),
@@ -266,7 +260,11 @@ class _GradesListPageState extends State<GradesListPage> {
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGradePage(toReference: toReference));
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(
+      enableDrag: false,
+      context: context,
+      builder: (context) => NewGradePage(toReference: toReference),
+    );
 
     if (newGrade == null) return;
 
@@ -344,20 +342,15 @@ class _GradesListPageState extends State<GradesListPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
                           children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedDashedLine02,
-                              strokeWidth: 1.5,
-                              size: 48,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                            ),
+                            HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
                             const SizedBox(height: 8),
                             Text(
                               "Rien pour le moment...",
-                              style: TextStyle(fontWeight: FontWeight.w500, color: CupertinoColors.secondaryLabel.resolveFrom(context), fontSize: 22),
+                              style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
                             ),
                             Text(
                               "Vos résultats s'afficheront ici",
-                              style: TextStyle(fontWeight: FontWeight.w400, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                              style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
                             ),
                             CupertinoButton(
                               onPressed: () => showNewGradePopup(),
@@ -392,7 +385,7 @@ class _GradesListPageState extends State<GradesListPage> {
                                   subjectOrderBox.put('order', order);
                                 },
                                 proxyDecorator: (Widget child, int index, Animation<double> animation) {
-                                  return Material(color: CupertinoColors.systemBackground.resolveFrom(context).withAlpha(150), child: child);
+                                  return Material(color: AppColors.background.adaptTo(context).withAlpha(150), child: child);
                                 },
                                 itemBuilder: (context, index) {
                                   final subjectGrades = subjectGradesList[index];
@@ -409,11 +402,11 @@ class _GradesListPageState extends State<GradesListPage> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text("Branches prévues", style: TextStyle(fontSize: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                      Text("Branches prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
                                       HugeIcon(
                                         icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
                                         size: 18,
-                                        color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                        color: AppColors.tertiaryText.adaptTo(context),
                                       ),
                                     ],
                                   ),
@@ -435,13 +428,13 @@ class _GradesListPageState extends State<GradesListPage> {
                                             child: Text(
                                               "Les branches en gris ci-dessous apparaîtront dans la liste des moyennes dès que vous ajouterez votre première note.\nMessagyre les crée automatiquement lorsque vous créez un devoir avec l'option « ajouter à la page des notes » activée.",
                                               key: ValueKey("info"),
-                                              style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                              style: TextStyle(color: AppColors.tertiaryText.adaptTo(context)),
                                             ),
                                           )
                                           : SizedBox(key: ValueKey("empty")),
                                 ),
 
-                                Divider(color: CupertinoColors.secondarySystemBackground.resolveFrom(context).withValues(alpha: .4)),
+                                Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
                               ],
 
                               ListView.builder(
@@ -476,11 +469,11 @@ class _GradesListPageState extends State<GradesListPage> {
                       child: Container(
                         padding: EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+                          color: AppColors.secondaryBackground.adaptTo(context),
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
+                          boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                         ),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
                       ),
                     ),
                   ),

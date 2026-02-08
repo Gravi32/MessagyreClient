@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -54,14 +55,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
           placeholder: widget.placeholder,
           enabled: !widget.disabled,
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-          style: TextStyle(color: widget.disabled ? CupertinoColors.inactiveGray : adaptiveColor(CupertinoColors.black, CupertinoColors.white)),
+          style: TextStyle(color: widget.disabled ? AppColors.inactive.adaptTo(context) : adaptiveColor(AppColors.black, AppColors.white)),
           decoration: BoxDecoration(
-            color:
-                widget.disabled
-                    ? adaptiveColor(CupertinoColors.systemGrey5, CupertinoColors.darkBackgroundGray)
-                    : adaptiveColor(CupertinoColors.white, CupertinoColors.darkBackgroundGray),
+            color: widget.disabled ? AppColors.inactive.adaptTo(context).withAlpha(50) : AppColors.secondaryBackground.adaptTo(context).withAlpha(200),
             borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: adaptiveColor(CupertinoColors.systemGrey5, Colors.transparent)),
+            border: Border.all(color: adaptiveColor(AppColors.grey, Colors.transparent)),
           ),
           suffix:
               widget.suffix ??
@@ -77,7 +75,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
                                 isPasswordHidden = !isPasswordHidden;
                               });
                             },
-                    child: HugeIcon(icon: isPasswordHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff, color: widget.disabled ? CupertinoColors.inactiveGray : null),
+                    child: HugeIcon(
+                      icon: isPasswordHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
+                      color: widget.disabled ? AppColors.inactive.adaptTo(context) : null,
+                    ),
                   )
                   : null),
 
@@ -86,7 +87,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         ),
 
         SizedBox(height: 5),
-        if (widget.error != null) Text(widget.error!, style: TextStyle(fontSize: 12, color: CupertinoColors.destructiveRed)),
+        if (widget.error != null) Text(widget.error!, style: TextStyle(fontSize: 12, color: AppColors.red)),
       ],
     );
   }

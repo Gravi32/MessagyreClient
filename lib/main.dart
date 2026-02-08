@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -129,7 +130,12 @@ class App extends StatelessWidget {
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
-          theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color(0xFFAB0CB3)),
+          theme: CupertinoThemeData(
+            brightness: brightness,
+            primaryColor: AppColors.accent,
+            scaffoldBackgroundColor: AppColors.background.adaptTo(context),
+            barBackgroundColor: AppColors.background.adaptTo(context),
+          ),
           localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
           supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
           locale: Locale('fr', 'CH'),
@@ -189,7 +195,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           } catch (e, stack) {
             debugPrint("Error building page ${p.name}: $e");
             debugPrint(stack.toString());
-            return Container(color: CupertinoColors.systemRed);
+            return Container(color: AppColors.red);
           }
         }).toList();
 
@@ -213,7 +219,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+      backgroundColor: AppColors.background.adaptTo(context),
       extendBody: true,
       resizeToAvoidBottomInset: false,
       body: PageView(
@@ -232,9 +238,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             (context, currentIndex, _) => CustomNavigationBar(
               isFloating: true,
               borderRadius: const Radius.circular(12),
-              backgroundColor: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-              strokeColor: CupertinoColors.transparent,
-              selectedColor: CupertinoColors.label.resolveFrom(context),
+              backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+              strokeColor: AppColors.transparent,
+              selectedColor: AppColors.text.adaptTo(context),
               currentIndex: currentIndex,
               onTap: (index) => MainPage.pageIndex.value = index,
               items:
@@ -247,13 +253,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                             page.name,
                             overflow: TextOverflow.fade,
                             softWrap: false,
-                            style: TextStyle(fontSize: 10, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                            style: TextStyle(fontSize: 10, color: AppColors.secondaryText.adaptTo(context)),
                           ),
                           selectedTitle: Text(
                             page.name,
                             overflow: TextOverflow.fade,
                             softWrap: false,
-                            style: TextStyle(fontSize: 10, color: CupertinoColors.label.resolveFrom(context)),
+                            style: TextStyle(fontSize: 10, color: AppColors.text.adaptTo(context)),
                           ),
                         ),
                       )

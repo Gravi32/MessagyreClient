@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -214,7 +215,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           onPressed: isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
           child:
               isWaitingForResponse
-                  ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
                   : Text("Envoyer le code de vérification"),
         ),
 
@@ -267,7 +268,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: EdgeInsets.symmetric(vertical: 12),
           onPressed: isCodeValid && !isWaitingForResponse ? () => sendCode() : null,
           child:
-              isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14) : Text("Vérifier"),
+              isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14) : Text("Vérifier"),
         ),
         SizedBox(height: 10),
         CupertinoButton(
@@ -367,7 +368,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           onPressed: (isPasswordValid && isConfirmPasswordValid && !isWaitingForResponse) ? () => sendPassword() : null,
           child:
               isWaitingForResponse
-                  ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
                   : Text("Créer le compte"),
         ),
 

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -103,6 +104,14 @@ List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCach
 
 // #endregion
 
+// #region -> Numbers
+
+extension DoubleExtension on double {
+  int toByte() => (this * 255).round().clamp(0, 255);
+}
+
+// #endregion
+
 // #region -> Colors
 extension ColorExtension on Color {
   Color withBrightness(double brightness) {
@@ -116,7 +125,7 @@ Color adaptiveColor(Color light, Color dark) {
   return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
-Color? get cupertinoListTileColor => GlobalsService().appBrightness == Brightness.dark ? null : CupertinoColors.secondarySystemBackground;
+Color? get cupertinoListTileColor => GlobalsService().appBrightness == Brightness.dark ? null : AppColors.secondaryBackground;
 // #endregion
 
 // #region -> Dates

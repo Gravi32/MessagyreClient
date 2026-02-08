@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -95,7 +96,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               tiles: [
                 SettingsTile(
                   title: Text("Tout copier"),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCopy02, color: CupertinoColors.label.resolveFrom(context)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCopy02, color: AppColors.text.adaptTo(context)),
                   onPressed: (context) => copy(context, globals.appLogs.join("\n")),
                   description: SizedBox.shrink(),
                 ),
@@ -114,9 +115,9 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                                   Text(
                                     content[0].replaceAll(RegExp(r'[\[\]]'), ''),
                                     textAlign: TextAlign.end,
-                                    style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                                    style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
                                   ),
-                                  Divider(color: CupertinoColors.separator.resolveFrom(context).withAlpha(50)),
+                                  Divider(color: AppColors.separator.adaptTo(context).withAlpha(50)),
                                 ],
                               );
                             },
@@ -127,7 +128,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                           )
                           : Row(
                             spacing: 8,
-                            children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.systemYellow), Text("Aucun log disponible.")],
+                            children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")],
                           ),
                 ),
               ],

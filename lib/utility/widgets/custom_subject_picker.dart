@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 
 class CustomSubjectPicker extends StatefulWidget {
@@ -25,11 +26,11 @@ class _CustomSubjectPickerState extends State<CustomSubjectPicker> {
   Widget build(BuildContext context) {
     return Container(
       height: 300,
-      decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       child: Column(
         children: [
           Container(
-            color: CupertinoColors.systemBackground.resolveFrom(context),
+            color: AppColors.background.adaptTo(context),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

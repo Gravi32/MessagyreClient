@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 class AutocompleteField extends StatefulWidget {
   final List<Object> items;
@@ -115,7 +117,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
           suffix: widget.suffix,
           suffixMode: widget.suffixMode,
           style: widget.style,
-          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: CupertinoColors.placeholderText.resolveFrom(context)),
+          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
 
@@ -130,9 +132,9 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
           margin: const EdgeInsets.only(top: 8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
           decoration: BoxDecoration(
-            color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+            color: AppColors.secondaryBackground.adaptTo(context),
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: CupertinoColors.black.withAlpha(150), blurRadius: 10)],
+            boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
           ),
           child: ListView.builder(
             shrinkWrap: true,
@@ -144,7 +146,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
                 if (index == -1) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [widget.header!, Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withValues(alpha: .1))],
+                    children: [widget.header!, Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte()))],
                   );
                 }
               }
@@ -158,7 +160,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
                     onTap: () => onSelected(option),
                     child: Padding(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), child: widget.itemBuilder(option, _controller.text)),
                   ),
-                  if (index < options.length - 1) Divider(height: 1, color: CupertinoColors.separator.resolveFrom(context).withValues(alpha: .1)),
+                  if (index < options.length - 1) Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte())),
                 ],
               );
             },

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -162,7 +163,7 @@ class _NewGradePageState extends State<NewGradePage> {
                           display,
                           style: TextStyle(
                             fontSize: isSelected ? 28 : 22,
-                            color: isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+                            color: isSelected ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -179,7 +180,7 @@ class _NewGradePageState extends State<NewGradePage> {
               child: Container(
                 width: 60,
                 height: 80,
-                decoration: BoxDecoration(color: CupertinoColors.systemGrey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
@@ -231,7 +232,9 @@ class _NewGradePageState extends State<NewGradePage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       resizeToAvoidBottomInset: true,
+      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
       navigationBar: CupertinoNavigationBar(
+        backgroundColor: AppColors.transparent,
         border: null,
         leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: Navigator.of(context).pop, child: Text("Annuler")),
         trailing: CupertinoButton(
@@ -264,14 +267,14 @@ class _NewGradePageState extends State<NewGradePage> {
                             padding: EdgeInsets.zero,
                             placeholder: "Titre",
                             forceValid: false,
-                            suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                            suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-                            placeholderStyle: TextStyle(color: CupertinoColors.placeholderText, fontWeight: FontWeight.w500),
+                            placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w500),
                             items: getPlannedGrades(),
                             header: Padding(
                               padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8),
-                              child: Text("Depuis la page des devoirs :", style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                              child: Text("Depuis la page des devoirs :", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
                             ),
                             itemBuilder: (assignment, query) {
                               if (assignment is! Assignment) return SizedBox.shrink();
@@ -286,7 +289,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                           WidgetSpan(
                                             child: HugeIcon(
                                               icon: assignment.isTest ? HugeIcons.strokeRoundedTextCheck : HugeIcons.strokeRoundedCheckmarkBadge04,
-                                              color: CupertinoColors.inactiveGray.resolveFrom(context),
+                                              color: AppColors.inactive.adaptTo(context),
                                             ),
                                           ),
                                           WidgetSpan(child: SizedBox(width: 4)),
@@ -300,11 +303,8 @@ class _NewGradePageState extends State<NewGradePage> {
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     spacing: 4,
                                     children: [
-                                      Text(
-                                        SubjectHelper.toFrench(assignment.subject),
-                                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                                      ),
-                                      Text(formatDate(assignment.dueDate), style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context))),
+                                      Text(SubjectHelper.toFrench(assignment.subject), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                                      Text(formatDate(assignment.dueDate), style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
                                     ],
                                   ),
                                 ],
@@ -319,7 +319,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             subject != null ? "Note ${SubjectHelper.withPreposition(subject, lowercase: true)}" : "Pas de branche sélectionnée",
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: CupertinoColors.quaternaryLabel.resolveFrom(context), fontSize: 15),
+                            style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 15),
                           ),
                         ],
                       ),
@@ -329,7 +329,7 @@ class _NewGradePageState extends State<NewGradePage> {
 
                 if (referenceId != null)
                   Container(
-                    decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(10)),
                     margin: EdgeInsets.only(top: 10),
                     padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 10),
                     child: Column(
@@ -340,12 +340,12 @@ class _NewGradePageState extends State<NewGradePage> {
                           child: Row(
                             spacing: 6,
                             children: [
-                              HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-                              Text("Cette note est associée à un devoir.", style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                              HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: AppColors.secondaryText.adaptTo(context)),
+                              Text("Cette note est associée à un devoir.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                               Spacer(),
                               HugeIcon(
                                 icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                color: AppColors.secondaryText.adaptTo(context),
                               ),
                             ],
                           ),
@@ -358,11 +358,11 @@ class _NewGradePageState extends State<NewGradePage> {
                           const SizedBox(height: 10),
                           Text(
                             "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans dissocier la note.",
-                            style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                            style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                           ),
                           const SizedBox(height: 4),
-                          Text("ID de réference: $referenceId", style: TextStyle(fontSize: 14, color: CupertinoColors.quaternaryLabel.resolveFrom(context))),
-                          Divider(thickness: .25, color: CupertinoColors.separator.resolveFrom(context)),
+                          Text("ID de réference: $referenceId", style: TextStyle(fontSize: 14, color: AppColors.quaternaryText.adaptTo(context))),
+                          Divider(thickness: .25, color: AppColors.separator.adaptTo(context)),
                           GestureDetector(
                             onTap: () {
                               showCupertinoDialog(
@@ -395,8 +395,8 @@ class _NewGradePageState extends State<NewGradePage> {
                               spacing: 6,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                HugeIcon(icon: HugeIcons.strokeRoundedUnlink04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
-                                Text("Dissocier", style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
+                                HugeIcon(icon: HugeIcons.strokeRoundedUnlink04, color: AppColors.red),
+                                Text("Dissocier", style: TextStyle(color: AppColors.red)),
                               ],
                             ),
                           ),
@@ -406,16 +406,16 @@ class _NewGradePageState extends State<NewGradePage> {
                   ),
 
                 Container(
-                  decoration: BoxDecoration(color: CupertinoColors.secondarySystemBackground.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(10)),
                   margin: EdgeInsets.only(top: 10),
                   padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       buildGradePicker(),
-                      Divider(thickness: .25, color: CupertinoColors.separator.resolveFrom(context)),
+                      Divider(thickness: .25, color: AppColors.separator.adaptTo(context)),
 
-                      Text("Valeur", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                      Text("Valeur", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
 
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -481,13 +481,13 @@ class _NewGradePageState extends State<NewGradePage> {
                             children: [
                               Text(
                                 isValuePickerExpanded ? "Voir moins" : "Voir plus",
-                                style: TextStyle(color: CupertinoColors.tertiaryLabel.resolveFrom(context), fontSize: 15),
+                                style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 15),
                               ),
                               Opacity(
                                 opacity: .25,
                                 child: HugeIcon(
                                   icon: isValuePickerExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                                  color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                                  color: AppColors.tertiaryText.adaptTo(context),
                                 ),
                               ),
                             ],
@@ -499,7 +499,8 @@ class _NewGradePageState extends State<NewGradePage> {
                 ),
 
                 CupertinoListSection.insetGrouped(
-                  header: Text("Branche", style: referenceId == null ? null : TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                  backgroundColor: AppColors.transparent,
+                  header: Text("Branche", style: referenceId == null ? null : TextStyle(color: AppColors.inactive.adaptTo(context))),
                   footer:
                       referenceId == null
                           ? null
@@ -507,21 +508,20 @@ class _NewGradePageState extends State<NewGradePage> {
                             padding: EdgeInsetsGeometry.only(top: 6),
                             child: Text(
                               "La branche ne peut pas etre changé parce que cette note est associé à un devoir.",
-                              style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                              style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
                             ),
                           ),
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
                       leading: HugeIcon(
                         icon: HugeIcons.strokeRoundedBookBookmark02,
-                        color: referenceId == null ? CupertinoColors.tertiaryLabel.resolveFrom(context) : CupertinoColors.inactiveGray.resolveFrom(context),
+                        color: referenceId == null ? AppColors.tertiaryText.adaptTo(context) : AppColors.inactive.adaptTo(context),
                       ),
                       trailing:
-                          referenceId == null
-                              ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context))
-                              : null,
+                          referenceId == null ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)) : null,
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
@@ -538,18 +538,20 @@ class _NewGradePageState extends State<NewGradePage> {
 
                 if (subject != null)
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: AppColors.transparent,
                     header: Text("Groupe"),
                     margin: EdgeInsets.zero,
                     footer: Padding(
                       padding: EdgeInsetsGeometry.only(top: 6),
                       child: Text(
                         "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
-                        style: TextStyle(fontSize: 14, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
                       ),
                     ),
                     children: [
                       CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.tertiaryText.adaptTo(context)),
                         title: Text("Fait partie d'un groupe"),
                         trailing: CupertinoSwitch(
                           value: isInGroup,
@@ -570,13 +572,14 @@ class _NewGradePageState extends State<NewGradePage> {
                           );
 
                           return CupertinoListTile(
+                            backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                             title: Row(
                               spacing: 6,
                               children: [
                                 Text(group.groupName, style: TextStyle(fontWeight: FontWeight.w600)),
                                 Text(
                                   "${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
-                                  style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                  style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 ),
                               ],
                             ),
@@ -591,9 +594,10 @@ class _NewGradePageState extends State<NewGradePage> {
                           );
                         }),
                         CupertinoListTile(
+                          backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                           title: Row(
                             children: [
-                              HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: CupertinoColors.label.resolveFrom(context)),
+                              HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
                               const SizedBox(width: 10),
                               Text("Ajouter un groupe"),
                             ],
@@ -619,10 +623,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                         height: 40,
                                         child: DismissableTextField(
                                           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                          decoration: BoxDecoration(
-                                            color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
+                                          decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
                                           controller: controller,
                                           placeholder: "Nom du groupe",
                                         ),
@@ -631,7 +632,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                   ),
                                   actions: [
                                     CupertinoDialogAction(
-                                      child: Text("Annuler", style: TextStyle(color: CupertinoColors.label.resolveFrom(context))),
+                                      child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
                                       onPressed: () => Navigator.pop(dialogContext),
                                     ),
                                     CupertinoDialogAction(
@@ -658,12 +659,14 @@ class _NewGradePageState extends State<NewGradePage> {
                   ),
 
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: AppColors.transparent,
                   header: Text("Date de reception"),
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: AppColors.tertiaryText.adaptTo(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.placeholderText.adaptTo(context)),
                       title: Text("Reçu ${formatDate(date, includeArticle: true)}"),
                       onTap: showDatePicker,
                     ),
@@ -671,12 +674,14 @@ class _NewGradePageState extends State<NewGradePage> {
                 ),
 
                 CupertinoListSection.insetGrouped(
+                  backgroundColor: AppColors.transparent,
                   header: Text("Informations facultatives"),
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: CupertinoColors.placeholderText.resolveFrom(context)),
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal, color: AppColors.tertiaryText.adaptTo(context)),
+                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
                       title: StatefulBuilder(
                         builder: (context, setInnerState) {
                           final focusNode = FocusNode();
@@ -715,21 +720,23 @@ class _NewGradePageState extends State<NewGradePage> {
                       ),
                     ),
                     // TODO
-                    // CupertinoListTile(
-                    //   leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: CupertinoColors.inactiveGray.resolveFrom(context)),
-                    //   title: Text("Ajouter des photos", style: TextStyle(color: CupertinoColors.inactiveGray.resolveFrom(context))),
+                    // CupertinoListTile(backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                    //   leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.inactive.adaptTo(context)),
+                    //   title: Text("Ajouter des photos", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
                     // ),
                   ],
                 ),
 
                 if (editMode)
                   CupertinoListSection.insetGrouped(
+                    backgroundColor: AppColors.transparent,
                     header: Text("Autres"),
                     margin: EdgeInsets.zero,
                     children: [
                       CupertinoListTile(
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed.resolveFrom(context)),
-                        title: Text("Supprimer la note", style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context))),
+                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                        title: Text("Supprimer la note", style: TextStyle(color: AppColors.red)),
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
@@ -782,16 +789,13 @@ class WeightButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: CupertinoColors.systemGrey.resolveFrom(context).withValues(alpha: isSelected ? .1 : .05),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: AppColors.grey.withAlpha((isSelected ? .1 : .05).toByte()), borderRadius: BorderRadius.circular(8)),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: isSelected ? CupertinoColors.label.resolveFrom(context) : CupertinoColors.tertiaryLabel.resolveFrom(context),
+            color: isSelected ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
           ),
         ),
       ),

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -121,7 +121,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: HugeIcon(icon: badge, color: CupertinoColors.label.resolveFrom(context), size: cutoutSize * 0.8),
+                      child: HugeIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
                     ),
                   ),
                 ],

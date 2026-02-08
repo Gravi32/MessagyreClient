@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -127,21 +128,21 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             SettingsSection(
               tiles: [
                 SettingsTile(
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedMessageMultiple02, color: CupertinoColors.destructiveRed),
-                  title: Text("Effacer les conversations", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedMessageMultiple02, color: AppColors.red),
+                  title: Text("Effacer les conversations", style: TextStyle(color: AppColors.red)),
                   trailing: Text(formatBytes(chatsSize)),
                   onPressed:
                       (_) => confirmDeleteBox("Chats", "Effacer les conversations", "Toutes les conversations seront effacées, cette action est irréversible."),
                 ),
                 SettingsTile(
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: CupertinoColors.destructiveRed),
-                  title: Text("Effacer les notes", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: AppColors.red),
+                  title: Text("Effacer les notes", style: TextStyle(color: AppColors.red)),
                   trailing: Text(formatBytes(gradesSize)),
                   onPressed: (_) => confirmDeleteBox("Grades", "Effacer les notes", "Toutes les notes seront effacées, cette action est irréversible."),
                 ),
                 SettingsTile(
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedWork, color: CupertinoColors.destructiveRed),
-                  title: Text("Effacer les devoirs", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedWork, color: AppColors.red),
+                  title: Text("Effacer les devoirs", style: TextStyle(color: AppColors.red)),
                   trailing: Text(formatBytes(assignmentSize)),
                   onPressed: (_) => confirmDeleteBox("Assignment", "Effacer les devoirs", "Tous les devoirs seront effacés, cette action est irréversible."),
                 ),
@@ -150,8 +151,8 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
             SettingsSection(
               tiles: [
                 SettingsTile(
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: CupertinoColors.destructiveRed),
-                  title: Text("Tout effacer", style: TextStyle(color: CupertinoColors.destructiveRed)),
+                  leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                  title: Text("Tout effacer", style: TextStyle(color: AppColors.red)),
                   trailing: Text(formatBytes(chatsSize + assignmentSize + gradesSize)),
                   onPressed: (_) => confirmDeleteAll(),
                 ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -8,6 +9,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
 class LoginPage extends StatefulWidget {
@@ -144,7 +146,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     return PopScope(
       canPop: false,
       child: Container(
-        decoration: BoxDecoration(color: CupertinoColors.systemBackground.resolveFrom(context)),
+        decoration: BoxDecoration(color: AppColors.background.adaptTo(context)),
         child: SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 10),
           child: Center(
@@ -161,20 +163,20 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     Text(
                       "Bienvenue sur Messagyre",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       "connectez-vous pour continuer",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 15, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      style: TextStyle(fontSize: 15, color: AppColors.secondaryText.adaptTo(context)),
                     ),
                     const SizedBox(height: 6),
 
                     Text(
                       "Attention: Les comptes de Messagyre ne sont pas liés au gymnase ! Vous devez créer un compte à part si vous ne l'avez pas déjà fait !",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 15, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                      style: TextStyle(fontSize: 15, color: AppColors.tertiaryText.adaptTo(context)),
                     ),
 
                     const SizedBox(height: 40),
@@ -213,7 +215,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           isWaitingForResponse
-                              ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                              ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
                               : const Text("Connexion"),
                         ],
                       ),
@@ -229,7 +231,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             isWaitingForResponse
-                                ? LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14)
+                                ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
                                 : const Text("J'ai oublié mon mot de passe..."),
                           ],
                         ),
@@ -240,9 +242,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
                     Row(
                       children: [
-                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withValues(alpha: .25), indent: 30, endIndent: 10)),
-                        const Text("ou", style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12)),
-                        Expanded(child: Divider(color: CupertinoColors.systemGrey.withValues(alpha: .25), indent: 10, endIndent: 30)),
+                        Expanded(child: Divider(color: AppColors.separator.withAlpha(.25.toByte()), indent: 30, endIndent: 10)),
+                        const Text("ou", style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                        Expanded(child: Divider(color: AppColors.grey.withAlpha(.25.toByte()), indent: 10, endIndent: 30)),
                       ],
                     ),
                     const SizedBox(height: 30),
@@ -254,7 +256,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                               : () async {
                                 Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage()));
                               },
-                      child: const Text("Créer un compte", style: TextStyle(color: CupertinoColors.white)),
+                      child: const Text("Créer un compte", style: TextStyle(color: AppColors.white)),
                     ),
                     const SizedBox(height: 50),
                   ],
