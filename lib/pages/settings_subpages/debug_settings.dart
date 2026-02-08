@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -16,8 +16,8 @@ class DebugSettingsPage extends StatefulWidget {
 }
 
 class _DebugSettingsPageState extends State<DebugSettingsPage> {
-  final data = Data();
-  final router = ConnectionController();
+  final globals = GlobalsService();
+  final network = NetworkService();
   final secureStorage = FlutterSecureStorage();
 
   bool isRefreshTokenStored = false;
@@ -56,22 +56,22 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
             SettingsSection(
               title: Text("Informations générales"),
               tiles: [
-                SettingsTile(title: Text("Nom d'utilisateur"), value: Text(data.username ?? "-")),
+                SettingsTile(title: Text("Nom d'utilisateur"), value: Text(globals.username ?? "-")),
                 SettingsTile(title: Text("Version"), value: Text(appVersion)),
-                SettingsTile(title: Text("Photos de profil en cache"), value: Text(data.pfpNotifiersCache.length.toString())),
+                SettingsTile(title: Text("Photos de profil en cache"), value: Text(globals.pfpNotifiersCache.length.toString())),
               ],
             ),
             SettingsSection(
               title: Text("Connexion"),
               tiles: [
-                SettingsTile(title: Text("Mode de test local"), value: Text(ConnectionController().isLocalhost ? "Oui" : "Non")),
+                SettingsTile(title: Text("Mode de test local"), value: Text(NetworkService().isLocalhost ? "Oui" : "Non")),
 
-                SettingsTile(title: Text("Adresse du serveur"), value: Text(ConnectionController().getBackendUri().host)),
+                SettingsTile(title: Text("Adresse du serveur"), value: Text(NetworkService().getBackendUri().host)),
 
                 SettingsTile(
                   title: Text("État du WebSocket"),
                   value: ValueListenableBuilder(
-                    valueListenable: router.connectionState,
+                    valueListenable: network.connectionState,
                     builder: (context, connectionState, _) {
                       return Text(connectionState.name);
                     },
@@ -82,11 +82,11 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
             SettingsSection(
               title: Text("Jetons"),
               tiles: [
-                SettingsTile(title: Text("Jeton d'accès JWT"), value: Text(data.token != null ? "Enregistré" : "Manquant")),
+                SettingsTile(title: Text("Jeton d'accès JWT"), value: Text(globals.token != null ? "Enregistré" : "Manquant")),
                 SettingsTile(title: Text("Jeton de renouvellement"), value: Text(isRefreshTokenStored ? "Enregistré" : "Manquant")),
                 SettingsTile(
                   title: Text("Jeton FCM"),
-                  value: SizedBox(width: 150, child: Text(data.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
+                  value: SizedBox(width: 150, child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
                 ),
               ],
             ),
@@ -96,16 +96,16 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 SettingsTile(
                   title: Text("Tout copier"),
                   leading: HugeIcon(icon: HugeIcons.strokeRoundedCopy02, color: CupertinoColors.label.resolveFrom(context)),
-                  onPressed: (context) => copy(context, data.appLogs.join("\n")),
+                  onPressed: (context) => copy(context, globals.appLogs.join("\n")),
                   description: SizedBox.shrink(),
                 ),
                 SettingsTile(
                   title:
-                      data.appLogs.isNotEmpty
+                      globals.appLogs.isNotEmpty
                           ? ListView.builder(
                             itemBuilder: (context, index) {
-                              final logIndex = data.appLogs.length - 1 - index;
-                              final content = data.appLogs[logIndex].split(" ");
+                              final logIndex = globals.appLogs.length - 1 - index;
+                              final content = globals.appLogs[logIndex].split(" ");
 
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,7 +120,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                                 ],
                               );
                             },
-                            itemCount: data.appLogs.length,
+                            itemCount: globals.appLogs.length,
                             reverse: true,
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),

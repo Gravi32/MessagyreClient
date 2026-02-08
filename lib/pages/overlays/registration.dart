@@ -6,8 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
@@ -24,8 +24,8 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
   final secureStorage = FlutterSecureStorage();
   final registrationDataBox = Hive.box("RegistrationData");
 
@@ -60,7 +60,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     startResendTimer();
     isWaitingForResponse = true;
 
-    final response = await router.post("/auth/registration", {"EmailAddress": "${emailController.text.trim()}@eduvaud.ch"});
+    final response = await network.post("/auth/registration", {"EmailAddress": "${emailController.text.trim()}@eduvaud.ch"});
 
     isWaitingForResponse = false;
 
@@ -88,7 +88,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void sendCode() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("/auth/registration", {"RegistrationToken": registrationToken, "VerificationCode": codeController.text.trim()});
+    final response = await network.post("/auth/registration", {"RegistrationToken": registrationToken, "VerificationCode": codeController.text.trim()});
 
     isWaitingForResponse = false;
 
@@ -112,7 +112,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void sendPassword() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("/auth/registration", {"RegistrationToken": registrationToken, "Password": passwordController.text.trim()});
+    final response = await network.post("/auth/registration", {"RegistrationToken": registrationToken, "Password": passwordController.text.trim()});
 
     isWaitingForResponse = false;
 
@@ -128,8 +128,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       final refreshToken = responseData["RefreshToken"];
       final username = responseData["Username"];
 
-      data.token = accessToken;
-      data.username = username;
+      globals.token = accessToken;
+      globals.username = username;
       isWaitingForResponse = true;
 
       await secureStorage.write(key: "AccessToken", value: accessToken);
@@ -143,8 +143,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       }
       isWaitingForResponse = false;
 
-      router.isAccessOverlayOpen = false;
-      router.connect();
+      network.isAccessOverlayOpen = false;
+      network.connect();
     }
   }
 

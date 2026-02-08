@@ -6,8 +6,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -26,8 +26,8 @@ class ProfileOverlay extends StatefulWidget {
 }
 
 class _ProfileOverlayState extends State<ProfileOverlay> {
-  final data = Data();
-  final router = ConnectionController();
+  final globals = GlobalsService();
+  final network = NetworkService();
 
   late final account = widget.account;
   late final profile = widget.account.profile ?? {};
@@ -35,7 +35,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   late final box = Hive.box<Chat>("Chats");
   late final chat = box.get(account.username);
 
-  late final editMode = account.username == data.username;
+  late final editMode = account.username == globals.username;
 
   bool isBlocked = false;
   bool changesMade = false;
@@ -106,7 +106,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   setState(() {
                     chosenPicturePath = null;
                     changesMade = true;
-                    data.pfpNotifiersCache[account.username]?.value = null;
+                    globals.pfpNotifiersCache[account.username]?.value = null;
                   });
                 },
                 child: Row(
@@ -519,7 +519,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
           onPressed: () async {
             setState(() => isUploading = true);
-            bool success = await router.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
+            bool success = await network.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
             setState(() => isUploading = false);
 
             if (!context.mounted) return;
@@ -607,7 +607,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                               final password = controller.text.trim();
                               if (password.isEmpty) return;
 
-                              final success = await router.post("/accounts/me/delete", {"Password": password});
+                              final success = await network.post("/accounts/me/delete", {"Password": password});
                               if (!dialogContext.mounted) return;
 
                               if (success.statusCode != 200) {
@@ -639,7 +639,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                           child: Text("OK"),
                                           onPressed: () {
                                             Navigator.pop(errorDialogContext);
-                                            router.logout();
+                                            network.logout();
 
                                             if (!dialogContext.mounted) return;
                                             restartApp(dialogContext);
@@ -683,7 +683,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
   Widget build(BuildContext context) {
     final isPinned = chat?.isPinned ?? false;
 
-    isBlocked = data.blockedUsers.contains(account.username);
+    isBlocked = globals.blockedUsers.contains(account.username);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -776,7 +776,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                         isDefaultAction: true,
                                         child: Text("Débloquer", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
                                         onPressed: () {
-                                          data.unblockUser(account.username);
+                                          globals.unblockUser(account.username);
                                           setState(() {});
                                           Navigator.pop(dialogContext);
                                         },
@@ -788,7 +788,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     ],
                   ),
 
-                if (account.username != data.username) ...[
+                if (account.username != globals.username) ...[
                   if (!widget.openedFromChat) // Temporary
                     CupertinoListSection.insetGrouped(
                       backgroundColor: CupertinoColors.transparent,
@@ -835,7 +835,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                     ],
                   ),
 
-                if (account.username == data.username) ...[
+                if (account.username == globals.username) ...[
                   CupertinoListSection.insetGrouped(
                     backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
@@ -853,7 +853,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                   ),
                 ],
 
-                if (account.username != data.username) ...[
+                if (account.username != globals.username) ...[
                   CupertinoListSection.insetGrouped(
                     backgroundColor: CupertinoColors.transparent,
                     margin: EdgeInsets.zero,
@@ -879,7 +879,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                           isDestructiveAction: true,
                                           child: Text("Bloquer"),
                                           onPressed: () {
-                                            data.blockUser(account.username);
+                                            globals.blockUser(account.username);
                                             setState(() {});
                                             Navigator.pop(dialogContext);
                                           },

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 
 class SubjectsSettingsPage extends StatefulWidget {
   const SubjectsSettingsPage({super.key});
@@ -10,7 +10,7 @@ class SubjectsSettingsPage extends StatefulWidget {
 }
 
 class _SubjectsSettingsPageState extends State<SubjectsSettingsPage> {
-  final data = Data();
+  final globals = GlobalsService();
 
   @override
   Widget build(BuildContext context) {

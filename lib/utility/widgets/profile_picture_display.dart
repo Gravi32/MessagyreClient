@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 
 class ProfilePictureDisplay extends StatefulWidget {
   final String? accountUsername;
@@ -20,7 +20,7 @@ class ProfilePictureDisplay extends StatefulWidget {
 }
 
 class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
-  final data = Data();
+  final globals = GlobalsService();
   double diameter = 0;
 
   Widget withoutPicture() {
@@ -64,7 +64,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
 
   Widget withUsername() {
     return ValueListenableBuilder(
-      valueListenable: data.getPfpNotifier(widget.accountUsername!),
+      valueListenable: globals.getPfpNotifier(widget.accountUsername!),
       builder: (context, newImageURL, child) {
         final noImageFound = newImageURL == null || newImageURL.isEmpty;
 

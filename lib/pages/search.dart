@@ -4,8 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -36,8 +36,8 @@ class SearchPage extends StatefulWidget {
 }
 
 class SearchPageState extends State<SearchPage> {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
   final searchBarController = TextEditingController();
   final searchBarFocusNode = FocusNode();
 
@@ -58,7 +58,7 @@ class SearchPageState extends State<SearchPage> {
       isSearcing = true;
     });
 
-    final response = await router.get("/accounts/search?query=$query");
+    final response = await network.get("/accounts/search?query=$query");
 
     if (thisSearch < latestSearch) return;
     setState(() {
@@ -141,7 +141,7 @@ class SearchPageState extends State<SearchPage> {
           usernameBeingLoaded = result.username;
         });
 
-        final account = await router.getAccount(result.username);
+        final account = await network.getAccount(result.username);
 
         setState(() {
           usernameBeingLoaded = null;

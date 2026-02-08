@@ -14,13 +14,13 @@ import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
 import 'package:messagyre_client/pages/search.dart';
 import 'package:messagyre_client/pages/settings.dart';
-import 'package:messagyre_client/singletons/data.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/notifications_controller.dart';
+import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
-import 'package:messagyre_client/other/lifecycle_handler.dart';
-import 'package:messagyre_client/other/firebase_api.dart';
+import 'package:messagyre_client/services/lifecycle_service.dart';
+import 'package:messagyre_client/services/firebase_api_service.dart';
 import 'package:messagyre_client/other/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -33,11 +33,11 @@ void main() async {
   // Print override
   final originalDebugPrint = debugPrint;
   debugPrint = (String? message, {int? wrapWidth}) {
-    Data().log(message);
+    GlobalsService().log(message);
     originalDebugPrint(message, wrapWidth: wrapWidth);
   };
 
-  await ConnectionController().checkLocalhostAvailability();
+  await NetworkService().checkLocalhostAvailability();
 
   runZonedGuarded(
     () async {
@@ -58,12 +58,12 @@ void main() async {
         await Hive.openBox<Settings>("Settings");
 
         initMessageNotifiers();
-        final data = Data(); // DATA IS TO BE CALLED AFTER HIVE INITIALIZATION
+        final globals = GlobalsService(); // DATA IS TO BE CALLED AFTER HIVE INITIALIZATION
 
         // Misc data
         try {
           final miscBox = await Hive.openBox("Misc");
-          data.username = miscBox.get("Username")?.toString();
+          globals.username = miscBox.get("Username")?.toString();
         } catch (e) {
           debugPrint("Misc box could not be opened: $e");
         }
@@ -74,7 +74,7 @@ void main() async {
           debugPrint("RegistrationData box could not be opened: $e");
         }
 
-        data.appBrightnessNotifier.value = Brightness.dark;
+        globals.appBrightnessNotifier.value = Brightness.dark;
 
         // Firebase
         try {
@@ -97,7 +97,7 @@ void main() async {
           ),
         );
 
-        runApp(Phoenix(child: LifecycleHandler(child: App())));
+        runApp(Phoenix(child: LifecycleService(child: App())));
       } catch (e, stack) {
         debugPrint("Error during initialization: $e");
         debugPrint(stack.toString());
@@ -106,14 +106,13 @@ void main() async {
     (error, stack) {
       debugPrint("UNCAUGHT ERROR: $error");
       debugPrint(stack.toString());
-      Data().log("UNCAUGHT ERROR: $error\n$stack");
     },
   );
 }
 
 class App extends StatelessWidget {
   App({super.key});
-  final data = Data();
+  final globals = GlobalsService();
 
   static List<AppPage> pages = [
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
@@ -126,16 +125,12 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Brightness>(
-      valueListenable: data.appBrightnessNotifier,
+      valueListenable: globals.appBrightnessNotifier,
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
           theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color(0xFFAB0CB3)),
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
+          localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
           supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
           locale: Locale('fr', 'CH'),
           home: const MainPage(),
@@ -163,8 +158,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
-  late final router = ConnectionController();
-  late final data = Data();
+  late final network = NetworkService();
+  late final globals = GlobalsService();
   late final PageController pageController;
   late final List<Widget> builtPages;
   bool isAnimating = false;
@@ -181,7 +176,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
-    router.start();
+    network.start();
     WidgetsBinding.instance.addObserver(this);
 
     pageController = PageController(initialPage: MainPage.pageIndex.value);
@@ -201,7 +196,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     MainPage.pageIndex.addListener(swipeToPage);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationController().init(context);
+      NotificationsService().init(context);
       askUserToAcceptEula(context);
     });
   }
@@ -211,7 +206,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     pageController.dispose();
     MainPage.pageIndex.dispose();
-    router.disconnect();
+    network.disconnect();
     super.dispose();
   }
 

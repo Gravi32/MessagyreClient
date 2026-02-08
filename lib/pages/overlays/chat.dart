@@ -11,8 +11,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/overlays/profile.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
@@ -33,8 +33,8 @@ class ChatOverlay extends StatefulWidget {
 }
 
 class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
   final chats = Hive.box<Chat>("Chats");
   final misc = Hive.box("Misc");
 
@@ -73,7 +73,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       messagesIdToAnimate.add(newMessage.id);
     });
 
-    router.sendMessageStatusUpdate([newMessage.id], chatData.recipientUsername, MessageStatus.Read);
+    network.sendMessageStatusUpdate([newMessage.id], chatData.recipientUsername, MessageStatus.Read);
 
     saveChatData();
     scrollDown();
@@ -124,8 +124,8 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
         chatData.content.add(message);
         messagesIdToAnimate.add(message.id);
       });
-      if (router.isConnected) {
-        router.send(message.id, widget.recipientUsername, recipientPublicKey, input);
+      if (network.isConnected) {
+        network.send(message.id, widget.recipientUsername, recipientPublicKey, input);
         message.statusNotifier.value = MessageStatus.Sent;
       } else {
         message.statusNotifier.value = MessageStatus.Failed;
@@ -157,7 +157,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       }
     }
 
-    router.sendMessageStatusUpdate(justReadMessages, chatData.recipientUsername, MessageStatus.Read);
+    network.sendMessageStatusUpdate(justReadMessages, chatData.recipientUsername, MessageStatus.Read);
   }
 
   void showMessageContextMenu(BuildContext context, Message message) {
@@ -294,7 +294,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                                         saveChatData();
                                                       });
 
-                                                      router.sendMessageDelete([message.id], widget.recipientUsername);
+                                                      network.sendMessageDelete([message.id], widget.recipientUsername);
                                                       debugPrint("[Chat] Deletion request sent for ${message.id}");
                                                     } catch (e) {
                                                       debugPrint("[Chat] Failed sending deletion request: $e");
@@ -358,7 +358,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                                               if (!message.isDeleted)
                                                 CupertinoActionSheetAction(
                                                   onPressed: () {
-                                                    data.blockUser(chatData.recipientUsername);
+                                                    globals.blockUser(chatData.recipientUsername);
                                                     Navigator.pop(popupContext);
                                                   },
                                                   child: Row(
@@ -415,9 +415,9 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
   void initState() {
     super.initState();
 
-    data.openChatUsername = widget.recipientUsername;
+    globals.openChatUsername = widget.recipientUsername;
 
-    router
+    network
         .getPublicKey(widget.recipientUsername)
         .then(
           (result) => setState(() {
@@ -456,12 +456,12 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
       }
     });
 
-    data.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
-    data.blockedUsersNotifier.addListener(onBlockedUsersChanged);
+    globals.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
+    globals.blockedUsersNotifier.addListener(onBlockedUsersChanged);
 
-    _messageReceivedSub = router.onMessageReceived.listen(messagesListener);
-    _statusUpdateSub = router.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
-    _messageDeletionSub = router.onMessageDeletionReceived.listen(messageDeletionListener);
+    _messageReceivedSub = network.onMessageReceived.listen(messagesListener);
+    _statusUpdateSub = network.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
+    _messageDeletionSub = network.onMessageDeletionReceived.listen(messageDeletionListener);
 
     chatScrollController.addListener(() {
       final offset = chatScrollController.offset;
@@ -476,12 +476,12 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
     scrollDown();
 
-    router.getAccount(widget.recipientUsername).then((account) => setState(() => chatData.recipientDisplayUsername = account?.displayName));
+    network.getAccount(widget.recipientUsername).then((account) => setState(() => chatData.recipientDisplayUsername = account?.displayName));
   }
 
   @override
   void dispose() {
-    data.openChatUsername = null;
+    globals.openChatUsername = null;
 
     messageFieldController.removeListener(() {});
     messageFieldController.dispose();
@@ -510,7 +510,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
 
   Widget topBar(BuildContext context) {
     final unreadChats = getUnreadChats();
-    final isBlocked = data.blockedUsers.contains(widget.recipientUsername);
+    final isBlocked = globals.blockedUsers.contains(widget.recipientUsername);
 
     return ClipRect(
       child: BackdropFilter(
@@ -567,7 +567,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                     onTap: () async {
                       isLoading = true;
                       var recipientAccount =
-                          widget.recipientUsername == lastAccountCache?.username ? lastAccountCache : await router.getAccount(widget.recipientUsername);
+                          widget.recipientUsername == lastAccountCache?.username ? lastAccountCache : await network.getAccount(widget.recipientUsername);
                       isLoading = false;
                       if (recipientAccount == null || !context.mounted) return;
                       lastAccountCache = recipientAccount;
@@ -822,7 +822,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
           color: adaptiveColor(barLightColor, barDarkColor),
           padding: EdgeInsets.only(right: 12, left: 12, bottom: MediaQuery.of(context).padding.bottom),
           child: ValueListenableBuilder(
-            valueListenable: router.connectionState,
+            valueListenable: network.connectionState,
             builder: (context, connectionState, _) {
               return connectionState == ConnectionState.Connected
                   ? Row(
@@ -888,13 +888,13 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
             child: DecoratedBox(
               decoration: BoxDecoration(
                 image:
-                    data.settings.useDefaultWallpaper
+                    globals.settings.useDefaultWallpaper
                         ? DecorationImage(
                           image: AssetImage("assets/wallpaper.png"),
                           repeat: ImageRepeat.repeat,
                           fit: BoxFit.fitWidth,
                           opacity: .12,
-                          colorFilter: data.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
+                          colorFilter: globals.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
                         )
                         : DecorationImage(image: Image.file(File(currentWallpaper)).image, fit: BoxFit.cover),
               ),

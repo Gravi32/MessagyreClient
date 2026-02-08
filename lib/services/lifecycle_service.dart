@@ -1,15 +1,15 @@
 import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/services/network_service.dart';
 
-class LifecycleHandler extends StatefulWidget {
+class LifecycleService extends StatefulWidget {
   final Widget child;
-  const LifecycleHandler({super.key, required this.child});
+  const LifecycleService({super.key, required this.child});
 
   @override
-  State<LifecycleHandler> createState() => _LifecycleHandlerState();
+  State<LifecycleService> createState() => _LifecycleHandlerState();
 }
 
-class _LifecycleHandlerState extends State<LifecycleHandler> with WidgetsBindingObserver {
+class _LifecycleHandlerState extends State<LifecycleService> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -24,7 +24,7 @@ class _LifecycleHandlerState extends State<LifecycleHandler> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final connection = ConnectionController();
+    final connection = NetworkService();
 
     if (state == AppLifecycleState.resumed) {
       connection.connect();

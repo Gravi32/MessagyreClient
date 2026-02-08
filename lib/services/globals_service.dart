@@ -5,16 +5,16 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:pointycastle/key_generators/api.dart';
 import 'package:pointycastle/key_generators/rsa_key_generator.dart';
 
-class Data {
-  static final Data _instance = Data._internal();
-  factory Data() => _instance;
+class GlobalsService {
+  static final GlobalsService _instance = GlobalsService._internal();
+  factory GlobalsService() => _instance;
 
-  Data._internal() {
+  GlobalsService._internal() {
     loadSettings();
   }
 
@@ -22,7 +22,7 @@ class Data {
   String? username;
 
   final secureStorage = FlutterSecureStorage();
-  late final router = ConnectionController();
+  late final network = NetworkService();
 
   // #region -> Settings
 
@@ -80,8 +80,6 @@ class Data {
   String? fcmToken;
 
   // #endregion
-
-  // Sostituisci la sezione Encryption in data.dart con questa:
 
   // #region -> Encryption
 
@@ -148,7 +146,7 @@ class Data {
     secureStorage.write(key: "RSAPrivateKey", value: privatePem);
 
     debugPrint("[RSA] New key pair generated and saved");
-    router.uploadPublicKey();
+    network.uploadPublicKey();
 
     return result;
   }
@@ -163,7 +161,7 @@ class Data {
     var cachedURL = pfpNotifiersCache[accountUsername];
     if (cachedURL != null) return cachedURL;
     pfpNotifiersCache[accountUsername] = ValueNotifier<String?>(null);
-    router.getProfilePicture(accountUsername);
+    network.getProfilePicture(accountUsername);
     return pfpNotifiersCache[accountUsername]!;
   }
 

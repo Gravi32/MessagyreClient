@@ -7,8 +7,8 @@ import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/group_page.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/assignments.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -26,8 +26,8 @@ class SubjectPage extends StatefulWidget {
 }
 
 class _SubjectPageState extends State<SubjectPage> {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
 
   Box<Grade> allGrades = Hive.box<Grade>("Grades");
   Box<Assignment> allAssignment = Hive.box<Assignment>("Assignment");

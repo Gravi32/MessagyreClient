@@ -11,26 +11,26 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/access.dart';
-import 'package:messagyre_client/other/firebase_api.dart';
+import 'package:messagyre_client/services/firebase_api_service.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:pointycastle/export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
-class ConnectionController {
+class NetworkService {
   // Configuration
   bool isLocalhost = false;
 
   // Declaring this singleton
-  static final _instance = ConnectionController._internal();
-  factory ConnectionController() => _instance;
-  ConnectionController._internal();
+  static final _instance = NetworkService._internal();
+  factory NetworkService() => _instance;
+  NetworkService._internal();
 
   // Singletons
-  late final data = Data();
+  late final globals = GlobalsService();
   late final secureStorage = FlutterSecureStorage();
   late final firebaseApi = FirebaseApi();
 
@@ -78,10 +78,10 @@ class ConnectionController {
   }
 
   Future<void> start() async {
-    data.token = await secureStorage.read(key: "AccessToken");
+    globals.token = await secureStorage.read(key: "AccessToken");
 
-    if (data.token == null || data.username == null) {
-      debugPrint("[ConnectionController] No token or username found in storage. Switching to AccessOverlay.");
+    if (globals.token == null || globals.username == null) {
+      debugPrint("[NetworkService] No token or username found in storage. Switching to AccessOverlay.");
       onUnauthorized();
       return;
     }
@@ -149,7 +149,7 @@ class ConnectionController {
       connectionState.value = ConnectionState.WaitingForAuthorization;
 
       // No token stored, either the first time on the app or logged out
-      if (data.token == null) {
+      if (globals.token == null) {
         onUnauthorized();
         throw Exception("[WebSocket] Connection aborted: No token found in Data.");
       }
@@ -179,7 +179,7 @@ class ConnectionController {
 
       final socket = await WebSocket.connect(
         getBackendUri(useWebsocket: true),
-        headers: {'Authorization': 'Bearer ${data.token}'},
+        headers: {'Authorization': 'Bearer ${globals.token}'},
       ).timeout(const Duration(seconds: 40));
 
       socket.done.catchError((e) {
@@ -277,7 +277,7 @@ class ConnectionController {
       final isMessageDeletion = rawMessageData.containsKey("Deletion") && rawMessageData["Deletion"] == true;
 
       if (sender == null) throw FormatException("Missing SenderUsername");
-      if (data.blockedUsers.contains(sender)) return;
+      if (globals.blockedUsers.contains(sender)) return;
 
       final messageId = rawMessageData["ID"]?.toString();
 
@@ -309,7 +309,7 @@ class ConnectionController {
 
             final encryptedKeyBytes = base64.decode(encryptedKeyString);
 
-            final privateKey = await data.privateKey;
+            final privateKey = await globals.privateKey;
 
             if (privateKey.modulus == null || privateKey.privateExponent == null) {
               throw Exception("Invalid private key: missing modulus or exponent");
@@ -384,7 +384,7 @@ class ConnectionController {
       final response = await http
           .post(
             getBackendUri(route: route),
-            headers: {"Content-Type": "application/json", if (data.token != null) "Authorization": "Bearer ${data.token!}"},
+            headers: {"Content-Type": "application/json", if (globals.token != null) "Authorization": "Bearer ${globals.token!}"},
             body: jsonEncode(body),
           )
           .timeout(Duration(seconds: timeout));
@@ -404,7 +404,7 @@ class ConnectionController {
       final response = await http
           .get(
             getBackendUri(route: route, forceLocalhost: forceLocalhost),
-            headers: {"Content-Type": "application/json", if (data.token != null) "Authorization": "Bearer ${data.token!}"},
+            headers: {"Content-Type": "application/json", if (globals.token != null) "Authorization": "Bearer ${globals.token!}"},
           )
           .timeout(Duration(seconds: timeout));
 
@@ -424,7 +424,7 @@ class ConnectionController {
     final uri = getBackendUri(route: "messagyre/Accounts/Me/UploadProfile");
     final request = http.MultipartRequest('POST', uri);
 
-    request.headers['Authorization'] = 'Bearer ${data.token}';
+    request.headers['Authorization'] = 'Bearer ${globals.token}';
     request.fields['DisplayName'] = displayName ?? '';
     request.fields['Profile'] = jsonEncode(profileObject);
 
@@ -449,7 +449,7 @@ class ConnectionController {
       final updatedPfpUrl = responseJson["ProfilePictureURL"];
 
       if (updatedPfpUrl != null && updatedPfpUrl is String) {
-        data.pfpNotifiersCache[data.username]?.value = updatedPfpUrl;
+        globals.pfpNotifiersCache[globals.username]?.value = updatedPfpUrl;
       }
 
       return true;
@@ -470,7 +470,7 @@ class ConnectionController {
     }
 
     final result = json.decode(response.body) as String?;
-    data.pfpNotifiersCache[accountUsername]?.value = result;
+    globals.pfpNotifiersCache[accountUsername]?.value = result;
     return result;
   }
 
@@ -506,9 +506,9 @@ class ConnectionController {
     if (response.statusCode == 200) {
       try {
         final results = jsonDecode(response.body);
-        data.token = results["AccessToken"];
+        globals.token = results["AccessToken"];
 
-        await secureStorage.write(key: "AccessToken", value: data.token);
+        await secureStorage.write(key: "AccessToken", value: globals.token);
         await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
       } catch (e) {
         debugPrint("[RefreshToken] Failed decoding server response: ${response.body} -> $e");
@@ -522,7 +522,7 @@ class ConnectionController {
   }
 
   Future<void> uploadPublicKey() async {
-    final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await data.publicKey);
+    final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await globals.publicKey);
     final response = await post("/accounts/me/upload-public-key", {"PublicKey": stringPublicKey});
     
     if (response.statusCode != 200) {
@@ -550,8 +550,8 @@ class ConnectionController {
 
     disconnect();
 
-    data.username = null;
-    data.token = null;
+    globals.username = null;
+    globals.token = null;
 
     await secureStorage.delete(key: "AccessToken");
     await secureStorage.delete(key: "RefreshToken");

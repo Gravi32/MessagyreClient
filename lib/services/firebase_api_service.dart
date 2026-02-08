@@ -4,20 +4,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
-import 'package:messagyre_client/singletons/notifications_controller.dart';
+import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 
 class FirebaseApi {
   static final _instance = FirebaseApi._internal();
   factory FirebaseApi() => _instance;
   FirebaseApi._internal();
 
-  final data = Data();
-  final router = ConnectionController();
+  final globals = GlobalsService();
+  final network = NetworkService();
   final firebaseMessaging = FirebaseMessaging.instance;
   final localNotifications = FlutterLocalNotificationsPlugin();
   bool waitingForConnection = false;
@@ -59,7 +59,7 @@ class FirebaseApi {
         }
       }
 
-      data.fcmToken = await firebaseMessaging.getToken();
+      globals.fcmToken = await firebaseMessaging.getToken();
       sendTokenToServer();
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -74,7 +74,7 @@ class FirebaseApi {
           final imageUrl = dataMap['ProfilePictureURL'] as String?;
           final senderUsername = dataMap['SenderUsername'] ?? title;
           if (state == AppLifecycleState.resumed) {
-            NotificationController().spawn(title, senderUsername, body);
+            NotificationsService().spawn(title, senderUsername, body);
             resetBadge();
           } else {
             await _showNotification(title, body, imageUrl, senderUsername);
@@ -93,7 +93,7 @@ class FirebaseApi {
       });
 
       firebaseMessaging.onTokenRefresh.listen((newToken) {
-        data.fcmToken = newToken;
+        globals.fcmToken = newToken;
         sendTokenToServer();
       });
     } else {
@@ -143,20 +143,20 @@ class FirebaseApi {
     if (waitingForConnection) return;
 
     waitingForConnection = true;
-    while (router.isConnected == false) {
+    while (network.isConnected == false) {
       await Future.delayed(const Duration(seconds: 1));
     }
     waitingForConnection = false;
 
-    final token = data.fcmToken;
+    final token = globals.fcmToken;
     if (token == null) return;
 
-    final response = await router.post("/accounts/me/upload-firebase-token", {"FirebaseToken": token});
+    final response = await network.post("/accounts/me/upload-firebase-token", {"FirebaseToken": token});
 
     if (response.statusCode == 200) {
       debugPrint("[Firebase] FCM token successfully uploaded.");
     } else {
-      debugPrint("[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${data.username}, token: ${data.token}");
+      debugPrint("[Firebase] Token upload failed. Code: ${response.statusCode}, body: ${response.body}. Username: ${globals.username}, token: ${globals.token}");
     }
   }
 

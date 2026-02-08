@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime initialDate;
@@ -26,7 +26,7 @@ class CustomDatePicker extends StatefulWidget {
 }
 
 class _CustomDatePickerState extends State<CustomDatePicker> {
-  final data = Data();
+  final globals = GlobalsService();
 
   late DateTime tempDate;
   late PageController monthController;
@@ -40,8 +40,8 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
     final now = DateTime.now();
 
-    minDate = widget.allowPast ? data.schoolStart : now;
-    maxDate = widget.allowFuture ? data.schoolEnd : now;
+    minDate = widget.allowPast ? globals.schoolStart : now;
+    maxDate = widget.allowFuture ? globals.schoolEnd : now;
 
     final monthDiff = (widget.initialDate.year - minDate.year) * 12 + (widget.initialDate.month - minDate.month);
 
@@ -55,7 +55,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final includeWeekends = data.settings.includeWeekends;
+    final includeWeekends = globals.settings.includeWeekends;
     final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(

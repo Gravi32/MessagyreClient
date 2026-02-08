@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -22,15 +22,15 @@ class ChatsPage extends StatefulWidget {
 }
 
 class _ChatsPageState extends State<ChatsPage> {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
 
   late Box<Chat> allChats;
 
   // Widgets
 
   Widget buildChatBar(Chat chatData) {
-    final isBlocked = data.blockedUsers.contains(chatData.recipientUsername);
+    final isBlocked = globals.blockedUsers.contains(chatData.recipientUsername);
     var hasUnreadMessages = chatData.unreadMessages > 0;
 
     final lastMessage = chatData.content.isNotEmpty ? chatData.content.last : null;
@@ -169,9 +169,9 @@ class _ChatsPageState extends State<ChatsPage> {
 
     allChats = Hive.box<Chat>("Chats");
 
-    router.connectionState.addListener(() {
+    network.connectionState.addListener(() {
       // FOR THE REVIEW TEAMS \\
-      if (data.username == "apple.verification" || data.username == "google.verification") {
+      if (globals.username == "apple.verification" || globals.username == "google.verification") {
         final now = DateTime.now();
 
         final abusiveChat = Chat(recipientUsername: "test.1");
@@ -224,13 +224,13 @@ class _ChatsPageState extends State<ChatsPage> {
       }
     });
 
-    data.blockedUsersNotifier.addListener(() => setState(() {}));
+    globals.blockedUsersNotifier.addListener(() => setState(() {}));
 
-    router.onMessageReceived.listen((messageData) {
+    network.onMessageReceived.listen((messageData) {
       if (!mounted) return;
 
       var senderUsername = messageData["SenderUsername"]!.toString();
-      if (data.openChatUsername == senderUsername) return;
+      if (globals.openChatUsername == senderUsername) return;
 
       var receivedMessage = Message.fromMessageData(messageData);
       var targetChat = allChats.get(senderUsername);
@@ -247,9 +247,9 @@ class _ChatsPageState extends State<ChatsPage> {
       allChats.put(senderUsername, targetChat);
     });
 
-    router.onMessageStatusUpdateReceived.listen((messageStatusUpdate) {
+    network.onMessageStatusUpdateReceived.listen((messageStatusUpdate) {
       var senderUsername = messageStatusUpdate["SenderUsername"]!.toString();
-      if (data.openChatUsername == senderUsername) return;
+      if (globals.openChatUsername == senderUsername) return;
 
       var targetChat = allChats.get(senderUsername);
       if (targetChat == null) return;
@@ -264,9 +264,9 @@ class _ChatsPageState extends State<ChatsPage> {
       setState(() {});
     });
 
-    router.onMessageDeletionReceived.listen((messageDeletion) {
+    network.onMessageDeletionReceived.listen((messageDeletion) {
       var senderUsername = messageDeletion["SenderUsername"]!.toString();
-      if (data.openChatUsername == senderUsername) return;
+      if (globals.openChatUsername == senderUsername) return;
 
       var targetChat = allChats.get(senderUsername);
       if (targetChat == null) return;
@@ -288,19 +288,19 @@ class _ChatsPageState extends State<ChatsPage> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             ValueListenableBuilder(
-              valueListenable: router.connectionState,
+              valueListenable: network.connectionState,
               builder:
                   (context, connectionState, _) => CupertinoSliverNavigationBar(
                     leading:
-                        (connectionState != ConnectionState.Connected || router.isLocalhost)
+                        (connectionState != ConnectionState.Connected || network.isLocalhost)
                             ? Row(
                               spacing: 8,
                               children: [
                                 Text(
-                                  router.isLocalhost ? "Connecté au Localhost" : "Connexion en cours",
-                                  style: TextStyle(color: router.isLocalhost ? CupertinoColors.systemRed : CupertinoColors.secondaryLabel.resolveFrom(context)),
+                                  network.isLocalhost ? "Connecté au Localhost" : "Connexion en cours",
+                                  style: TextStyle(color: network.isLocalhost ? CupertinoColors.systemRed : CupertinoColors.secondaryLabel.resolveFrom(context)),
                                 ),
-                                router.isLocalhost
+                                network.isLocalhost
                                     ? HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: CupertinoColors.systemRed, size: 20, strokeWidth: 1.5)
                                     : LoadingAnimationWidget.waveDots(color: CupertinoColors.secondaryLabel.resolveFrom(context), size: 14),
                               ],

@@ -3,15 +3,15 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/pages/overlays/chat.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
-class NotificationController {
-  static final NotificationController _instance = NotificationController._internal();
-  factory NotificationController() => _instance;
-  NotificationController._internal();
+class NotificationsService {
+  static final NotificationsService _instance = NotificationsService._internal();
+  factory NotificationsService() => _instance;
+  NotificationsService._internal();
 
   OverlayState? _overlayState;
   OverlayEntry? _currentOverlay;
@@ -21,7 +21,7 @@ class NotificationController {
   }
 
   void spawn(String title, String sender, String message) {
-    if ((Data().openChatUsername ?? "") == sender) return;
+    if ((GlobalsService().openChatUsername ?? "") == sender) return;
 
     _currentOverlay?.remove();
     _currentOverlay = OverlayEntry(builder: (context) => NotificationPopup(title: title, senderUsername: sender, messageContent: message));
@@ -71,7 +71,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
   void _dismiss() {
     _timer?.cancel();
     setState(() => _top = widget.outScreenOffset);
-    Future.delayed(Duration(milliseconds: 400), () => NotificationController().remove());
+    Future.delayed(Duration(milliseconds: 400), () => NotificationsService().remove());
   }
 
   @override

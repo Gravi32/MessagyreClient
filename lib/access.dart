@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
+import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/overlays/registration.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
 class AccessOverlay extends StatefulWidget {
@@ -18,8 +18,8 @@ class AccessOverlay extends StatefulWidget {
 }
 
 class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserver {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
   final secureStorage = FlutterSecureStorage();
 
   bool isPasswordHidden = true;
@@ -55,7 +55,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
     debugPrint("[Access] Logging in as $username...");
     setState(() => isWaitingForResponse = true);
 
-    var response = await router.post("/auth/login", {"Username": username, "Password": password});
+    var response = await network.post("/auth/login", {"Username": username, "Password": password});
 
     setState(() => isWaitingForResponse = false);
 
@@ -86,8 +86,8 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
       // Saving the received AccessToken
       final accessToken = responseData["AccessToken"];
       final refreshToken = responseData["RefreshToken"];
-      data.token = accessToken;
-      data.username = username;
+      globals.token = accessToken;
+      globals.username = username;
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
 
@@ -97,8 +97,8 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
     }
 
     // Connecting to the WebSocket
-    router.isAccessOverlayOpen = false;
-    router.connect();
+    network.isAccessOverlayOpen = false;
+    network.connect();
 
     // Closing the page
     debugPrint("[Login successful] Token received and stored.");
@@ -108,7 +108,7 @@ class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserv
   void tryToResetPassword() async {
     isWaitingForResponse = true;
 
-    final response = await router.post("/auth/registration", {"PasswordResetUsername": usernameController.value.text});
+    final response = await network.post("/auth/registration", {"PasswordResetUsername": usernameController.value.text});
 
     isWaitingForResponse = false;
 

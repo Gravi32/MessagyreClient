@@ -8,8 +8,8 @@ import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
 import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
 import 'package:messagyre_client/pages/assignments.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -26,8 +26,8 @@ class GradesPage extends StatefulWidget {
 }
 
 class _GradesPageState extends State<GradesPage> {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
 
   late Box<Grade> allGrades;
   late Box<Assignment> allAssignment;

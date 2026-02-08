@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 
@@ -12,7 +12,7 @@ class CalendarSettingsPage extends StatefulWidget {
 }
 
 class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
-  final data = Data();
+  final globals = GlobalsService();
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +33,12 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: CupertinoColors.label.resolveFrom(context)),
                       title: Text("Inclure les week-ends"),
                       trailing: CupertinoSwitch(
-                        value: data.settings.includeWeekends,
+                        value: globals.settings.includeWeekends,
                         onChanged: (newValue) {
                           setState(() {
-                            data.settings.includeWeekends = newValue;
+                            globals.settings.includeWeekends = newValue;
                           });
-                          data.settings.save();
+                          globals.settings.save();
                         },
                       ),
                     ),

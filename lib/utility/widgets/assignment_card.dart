@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dash/flutter_dash.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -44,7 +44,7 @@ class AssignmentCard extends StatefulWidget {
 }
 
 class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProviderStateMixin {
-  final data = Data();
+  final globals = GlobalsService();
   final mainContainerKey = GlobalKey();
   late final controller = widget.controller ?? AssignmentCardController();
 
@@ -185,7 +185,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
                       borderRadius: const BorderRadius.all(Radius.circular(12)),
 
                       boxShadow: [
-                        if (data.appBrightness == Brightness.dark || isPreview)
+                        if (globals.appBrightness == Brightness.dark || isPreview)
                           BoxShadow(color: CupertinoColors.black.withAlpha(50), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5)),
                       ],
                     ),

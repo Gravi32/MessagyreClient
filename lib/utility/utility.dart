@@ -5,7 +5,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
 // #region -> Strings
@@ -113,10 +113,10 @@ extension ColorExtension on Color {
 }
 
 Color adaptiveColor(Color light, Color dark) {
-  return Data().appBrightness == Brightness.dark ? dark : light;
+  return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
-Color? get cupertinoListTileColor => Data().appBrightness == Brightness.dark ? null : CupertinoColors.secondarySystemBackground;
+Color? get cupertinoListTileColor => GlobalsService().appBrightness == Brightness.dark ? null : CupertinoColors.secondarySystemBackground;
 // #endregion
 
 // #region -> Dates

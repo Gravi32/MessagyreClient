@@ -17,8 +17,8 @@ import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart'
 import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/storage_settings.dart';
 import 'package:messagyre_client/pages/settings_subpages/wallpaper_settings.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -34,8 +34,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final data = Data();
-  final router = ConnectionController();
+  final globals = GlobalsService();
+  final network = NetworkService();
   final secureStorage = FlutterSecureStorage();
 
   late bool isDarkMode;
@@ -44,9 +44,9 @@ class _SettingsPageState extends State<SettingsPage> {
   bool isCreatingBackup = false;
 
   Future getAccount() async {
-    if (data.username == null) return;
+    if (globals.username == null) return;
 
-    final receivedAccount = await router.getAccount(data.username!);
+    final receivedAccount = await network.getAccount(globals.username!);
 
     setState(() {
       account = receivedAccount;
@@ -83,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    isDarkMode = data.appBrightness == Brightness.dark;
+    isDarkMode = globals.appBrightness == Brightness.dark;
     getAccount();
   }
 
@@ -106,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
               SettingsSection(
                 title: Text("Votre compte"),
                 tiles: [
-                  (account == null || data.username == null)
+                  (account == null || globals.username == null)
                       ? SettingsTile(
                         title: SizedBox(
                           height: 39,
@@ -114,19 +114,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       )
                       : SettingsTile.navigation(
-                        leading: ProfilePictureDisplay(accountUsername: data.username!, radius: 28),
+                        leading: ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
                         title: Padding(
                           padding: EdgeInsetsGeometry.symmetric(vertical: 8),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                              Text(data.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 16)),
+                              Text(globals.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 16)),
                             ],
                           ),
                         ),
                         onPressed: (context) async {
-                          if (account!.username != data.username) await getAccount();
+                          if (account!.username != globals.username) await getAccount();
 
                           if (!context.mounted) return;
 
@@ -140,7 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onPressed:
                         (context) => showLogoutDialog(context, () {
                           account = null;
-                          router.logout();
+                          network.logout();
                           restartApp(context);
                         }),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
@@ -156,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onToggle: (value) {
                       setState(() {
                         isDarkMode = value;
-                        data.appBrightness = value ? Brightness.dark : Brightness.light;
+                        globals.appBrightness = value ? Brightness.dark : Brightness.light;
                       });
                     },
                     initialValue: isDarkMode,

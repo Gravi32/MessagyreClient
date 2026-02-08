@@ -6,7 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -19,7 +19,7 @@ class WallpaperSettingsPage extends StatefulWidget {
 }
 
 class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
-  final data = Data();
+  final globals = GlobalsService();
 
   final box = Hive.box("Misc");
   late final savedWallpapers = List<String>.from(box.get("SavedWallpapers", defaultValue: <String>[]));
@@ -89,18 +89,18 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: CupertinoColors.label.resolveFrom(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
-                      value: data.settings.useDefaultWallpaper,
+                      value: globals.settings.useDefaultWallpaper,
                       onChanged: (newValue) {
                         setState(() {
-                          data.settings.useDefaultWallpaper = newValue;
+                          globals.settings.useDefaultWallpaper = newValue;
                         });
-                        data.settings.save();
+                        globals.settings.save();
                       },
                     ),
                   ),
                 ],
               ),
-              if (!data.settings.useDefaultWallpaper) ...[
+              if (!globals.settings.useDefaultWallpaper) ...[
                 CupertinoListSection.insetGrouped(
                   backgroundColor: CupertinoColors.transparent,
                   decoration: cupertinoListTileColor != null ? BoxDecoration(color: cupertinoListTileColor) : null,

@@ -2,7 +2,7 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -24,7 +24,7 @@ class NewAssignment extends StatefulWidget {
 }
 
 class _NewAssignmentState extends State<NewAssignment> {
-  final data = Data();
+  final globals = GlobalsService();
   final miscBox = Hive.box("Misc");
   final gradesBox = Hive.box<Grade>("Grades");
 
@@ -119,7 +119,7 @@ class _NewAssignmentState extends State<NewAssignment> {
     subjectController.addListener(() => setState(() {}));
     titleController.addListener(() => setState(() {}));
     contentController.addListener(() => setState(() {}));
-    data.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
+    globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
 
   @override

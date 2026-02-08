@@ -11,8 +11,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/assignments_subpages/new_assignment.dart';
-import 'package:messagyre_client/singletons/connection_controller.dart';
-import 'package:messagyre_client/singletons/data.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -32,8 +32,8 @@ class AssignmentPage extends StatefulWidget {
 }
 
 class AssignmentPageState extends State<AssignmentPage> {
-  final router = ConnectionController();
-  final data = Data();
+  final network = NetworkService();
+  final globals = GlobalsService();
   final calendar = DeviceCalendarPlugin();
 
   late final PageController timelineController;
@@ -55,9 +55,9 @@ class AssignmentPageState extends State<AssignmentPage> {
   bool isAnimating = false;
 
   List<DateTime> get allDays {
-    final rawList = List<DateTime>.generate(data.schoolEnd.difference(data.schoolStart).inDays, (i) => data.schoolStart.add(Duration(days: i)));
+    final rawList = List<DateTime>.generate(globals.schoolEnd.difference(globals.schoolStart).inDays, (i) => globals.schoolStart.add(Duration(days: i)));
 
-    return data.settings.includeWeekends ? rawList : rawList.where((d) => d.weekday != DateTime.saturday && d.weekday != DateTime.sunday).toList();
+    return globals.settings.includeWeekends ? rawList : rawList.where((d) => d.weekday != DateTime.saturday && d.weekday != DateTime.sunday).toList();
   }
 
   int get tomorrowPageIndex {
@@ -230,7 +230,7 @@ class AssignmentPageState extends State<AssignmentPage> {
                     gradient: RadialGradient(
                       colors: [
                         CupertinoColors.secondarySystemBackground.resolveFrom(context),
-                        CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(data.appBrightness == Brightness.dark ? .1 : .02),
+                        CupertinoColors.secondarySystemBackground.resolveFrom(context).withBrightness(globals.appBrightness == Brightness.dark ? .1 : .02),
                       ],
                       stops: [0, 1],
                       center: Alignment.bottomRight,
@@ -855,7 +855,7 @@ class AssignmentPageState extends State<AssignmentPage> {
     allGrades = Hive.box<Grade>("Grades");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 
-    data.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
+   globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
 
     groupAssignmentByDate();
     allAssignment.listenable().addListener(groupAssignmentByDate);
