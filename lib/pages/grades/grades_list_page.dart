@@ -282,7 +282,7 @@ class _GradesListPageState extends State<GradesListPage> {
   void initState() {
     super.initState();
     allGrades = Hive.box<Grade>("Grades");
-    allAssignment = Hive.box<Assignment>("Assignment");
+    allAssignment = Hive.box<Assignment>("Homework");
     subjectOrderBox = Hive.box<List>("SubjectOrder");
 
     allAssignment.listenable().addListener(() {

@@ -31,7 +31,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   final globals = GlobalsService();
 
   Box<Grade> allGrades = Hive.box<Grade>("Grades");
-  Box<Assignment> allAssignment = Hive.box<Assignment>("Assignment");
+  Box<Assignment> allAssignment = Hive.box<Assignment>("Homework");
 
   List<Grade> allSubjectGrades = [];
   List<Grade> singleGrades = [];

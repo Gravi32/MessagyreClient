@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:isar/isar.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart' hide Assignment;
+import 'package:messagyre_client/database/models/chats/chat.dart' hide Chat;
+import 'package:messagyre_client/database/models/grades/grade.dart' hide Grade;
+import 'package:messagyre_client/database/models/messages/message.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/pages/chats/chats_list_page.dart';
 import 'package:messagyre_client/pages/grades/grades_list_page.dart';
@@ -18,6 +24,7 @@ import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
+import 'package:messagyre_client/utility/__database_migration__.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
@@ -25,6 +32,7 @@ import 'package:messagyre_client/services/firebase_api_service.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:path_provider/path_provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -53,10 +61,17 @@ void main() async {
         Hive.registerAdapter(SettingsAdapter());
 
         await Hive.openBox<Chat>("Chats");
-        await Hive.openBox<Assignment>("Assignment");
+        await Hive.openBox<Assignment>("Homework");
         await Hive.openBox<Grade>("Grades");
         await Hive.openBox<List>("SubjectOrder");
         await Hive.openBox<Settings>("Settings");
+
+        final directory = await getApplicationDocumentsDirectory();
+
+        final isar = await Isar.open([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema], directory: directory.path, inspector: true);
+
+        // --- HIVE → ISAR MIGRATION ---
+        await migrateHiveToIsar(isar);
 
         initMessageNotifiers();
         final globals = GlobalsService(); // DATA IS TO BE CALLED AFTER HIVE INITIALIZATION

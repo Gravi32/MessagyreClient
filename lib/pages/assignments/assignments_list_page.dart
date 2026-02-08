@@ -837,7 +837,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   @override
   void initState() {
     super.initState();
-    allAssignment = Hive.box<Assignment>("Assignment");
+    allAssignment = Hive.box<Assignment>("Homework");
     allGrades = Hive.box<Grade>("Grades");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 

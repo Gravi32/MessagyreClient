@@ -30,7 +30,7 @@ class NewGradePage extends StatefulWidget {
 
 class _NewGradePageState extends State<NewGradePage> {
   final allGrades = Hive.box<Grade>("Grades");
-  final allAssignment = Hive.box<Assignment>("Assignment");
+  final allAssignment = Hive.box<Assignment>("Homework");
 
   late final editMode = widget.toEdit != null;
 

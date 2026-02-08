@@ -1,10 +1,12 @@
+import com.android.build.gradle.AppExtension
+import com.android.build.gradle.LibraryExtension
+import org.gradle.api.tasks.Delete
+
 plugins {
-    // Only apply non-Android plugins here
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
     id("com.google.gms.google-services") version "4.4.3" apply false
 }
 
-// Repositories for all projects
 allprojects {
     repositories {
         google()
@@ -12,7 +14,6 @@ allprojects {
     }
 }
 
-// Move the main build directory outside android folder
 val newBuildDir = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
@@ -21,12 +22,24 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 
-// Ensure subprojects are evaluated after :app
+// Tutto il fix Android in un solo afterEvaluate
 subprojects {
-    project.evaluationDependsOn(":app")
+    afterEvaluate {
+        extensions.findByType(AppExtension::class.java)?.apply {
+            compileSdkVersion(36)
+            buildToolsVersion("36.0.0")
+            if (namespace.isNullOrEmpty()) namespace = project.group.toString()
+        }
+
+        extensions.findByType(LibraryExtension::class.java)?.apply {
+            compileSdkVersion(36)
+            buildToolsVersion("36.0.0")
+            if (namespace.isNullOrEmpty()) namespace = project.group.toString()
+        }
+    }
 }
 
-// Optional: global clean task
+// Clean task globale
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
