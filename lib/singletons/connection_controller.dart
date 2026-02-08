@@ -61,10 +61,10 @@ class ConnectionController {
     final useLocalhost = isLocalhost || forceLocalhost;
 
     if (useWebsocket) {
-      return useLocalhost ? "ws://192.168.1.230:5066" : "wss://api.graviapps.com/messagyre/";
+      return useLocalhost ? "ws://192.168.1.230:5066" : "wss://api.gravi.dev/messagyre/";
     }
 
-    final url = useLocalhost ? "http://192.168.1.230:5066${route ?? ""}" : "https://api.graviapps.com/messagyre${route ?? ""}";
+    final url = useLocalhost ? "http://192.168.1.230:5066${route ?? ""}" : "https://api.gravi.dev/messagyre${route ?? ""}";
     return Uri.parse(url);
   }
 
