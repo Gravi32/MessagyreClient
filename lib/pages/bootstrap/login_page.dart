@@ -9,7 +9,6 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
 class LoginPage extends StatefulWidget {
@@ -242,9 +241,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
                     Row(
                       children: [
-                        Expanded(child: Divider(color: AppColors.separator.withAlpha(.25.toByte()), indent: 30, endIndent: 10)),
-                        const Text("ou", style: TextStyle(color: AppColors.grey, fontSize: 12)),
-                        Expanded(child: Divider(color: AppColors.grey.withAlpha(.25.toByte()), indent: 10, endIndent: 30)),
+                        Expanded(child: Divider(color: AppColors.separator.adaptTo(context), indent: 30, endIndent: 10)),
+                        Text("ou", style: TextStyle(color: AppColors.separator.adaptTo(context).withAlpha(100), fontSize: 12)),
+                        Expanded(child: Divider(color: AppColors.separator.adaptTo(context), indent: 10, endIndent: 30)),
                       ],
                     ),
                     const SizedBox(height: 30),
