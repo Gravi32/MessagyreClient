@@ -10,7 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/assignments_subpages/new_assignment.dart';
+import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -24,14 +24,14 @@ import 'package:shimmer_animation/shimmer_animation.dart';
 
 final GlobalKey<AssignmentPageState> assignmentPageKey = GlobalKey<AssignmentPageState>();
 
-class AssignmentPage extends StatefulWidget {
-  const AssignmentPage({super.key});
+class AssignmentsListPage extends StatefulWidget {
+  const AssignmentsListPage({super.key});
 
   @override
   State<StatefulWidget> createState() => AssignmentPageState();
 }
 
-class AssignmentPageState extends State<AssignmentPage> {
+class AssignmentPageState extends State<AssignmentsListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
   final calendar = DeviceCalendarPlugin();
@@ -132,7 +132,7 @@ class AssignmentPageState extends State<AssignmentPage> {
       clipBehavior: Clip.none,
       backgroundColor: CupertinoColors.transparent,
       context: context,
-      builder: (context) => NewAssignment(toEdit: toEdit, dueDateOverride: dueDateOverride),
+      builder: (context) => NewAssignmentPage(toEdit: toEdit, dueDateOverride: dueDateOverride),
     );
 
     final assignment = result.assignment;

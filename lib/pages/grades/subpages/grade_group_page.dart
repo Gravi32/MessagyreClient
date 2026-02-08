@@ -1,20 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
+import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 
-class GroupPage extends StatefulWidget {
+class GradeGroupPage extends StatefulWidget {
   final List<Grade> grades;
 
-  const GroupPage({super.key, required this.grades});
+  const GradeGroupPage({super.key, required this.grades});
 
   @override
   State<StatefulWidget> createState() => _GroupPageState();
 }
 
-class _GroupPageState extends State<GroupPage> {
+class _GroupPageState extends State<GradeGroupPage> {
   final Box<Grade> allGrades = Hive.box<Grade>("Grades");
 
   Widget buildList() {
@@ -36,7 +36,7 @@ class _GroupPageState extends State<GroupPage> {
       context: context,
       enableDrag: false,
       builder:
-          (context) => NewGrade(
+          (context) => NewGradePage(
             subject: widget.grades.isNotEmpty ? widget.grades.first.subject : null,
             toEdit: toEdit,
             onDelete: () {

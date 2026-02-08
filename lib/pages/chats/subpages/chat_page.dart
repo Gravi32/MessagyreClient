@@ -10,7 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:messagyre_client/pages/overlays/profile.dart';
+import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -23,16 +23,16 @@ import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';
 import 'package:pointycastle/export.dart' show RSAPublicKey;
 import 'package:uuid/uuid.dart';
 
-class ChatOverlay extends StatefulWidget {
+class ChatPage extends StatefulWidget {
   final String recipientUsername;
 
-  const ChatOverlay({super.key, required this.recipientUsername});
+  const ChatPage({super.key, required this.recipientUsername});
 
   @override
   State<StatefulWidget> createState() => _ChatOverlayState();
 }
 
-class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin {
+class _ChatOverlayState extends State<ChatPage> with TickerProviderStateMixin {
   final network = NetworkService();
   final globals = GlobalsService();
   final chats = Hive.box<Chat>("Chats");
@@ -571,7 +571,7 @@ class _ChatOverlayState extends State<ChatOverlay> with TickerProviderStateMixin
                       isLoading = false;
                       if (recipientAccount == null || !context.mounted) return;
                       lastAccountCache = recipientAccount;
-                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfileOverlay(recipientAccount, openedFromChat: true)));
+                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfilePage(recipientAccount, openedFromChat: true)));
                     },
                   ),
                 ),

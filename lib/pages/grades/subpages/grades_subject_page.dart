@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/grades_subpages/group_page.dart';
-import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
-import 'package:messagyre_client/pages/assignments.dart';
+import 'package:messagyre_client/pages/grades/subpages/grade_group_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
+import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -16,16 +16,16 @@ import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-class SubjectPage extends StatefulWidget {
+class GradesSubjectPage extends StatefulWidget {
   final Subject subject;
 
-  const SubjectPage({super.key, required this.subject});
+  const GradesSubjectPage({super.key, required this.subject});
 
   @override
   State<StatefulWidget> createState() => _SubjectPageState();
 }
 
-class _SubjectPageState extends State<SubjectPage> {
+class _SubjectPageState extends State<GradesSubjectPage> {
   final network = NetworkService();
   final globals = GlobalsService();
 
@@ -143,7 +143,7 @@ class _SubjectPageState extends State<SubjectPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => GroupPage(grades: gradesInGroup))).then((_) {
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => GradeGroupPage(grades: gradesInGroup))).then((_) {
               loadGrades();
               setState(() {});
             });
@@ -217,7 +217,7 @@ class _SubjectPageState extends State<SubjectPage> {
       context: context,
       enableDrag: false,
       builder:
-          (context) => NewGrade(
+          (context) => NewGradePage(
             subject: widget.subject,
             toEdit: toEdit,
             onDelete: () {

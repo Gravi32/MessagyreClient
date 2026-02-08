@@ -14,20 +14,20 @@ import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
-class NewGrade extends StatefulWidget {
+class NewGradePage extends StatefulWidget {
   final Grade? toEdit;
   final Assignment? toReference;
   final Subject? subject;
   final VoidCallback? onDelete;
   final String? groupName;
 
-  const NewGrade({super.key, this.toEdit, this.toReference, this.subject, this.onDelete, this.groupName});
+  const NewGradePage({super.key, this.toEdit, this.toReference, this.subject, this.onDelete, this.groupName});
 
   @override
   State<StatefulWidget> createState() => _NewGradeState();
 }
 
-class _NewGradeState extends State<NewGrade> {
+class _NewGradeState extends State<NewGradePage> {
   final allGrades = Hive.box<Grade>("Grades");
   final allAssignment = Hive.box<Assignment>("Assignment");
 

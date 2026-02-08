@@ -6,18 +6,18 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
-import 'package:messagyre_client/pages/overlays/registration.dart';
+import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
-class AccessOverlay extends StatefulWidget {
-  const AccessOverlay({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
   State<StatefulWidget> createState() => _AccessOverlayState();
 }
 
-class _AccessOverlayState extends State<AccessOverlay> with WidgetsBindingObserver {
+class _AccessOverlayState extends State<LoginPage> with WidgetsBindingObserver {
   final network = NetworkService();
   final globals = GlobalsService();
   final secureStorage = FlutterSecureStorage();

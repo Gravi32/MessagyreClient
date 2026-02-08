@@ -9,11 +9,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:messagyre_client/pages/assignments.dart';
-import 'package:messagyre_client/pages/chats.dart';
-import 'package:messagyre_client/pages/grades.dart';
-import 'package:messagyre_client/pages/search.dart';
-import 'package:messagyre_client/pages/settings.dart';
+import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
+import 'package:messagyre_client/pages/chats/chats_list_page.dart';
+import 'package:messagyre_client/pages/grades/grades_list_page.dart';
+import 'package:messagyre_client/pages/search/search_page.dart';
+import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
@@ -21,7 +21,7 @@ import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
 import 'package:messagyre_client/services/firebase_api_service.dart';
-import 'package:messagyre_client/other/terms_of_service.dart';
+import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
@@ -115,11 +115,11 @@ class App extends StatelessWidget {
   final globals = GlobalsService();
 
   static List<AppPage> pages = [
-    AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesPage()),
-    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => AssignmentPage(key: assignmentPageKey)),
-    AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsPage()),
+    AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesListPage()),
+    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => AssignmentsListPage(key: assignmentPageKey)),
+    AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsListPage()),
     AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
-    AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsPage()),
+    AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsListPage()),
   ];
 
   @override

@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:messagyre_client/access.dart';
+import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/services/firebase_api_service.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -81,7 +81,7 @@ class NetworkService {
     globals.token = await secureStorage.read(key: "AccessToken");
 
     if (globals.token == null || globals.username == null) {
-      debugPrint("[NetworkService] No token or username found in storage. Switching to AccessOverlay.");
+      debugPrint("[NetworkService] No token or username found in storage. Switching to LoginPage.");
       onUnauthorized();
       return;
     }
@@ -99,10 +99,10 @@ class NetworkService {
   bool _isConnecting = false;
 
   void onUnauthorized() {
-    if (isAccessOverlayOpen || navigatorKey.currentState?.widget is AccessOverlay) return;
+    if (isAccessOverlayOpen || navigatorKey.currentState?.widget is LoginPage) return;
     isAccessOverlayOpen = true;
     navigatorKey.currentState?.push(
-      PageRouteBuilder(transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero, pageBuilder: (_, _, _) => const AccessOverlay()),
+      PageRouteBuilder(transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero, pageBuilder: (_, _, _) => const LoginPage()),
     );
   }
 
@@ -123,7 +123,7 @@ class NetworkService {
 
   Future<void> connect() async {
     if (isAccessOverlayOpen) {
-      debugPrint("[WebSocket] Tried to connect while on AccessOverlay.");
+      debugPrint("[WebSocket] Tried to connect while on LoginPage.");
       return;
     }
 

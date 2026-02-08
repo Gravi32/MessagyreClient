@@ -5,9 +5,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/grades_subpages/new_grade.dart';
-import 'package:messagyre_client/pages/grades_subpages/subject_page.dart';
-import 'package:messagyre_client/pages/assignments.dart';
+import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
+import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -18,14 +18,14 @@ import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-class GradesPage extends StatefulWidget {
-  const GradesPage({super.key});
+class GradesListPage extends StatefulWidget {
+  const GradesListPage({super.key});
 
   @override
   State<StatefulWidget> createState() => _GradesPageState();
 }
 
-class _GradesPageState extends State<GradesPage> {
+class _GradesPageState extends State<GradesListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
 
@@ -77,7 +77,7 @@ class _GradesPageState extends State<GradesPage> {
                     }
                   }
                   : () {
-                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => SubjectPage(subject: subject)));
+                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: subject)));
                   },
           child: IntrinsicHeight(
             child: Row(
@@ -266,7 +266,7 @@ class _GradesPageState extends State<GradesPage> {
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGrade(toReference: toReference));
+    final newGrade = await showCupertinoModalBottomSheet<Grade?>(enableDrag: false, context: context, builder: (context) => NewGradePage(toReference: toReference));
 
     if (newGrade == null) return;
 

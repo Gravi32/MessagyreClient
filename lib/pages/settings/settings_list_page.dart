@@ -9,14 +9,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:messagyre_client/other/privacy_policy.dart';
-import 'package:messagyre_client/other/terms_of_service.dart';
-import 'package:messagyre_client/pages/overlays/chat.dart';
-import 'package:messagyre_client/pages/overlays/profile.dart';
-import 'package:messagyre_client/pages/settings_subpages/calendar_settings.dart';
-import 'package:messagyre_client/pages/settings_subpages/debug_settings.dart';
-import 'package:messagyre_client/pages/settings_subpages/storage_settings.dart';
-import 'package:messagyre_client/pages/settings_subpages/wallpaper_settings.dart';
+import 'package:messagyre_client/pages/bootstrap/privacy_policy.dart';
+import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
+import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/calendar_settings_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/debug_settings_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/storage_settings_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -26,14 +26,14 @@ import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SettingsListPage extends StatefulWidget {
+  const SettingsListPage({super.key});
 
   @override
   State<StatefulWidget> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends State<SettingsListPage> {
   final globals = GlobalsService();
   final network = NetworkService();
   final secureStorage = FlutterSecureStorage();
@@ -130,7 +130,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                           if (!context.mounted) return;
 
-                          Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account!))).then((updated) {
+                          Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
                             if (updated) getAccount();
                           });
                         },
@@ -413,7 +413,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   CupertinoDialogAction(
                                     onPressed: () {
                                       Navigator.pop(dialogContext);
-                                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: "support.messagyre")));
+                                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(recipientUsername: "support.messagyre")));
                                     },
                                     isDefaultAction: true,
                                     child: Text("Continuer"),

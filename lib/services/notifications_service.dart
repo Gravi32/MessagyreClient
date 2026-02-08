@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:messagyre_client/pages/overlays/chat.dart';
+import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -93,7 +93,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
       child: GestureDetector(
         onTap: () {
           _dismiss();
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: widget.senderUsername)));
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (_) => ChatPage(recipientUsername: widget.senderUsername)));
         },
         onVerticalDragStart: (_) {
           _isDragging = true;

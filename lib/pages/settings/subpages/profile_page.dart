@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:messagyre_client/pages/overlays/chat.dart';
+import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -15,17 +15,17 @@ import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:settings_ui/settings_ui.dart';
 
-class ProfileOverlay extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   final Account account;
   final bool openedFromChat;
 
-  const ProfileOverlay(this.account, {super.key, this.openedFromChat = false});
+  const ProfilePage(this.account, {super.key, this.openedFromChat = false});
 
   @override
   State<StatefulWidget> createState() => _ProfileOverlayState();
 }
 
-class _ProfileOverlayState extends State<ProfileOverlay> {
+class _ProfileOverlayState extends State<ProfilePage> {
   final globals = GlobalsService();
   final network = NetworkService();
 
@@ -803,7 +803,7 @@ class _ProfileOverlayState extends State<ProfileOverlay> {
                                     ? null
                                     : () => Navigator.pushReplacement(
                                       context,
-                                      CupertinoPageRoute(builder: (context) => ChatOverlay(recipientUsername: account.username)),
+                                      CupertinoPageRoute(builder: (context) => ChatPage(recipientUsername: account.username)),
                                     ),
                           ),
 

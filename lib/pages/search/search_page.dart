@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/overlays/profile.dart';
+import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -148,7 +148,7 @@ class SearchPageState extends State<SearchPage> {
         });
 
         if (account != null && mounted) {
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfileOverlay(account)));
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfilePage(account)));
         }
       },
     );

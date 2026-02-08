@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/overlays/chat.dart';
+import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -14,14 +14,14 @@ import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:uuid/uuid.dart';
 
-class ChatsPage extends StatefulWidget {
-  const ChatsPage({super.key});
+class ChatsListPage extends StatefulWidget {
+  const ChatsListPage({super.key});
 
   @override
   State<StatefulWidget> createState() => _ChatsPageState();
 }
 
-class _ChatsPageState extends State<ChatsPage> {
+class _ChatsPageState extends State<ChatsListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
 
@@ -152,7 +152,7 @@ class _ChatsPageState extends State<ChatsPage> {
             Navigator.of(
               context,
               rootNavigator: true,
-            ).push(CupertinoPageRoute(builder: (builder) => ChatOverlay(recipientUsername: chatData.recipientUsername)));
+            ).push(CupertinoPageRoute(builder: (builder) => ChatPage(recipientUsername: chatData.recipientUsername)));
           },
         ),
 

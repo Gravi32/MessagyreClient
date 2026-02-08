@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/overlays/chat.dart';
+import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 
@@ -35,7 +35,7 @@ class FirebaseApi {
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final username = response.payload;
         if (username != null && username.isNotEmpty) {
-          navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: username)));
+          navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(recipientUsername: username)));
         }
         resetBadge();
       },
@@ -88,7 +88,7 @@ class FirebaseApi {
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         final username = message.data['SenderUsername'];
         if (username == null) return;
-        navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatOverlay(recipientUsername: username)));
+        navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(recipientUsername: username)));
         resetBadge();
       });
 

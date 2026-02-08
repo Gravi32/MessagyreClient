@@ -13,17 +13,17 @@ import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:uuid/uuid.dart';
 
-class NewAssignment extends StatefulWidget {
+class NewAssignmentPage extends StatefulWidget {
   final Assignment? toEdit;
   final DateTime? dueDateOverride;
 
-  const NewAssignment({super.key, this.toEdit, this.dueDateOverride});
+  const NewAssignmentPage({super.key, this.toEdit, this.dueDateOverride});
 
   @override
   State<StatefulWidget> createState() => _NewAssignmentState();
 }
 
-class _NewAssignmentState extends State<NewAssignment> {
+class _NewAssignmentState extends State<NewAssignmentPage> {
   final globals = GlobalsService();
   final miscBox = Hive.box("Misc");
   final gradesBox = Hive.box<Grade>("Grades");
