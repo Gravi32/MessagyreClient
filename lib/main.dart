@@ -9,7 +9,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:messagyre_client/l10n/app_localizations.dart';
 import 'package:messagyre_client/pages/assignments.dart';
 import 'package:messagyre_client/pages/chats.dart';
 import 'package:messagyre_client/pages/grades.dart';
@@ -133,7 +132,6 @@ class App extends StatelessWidget {
           navigatorKey: navigatorKey,
           theme: CupertinoThemeData(brightness: brightness, primaryColor: const Color(0xFFAB0CB3)),
           localizationsDelegates: const [
-            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
