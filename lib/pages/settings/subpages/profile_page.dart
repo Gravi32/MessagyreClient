@@ -14,7 +14,6 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
-import 'package:settings_ui/settings_ui.dart';
 
 class ProfilePage extends StatefulWidget {
   final Account account;
@@ -172,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           margin: EdgeInsets.zero,
                           children: [
                             CupertinoListTile(
-                              backgroundColor: cupertinoListTileColor,
+                              backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                               title: DismissableTextField(
                                 controller: displayNameController,
                                 focusNode: displayNameFocusNode,
@@ -195,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           margin: EdgeInsets.zero,
                           children: [
                             CupertinoListTile(
-                              backgroundColor: cupertinoListTileColor,
+                              backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                               title: DismissableTextField(
                                 controller: bioController,
                                 focusNode: bioFocusNode,
@@ -282,11 +281,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   child: SafeArea(
-                    child: SettingsList(
-                      platform: DevicePlatform.iOS,
-                      sections: [
-                        SettingsSection(
-                          tiles: [
+                    child: ListView(
+                      physics: const ClampingScrollPhysics(),
+                      children: [
+                        CupertinoListSection.insetGrouped(
+                          children: [
                             contactTile(
                               "PhoneNumber",
                               HugeIcons.strokeRoundedCall02,
@@ -435,7 +434,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  SettingsTile contactTile(
+  CupertinoListTile contactTile(
     String contact,
     List<List>? icon, {
     bool description = false,
@@ -447,7 +446,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (editMode) {
       controller ??= TextEditingController(text: value);
-      return SettingsTile(
+      return CupertinoListTile(
+        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
         leading: HugeIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
         title: CupertinoTextField(
           controller: controller,
@@ -456,10 +456,11 @@ class _ProfilePageState extends State<ProfilePage> {
           placeholder: placeholder ?? "Ajouter",
           onChanged: onChanged,
         ),
-        description: description ? Text("Ces informations ne sont visibles que par les utilisateurs de Messagyre.") : null,
+        subtitle: description ? Text("Ces informations ne sont visibles que par les utilisateurs de Messagyre.") : null,
       );
     } else {
-      return SettingsTile(
+      return CupertinoListTile(
+        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
         leading: HugeIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
         title: Text(
           value ?? "Ajouter",
@@ -467,8 +468,8 @@ class _ProfilePageState extends State<ProfilePage> {
           softWrap: false,
           style: value == null ? TextStyle(color: AppColors.inactive.adaptTo(context)) : null,
         ),
-        description: description ? Text("Appuyez pour copier dans le presse-papiers.") : null,
-        onPressed: value != null ? (_) => copy(context, value) : null,
+        subtitle: description ? Text("Appuyez pour copier dans le presse-papiers.") : null,
+        onTap: value != null ? () => copy(context, value) : null,
       );
     }
   }
@@ -670,7 +671,7 @@ class _ProfilePageState extends State<ProfilePage> {
             : AppColors.inactive.adaptTo(context);
 
     return CupertinoListTile(
-      backgroundColor: cupertinoListTileColor,
+      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
       leading: HugeIcon(icon: icon, color: color),
       title: Text(title, style: TextStyle(color: color)),
       onTap: onTap,

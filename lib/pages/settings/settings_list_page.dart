@@ -26,7 +26,6 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:settings_ui/settings_ui.dart';
 
 class SettingsListPage extends StatefulWidget {
   const SettingsListPage({super.key});
@@ -101,33 +100,26 @@ class _SettingsListPageState extends State<SettingsListPage> {
         },
         body: SafeArea(
           top: false,
-          child: SettingsList(
-            shrinkWrap: true,
-            platform: DevicePlatform.iOS,
-            sections: [
-              SettingsSection(
-                title: Text("Votre compte"),
-                tiles: [
+          child: ListView(
+            padding: EdgeInsets.only(bottom: 20),
+            physics: const ClampingScrollPhysics(),
+            children: [
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: Text("Votre compte"),
+                children: [
                   (account == null || globals.username == null)
-                      ? SettingsTile(
+                      ? CupertinoListTile(
+                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                         title: SizedBox(
                           height: 39,
                           child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
                         ),
                       )
-                      : SettingsTile.navigation(
-                        leading: ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
-                        title: Padding(
-                          padding: EdgeInsetsGeometry.symmetric(vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(account!.displayName ?? account!.defaultDisplayName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                              Text(globals.username!, style: TextStyle(color: Theme.of(context).dividerColor, fontSize: 16)),
-                            ],
-                          ),
-                        ),
-                        onPressed: (context) async {
+                      : CupertinoListTile(
+                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                        onTap: () async {
                           if (account!.username != globals.username) await getAccount();
 
                           if (!context.mounted) return;
@@ -136,11 +128,37 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             if (updated) getAccount();
                           });
                         },
+                        title: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 80),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
+                              const SizedBox(width: 12), // spazio tra immagine e testo
+                              Expanded(
+                                // fa espandere il testo a tutto lo spazio disponibile
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      account!.displayName ?? account!.defaultDisplayName,
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(globals.username!, style: TextStyle(color: CupertinoColors.systemGrey.resolveFrom(context), fontSize: 16)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
 
-                  SettingsTile.navigation(
-                    onPressed:
-                        (context) => showLogoutDialog(context, () {
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap:
+                        () => showLogoutDialog(context, () {
                           account = null;
                           network.logout();
                           restartApp(context);
@@ -151,56 +169,69 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 ],
               ),
 
-              SettingsSection(
-                title: Text("Apparence"),
-                tiles: [
-                  SettingsTile.switchTile(
-                    onToggle: (value) {
-                      setState(() {
-                        isDarkMode = value;
-                        globals.appBrightness = value ? Brightness.dark : Brightness.light;
-                        Phoenix.rebirth(context);
-                      });
-                    },
-                    initialValue: isDarkMode,
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: Text("Apparence"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    trailing: CupertinoSwitch(
+                      value: isDarkMode,
+                      onChanged: (value) {
+                        setState(() {
+                          isDarkMode = value;
+                          globals.appBrightness = value ? Brightness.dark : Brightness.light;
+                          Phoenix.rebirth(context);
+                        });
+                      },
+                    ),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedMoon02),
                     title: Text('Mode sombre'),
                   ),
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground),
                     title: Text("Fond d'écran des conversations"),
                   ),
                 ],
               ),
 
-              SettingsSection(
-                title: Text("Options"),
-                tiles: [
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: Text("Options"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04),
                     title: Text("Calendrier"),
                   ),
-                  // SettingsTile.navigation(
-                  //   onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsSettingsPage())),
+                  // CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  //   onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsSettingsPage())),
                   //   leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
-                  //   title: Text("Vos branches"),
+                  //   header: Text("Vos branches"),
                   // ),
                 ],
               ),
 
-              SettingsSection(
-                title: Text("Stockage"),
-                tiles: [
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: Text("Stockage"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
                     title: Text("Effacer les données"),
                   ),
 
-                  SettingsTile(
-                    onPressed: (context) async {
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () async {
                       showCupertinoDialog(
                         context: context,
                         builder:
@@ -288,8 +319,9 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             : Text("Exporter les données"),
                   ),
 
-                  SettingsTile(
-                    onPressed: (context) async {
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () async {
                       final confirm = await showCupertinoDialog<bool>(
                         context: context,
                         builder:
@@ -368,28 +400,35 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 ],
               ),
 
-              SettingsSection(
-                title: Text("Informations légales"),
-                tiles: [
-                  SettingsTile.navigation(
-                    onPressed: (context) => showTermsOfServiceReadOnly(context),
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: Text("Informations légales"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => showTermsOfServiceReadOnly(context),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
                     title: Text("Conditions d'utilisation"),
                   ),
 
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PrivacyPolicyPage(readOnly: true))),
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PrivacyPolicyPage(readOnly: true))),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedPolicy),
                     title: Text("Politique de confidentialité"),
                   ),
                 ],
               ),
 
-              SettingsSection(
-                title: Text("Autres"),
-                tiles: [
-                  SettingsTile(
-                    onPressed: (context) async {
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: Text("Autres"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () async {
                       if (await InAppReview.instance.isAvailable()) {
                         InAppReview.instance.requestReview();
                       } else {
@@ -400,8 +439,9 @@ class _SettingsListPageState extends State<SettingsListPage> {
                     title: Text("Laisser un avis"),
                   ),
 
-                  SettingsTile.navigation(
-                    onPressed: (context) {
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () {
                       try {
                         showCupertinoDialog(
                           context: context,
@@ -446,8 +486,9 @@ class _SettingsListPageState extends State<SettingsListPage> {
                     title: Text("Support"),
                   ),
 
-                  SettingsTile.navigation(
-                    onPressed: (context) => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
                     title: Text("Débogage"),
                   ),

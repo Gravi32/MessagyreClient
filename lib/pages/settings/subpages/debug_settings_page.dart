@@ -6,7 +6,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:settings_ui/settings_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class DebugSettingsPage extends StatefulWidget {
@@ -51,27 +50,48 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Débogage")),
       child: SafeArea(
-        child: SettingsList(
-          platform: DevicePlatform.iOS,
-          sections: [
-            SettingsSection(
-              title: Text("Informations générales"),
-              tiles: [
-                SettingsTile(title: Text("Nom d'utilisateur"), value: Text(globals.username ?? "-")),
-                SettingsTile(title: Text("Version"), value: Text(appVersion)),
-                SettingsTile(title: Text("Photos de profil en cache"), value: Text(globals.pfpNotifiersCache.length.toString())),
+        child: ListView(
+          physics: const ClampingScrollPhysics(),
+          children: [
+            CupertinoListSection.insetGrouped(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              backgroundColor: AppColors.transparent,
+              header: Text("Informations générales"),
+              children: [
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  title: Text("Nom d'utilisateur"),
+                  trailing: Text(globals.username ?? "-"),
+                ),
+                CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context), title: Text("Version"), trailing: Text(appVersion)),
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  title: Text("Photos de profil en cache"),
+                  trailing: Text(globals.pfpNotifiersCache.length.toString()),
+                ),
               ],
             ),
-            SettingsSection(
-              title: Text("Connexion"),
-              tiles: [
-                SettingsTile(title: Text("Mode de test local"), value: Text(NetworkService().isLocalhost ? "Oui" : "Non")),
+            CupertinoListSection.insetGrouped(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              backgroundColor: AppColors.transparent,
+              header: Text("Connexion"),
+              children: [
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  title: Text("Mode de test local"),
+                  trailing: Text(NetworkService().isLocalhost ? "Oui" : "Non"),
+                ),
 
-                SettingsTile(title: Text("Adresse du serveur"), value: Text(NetworkService().getBackendUri().host)),
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  title: Text("Adresse du serveur"),
+                  trailing: Text(NetworkService().getBackendUri().host),
+                ),
 
-                SettingsTile(
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title: Text("État du WebSocket"),
-                  value: ValueListenableBuilder(
+                  trailing: ValueListenableBuilder(
                     valueListenable: network.connectionState,
                     builder: (context, connectionState, _) {
                       return Text(connectionState.name);
@@ -80,27 +100,41 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 ),
               ],
             ),
-            SettingsSection(
-              title: Text("Jetons"),
-              tiles: [
-                SettingsTile(title: Text("Jeton d'accès JWT"), value: Text(globals.token != null ? "Enregistré" : "Manquant")),
-                SettingsTile(title: Text("Jeton de renouvellement"), value: Text(isRefreshTokenStored ? "Enregistré" : "Manquant")),
-                SettingsTile(
+            CupertinoListSection.insetGrouped(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              backgroundColor: AppColors.transparent,
+              header: Text("Jetons"),
+              children: [
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  title: Text("Jeton d'accès JWT"),
+                  trailing: Text(globals.token != null ? "Enregistré" : "Manquant"),
+                ),
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                  title: Text("Jeton de renouvellement"),
+                  trailing: Text(isRefreshTokenStored ? "Enregistré" : "Manquant"),
+                ),
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title: Text("Jeton FCM"),
-                  value: SizedBox(width: 150, child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
+                  trailing: SizedBox(width: 150, child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
                 ),
               ],
             ),
-            SettingsSection(
-              title: Text("Logs de l'application"),
-              tiles: [
-                SettingsTile(
+            CupertinoListSection.insetGrouped(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              backgroundColor: AppColors.transparent,
+              header: Text("Logs de l'application"),
+              children: [
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title: Text("Tout copier"),
                   leading: HugeIcon(icon: HugeIcons.strokeRoundedCopy02, color: AppColors.text.adaptTo(context)),
-                  onPressed: (context) => copy(context, globals.appLogs.join("\n")),
-                  description: SizedBox.shrink(),
+                  onTap: () => copy(context, globals.appLogs.join("\n")),
                 ),
-                SettingsTile(
+                CupertinoListTile(
+                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title:
                       globals.appLogs.isNotEmpty
                           ? ListView.builder(
@@ -108,17 +142,25 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                               final logIndex = globals.appLogs.length - 1 - index;
                               final content = globals.appLogs[logIndex].split(" ");
 
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(content.sublist(1).join(" ")),
-                                  Text(
-                                    content[0].replaceAll(RegExp(r'[\[\]]'), ''),
-                                    textAlign: TextAlign.end,
-                                    style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                                  ),
-                                  Divider(color: AppColors.separator.adaptTo(context).withAlpha(50)),
-                                ],
+                              return Padding(
+                                padding: EdgeInsets.only(top: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(child: Text(content.sublist(1).join(" "), style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))),
+                                        Text(
+                                          content[0].replaceAll(RegExp(r'[\[\]]'), ''),
+                                          textAlign: TextAlign.end,
+                                          style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                                        ),
+                                      ],
+                                    ),
+                                    Divider(color: AppColors.separator.adaptTo(context).withAlpha(10)),
+                                  ],
+                                ),
                               );
                             },
                             itemCount: globals.appLogs.length,
@@ -126,10 +168,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
                           )
-                          : Row(
-                            spacing: 8,
-                            children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")],
-                          ),
+                          : Row(spacing: 8, children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")]),
                 ),
               ],
             ),

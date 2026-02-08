@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/utility/classes.dart';
-import 'package:settings_ui/settings_ui.dart';
 
 class FeedbackSettingsPage extends StatefulWidget {
   const FeedbackSettingsPage({super.key});
@@ -52,13 +51,13 @@ class _FeedbackSettingsPageState extends State<FeedbackSettingsPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Envoyer un commentaire")),
       child: SafeArea(
-        child: SettingsList(
-          platform: DevicePlatform.iOS,
-          sections: [
-            SettingsSection(
-              title: Text("Contenu du commentaire"),
-              tiles: [
-                SettingsTile(
+        child: ListView(
+            physics: const ClampingScrollPhysics(),
+            children: [
+            CupertinoListSection.insetGrouped(
+              header: Text("Contenu du commentaire"),
+              children: [
+                CupertinoListTile(
                   title: CupertinoTextField(
                     controller: feedbackController,
                     decoration: BoxDecoration(),

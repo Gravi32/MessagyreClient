@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -125,7 +124,6 @@ Color adaptiveColor(Color light, Color dark) {
   return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
-Color? get cupertinoListTileColor => GlobalsService().appBrightness == Brightness.dark ? null : AppColors.secondaryBackground;
 // #endregion
 
 // #region -> Dates

@@ -86,7 +86,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                 margin: EdgeInsets.zero,
                 children: [
                   CupertinoListTile(
-                    backgroundColor: cupertinoListTileColor,
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
@@ -104,16 +104,13 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
               if (!globals.settings.useDefaultWallpaper) ...[
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
-                  decoration: cupertinoListTileColor != null ? BoxDecoration(color: cupertinoListTileColor) : null,
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context)),
                   header: Text("Vos fonds d'écran"),
                   margin: EdgeInsets.zero,
                   footer:
                       isEditMode
                           ? null
-                          : Text(
-                            "Appuyez longuement pour modifier.",
-                            style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                          ),
+                          : Text("Appuyez longuement pour modifier.", style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
                   children: [
                     SizedBox(
                       height: 200,
@@ -144,9 +141,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                         ),
                                         child: SizedBox(
                                           width: MediaQuery.of(context).size.aspectRatio * 180,
-                                          child: Center(
-                                            child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context)),
-                                          ),
+                                          child: Center(child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context))),
                                         ),
                                       ),
                                     ),
@@ -211,7 +206,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     ),
                     if (isEditMode)
                       CupertinoListTile(
-                        backgroundColor: cupertinoListTileColor,
+                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                         leading: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.text.adaptTo(context)),
                         title: Text("Terminé"),
                         onTap: () => setState(() => isEditMode = false),
@@ -224,13 +219,13 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
-                      backgroundColor: cupertinoListTileColor,
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.text.adaptTo(context)),
                       title: Text("Ajoutez une photo depuis la galérie"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),
                     CupertinoListTile(
-                      backgroundColor: cupertinoListTileColor,
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
                       title: Text("Prenez une photo"),
                       onTap: () => pickImage(ImageSource.gallery),
