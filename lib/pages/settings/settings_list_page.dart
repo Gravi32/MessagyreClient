@@ -30,10 +30,10 @@ class SettingsListPage extends StatefulWidget {
   const SettingsListPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _SettingsPageState();
+  State<StatefulWidget> createState() => _SettingsListPageState();
 }
 
-class _SettingsPageState extends State<SettingsListPage> {
+class _SettingsListPageState extends State<SettingsListPage> {
   final globals = GlobalsService();
   final network = NetworkService();
   final secureStorage = FlutterSecureStorage();
@@ -369,7 +369,7 @@ class _SettingsPageState extends State<SettingsListPage> {
                 title: Text("Informations légales"),
                 tiles: [
                   SettingsTile.navigation(
-                    onPressed: (context) => showEulaReadOnly(context),
+                    onPressed: (context) => showTermsOfServiceReadOnly(context),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
                     title: Text("Conditions d'utilisation"),
                   ),

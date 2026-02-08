@@ -22,10 +22,10 @@ class GradesListPage extends StatefulWidget {
   const GradesListPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _GradesPageState();
+  State<StatefulWidget> createState() => _GradesListPageState();
 }
 
-class _GradesPageState extends State<GradesListPage> {
+class _GradesListPageState extends State<GradesListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
 
@@ -73,7 +73,7 @@ class _GradesPageState extends State<GradesListPage> {
 
                     if (firstPlannedGrade != null) {
                       MainPage.pageIndex.value = 1;
-                      assignmentPageKey.currentState?.showAssignment(firstPlannedGrade);
+                      assignmentListPageKey.currentState?.showAssignment(firstPlannedGrade);
                     }
                   }
                   : () {

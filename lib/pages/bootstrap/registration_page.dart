@@ -143,7 +143,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       }
       isWaitingForResponse = false;
 
-      network.isAccessOverlayOpen = false;
+      network.isLoginPageOpen = false;
       network.connect();
     }
   }

@@ -18,10 +18,10 @@ class ChatsListPage extends StatefulWidget {
   const ChatsListPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ChatsPageState();
+  State<StatefulWidget> createState() => _ChatsListPageState();
 }
 
-class _ChatsPageState extends State<ChatsListPage> {
+class _ChatsListPageState extends State<ChatsListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
 

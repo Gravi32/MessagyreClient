@@ -29,10 +29,10 @@ class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.recipientUsername});
 
   @override
-  State<StatefulWidget> createState() => _ChatOverlayState();
+  State<StatefulWidget> createState() => _ChatPageState();
 }
 
-class _ChatOverlayState extends State<ChatPage> with TickerProviderStateMixin {
+class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final network = NetworkService();
   final globals = GlobalsService();
   final chats = Hive.box<Chat>("Chats");
@@ -965,7 +965,7 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble> with Sing
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         if (context.mounted) {
-          final parentState = context.findAncestorStateOfType<_ChatOverlayState>();
+          final parentState = context.findAncestorStateOfType<_ChatPageState>();
           parentState?.messagesIdToAnimate.add((widget.key as ValueKey).value);
         }
       }

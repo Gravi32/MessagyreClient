@@ -38,7 +38,7 @@ class NetworkService {
   int connectionAttempts = 0;
   WebSocketChannel? _channel;
 
-  bool isAccessOverlayOpen = false;
+  bool isLoginPageOpen = false;
 
   // #region -> Event streams
 
@@ -99,8 +99,8 @@ class NetworkService {
   bool _isConnecting = false;
 
   void onUnauthorized() {
-    if (isAccessOverlayOpen || navigatorKey.currentState?.widget is LoginPage) return;
-    isAccessOverlayOpen = true;
+    if (isLoginPageOpen || navigatorKey.currentState?.widget is LoginPage) return;
+    isLoginPageOpen = true;
     navigatorKey.currentState?.push(
       PageRouteBuilder(transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero, pageBuilder: (_, _, _) => const LoginPage()),
     );
@@ -122,7 +122,7 @@ class NetworkService {
   }
 
   Future<void> connect() async {
-    if (isAccessOverlayOpen) {
+    if (isLoginPageOpen) {
       debugPrint("[WebSocket] Tried to connect while on LoginPage.");
       return;
     }

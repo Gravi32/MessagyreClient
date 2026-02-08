@@ -11,10 +11,10 @@ class GradeGroupPage extends StatefulWidget {
   const GradeGroupPage({super.key, required this.grades});
 
   @override
-  State<StatefulWidget> createState() => _GroupPageState();
+  State<StatefulWidget> createState() => _GradeGroupPageState();
 }
 
-class _GroupPageState extends State<GradeGroupPage> {
+class _GradeGroupPageState extends State<GradeGroupPage> {
   final Box<Grade> allGrades = Hive.box<Grade>("Grades");
 
   Widget buildList() {

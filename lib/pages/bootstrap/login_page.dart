@@ -14,10 +14,10 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _AccessOverlayState();
+  State<StatefulWidget> createState() => _LoginPageState();
 }
 
-class _AccessOverlayState extends State<LoginPage> with WidgetsBindingObserver {
+class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   final network = NetworkService();
   final globals = GlobalsService();
   final secureStorage = FlutterSecureStorage();
@@ -97,7 +97,7 @@ class _AccessOverlayState extends State<LoginPage> with WidgetsBindingObserver {
     }
 
     // Connecting to the WebSocket
-    network.isAccessOverlayOpen = false;
+    network.isLoginPageOpen = false;
     network.connect();
 
     // Closing the page

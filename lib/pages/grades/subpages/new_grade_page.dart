@@ -24,10 +24,10 @@ class NewGradePage extends StatefulWidget {
   const NewGradePage({super.key, this.toEdit, this.toReference, this.subject, this.onDelete, this.groupName});
 
   @override
-  State<StatefulWidget> createState() => _NewGradeState();
+  State<StatefulWidget> createState() => _NewGradePageState();
 }
 
-class _NewGradeState extends State<NewGradePage> {
+class _NewGradePageState extends State<NewGradePage> {
   final allGrades = Hive.box<Grade>("Grades");
   final allAssignment = Hive.box<Assignment>("Assignment");
 

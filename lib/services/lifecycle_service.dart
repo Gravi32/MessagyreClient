@@ -6,10 +6,10 @@ class LifecycleService extends StatefulWidget {
   const LifecycleService({super.key, required this.child});
 
   @override
-  State<LifecycleService> createState() => _LifecycleHandlerState();
+  State<LifecycleService> createState() => _LifecycleServiceState();
 }
 
-class _LifecycleHandlerState extends State<LifecycleService> with WidgetsBindingObserver {
+class _LifecycleServiceState extends State<LifecycleService> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

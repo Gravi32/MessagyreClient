@@ -22,10 +22,10 @@ class GradesSubjectPage extends StatefulWidget {
   const GradesSubjectPage({super.key, required this.subject});
 
   @override
-  State<StatefulWidget> createState() => _SubjectPageState();
+  State<StatefulWidget> createState() => _GradesSubjectPageState();
 }
 
-class _SubjectPageState extends State<GradesSubjectPage> {
+class _GradesSubjectPageState extends State<GradesSubjectPage> {
   final network = NetworkService();
   final globals = GlobalsService();
 
@@ -197,7 +197,7 @@ class _SubjectPageState extends State<GradesSubjectPage> {
 
                       Navigator.pop(context);
                       MainPage.pageIndex.value = 1;
-                      assignmentPageKey.currentState?.showAssignment(assignment);
+                      assignmentListPageKey.currentState?.showAssignment(assignment);
                     },
                     isGradeUnknown: true,
                     isIncoming: isIncoming,

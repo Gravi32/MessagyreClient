@@ -22,16 +22,16 @@ import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
-final GlobalKey<AssignmentPageState> assignmentPageKey = GlobalKey<AssignmentPageState>();
+final assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
 
 class AssignmentsListPage extends StatefulWidget {
   const AssignmentsListPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => AssignmentPageState();
+  State<StatefulWidget> createState() => AssignmentsListPageState();
 }
 
-class AssignmentPageState extends State<AssignmentsListPage> {
+class AssignmentsListPageState extends State<AssignmentsListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
   final calendar = DeviceCalendarPlugin();

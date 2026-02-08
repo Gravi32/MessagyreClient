@@ -3,15 +3,15 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
-class EulaPage extends StatefulWidget {
+class TermsOfServicePage extends StatefulWidget {
   final bool readOnly;
-  const EulaPage({super.key, this.readOnly = false});
+  const TermsOfServicePage({super.key, this.readOnly = false});
 
   @override
-  State<EulaPage> createState() => _EulaPageState();
+  State<TermsOfServicePage> createState() => _TermsOfServicePageState();
 }
 
-class _EulaPageState extends State<EulaPage> {
+class _TermsOfServicePageState extends State<TermsOfServicePage> {
   bool accepted = false;
   bool hasScrolledToEnd = false;
   final ScrollController scrollController = ScrollController();
@@ -32,7 +32,7 @@ class _EulaPageState extends State<EulaPage> {
     super.dispose();
   }
 
-  Future<void> _acceptEula() async {
+  Future<void> _acceptTermsOfService() async {
     if (!widget.readOnly) {
       final box = await Hive.openBox('Misc');
       await box.put('eulaAccepted', true);
@@ -137,7 +137,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
                         interval: Duration(seconds: 5),
                         child: CupertinoListTile(
                           title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
-                          onTap: _acceptEula,
+                          onTap: _acceptTermsOfService,
                         ),
                       ),
                     ],
@@ -150,7 +150,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
                   children: [
                     CupertinoListTile(
                       title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white))),
-                      onTap: _acceptEula,
+                      onTap: _acceptTermsOfService,
                     ),
                   ],
                 ),
@@ -162,7 +162,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
   }
 }
 
-Future<void> askUserToAcceptEula(BuildContext context) async {
+Future<void> askUserToAcceptTermsOfService(BuildContext context) async {
   final box = await Hive.openBox('Misc');
   if (box.get('eulaAccepted') == true) return;
   if (!context.mounted) return;
@@ -170,7 +170,7 @@ Future<void> askUserToAcceptEula(BuildContext context) async {
   Navigator.of(context).push(
     PageRouteBuilder(
       opaque: false,
-      pageBuilder: (context, animation, secondaryAnimation) => EulaPage(),
+      pageBuilder: (context, animation, secondaryAnimation) => TermsOfServicePage(),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return CupertinoFullscreenDialogTransition(
           primaryRouteAnimation: animation,
@@ -183,13 +183,13 @@ Future<void> askUserToAcceptEula(BuildContext context) async {
   );
 }
 
-Future<void> showEulaReadOnly(BuildContext context) async {
+Future<void> showTermsOfServiceReadOnly(BuildContext context) async {
   if (!context.mounted) return;
 
   Navigator.of(context).push(
     PageRouteBuilder(
       opaque: false,
-      pageBuilder: (context, animation, secondaryAnimation) => EulaPage(readOnly: true),
+      pageBuilder: (context, animation, secondaryAnimation) => TermsOfServicePage(readOnly: true),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return CupertinoFullscreenDialogTransition(
           primaryRouteAnimation: animation,

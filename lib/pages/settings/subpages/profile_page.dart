@@ -22,10 +22,10 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage(this.account, {super.key, this.openedFromChat = false});
 
   @override
-  State<StatefulWidget> createState() => _ProfileOverlayState();
+  State<StatefulWidget> createState() => _ProfilePageState();
 }
 
-class _ProfileOverlayState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> {
   final globals = GlobalsService();
   final network = NetworkService();
 

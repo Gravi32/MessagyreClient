@@ -20,10 +20,10 @@ class NewAssignmentPage extends StatefulWidget {
   const NewAssignmentPage({super.key, this.toEdit, this.dueDateOverride});
 
   @override
-  State<StatefulWidget> createState() => _NewAssignmentState();
+  State<StatefulWidget> createState() => _NewAssignmentPageState();
 }
 
-class _NewAssignmentState extends State<NewAssignmentPage> {
+class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final globals = GlobalsService();
   final miscBox = Hive.box("Misc");
   final gradesBox = Hive.box<Grade>("Grades");
