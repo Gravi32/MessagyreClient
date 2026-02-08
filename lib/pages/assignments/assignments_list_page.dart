@@ -385,10 +385,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
               title: Text("Supprimer le devoir"),
               content: Text("Le devoir sera supprimé. Cette action est irréversible."),
               actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2))),
-                ),
+                CupertinoDialogAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Annuler", style: TextStyle(color: AppColors.accent))),
                 CupertinoDialogAction(
                   onPressed: () {
                     if (target.calendarEventId != null && targetCalendar?.id != null) {

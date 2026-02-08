@@ -131,7 +131,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                             Container(
                               margin: EdgeInsets.only(top: 4),
                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(color: CupertinoTheme.of(context).primaryColor, borderRadius: BorderRadius.circular(12)),
+                              decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(12)),
                               child: Text(
                                 chatData.unreadMessages.toString(),
                                 style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),

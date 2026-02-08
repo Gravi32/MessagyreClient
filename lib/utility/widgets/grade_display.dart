@@ -44,7 +44,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
 
     final color =
         widget.grade >= 4
-            ? CupertinoTheme.of(context).primaryColor
+            ? AppColors.accent
             : widget.grade > 3.75
             ? AppColors.orange
             : AppColors.red;

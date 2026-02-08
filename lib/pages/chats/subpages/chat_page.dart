@@ -534,7 +534,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 30),
-                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 20, color: CupertinoTheme.of(context).primaryColor)),
+                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 20, color: AppColors.accent)),
                     ],
                   ),
                 ),
@@ -835,7 +835,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         child: Container(
                           height: 30,
                           width: 30,
-                          decoration: BoxDecoration(shape: BoxShape.circle, color: CupertinoTheme.of(context).primaryColor),
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.accent),
                           child: Padding(padding: EdgeInsets.only(left: 2), child: Icon(Icons.send_rounded, size: 18, color: AppColors.white)),
                         ),
                       ),

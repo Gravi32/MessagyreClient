@@ -135,10 +135,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                         .map(
                                           (d) => Expanded(
                                             child: Center(
-                                              child: Text(
-                                                d,
-                                                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.tertiaryText.adaptTo(context)),
-                                              ),
+                                              child: Text(d, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.tertiaryText.adaptTo(context))),
                                             ),
                                           ),
                                         )
@@ -177,26 +174,16 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                           Container(
                                             alignment: Alignment.center,
                                             decoration: BoxDecoration(
-                                              color:
-                                                  isSelected
-                                                      ? CupertinoTheme.of(context).primaryColor
-                                                      : AppColors.secondaryBackground.adaptTo(context),
+                                              color: isSelected ? AppColors.accent : AppColors.secondaryBackground.adaptTo(context),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
-                                            child: Text(
-                                              dayNumber.toString(),
-                                              style: TextStyle(fontSize: 16, color: AppColors.text.adaptTo(context)),
-                                            ),
+                                            child: Text(dayNumber.toString(), style: TextStyle(fontSize: 16, color: AppColors.text.adaptTo(context))),
                                           ),
                                           if (isToday)
                                             Positioned(
                                               top: 5,
                                               left: 5,
-                                              child: HugeIcon(
-                                                icon: HugeIcons.strokeRoundedCalendar04,
-                                                size: 10,
-                                                color: AppColors.text.adaptTo(context),
-                                              ),
+                                              child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 10, color: AppColors.text.adaptTo(context)),
                                             ),
                                         ],
                                       ),

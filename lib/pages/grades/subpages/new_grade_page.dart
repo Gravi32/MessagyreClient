@@ -587,10 +587,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                 () => setState(() {
                                   groupName = group.groupName;
                                 }),
-                            trailing:
-                                groupName == group.groupName
-                                    ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: CupertinoTheme.of(context).primaryColor.withBrightness(.5))
-                                    : null,
+                            trailing: groupName == group.groupName ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
                           );
                         }),
                         CupertinoListTile(
@@ -611,10 +608,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                   title: Row(
                                     spacing: 8,
                                     crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
-                                      Text("Nouveau groupe"),
-                                    ],
+                                    children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.accent), Text("Nouveau groupe")],
                                   ),
                                   content: Column(
                                     children: [
@@ -637,7 +631,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                     ),
                                     CupertinoDialogAction(
                                       isDefaultAction: true,
-                                      child: Text("Ajouter", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                      child: Text("Ajouter", style: TextStyle(color: AppColors.accent)),
                                       onPressed: () {
                                         final newName = controller.text.trim();
                                         try {
@@ -711,7 +705,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                   child: CupertinoButton(
                                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     onPressed: () => focusNode.unfocus(),
-                                    child: Text("Fermer", style: TextStyle(color: CupertinoTheme.of(context).primaryColor, fontSize: 14)),
+                                    child: Text("Fermer", style: TextStyle(color: AppColors.accent, fontSize: 14)),
                                   ),
                                 ),
                             ],

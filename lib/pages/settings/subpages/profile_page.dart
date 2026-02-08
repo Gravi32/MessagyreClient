@@ -376,7 +376,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () {
                 Navigator.pop(dialogContext);
               },
-              child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+              child: Text("Annuler", style: TextStyle(color: AppColors.accent)),
             ),
           ],
         );
@@ -426,7 +426,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () {
                 Navigator.pop(dialogContext);
               },
-              child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+              child: Text("Annuler", style: TextStyle(color: AppColors.accent)),
             ),
           ],
         );
@@ -555,10 +555,7 @@ class _ProfilePageState extends State<ProfilePage> {
             title: Text("Supprimer le compte"),
             content: Text("Voulez-vous vraiment supprimer votre compte ? Cette action est irréversible et toutes vos données seront perdues."),
             actions: [
-              CupertinoDialogAction(
-                child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
-                onPressed: () => Navigator.pop(dialogContext),
-              ),
+              CupertinoDialogAction(child: Text("Annuler", style: TextStyle(color: AppColors.accent)), onPressed: () => Navigator.pop(dialogContext)),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 child: Text("Supprimer"),
@@ -573,10 +570,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         title: Row(
                           spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedLockPassword, color: CupertinoTheme.of(context).primaryColor.withBrightness(.25)),
-                            Text("Mot de passe requis"),
-                          ],
+                          children: [HugeIcon(icon: HugeIcons.strokeRoundedLockPassword, color: AppColors.accent), Text("Mot de passe requis")],
                         ),
                         content: Column(
                           children: [
@@ -596,7 +590,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         actions: [
                           CupertinoDialogAction(
-                            child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                            child: Text("Annuler", style: TextStyle(color: AppColors.accent)),
                             onPressed: () => Navigator.pop(dialogContext),
                           ),
                           CupertinoDialogAction(
@@ -767,12 +761,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     actions: [
                                       CupertinoDialogAction(
-                                        child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                        child: Text("Annuler", style: TextStyle(color: AppColors.accent)),
                                         onPressed: () => Navigator.pop(dialogContext),
                                       ),
                                       CupertinoDialogAction(
                                         isDefaultAction: true,
-                                        child: Text("Débloquer", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                        child: Text("Débloquer", style: TextStyle(color: AppColors.accent)),
                                         onPressed: () {
                                           globals.unblockUser(account.username);
                                           setState(() {});
@@ -870,7 +864,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       content: Text("Vous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action."),
                                       actions: [
                                         CupertinoDialogAction(
-                                          child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.25))),
+                                          child: Text("Annuler", style: TextStyle(color: AppColors.accent)),
                                           onPressed: () => Navigator.pop(dialogContext),
                                         ),
                                         CupertinoDialogAction(
@@ -901,7 +895,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     actions: [
                                       CupertinoDialogAction(
-                                        child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(0.25))),
+                                        child: Text("Annuler", style: TextStyle(color: AppColors.accent)),
                                         onPressed: () => Navigator.pop(dialogContext),
                                       ),
                                       CupertinoDialogAction(

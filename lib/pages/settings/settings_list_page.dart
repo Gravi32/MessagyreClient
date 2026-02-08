@@ -64,10 +64,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
             title: Text("Déconnexion"),
             content: Text("Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion."),
             actions: [
-              CupertinoDialogAction(
-                child: Text("Annuler", style: TextStyle(color: CupertinoTheme.of(context).primaryColor.withBrightness(.2))),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+              CupertinoDialogAction(child: Text("Annuler", style: TextStyle(color: AppColors.accent)), onPressed: () => Navigator.of(context).pop()),
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 onPressed: () {

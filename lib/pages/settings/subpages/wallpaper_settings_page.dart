@@ -8,7 +8,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/utility.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -162,10 +161,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                       decoration:
                                           currentWallpaper == path
                                               ? BoxDecoration(
-                                                border: Border.all(
-                                                  color: CupertinoTheme.of(context).primaryColor.withBrightness(.25),
-                                                  strokeAlign: BorderSide.strokeAlignOutside,
-                                                ),
+                                                border: Border.all(color: AppColors.accent, strokeAlign: BorderSide.strokeAlignOutside),
                                                 borderRadius: BorderRadius.circular(8),
                                               )
                                               : null,
