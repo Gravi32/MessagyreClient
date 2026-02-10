@@ -23,37 +23,6 @@ Future<void> migrateHiveToIsar() async {
 
   debugPrint("Starting Hive → database migration...");
 
-  // #region -> SUBJECTS
-  debugPrint("Migrating subjects...");
-  await database.writeTxn(() async {
-    for (final s in Subject.values) {
-      try {
-        final existing = await database.subjects.filter().codeEqualTo(s.name).findFirst();
-        final subj =
-            existing ?? isar_subject.Subject()
-              ..code = s.name
-              ..name = SubjectHelper.toFrench(s);
-
-        if (existing == null) {
-          try {
-            await database.subjects.put(subj);
-          } on IsarError catch (e) {
-            if (e.message.contains('Unique index violated')) {
-              debugPrint("Subject ${subj.code} already exists, skipping...");
-            } else {
-              rethrow;
-            }
-          }
-        }
-        subjectMap[s] = subj;
-      } catch (e) {
-        logError("Subject ${s.name}", e);
-      }
-    }
-  });
-  debugPrint("Subjects migrated: ${subjectMap.length}");
-  // #endregion
-
   // #region -> ASSIGNMENTS
   final assignmentBox = Hive.box<Assignment>("Homework");
   debugPrint("Migrating assignments...");
@@ -137,6 +106,45 @@ Future<void> migrateHiveToIsar() async {
     }
     debugPrint("Total grades migrated: $count");
   });
+  // #endregion
+
+  // #region -> SUBJECTS
+  debugPrint("Migrating subjects...");
+  final List<Subject> usedSubjects = [];
+  for (final assignment in assignmentBox.values) {
+    if (!usedSubjects.contains(assignment.subject)) usedSubjects.add(assignment.subject);
+  }
+  for (final grade in gradeBox.values) {
+    if (!usedSubjects.contains(grade.subject)) usedSubjects.add(grade.subject);
+  }
+
+  await database.writeTxn(() async {
+    for (final s in usedSubjects) {
+      try {
+        final existing = await database.subjects.filter().codeEqualTo(s.name).findFirst();
+        final subj =
+            existing ?? isar_subject.Subject()
+              ..code = s.name
+              ..name = SubjectHelper.toFrench(s);
+
+        if (existing == null) {
+          try {
+            await database.subjects.put(subj);
+          } on IsarError catch (e) {
+            if (e.message.contains('Unique index violated')) {
+              debugPrint("Subject ${subj.code} already exists, skipping...");
+            } else {
+              rethrow;
+            }
+          }
+        }
+        subjectMap[s] = subj;
+      } catch (e) {
+        logError("Subject ${s.name}", e);
+      }
+    }
+  });
+  debugPrint("Subjects migrated: ${subjectMap.length}");
   // #endregion
 
   // #region -> CHATS & MESSAGES
