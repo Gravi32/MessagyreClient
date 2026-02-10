@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/autocomplete_field.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
@@ -19,22 +21,23 @@ class NewGradePage extends StatefulWidget {
   final Grade? toEdit;
   final Assignment? toReference;
   final Subject? subject;
-  final VoidCallback? onDelete;
   final String? groupName;
 
-  const NewGradePage({super.key, this.toEdit, this.toReference, this.subject, this.onDelete, this.groupName});
+  const NewGradePage({super.key, this.toEdit, this.toReference, this.subject, this.groupName});
 
   @override
   State<StatefulWidget> createState() => _NewGradePageState();
 }
 
 class _NewGradePageState extends State<NewGradePage> {
-  final allGrades = Hive.box<Grade>("Grades");
-  final allAssignment = Hive.box<Assignment>("Homework");
+  final database = DatabaseService();
 
   late final editMode = widget.toEdit != null;
 
-  late Subject? subject = widget.toEdit?.subject ?? widget.subject;
+  late final allAssignments = database.assignments.getAll();
+  late final allGrades = database.grades.getAll();
+
+  late Subject? subject = widget.toEdit?.subject.value ?? widget.subject;
   late double grade = widget.toEdit?.grade ?? 4;
   late DateTime date = widget.toEdit?.date ?? DateTime.now();
   late double weight = widget.toEdit?.weight ?? 1;
@@ -42,7 +45,7 @@ class _NewGradePageState extends State<NewGradePage> {
   late String? referenceId = widget.toEdit?.referenceId;
 
   late final titleController = TextEditingController(text: widget.toEdit?.title);
-  late final subjectController = TextEditingController(text: SubjectHelper.toFrenchOrNull(subject ?? referencedAssignment?.subject));
+  late final subjectController = TextEditingController(text: subject?.name ?? referencedAssignment?.subject.value?.name);
   late final detailsController = TextEditingController(text: widget.toEdit?.details);
   final titleFocusNode = FocusNode();
   final subjectFocusNode = FocusNode();
@@ -53,7 +56,7 @@ class _NewGradePageState extends State<NewGradePage> {
   bool isReferenceTileExpanded = false;
   Assignment? referencedAssignment;
 
-  void confirmGrade() {
+  void confirmGrade() async {
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
         context: context,
@@ -80,18 +83,26 @@ class _NewGradePageState extends State<NewGradePage> {
       return;
     }
 
-    var gradeData = widget.toEdit ?? Grade();
+    var newGrade = widget.toEdit ?? Grade();
 
-    gradeData
+    newGrade
       ..title = titleController.text
       ..grade = grade
       ..weight = weight
-      ..subject = subject!
+      ..subject.value = subject!
       ..date = date
       ..details = detailsController.text
       ..groupName = groupName
       ..referenceId = referenceId;
-    Navigator.of(context).pop(gradeData);
+
+    if (allGrades.length == 3 && await InAppReview.instance.isAvailable()) {
+      InAppReview.instance.requestReview();
+    }
+
+    database.grades.save(newGrade);
+
+    final mountedContext = context;
+    if (mountedContext.mounted) Navigator.of(mountedContext).pop();
   }
 
   void showSubjectPicker() {
@@ -100,7 +111,7 @@ class _NewGradePageState extends State<NewGradePage> {
       builder:
           (_) => CustomSubjectPicker(
             onSubjectSelected: (selectedSubject) {
-              setState(() => subject = selectedSubject);
+              setState(() => subject = selectedSubject as Subject);
             },
           ),
     );
@@ -117,10 +128,10 @@ class _NewGradePageState extends State<NewGradePage> {
     setState(() => referenceId = target.referenceId);
     referencedAssignment = target;
     referenceId = target.referenceId;
-    subject = target.subject;
+    subject = target.subject.value;
 
     titleController.text = target.title ?? target.content;
-    subjectController.value = TextEditingValue(text: SubjectHelper.toFrenchOrNull(target.subject) ?? "");
+    subjectController.value = TextEditingValue(text: target.subject.value?.name ?? "");
 
     titleFocusNode.unfocus();
     subjectFocusNode.unfocus();
@@ -190,8 +201,8 @@ class _NewGradePageState extends State<NewGradePage> {
   }
 
   List<Assignment> getPlannedGrades() {
-    return allAssignment.values
-        .where((assignment) => assignment.referenceId != null && !allGrades.values.any((grade) => grade.referenceId == assignment.referenceId))
+    return allAssignments
+        .where((assignment) => assignment.referenceId != null && !allGrades.any((grade) => grade.referenceId == assignment.referenceId))
         .toList();
   }
 
@@ -200,13 +211,13 @@ class _NewGradePageState extends State<NewGradePage> {
 
     if (groupName != null && subject != null) resultList.add((groupName: groupName!, groupSubject: subject!));
 
-    for (var storedGrade in allGrades.values) {
+    for (var storedGrade in allGrades) {
       if (storedGrade.groupName == null ||
-          storedGrade.subject != subject ||
-          resultList.contains((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject))) {
+          storedGrade.subject.value != subject ||
+          resultList.contains((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject.value))) {
         continue;
       }
-      resultList.add((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject));
+      resultList.add((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject.value!));
     }
 
     return resultList;
@@ -303,7 +314,10 @@ class _NewGradePageState extends State<NewGradePage> {
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     spacing: 4,
                                     children: [
-                                      Text(SubjectHelper.toFrench(assignment.subject), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                                      Text(
+                                        assignment.subject.value?.name ?? "Choisir une branche",
+                                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                                      ),
                                       Text(formatDate(assignment.dueDate), style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
                                     ],
                                   ),
@@ -316,7 +330,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             },
                           ),
                           Text(
-                            subject != null ? "Note ${SubjectHelper.withPreposition(subject, lowercase: true)}" : "Pas de branche sélectionnée",
+                            subject != null ? "Note ${subject!.name.withPreposition(lowercase: true)}" : "Pas de branche sélectionnée",
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 15),
@@ -567,8 +581,8 @@ class _NewGradePageState extends State<NewGradePage> {
                       ),
                       if (isInGroup) ...[
                         ...getGroups().map((group) {
-                          final gradesInGroup = allGrades.values.where(
-                            (storedGrade) => storedGrade.subject == group.groupSubject && storedGrade.groupName == group.groupName,
+                          final gradesInGroup = allGrades.where(
+                            (storedGrade) => storedGrade.subject.value == group.groupSubject && storedGrade.groupName == group.groupName,
                           );
 
                           return CupertinoListTile(
@@ -744,8 +758,8 @@ class _NewGradePageState extends State<NewGradePage> {
                                       isDestructiveAction: true,
                                       child: Text("Supprimer"),
                                       onPressed: () {
-                                        widget.toEdit?.delete();
-                                        widget.onDelete?.call();
+                                        allGrades.remove(widget.toEdit);
+                                        database.grades.delete(widget.toEdit!);
                                         Navigator.of(context).pop();
                                         Navigator.of(context).pop(widget.toEdit);
                                       },

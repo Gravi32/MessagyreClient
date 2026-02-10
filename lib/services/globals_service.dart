@@ -6,16 +6,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/services/network_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
 import 'package:pointycastle/key_generators/api.dart';
 import 'package:pointycastle/key_generators/rsa_key_generator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GlobalsService {
   static final GlobalsService _instance = GlobalsService._internal();
   factory GlobalsService() => _instance;
 
   GlobalsService._internal() {
-    loadSettings();
+    SharedPreferences.getInstance().then((instance) => persistents = instance);
   }
 
   String? token;
@@ -25,18 +25,7 @@ class GlobalsService {
   late final network = NetworkService();
 
   // #region -> Settings
-
-  Settings settings = Settings();
-
-  void loadSettings() async {
-    final box = Hive.box<Settings>("Settings");
-
-    settings = box.get("Settings", defaultValue: settings) ?? settings;
-
-    if (settings.isInBox == false) {
-      box.put("Settings", settings);
-    }
-  }
+  late final SharedPreferences persistents;
 
   // #endregion
 
@@ -56,7 +45,7 @@ class GlobalsService {
     // August 18th of the current or previous year
     final startYear = _now.month >= 8 ? _now.year : _now.year - 1;
     final result = DateTime(startYear, 8, 18);
-    
+
     return result;
   }
 

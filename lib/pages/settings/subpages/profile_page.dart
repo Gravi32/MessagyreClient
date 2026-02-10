@@ -1,15 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
@@ -28,12 +28,12 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final globals = GlobalsService();
   final network = NetworkService();
+  final database = DatabaseService();
 
   late final account = widget.account;
   late final profile = widget.account.profile ?? {};
 
-  late final box = Hive.box<Chat>("Chats");
-  late final chat = box.get(account.username);
+  late var chat = database.chats.getByUsername(account.username);
 
   late final editMode = account.username == globals.username;
 
@@ -352,9 +352,11 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
 
-                if (Hive.isBoxOpen("Chats")) {
-                  chat?.content.clear();
+                for (final message in chat!.messages) {
+                  database.messages.delete(message);
                 }
+                chat?.messages.clear();
+                database.chats.save(chat!);
 
                 if (dialogContext.mounted) {
                   Navigator.of(dialogContext).push(
@@ -399,9 +401,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
 
-                if (Hive.isBoxOpen("Chats")) {
-                  await box.delete(account.username);
-                }
+                database.chats.deleteChat(chat);
 
                 if (dialogContext.mounted) {
                   Navigator.of(dialogContext).push(
@@ -674,8 +674,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isPinned = chat?.isPinned ?? false;
-
     isBlocked = globals.blockedUsers.contains(account.username);
 
     return CupertinoPageScaffold(
@@ -793,10 +791,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             onTap:
                                 isBlocked
                                     ? null
-                                    : () => Navigator.pushReplacement(
-                                      context,
-                                      CupertinoPageRoute(builder: (context) => ChatPage(recipientUsername: account.username)),
-                                    ),
+                                    : () => Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatPage(username: account.username))),
                           ),
 
                         // TODO
@@ -807,18 +802,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                 ],
 
-                if (box.containsKey(account.username))
+                if (chat != null)
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
                     children: [
                       buildListTile(
-                        isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
-                        isPinned ? "Désépingler" : "Épingler",
+                        chat!.isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
+                        chat!.isPinned ? "Désépingler" : "Épingler",
                         onTap: () {
                           if (chat == null) return;
-                          chat!.isPinned = !isPinned;
-                          chat!.save();
+
+                          chat!.isPinned = !chat!.isPinned;
+                          database.chats.save(chat!);
                           setState(() {});
                         },
                       ),

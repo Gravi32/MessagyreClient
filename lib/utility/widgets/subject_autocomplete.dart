@@ -3,7 +3,8 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:messagyre_client/utility/subjects.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 class SubjectAutocomplete extends StatefulWidget {
@@ -45,6 +46,8 @@ class SubjectAutocomplete extends StatefulWidget {
 }
 
 class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
+  final database = DatabaseService();
+
   late TextEditingController _controller;
   late FocusNode _focusNode;
   late final List<MapEntry<Subject, String>> _subjectsNormalized;
@@ -54,7 +57,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
     _focusNode = widget.focusNode ?? FocusNode();
-    _subjectsNormalized = SubjectHelper.sortedSubjects.map((s) => MapEntry(s, _normalize(SubjectHelper.toFrench(s)))).toList();
+    _subjectsNormalized = database.subjects.getAll().map((subject) => MapEntry(subject, _normalize(subject.name))).toList();
     if (widget.forceValid) {
       _focusNode.addListener(() {
         if (!_focusNode.hasFocus) _validateAndFix();
@@ -90,7 +93,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     final match = _matchSubject(_controller.text);
     if (match != null) {
       widget.onSelected(match);
-      _controller.text = SubjectHelper.toFrench(match);
+      _controller.text = match.name;
     } else {
       _controller.clear();
     }
@@ -122,7 +125,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         final input = _normalize(value.text);
         return _subjectsNormalized.where((e) => e.value.contains(input)).map((e) => e.key);
       },
-      displayStringForOption: (Subject option) => SubjectHelper.toFrench(option),
+      displayStringForOption: (Subject option) => option.name,
       onSelected: widget.onSelected,
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
         return CupertinoTextField(
@@ -151,7 +154,6 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       },
       optionsViewBuilder: (context, onSelected, rawOptions) {
         final options = rawOptions.toList();
-        options.remove(Subject.NotSet);
 
         return Container(
           margin: const EdgeInsets.only(top: 8),
@@ -179,7 +181,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                         alignment: Alignment.centerLeft,
                         child: Text.rich(
                           TextSpan(
-                            children: highlightSearchMatch(SubjectHelper.toFrench(option), _controller.text, useCache: true),
+                            children: highlightSearchMatch(option.name, _controller.text, useCache: true),
                             style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
                           ),
                         ),

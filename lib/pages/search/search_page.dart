@@ -7,7 +7,7 @@ import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
@@ -190,12 +190,7 @@ class SearchPageState extends State<SearchPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
                           children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedSearch01,
-                              strokeWidth: 1.5,
-                              size: 48,
-                              color: AppColors.tertiaryText.adaptTo(context),
-                            ),
+                            HugeIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
                             const SizedBox(height: 8),
                             Text(
                               "Recherchez un utilisateur",

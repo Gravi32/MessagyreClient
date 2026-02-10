@@ -89,18 +89,17 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
-                      value: globals.settings.useDefaultWallpaper,
+                      value: globals.persistents.getBool("useDefaultWallpaper") ?? true,
                       onChanged: (newValue) {
                         setState(() {
-                          globals.settings.useDefaultWallpaper = newValue;
+                          globals.persistents.setBool("useDefaultWallpaper", newValue);
                         });
-                        globals.settings.save();
                       },
                     ),
                   ),
                 ],
               ),
-              if (!globals.settings.useDefaultWallpaper) ...[
+              if (!(globals.persistents.getBool("useDefaultWallpaper") ?? true)) ...[
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context)),

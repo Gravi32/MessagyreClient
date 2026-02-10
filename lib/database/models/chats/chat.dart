@@ -7,9 +7,10 @@ part 'chat.g.dart';
 class Chat {
   Id id = Isar.autoIncrement;
 
-  late String recipientUsername;
+  @Index(unique: true)
+  late String username;
 
-  String? recipientDisplayUsername;
+  String? displayUsername;
 
   bool isPinned = false;
 
@@ -19,7 +20,14 @@ class Chat {
 
   Chat();
 
+  factory Chat.custom({required String username, String? displayUsername, bool isPinned = false, int unreadMessages = 0}) {
+    return Chat()
+      ..username = username
+      ..displayUsername = displayUsername
+      ..isPinned = isPinned
+      ..unreadMessages = unreadMessages;
+  }
+
   @override
-  String toString() =>
-      "[$recipientUsername's chat] messages: ${messages.length}";
+  String toString() => "[Instance of the chat with $username] messages: ${messages.length}";
 }

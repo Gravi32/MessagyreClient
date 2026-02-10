@@ -13,7 +13,6 @@ class Assignment {
   String content = 'Exercices';
 
   late DateTime dueDate;
-  late DateTime creationDate;
 
   bool isGraded = false;
   bool isTest = false;
@@ -25,4 +24,3 @@ class Assignment {
   @override
   String toString() => title ?? content;
 }
-

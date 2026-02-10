@@ -48,7 +48,21 @@ const SubjectSchema = CollectionSchema(
   deserialize: _subjectDeserialize,
   deserializeProp: _subjectDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'code': IndexSchema(
+      id: 329780482934683790,
+      name: r'code',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'code',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _subjectGetId,
@@ -137,6 +151,60 @@ void _subjectAttach(IsarCollection<dynamic> col, Id id, Subject object) {
   object.id = id;
 }
 
+extension SubjectByIndex on IsarCollection<Subject> {
+  Future<Subject?> getByCode(String code) {
+    return getByIndex(r'code', [code]);
+  }
+
+  Subject? getByCodeSync(String code) {
+    return getByIndexSync(r'code', [code]);
+  }
+
+  Future<bool> deleteByCode(String code) {
+    return deleteByIndex(r'code', [code]);
+  }
+
+  bool deleteByCodeSync(String code) {
+    return deleteByIndexSync(r'code', [code]);
+  }
+
+  Future<List<Subject?>> getAllByCode(List<String> codeValues) {
+    final values = codeValues.map((e) => [e]).toList();
+    return getAllByIndex(r'code', values);
+  }
+
+  List<Subject?> getAllByCodeSync(List<String> codeValues) {
+    final values = codeValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'code', values);
+  }
+
+  Future<int> deleteAllByCode(List<String> codeValues) {
+    final values = codeValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'code', values);
+  }
+
+  int deleteAllByCodeSync(List<String> codeValues) {
+    final values = codeValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'code', values);
+  }
+
+  Future<Id> putByCode(Subject object) {
+    return putByIndex(r'code', object);
+  }
+
+  Id putByCodeSync(Subject object, {bool saveLinks = true}) {
+    return putByIndexSync(r'code', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByCode(List<Subject> objects) {
+    return putAllByIndex(r'code', objects);
+  }
+
+  List<Id> putAllByCodeSync(List<Subject> objects, {bool saveLinks = true}) {
+    return putAllByIndexSync(r'code', objects, saveLinks: saveLinks);
+  }
+}
+
 extension SubjectQueryWhereSort on QueryBuilder<Subject, Subject, QWhere> {
   QueryBuilder<Subject, Subject, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
@@ -208,6 +276,50 @@ extension SubjectQueryWhere on QueryBuilder<Subject, Subject, QWhereClause> {
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterWhereClause> codeEqualTo(String code) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'code',
+        value: [code],
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterWhereClause> codeNotEqualTo(
+      String code) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'code',
+              lower: [],
+              upper: [code],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'code',
+              lower: [code],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'code',
+              lower: [code],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'code',
+              lower: [],
+              upper: [code],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }

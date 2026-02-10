@@ -1,19 +1,20 @@
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/material.dart' hide ConnectionState;
-import 'package:hive_flutter/adapters.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/database/models/chats/chat.dart';
+import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
-import 'package:uuid/uuid.dart';
 
 class ChatsListPage extends StatefulWidget {
   const ChatsListPage({super.key});
@@ -25,16 +26,25 @@ class ChatsListPage extends StatefulWidget {
 class _ChatsListPageState extends State<ChatsListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
+  final database = DatabaseService();
 
-  late Box<Chat> allChats;
+  List<Chat> get allChats =>
+      database.chats.getAll()..sort((a, b) {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+
+        final aDate = a.messages.isNotEmpty ? a.messages.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate = b.messages.isNotEmpty ? b.messages.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
+        return bDate.compareTo(aDate);
+      });
 
   // Widgets
 
   Widget buildChatBar(Chat chatData) {
-    final isBlocked = globals.blockedUsers.contains(chatData.recipientUsername);
+    final isBlocked = globals.blockedUsers.contains(chatData.username);
     var hasUnreadMessages = chatData.unreadMessages > 0;
 
-    final lastMessage = chatData.content.isNotEmpty ? chatData.content.last : null;
+    final lastMessage = chatData.messages.isNotEmpty ? chatData.messages.last : null;
     final statusIconData = lastMessage != null ? getStatusIcon(lastMessage.status) : null;
 
     return Column(
@@ -46,7 +56,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
               children: [
                 Container(
                   foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
-                  child: ProfilePictureDisplay(accountUsername: chatData.recipientUsername, radius: 25),
+                  child: ProfilePictureDisplay(accountUsername: chatData.username, radius: 25),
                 ),
 
                 SizedBox(width: 12),
@@ -61,7 +71,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                           if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
                           Text(
-                            chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(chatData.recipientUsername),
+                            chatData.displayUsername ?? Account.getDefaultDisplayName(chatData.username),
                             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white)),
                           ),
                         ],
@@ -73,12 +83,12 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                 ? Text.rich(
                                   TextSpan(
                                     children: [
-                                      if (lastMessage.isOwned)
+                                      if (lastMessage.isOwned && statusIconData != null)
                                         WidgetSpan(
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: HugeIcon(icon: statusIconData!.icon, size: 20, color: statusIconData.color.withAlpha(.6.toByte())),
+                                            child: HugeIcon(icon: statusIconData.icon, size: 20, color: statusIconData.color.withAlpha(.6.toByte())),
                                           ),
                                         ),
                                       if (lastMessage.isDeleted)
@@ -145,7 +155,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatPage(recipientUsername: chatData.recipientUsername)));
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatPage(username: chatData.username)));
           },
         ),
 
@@ -160,117 +170,42 @@ class _ChatsListPageState extends State<ChatsListPage> {
   void initState() {
     super.initState();
 
-    allChats = Hive.box<Chat>("Chats");
+    globals.blockedUsersNotifier.addListener(() => setState(() {}));
 
-    network.connectionState.addListener(() {
-      // FOR THE REVIEW TEAMS \\
+    // On connection to WebSocket
+    network.connectionState.addListener(() async {
+      // FOR THE REVIEW TEAMS
       if (globals.username == "apple.verification" || globals.username == "google.verification") {
         final now = DateTime.now();
 
-        final abusiveChat = Chat(recipientUsername: "test.1");
-        abusiveChat.content.addAll([
-          Message(
-            id: const Uuid().v4(),
-            content: "Bonjour. Ceci est une conversation de démonstration.",
-            sentAt: now.subtract(const Duration(minutes: 5)),
-            isOwned: false,
-          ),
-          Message(id: const Uuid().v4(), content: "Salut, comment ça va ?", sentAt: now.subtract(const Duration(minutes: 4)), isOwned: true),
-          Message(
-            id: const Uuid().v4(),
-            content: "Tu es vraiment nul, personne veut parler avec toi.",
-            sentAt: now.subtract(const Duration(minutes: 3)),
-            isOwned: false,
-          ),
-          Message(
-            id: const Uuid().v4(),
-            content: "Ce message est un exemple de contenu à signaler.",
-            sentAt: now.subtract(const Duration(minutes: 2)),
-            isOwned: false,
-          ),
-        ]);
+        final abusiveChat = Chat.custom(username: "test.1");
+        final abusiveMessages = [
+          Message.custom(content: "Bonjour. Ceci est une conversation de démonstration.", sentAt: now.subtract(const Duration(minutes: 5)), isOwned: false),
+          Message.custom(content: "Salut, comment ça va ?", sentAt: now.subtract(const Duration(minutes: 4)), isOwned: true),
+          Message.custom(content: "Tu es vraiment nul, personne veut parler avec toi.", sentAt: now.subtract(const Duration(minutes: 3)), isOwned: false),
+          Message.custom(content: "Ce message est un exemple de contenu à signaler.", sentAt: now.subtract(const Duration(minutes: 2)), isOwned: false),
+        ];
 
-        final normalChat = Chat(recipientUsername: "test.2");
-        normalChat.content.addAll([
-          Message(
-            id: const Uuid().v4(),
-            content: "Bonjour, ceci est un exemple de chat normal.",
-            sentAt: now.subtract(const Duration(minutes: 6)),
-            isOwned: false,
-          ),
-          Message(
-            id: const Uuid().v4(),
-            content: "Merci, c'est parfait pour la vérification.",
-            sentAt: now.subtract(const Duration(minutes: 5)),
-            isOwned: true,
-          ),
-          Message(
-            id: const Uuid().v4(),
-            content: "N'hésitez pas à signaler ou bloquer un utilisateur.",
-            sentAt: now.subtract(const Duration(minutes: 4)),
-            isOwned: false,
-          ),
-        ]);
+        final normalChat = Chat.custom(username: "test.2");
+        final normalMessages = [
+          Message.custom(content: "Bonjour, ceci est un exemple de chat normal.", sentAt: now.subtract(const Duration(minutes: 6)), isOwned: false),
+          Message.custom(content: "Merci, c'est parfait pour la vérification.", sentAt: now.subtract(const Duration(minutes: 5)), isOwned: true),
+          Message.custom(content: "N'hésitez pas à signaler ou bloquer un utilisateur.", sentAt: now.subtract(const Duration(minutes: 4)), isOwned: false),
+        ];
 
-        allChats.put("test.1", abusiveChat);
-        allChats.put("test.2", normalChat);
-      }
-    });
-
-    globals.blockedUsersNotifier.addListener(() => setState(() {}));
-
-    network.onMessageReceived.listen((messageData) {
-      if (!mounted) return;
-
-      var senderUsername = messageData["SenderUsername"]!.toString();
-      if (globals.openChatUsername == senderUsername) return;
-
-      var receivedMessage = Message.fromMessageData(messageData);
-      var targetChat = allChats.get(senderUsername);
-
-      if (targetChat == null) {
-        targetChat = Chat(recipientUsername: senderUsername);
-        targetChat.content.add(receivedMessage);
-        targetChat.unreadMessages = 1;
-      } else {
-        targetChat.content.add(receivedMessage);
-        targetChat.unreadMessages += 1;
-      }
-
-      allChats.put(senderUsername, targetChat);
-    });
-
-    network.onMessageStatusUpdateReceived.listen((messageStatusUpdate) {
-      var senderUsername = messageStatusUpdate["SenderUsername"]!.toString();
-      if (globals.openChatUsername == senderUsername) return;
-
-      var targetChat = allChats.get(senderUsername);
-      if (targetChat == null) return;
-
-      final targetMessage = targetChat.content.firstWhere(
-        (message) => message.isOwned && message.id == messageStatusUpdate["ID"],
-        orElse: () => Message.empty(),
-      );
-
-      targetMessage.status = (messageStatusUpdate["Status"] as MessageStatus?) ?? MessageStatus.Failed;
-
-      setState(() {});
-    });
-
-    network.onMessageDeletionReceived.listen((messageDeletion) {
-      var senderUsername = messageDeletion["SenderUsername"]!.toString();
-      if (globals.openChatUsername == senderUsername) return;
-
-      var targetChat = allChats.get(senderUsername);
-      if (targetChat == null) return;
-
-      final targetMessages = targetChat.content.where((message) => message.id == messageDeletion["ID"]);
-
-      setState(() {
-        for (var message in targetMessages) {
-          message.isDeleted = true;
+        for (var msg in abusiveMessages) {
+          await database.messages.save(msg);
+          abusiveChat.messages.add(msg);
         }
-      });
+
+        for (var msg in normalMessages) {
+          await database.messages.save(msg);
+          normalChat.messages.add(msg);
+        }
+
+        await database.chats.save(abusiveChat);
+        await database.chats.save(normalChat);
+      }
     });
   }
 
@@ -309,20 +244,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
           top: false,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: ValueListenableBuilder(
-              valueListenable: allChats.listenable(),
-              builder: (context, Box<Chat> box, _) {
-                final chatsList = box.values.toList();
-                chatsList.sort((a, b) {
-                  if (a.isPinned && !b.isPinned) return -1;
-                  if (!a.isPinned && b.isPinned) return 1;
-
-                  final aDate = a.content.isNotEmpty ? a.content.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
-                  final bDate = b.content.isNotEmpty ? b.content.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
-                  return bDate.compareTo(aDate);
-                });
-
-                return chatsList.isEmpty
+            child: StreamBuilder(
+              stream: database.chats.watchAll(),
+              builder: (context, _) {
+                return allChats.isEmpty
                     ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 2,
@@ -351,9 +276,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     )
                     : ListView.builder(
                       padding: EdgeInsets.only(top: 8),
-                      itemCount: chatsList.length,
+                      itemCount: allChats.length,
                       itemBuilder: (context, index) {
-                        return buildChatBar(chatsList[index]);
+                        return buildChatBar(allChats[index]);
                       },
                     );
               },

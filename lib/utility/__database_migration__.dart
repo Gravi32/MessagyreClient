@@ -1,127 +1,198 @@
 import 'package:flutter/cupertino.dart';
-import 'package:isar/isar.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:isar/isar.dart';
 
 import 'package:messagyre_client/database/models/subjects/subject.dart' as isar_subject;
 import 'package:messagyre_client/database/models/assignments/assignment.dart' as isar_assignment;
 import 'package:messagyre_client/database/models/grades/grade.dart' as isar_grade;
 import 'package:messagyre_client/database/models/chats/chat.dart' as isar_chat;
 import 'package:messagyre_client/database/models/messages/message.dart' as isar_message;
+import 'package:messagyre_client/services/database_service.dart';
 
 import 'package:messagyre_client/utility/classes.dart'; // Hive classes
 import 'package:messagyre_client/utility/subjects.dart'; // enum Subject
 
-Future<void> migrateHiveToIsar(Isar isar) async {
+Future<void> migrateHiveToIsar() async {
+  final database = DatabaseService().isar;
   final subjectMap = <Subject, isar_subject.Subject>{};
+  final errors = <String, String>{};
 
-  debugPrint("Starting Hive → Isar migration...");
+  void logError(String key, Object e) {
+    errors[key] = e.toString();
+  }
 
-  // --- SUBJECTS ---
+  debugPrint("Starting Hive → database migration...");
+
+  // #region -> SUBJECTS
   debugPrint("Migrating subjects...");
-  await isar.writeTxn(() async {
+  await database.writeTxn(() async {
     for (final s in Subject.values) {
-      final subj =
-          isar_subject.Subject()
-            ..code = s.name
-            ..name = SubjectHelper.toFrench(s);
-      await isar.subjects.put(subj);
-      subjectMap[s] = subj;
+      try {
+        final existing = await database.subjects.filter().codeEqualTo(s.name).findFirst();
+        final subj =
+            existing ?? isar_subject.Subject()
+              ..code = s.name
+              ..name = SubjectHelper.toFrench(s);
+
+        if (existing == null) {
+          try {
+            await database.subjects.put(subj);
+          } on IsarError catch (e) {
+            if (e.message.contains('Unique index violated')) {
+              debugPrint("Subject ${subj.code} already exists, skipping...");
+            } else {
+              rethrow;
+            }
+          }
+        }
+        subjectMap[s] = subj;
+      } catch (e) {
+        logError("Subject ${s.name}", e);
+      }
     }
   });
   debugPrint("Subjects migrated: ${subjectMap.length}");
+  // #endregion
 
-  // --- ASSIGNMENTS ---
+  // #region -> ASSIGNMENTS
   final assignmentBox = Hive.box<Assignment>("Homework");
   debugPrint("Migrating assignments...");
-  await isar.writeTxn(() async {
+  await database.writeTxn(() async {
     int count = 0;
     for (final old in assignmentBox.values) {
-      final a =
-          isar_assignment.Assignment()
-            ..title = old.title
-            ..content = old.content
-            ..dueDate = old.dueDate
-            ..creationDate = old.creationDate
-            ..isGraded = old.isGraded
-            ..isTest = old.isTest
-            ..isMarkedAsDone = old.isMarkedAsDone
-            ..referenceId = old.referenceId
-            ..calendarEventId = old.calendarEventId;
+      try {
+        final existing = await database.assignments.filter().referenceIdEqualTo(old.referenceId ?? '').findFirst();
+        final a =
+            existing ?? isar_assignment.Assignment()
+              ..title = old.title
+              ..content = old.content
+              ..dueDate = old.dueDate
+              ..isGraded = old.isGraded
+              ..isTest = old.isTest
+              ..isMarkedAsDone = old.isMarkedAsDone
+              ..referenceId = old.referenceId
+              ..calendarEventId = old.calendarEventId;
 
-      a.subject.value = subjectMap[old.subject];
-      await isar.assignments.put(a);
-      await a.subject.save();
+        a.subject.value = subjectMap[old.subject];
 
-      count++;
-      if (count % 10 == 0) debugPrint("  Migrated $count assignments...");
+        if (existing == null) {
+          try {
+            await database.assignments.put(a);
+            await a.subject.save();
+          } on IsarError catch (e) {
+            if (e.message.contains('Unique index violated')) {
+              debugPrint("Assignment ${a.title} already exists, skipping...");
+            } else {
+              rethrow;
+            }
+          }
+        }
+
+        count++;
+      } catch (e) {
+        logError("Assignment ${old.title}", e);
+      }
     }
     debugPrint("Total assignments migrated: $count");
   });
+  // #endregion
 
-  // --- GRADES ---
+  // #region -> GRADES
   final gradeBox = Hive.box<Grade>("Grades");
   debugPrint("Migrating grades...");
-  await isar.writeTxn(() async {
+  await database.writeTxn(() async {
     int count = 0;
     for (final old in gradeBox.values) {
-      final g =
-          isar_grade.Grade()
-            ..title = old.title
-            ..grade = old.grade
-            ..date = old.date
-            ..details = old.details
-            ..weight = old.weight
-            ..groupName = old.groupName
-            ..referenceId = old.referenceId;
+      try {
+        final existing = await database.grades.filter().referenceIdEqualTo(old.referenceId ?? '').findFirst();
+        final g =
+            existing ?? isar_grade.Grade()
+              ..title = old.title
+              ..grade = old.grade
+              ..date = old.date
+              ..details = old.details
+              ..weight = old.weight
+              ..groupName = old.groupName
+              ..referenceId = old.referenceId;
 
-      g.subject.value = subjectMap[old.subject];
-      await isar.grades.put(g);
-      await g.subject.save();
+        g.subject.value = subjectMap[old.subject];
 
-      count++;
-      if (count % 10 == 0) debugPrint("  Migrated $count grades...");
+        if (existing == null) {
+          try {
+            await database.grades.put(g);
+            await g.subject.save();
+          } on IsarError catch (e) {
+            if (e.message.contains('Unique index violated')) {
+              debugPrint("Grade ${g.title} already exists, skipping...");
+            } else {
+              rethrow;
+            }
+          }
+        }
+
+        count++;
+      } catch (e) {
+        logError("Grade ${old.title}", e);
+      }
     }
     debugPrint("Total grades migrated: $count");
   });
+  // #endregion
 
-  // --- CHATS & MESSAGES ---
+  // #region -> CHATS & MESSAGES
   final chatBox = Hive.box<Chat>("Chats");
   debugPrint("Migrating chats and messages...");
-  await isar.writeTxn(() async {
-    int chatCount = 0;
-    for (final oldChat in chatBox.values) {
+
+  for (final oldChat in chatBox.values) {
+    try {
+      final existingChat = await database.chats.filter().usernameEqualTo(oldChat.recipientUsername).findFirst();
       final chat =
-          isar_chat.Chat()
-            ..recipientUsername = oldChat.recipientUsername
-            ..recipientDisplayUsername = oldChat.recipientDisplayUsername
+          existingChat ?? isar_chat.Chat()
+            ..username = oldChat.recipientUsername
+            ..displayUsername = oldChat.recipientDisplayUsername
             ..unreadMessages = oldChat.unreadMessages
             ..isPinned = oldChat.isPinned;
 
-      await isar.chats.put(chat);
-
-      int messageCount = 0;
-      for (final oldMessage in oldChat.content) {
-        final message =
-            isar_message.Message()
-              ..content = oldMessage.content
-              ..sentAt = oldMessage.sentAt
-              ..isOwned = oldMessage.isOwned
-              ..status = isar_message.MessageStatus.values[oldMessage.status.index]
-              ..isDeleted = oldMessage.isDeleted;
-
-        await isar.messages.put(message);
-        chat.messages.add(message);
-
-        messageCount++;
-        if (messageCount % 20 == 0) debugPrint("    Migrated $messageCount messages in chat ${chat.recipientUsername}...");
+      if (existingChat == null) {
+        await database.writeTxn(() async {
+          await database.chats.put(chat);
+        });
       }
 
-      await chat.messages.save();
-      chatCount++;
-      if (chatCount % 5 == 0) debugPrint("  Migrated $chatCount chats...");
-    }
-    debugPrint("Total chats migrated: $chatCount");
-  });
+      for (final oldMessage in oldChat.content) {
+        try {
+          final message =
+              isar_message.Message()
+                ..uuid = oldMessage.id
+                ..content = oldMessage.content
+                ..sentAt = oldMessage.sentAt
+                ..isOwned = oldMessage.isOwned
+                ..status = isar_message.MessageStatus.values[oldMessage.status.index]
+                ..isDeleted = oldMessage.isDeleted;
 
-  debugPrint("Migration completed successfully.");
+          await database.writeTxn(() async {
+            await database.messages.put(message);
+            chat.messages.add(message);
+            await chat.messages.save();
+          });
+        } catch (e) {
+          logError("Message in chat ${oldChat.recipientUsername}", e);
+        }
+      }
+    } catch (e) {
+      logError("Chat ${oldChat.recipientUsername}", e);
+    }
+  }
+  // #endregion
+
+  // #region -> SUMMARY
+  if (errors.isEmpty) {
+    debugPrint("Migration completed successfully.");
+  } else {
+    debugPrint("Migration completed with errors:");
+    errors.forEach((key, value) {
+      debugPrint(" - $key: $value");
+    });
+  }
+  // #endregion
 }

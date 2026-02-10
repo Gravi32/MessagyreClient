@@ -6,7 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -21,7 +20,7 @@ import 'package:messagyre_client/pages/settings/subpages/storage_settings_page.d
 import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -453,7 +452,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                                   CupertinoDialogAction(
                                     onPressed: () {
                                       Navigator.pop(dialogContext);
-                                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(recipientUsername: "support.messagyre")));
+                                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(username: "support.messagyre")));
                                     },
                                     isDefaultAction: true,
                                     child: Text("Continuer"),

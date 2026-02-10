@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
 
 // #region -> Strings
 extension StringCasingExtension on String {
@@ -28,6 +28,18 @@ extension StringNormalizeExtension on String {
         .replaceAll(RegExp(r'[ôö]'), 'o')
         .replaceAll(RegExp(r'[ùûü]'), 'u')
         .replaceAll('ç', 'c');
+  }
+
+  String withPreposition({bool lowercase = false}) {
+    var word = this;
+    if (lowercase) word = word.toLowerCase();
+
+    final firstChar = word[0].toLowerCase();
+    if ('aeiouàâäéèêëïîôöùûü'.contains(firstChar)) {
+      return "d'$word";
+    } else {
+      return "de $word";
+    }
   }
 }
 
@@ -199,13 +211,13 @@ String? getFractionString(double value) {
 // #endregion
 
 // #region -> Messages
-void initMessageNotifiers() {
-  for (var chat in Hive.box<Chat>("Chats").values) {
-    for (var message in chat.content) {
-      message.initNotifier();
-    }
-  }
-}
+// void initMessageNotifiers() {
+//   for (var chat in Hive.box<Chat>("Chats").values) {
+//     for (var message in chat.content) {
+//       message.initNotifier();
+//     }
+//   }
+// }
 
 ({List<List<dynamic>> icon, Color color}) getStatusIcon(MessageStatus status) {
   switch (status) {

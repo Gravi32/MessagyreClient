@@ -7,15 +7,15 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:flutter_dash/flutter_dash.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -35,15 +35,15 @@ class AssignmentsListPage extends StatefulWidget {
 class AssignmentsListPageState extends State<AssignmentsListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
+  final database = DatabaseService();
   final calendar = DeviceCalendarPlugin();
 
   late final PageController timelineController;
-  late final Box<Assignment> allAssignment;
-  late final Box<Grade> allGrades;
+  late List<Assignment> allAssignments = database.assignments.getAll();
+  late final List<Grade> allGrades = database.grades.getAll();
 
   AssignmentViewMode currentViewMode = AssignmentViewMode.byDefault;
 
-  late Map<DateTime, List<Assignment>> assignmentByDate;
   final Map<int, AssignmentCardController> assignmentCardControllers = {};
   final Map<int, ScrollController> dayListViewControllers = {};
   final FocusNode searchFocusNode = FocusNode();
@@ -58,7 +58,9 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   List<DateTime> get allDays {
     final rawList = List<DateTime>.generate(globals.schoolEnd.difference(globals.schoolStart).inDays, (i) => globals.schoolStart.add(Duration(days: i)));
 
-    return globals.settings.includeWeekends ? rawList : rawList.where((d) => d.weekday != DateTime.saturday && d.weekday != DateTime.sunday).toList();
+    return globals.persistents.getBool("includeWeekends") ?? true
+        ? rawList
+        : rawList.where((d) => d.weekday != DateTime.saturday && d.weekday != DateTime.sunday).toList();
   }
 
   int get tomorrowPageIndex {
@@ -90,43 +92,13 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   Future<void> showAssignment(Assignment target) async {
     await animateToPage(allDays.indexWhere((date) => date.isSameDayAs(target.dueDate)));
 
-    assignmentCardControllers[target.key as int]?.triggerBounceEffect();
+    assignmentCardControllers[target.id]?.triggerBounceEffect();
 
     return;
   }
 
-  void groupAssignmentByDate() {
-    final grouped = <DateTime, List<Assignment>>{};
-    nearbyTests.clear();
-
-    for (var hw in allAssignment.values) {
-      final daysLeft = hw.dueDate.difference(DateTime.now()).inDays;
-
-      if (hw.isTest && daysLeft >= 0 && daysLeft < 7) nearbyTests.add(hw);
-      grouped.putIfAbsent(hw.dueDate, () => []).add(hw);
-    }
-
-    for (var list in grouped.values) {
-      list.sort((a, b) {
-        if (a.isTest != b.isTest) {
-          return a.isTest ? -1 : 1;
-        }
-
-        if (a.isGraded != b.isGraded) {
-          return a.isGraded ? -1 : 1;
-        }
-
-        return 0;
-      });
-    }
-
-    setState(() {
-      assignmentByDate = grouped;
-    });
-  }
-
   void showNewAssignmentPopup({Assignment? toEdit, DateTime? dueDateOverride}) async {
-    final result = await showCupertinoModalBottomSheet(
+    await showCupertinoModalBottomSheet(
       expand: false,
       enableDrag: false,
       previousRouteAnimationCurve: Curves.ease,
@@ -135,62 +107,6 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       context: context,
       builder: (context) => NewAssignmentPage(toEdit: toEdit, dueDateOverride: dueDateOverride),
     );
-
-    final assignment = result.assignment;
-
-    if (assignment == null) return;
-
-    if (toEdit != null) {
-      // If the subject was changed while editing, updates the linked grade.
-      if (assignment.referenceId != null) {
-        allGrades.values.where((grade) => grade.referenceId == assignment.referenceId).forEach((grade) {
-          grade.subject = assignment.subject;
-          grade.save();
-        });
-      }
-
-      toEdit.delete();
-    }
-
-    allAssignment.add(assignment);
-
-    if (result.editsCalendar) {
-      final permissionResult = await calendar.hasPermissions();
-      if (!permissionResult.isSuccess || permissionResult.data != true) {
-        final requestResult = await calendar.requestPermissions();
-        if (!requestResult.isSuccess || requestResult.data != true) return;
-      }
-
-      if (targetCalendar == null) return;
-
-      String title = "Devoir ${SubjectHelper.withPreposition(assignment.subject)}";
-      if (assignment.isGraded) {
-        title = "Devoir noté ${SubjectHelper.withPreposition(assignment.subject)}";
-      } else if (assignment.isTest) {
-        title = "Test ${SubjectHelper.withPreposition(assignment.subject)}";
-      }
-
-      String description = "";
-      if (assignment.title != null) description += "${assignment.title}\n\n";
-      if (assignment.content?.isNotEmpty) description += assignment.content;
-      if (description.isNotEmpty) description += "\n\nCréé par Messagyre.";
-
-      final timeZone = getLocation("Europe/Zurich");
-
-      final event = Event(
-        targetCalendar!.id,
-        eventId: assignment.calendarEventId,
-        title: title,
-        start: TZDateTime.from(assignment.dueDate, timeZone),
-        end: TZDateTime.from(assignment.dueDate.add(const Duration(minutes: 45)), timeZone),
-        allDay: true,
-        description: description,
-      );
-
-      final result = await calendar.createOrUpdateEvent(event);
-      assignment.calendarEventId = result?.data ?? assignment.calendarEventId;
-      assignment.save();
-    }
   }
 
   Widget buildNearbyTestsNotifier() {
@@ -258,7 +174,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                             CustomText(
                               nearbyTests.length > 1
                                   ? "*Plusieurs* tests approchent !"
-                                  : "Test *${SubjectHelper.withPreposition(nearbyTests.first.subject)}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
+                                  : "Test *${nearbyTests.first.subject.value?.name.withPreposition()}* ${DateFormat.EEEE('fr_CH').format(nearbyTests.first.dueDate)} !",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
                               boldWeight: FontWeight.w800,
                             ),
@@ -276,7 +192,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                               final isSelected = nearbyTests.indexOf(test) == currentViewingTestIndex;
 
                                               return TweenAnimationBuilder<double>(
-                                                key: ValueKey(test.key),
+                                                key: ValueKey(test.id),
                                                 tween: Tween<double>(begin: 1.0, end: isSelected ? 0.6 : 1.0),
                                                 duration: Duration(milliseconds: isSelected ? 500 : 1000),
                                                 onEnd: () {
@@ -291,7 +207,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                                                   return Opacity(
                                                     opacity: value,
                                                     child: CustomText(
-                                                      "• *${SubjectHelper.toFrench(test.subject)}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
+                                                      "• *${test.subject.value?.name}* ${DateFormat.EEEE('fr_CH').format(test.dueDate)}",
                                                       style: TextStyle(fontSize: 16, color: baseColor.withAlpha(isSelected ? 255 : 160)),
                                                       boldWeight: FontWeight.w600,
                                                     ),
@@ -391,7 +307,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     if (target.calendarEventId != null && targetCalendar?.id != null) {
                       calendar.deleteEvent(targetCalendar?.id, target.calendarEventId);
                     }
-                    target.delete();
+                    database.assignments.delete(target);
                     Navigator.pop(dialogContext);
                   },
                   child: Text("Supprimer", style: TextStyle(color: AppColors.red)),
@@ -403,7 +319,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
     switch (currentViewMode) {
       case AssignmentViewMode.byDueDate:
-        final sortedAssignment = allAssignment.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+        final sortedAssignment = allAssignments.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -444,7 +360,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     opacity: opacity,
                     child: AssignmentCard(
                       assignment: assignment,
-                      controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                      controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
                       onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
                       onDeleteButtonClicked: () => deleteAssignment(assignment),
                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
@@ -456,71 +372,71 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           },
         );
 
-      case AssignmentViewMode.bySubject:
-        final assignmentListBySubject = <Subject, List<Assignment>>{};
+      // case AssignmentViewMode.bySubject:
+      //   final assignmentListBySubject = <Subject, List<Assignment>>{};
 
-        for (var hw in allAssignment.values) {
-          assignmentListBySubject.putIfAbsent(hw.subject, () => []).add(hw);
-        }
+      //   for (var assignment in allAssignments) {
+      //     assignmentListBySubject.putIfAbsent(assignment.subject.value as Subject, () => []).add(assignment);
+      //   }
 
-        return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          itemCount: SubjectHelper.sortedSubjects.length,
-          itemBuilder: (context, index) {
-            final subject = SubjectHelper.sortedSubjects[index];
-            final subjectAssignment = assignmentListBySubject[subject];
+      //   return ListView.builder(
+      //     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      //     itemCount: SubjectHelper.sortedSubjects.length,
+      //     itemBuilder: (context, index) {
+      //       final subject = SubjectHelper.sortedSubjects[index];
+      //       final subjectAssignment = assignmentListBySubject[subject];
 
-            return subjectAssignment == null
-                ? SizedBox.shrink()
-                : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      spacing: 6,
-                      children: [
-                        ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 140),
-                          child: Text(
-                            SubjectHelper.toFrench(subject),
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+      //       return subjectAssignment == null
+      //           ? SizedBox.shrink()
+      //           : Column(
+      //             crossAxisAlignment: CrossAxisAlignment.stretch,
+      //             children: [
+      //               Row(
+      //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //                 crossAxisAlignment: CrossAxisAlignment.baseline,
+      //                 textBaseline: TextBaseline.alphabetic,
+      //                 spacing: 6,
+      //                 children: [
+      //                   ConstrainedBox(
+      //                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 140),
+      //                     child: Text(
+      //                       SubjectHelper.toFrench(subject),
+      //                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
+      //                       overflow: TextOverflow.ellipsis,
+      //                     ),
+      //                   ),
 
-                        Text(
-                          "${subjectAssignment.length} ${subjectAssignment.length == 1 ? "Devoir" : "Devoirs"}",
-                          style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    ...subjectAssignment.map(
-                      (assignment) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Opacity(
-                          opacity: assignment.dueDate.isBefore(now) ? 0.5 : 1.0,
-                          child: AssignmentCard(
-                            assignment: assignment,
-                            controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
-                            onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
-                            onDeleteButtonClicked: () => deleteAssignment(assignment),
-                            onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                  ],
-                );
-          },
-        );
+      //                   Text(
+      //                     "${subjectAssignment.length} ${subjectAssignment.length == 1 ? "Devoir" : "Devoirs"}",
+      //                     style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
+      //                   ),
+      //                 ],
+      //               ),
+      //               SizedBox(height: 4),
+      //               ...subjectAssignment.map(
+      //                 (assignment) => Padding(
+      //                   padding: const EdgeInsets.only(bottom: 12),
+      //                   child: Opacity(
+      //                     opacity: assignment.dueDate.isBefore(now) ? 0.5 : 1.0,
+      //                     child: AssignmentCard(
+      //                       assignment: assignment,
+      //                       controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
+      //                       onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+      //                       onDeleteButtonClicked: () => deleteAssignment(assignment),
+      //                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ),
+      //               SizedBox(height: 20),
+      //             ],
+      //           );
+      //     },
+      //   );
 
       case AssignmentViewMode.testsFirst:
         final sortedAssignment =
-            allAssignment.values.toList()
+            allAssignments.toList()
               ..sort((a, b) => b.dueDate.compareTo(a.dueDate))
               ..sort((a, b) {
                 if (a.isTest && !b.isTest) return -1;
@@ -564,7 +480,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     opacity: opacity,
                     child: AssignmentCard(
                       assignment: assignment,
-                      controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                      controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
                       onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
                       onDeleteButtonClicked: () => deleteAssignment(assignment),
                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
@@ -577,7 +493,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
         );
 
       case AssignmentViewMode.testsOnly:
-        final sortedAssignment = allAssignment.values.where((hw) => hw.isTest).toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+        final sortedAssignment = allAssignments.where((hw) => hw.isTest).toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -615,7 +531,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     opacity: opacity,
                     child: AssignmentCard(
                       assignment: assignment,
-                      controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                      controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
                       onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
                       onDeleteButtonClicked: () => deleteAssignment(assignment),
                       onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
@@ -628,7 +544,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
         );
 
       case AssignmentViewMode.all:
-        final sortedAssignment = allAssignment.values.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
+        final sortedAssignment = allAssignments.toList()..sort((a, b) => b.dueDate.compareTo(a.dueDate));
 
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -643,7 +559,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                 opacity: opacity,
                 child: AssignmentCard(
                   assignment: assignment,
-                  controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
+                  controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
                   onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
                   onDeleteButtonClicked: () => deleteAssignment(assignment),
                   onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
@@ -653,159 +569,165 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           },
         );
 
-      case AssignmentViewMode.searchMode:
-        final query = searchController.text.trim().toLowerCase();
-        final sortedAssignment =
-            query.isEmpty ? [] : SubjectHelper.searchBySimilarity(query, allAssignment.toMap().map((key, value) => MapEntry(value.subject, value)));
+      // case AssignmentViewMode.searchMode:
+      //   final query = searchController.text.trim().toLowerCase();
+      //   final sortedAssignment =
+      //       query.isEmpty ? [] : SubjectHelper.searchBySimilarity(query, allAssignments.toMap().map((key, value) => MapEntry(value.subject, value)));
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsetsGeometry.symmetric(horizontal: 14, vertical: 10),
-              child: Text(
-                sortedAssignment.isEmpty
-                    ? "Recherchéz un devoir..."
-                    : "${sortedAssignment.length} ${sortedAssignment.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                itemCount: sortedAssignment.length,
-                itemBuilder: (context, index) {
-                  final date = sortedAssignment[index].dueDate;
-                  final assignment = sortedAssignment[index];
+      //   return Column(
+      //     crossAxisAlignment: CrossAxisAlignment.stretch,
+      //     children: [
+      //       Padding(
+      //         padding: EdgeInsetsGeometry.symmetric(horizontal: 14, vertical: 10),
+      //         child: Text(
+      //           sortedAssignment.isEmpty
+      //               ? "Recherchéz un devoir..."
+      //               : "${sortedAssignment.length} ${sortedAssignment.length == 1 ? "Résultat" : "Résultats"} ${query.isEmpty ? "" : "pour '$query'"}",
+      //           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context)),
+      //         ),
+      //       ),
+      //       Expanded(
+      //         child: ListView.builder(
+      //           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      //           itemCount: sortedAssignment.length,
+      //           itemBuilder: (context, index) {
+      //             final date = sortedAssignment[index].dueDate;
+      //             final assignment = sortedAssignment[index];
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        "pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context)),
-                      ),
-                      SizedBox(height: 6),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: AssignmentCard(
-                          assignment: assignment,
-                          controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
-                          onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
-                          onDeleteButtonClicked: () => deleteAssignment(assignment),
-                          onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        );
+      //             return Column(
+      //               crossAxisAlignment: CrossAxisAlignment.stretch,
+      //               children: [
+      //                 Text(
+      //                   "pour ${formatDate(date, includeArticle: true)}",
+      //                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context)),
+      //                 ),
+      //                 SizedBox(height: 6),
+      //                 Padding(
+      //                   padding: const EdgeInsets.only(bottom: 12),
+      //                   child: AssignmentCard(
+      //                     assignment: assignment,
+      //                     controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
+      //                     onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+      //                     onDeleteButtonClicked: () => deleteAssignment(assignment),
+      //                     onMarkAsDoneButtonClicked: (isMarkedAsDone) => setState(() => assignment.isMarkedAsDone = isMarkedAsDone),
+      //                   ),
+      //                 ),
+      //               ],
+      //             );
+      //           },
+      //         ),
+      //       ),
+      //     ],
+      //   );
 
       default:
-        return PageView.builder(
-          controller: timelineController,
-          itemCount: allDays.length,
-          scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
-          physics: PageScrollPhysics(),
-          itemBuilder: (context, index) {
-            final date = allDays[index].dateOnly();
-            final isPassed = date.isBefore(now);
-            final opacity = isPassed ? 0.5 : 1.0;
+        return StreamBuilder(
+          stream: database.assignments.watchAll(),
+          builder: (_, _) {
+            allAssignments = database.assignments.getAll();
 
-            final thisDaysAssignment = assignmentByDate[date] ?? [];
-            final formattedDate = formatDate(date);
+            return PageView.builder(
+              controller: timelineController,
+              itemCount: allDays.length,
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              physics: PageScrollPhysics(),
+              itemBuilder: (context, index) {
+                final date = allDays[index].dateOnly();
+                final isPassed = date.isBefore(now);
+                final opacity = isPassed ? 0.5 : 1.0;
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 7),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Column(
+                final thisDayAssignments = allAssignments.where((assignment) => assignment.dueDate.isSameDayAs(date));
+                final formattedDate = formatDate(date);
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        "Pour ${formatDate(date, includeArticle: true)}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context).withAlpha(opacity.toByte())),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Pour ${formatDate(date, includeArticle: true)}",
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.text.adaptTo(context).withAlpha(opacity.toByte())),
+                          ),
+                          if (int.tryParse(formattedDate[0]) == null)
+                            Text(
+                              DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
+                              style: TextStyle(fontSize: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                            ),
+                        ],
                       ),
-                      if (int.tryParse(formattedDate[0]) == null)
-                        Text(
-                          DateFormat("${formattedDate == "aujourd'hui" || formattedDate == "hier" ? "EEEE " : ""}d MMMM", "fr_CH").format(date),
-                          style: TextStyle(fontSize: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                      Expanded(
+                        child: ClipPath(
+                          clipper: _VerticalClipper(),
+                          child: ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.only(top: 6, bottom: 20),
+                            clipBehavior: Clip.none,
+                            itemCount: thisDayAssignments.length + 1,
+                            itemBuilder: (context, i) {
+                              if (i < thisDayAssignments.length) {
+                                final assignment = thisDayAssignments.elementAt(i);
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: AssignmentCard(
+                                    assignment: assignment,
+                                    controller: assignmentCardControllers.putIfAbsent(assignment.id, () => AssignmentCardController()),
+                                    onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
+                                    onDeleteButtonClicked: () => deleteAssignment(assignment),
+                                    onMarkAsDoneButtonClicked: (isMarkedAsDone) {
+                                      bool isAllDone = true;
+
+                                      for (var otherAssignment in thisDayAssignments) {
+                                        if (!otherAssignment.isTest && !otherAssignment.isMarkedAsDone) isAllDone = false;
+                                      }
+
+                                      if (isAllDone) {
+                                        Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
+                                        HapticFeedback.heavyImpact();
+                                      }
+                                    },
+                                  ),
+                                );
+                              }
+                              return GestureDetector(
+                                onTap: () => showNewAssignmentPopup(dueDateOverride: date),
+                                behavior: HitTestBehavior.opaque,
+                                child: DottedBorder(
+                                  options: RoundedRectDottedBorderOptions(
+                                    color: AppColors.secondaryBackground.adaptTo(context),
+                                    strokeWidth: 2,
+                                    dashPattern: [4, 5],
+                                    radius: Radius.circular(8),
+                                    strokeCap: StrokeCap.round,
+                                    borderPadding: EdgeInsets.all(2),
+                                  ),
+                                  child: SizedBox(
+                                    height: 100,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      spacing: 6,
+                                      children: [
+                                        Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                                        HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: AppColors.tertiaryText.adaptTo(context)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
+                      ),
                     ],
                   ),
-                  Expanded(
-                    child: ClipPath(
-                      clipper: _VerticalClipper(),
-                      child: ListView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(top: 6, bottom: 20),
-                        clipBehavior: Clip.none,
-                        itemCount: thisDaysAssignment.length + 1,
-                        itemBuilder: (context, i) {
-                          if (i < thisDaysAssignment.length) {
-                            final assignment = thisDaysAssignment[i];
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: AssignmentCard(
-                                assignment: assignment,
-                                controller: assignmentCardControllers.putIfAbsent(assignment.key as int, () => AssignmentCardController()),
-                                onEditButtonClicked: () => showNewAssignmentPopup(toEdit: assignment),
-                                onDeleteButtonClicked: () => deleteAssignment(assignment),
-                                onMarkAsDoneButtonClicked: (isMarkedAsDone) {
-                                  bool isAllDone = true;
-
-                                  for (var assignment
-                                      in assignmentByDate.entries.where((entry) => entry.key.isSameDayAs(date)).expand((entry) => entry.value).toList()) {
-                                    if (!assignment.isTest && !assignment.isMarkedAsDone) isAllDone = false;
-                                  }
-
-                                  if (isAllDone) {
-                                    Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6));
-                                    HapticFeedback.heavyImpact();
-                                  }
-                                },
-                              ),
-                            );
-                          }
-                          return GestureDetector(
-                            onTap: () => showNewAssignmentPopup(dueDateOverride: date),
-                            behavior: HitTestBehavior.opaque,
-                            child: DottedBorder(
-                              options: RoundedRectDottedBorderOptions(
-                                color: AppColors.secondaryBackground.adaptTo(context),
-                                strokeWidth: 2,
-                                dashPattern: [4, 5],
-                                radius: Radius.circular(8),
-                                strokeCap: StrokeCap.round,
-                                borderPadding: EdgeInsets.all(2),
-                              ),
-                              child: SizedBox(
-                                height: 100,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  spacing: 6,
-                                  children: [
-                                    Text("Ajouter un devoir", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                                    HugeIcon(icon: HugeIcons.strokeRoundedAdd01, strokeWidth: 1, color: AppColors.tertiaryText.adaptTo(context)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -837,14 +759,9 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   @override
   void initState() {
     super.initState();
-    allAssignment = Hive.box<Assignment>("Homework");
-    allGrades = Hive.box<Grade>("Grades");
     timelineController = PageController(initialPage: tomorrowPageIndex, viewportFraction: 0.95);
 
     globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar = retreivedCalendar);
-
-    groupAssignmentByDate();
-    allAssignment.listenable().addListener(groupAssignmentByDate);
 
     timelineController.addListener(() {
       if (isAnimating) return;

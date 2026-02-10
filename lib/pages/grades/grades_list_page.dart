@@ -2,17 +2,17 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:in_app_review/in_app_review.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -29,22 +29,19 @@ class GradesListPage extends StatefulWidget {
 class _GradesListPageState extends State<GradesListPage> {
   final network = NetworkService();
   final globals = GlobalsService();
-
-  late Box<Grade> allGrades;
-  late Box<Assignment> allAssignment;
-  late Box<List> subjectOrderBox;
-  List<MapEntry<Subject, List<Grade>>> subjectGradesList = [];
-  List<Subject> subjectsWithFutureGrades = [];
+  final database = DatabaseService();
 
   bool isAverageBarExpanded = false;
   bool isIncomingGradesInfoExpanded = false;
 
-  Widget buildSubjectBar(Subject subject, {List<Grade> grades = const [], int index = 0, bool isGradeUnknown = false}) {
+  Widget buildSubjectBar(Subject subject, {bool isGradeUnknown = false}) {
+    final grades = database.grades.getAll().where((grade) => grade.subject.value?.code == subject.code).toList();
     final thisSubjectGradedAssignment =
-        allAssignment.values
+        database.assignments
+            .getAll()
             .where(
               (assignment) =>
-                  assignment.subject == subject &&
+                  assignment.subject.value == subject &&
                   assignment.referenceId != null &&
                   (assignment.isTest || assignment.isGraded) &&
                   !grades.any((grade) => grade.referenceId != null && grade.referenceId == assignment.referenceId),
@@ -100,7 +97,7 @@ class _GradesListPageState extends State<GradesListPage> {
                     spacing: 2,
                     children: [
                       Text(
-                        SubjectHelper.toFrench(subject),
+                        subject.name,
                         style: TextStyle(
                           fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
                           fontSize: 18,
@@ -118,16 +115,6 @@ class _GradesListPageState extends State<GradesListPage> {
                     ],
                   ),
                 ),
-
-                if (!isGradeUnknown)
-                  ReorderableDragStartListener(
-                    index: index,
-
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedUnfoldMore, color: AppColors.tertiaryText.adaptTo(context)),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -138,17 +125,8 @@ class _GradesListPageState extends State<GradesListPage> {
   }
 
   Widget buildAverageBar() {
-    final average = calculateAverage(allGrades.values.toList());
-    final thisSubjectGradedAssignment =
-        allAssignment.values
-            .where(
-              (assignment) =>
-                  assignment.referenceId != null && !allGrades.values.any((grade) => grade.referenceId != null && grade.referenceId == assignment.referenceId),
-            )
-            .toList();
-
-    final incomingGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isBefore(DateTime.now())).toList();
-    final plannedGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isAfter(DateTime.now())).toList();
+    final grades = database.grades.getAll();
+    final average = calculateAverage(grades.toList());
 
     return Padding(
       padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
@@ -170,43 +148,8 @@ class _GradesListPageState extends State<GradesListPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               spacing: 10,
               children: [
-                GradeDisplay(
-                  grade: average,
-                  size: 100,
-                  strokeWidth: 5,
-                  roundGrade: false,
-                  textBelow: "${allGrades.length} note${allGrades.length > 1 ? 's' : ''}",
-                ),
+                GradeDisplay(grade: average, size: 100, strokeWidth: 5, roundGrade: false, textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}"),
                 Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 3,
-                  children: [
-                    if (incomingGrades.isNotEmpty) ...[
-                      HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, strokeWidth: 2, color: AppColors.tertiaryText.adaptTo(context)),
-
-                      Text(
-                        incomingGrades.length.toString(),
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 18),
-                      ),
-                      const SizedBox(width: 2),
-                    ],
-                    if (plannedGrades.isNotEmpty) ...[
-                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, strokeWidth: 2, color: AppColors.tertiaryText.adaptTo(context)),
-                      Text(
-                        plannedGrades.length.toString(),
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 18),
-                      ),
-                    ],
-                  ],
-                ),
               ],
             ),
 
@@ -227,10 +170,7 @@ class _GradesListPageState extends State<GradesListPage> {
                             "Informations supplémentaires",
                             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white)),
                           ),
-                          Text(
-                            "Total des points: ${subjectGradesList.map((entry) => calculateAverage(entry.value).round()).sum}",
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          Text("Total des points: ${calculateAverage(grades)}", style: TextStyle(fontSize: 16)),
                           Text(
                             "Plusieurs options seront disponibles dans les prochaines mises à jours...",
                             style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
@@ -260,64 +200,12 @@ class _GradesListPageState extends State<GradesListPage> {
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(
+    await showCupertinoModalBottomSheet<Grade?>(
       enableDrag: false,
       context: context,
-      builder: (context) => NewGradePage(toReference: toReference),
+      builder: (context) => NewGradePage(toEdit: toEdit, toReference: toReference),
     );
-
-    if (newGrade == null) return;
-
-    if (toEdit != null) toEdit.delete();
-
-    if (allGrades.isEmpty && await InAppReview.instance.isAvailable()) {
-      InAppReview.instance.requestReview();
-    }
-
-    allGrades.add(newGrade);
     setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    allGrades = Hive.box<Grade>("Grades");
-    allAssignment = Hive.box<Assignment>("Homework");
-    subjectOrderBox = Hive.box<List>("SubjectOrder");
-
-    allAssignment.listenable().addListener(() {
-      setState(() {});
-      loadSubjects();
-    });
-  }
-
-  void loadSubjects() {
-    final gradeList = allGrades.values.toList();
-
-    final subjectGradesMap = <Subject, List<Grade>>{};
-
-    for (final grade in gradeList) {
-      subjectGradesMap.putIfAbsent(grade.subject, () => []);
-      subjectGradesMap[grade.subject]!.add(grade);
-    }
-
-    subjectsWithFutureGrades.clear();
-    for (final assignment in allAssignment.values.sortedBy((assignment) => assignment.dueDate)) {
-      if ((assignment.isGraded || assignment.isTest) && assignment.referenceId != null && !subjectGradesMap.containsKey(assignment.subject)) {
-        subjectsWithFutureGrades.add(assignment.subject);
-      }
-    }
-
-    subjectGradesList = subjectGradesMap.entries.toList();
-
-    final savedOrder = subjectOrderBox.get('order')?.cast<int>();
-    if (savedOrder != null) {
-      subjectGradesList.sort((a, b) {
-        final aIndex = savedOrder.indexOf(a.key.index);
-        final bIndex = savedOrder.indexOf(b.key.index);
-        return aIndex.compareTo(bIndex);
-      });
-    }
   }
 
   @override
@@ -333,11 +221,36 @@ class _GradesListPageState extends State<GradesListPage> {
               top: false,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
-                child: ValueListenableBuilder(
-                  valueListenable: allGrades.listenable(),
-                  builder: (context, Box<Grade> box, _) {
-                    loadSubjects();
-                    return subjectGradesList.isEmpty
+                child: StreamBuilder(
+                  stream: database.grades.watchAll(),
+                  builder: (context, _) {
+                    // All the grades
+                    final allGrades = database.grades.getAll();
+
+                    // A list of all the subjects with at least 1 grade
+                    final allSubjects = [];
+                    for (final grade in allGrades) {
+                      print(grade.subject);
+                      if (!allSubjects.contains(grade.subject.value)) allSubjects.add(grade.subject.value);
+                    }
+
+                    // All the assignments
+                    final allAssignments = database.assignments.getAll();
+
+                    // A list of the subjects that are going to be added
+                    final allIncomingSubjects = [];
+                    for (final assignment in allAssignments.sortedBy((assignment) => assignment.dueDate)) {
+                      if ((assignment.isGraded || assignment.isTest) &&
+                          assignment.referenceId != null &&
+                          assignment.subject.value != null &&
+                          !allIncomingSubjects.contains(assignment.subject.value)) {
+                        allIncomingSubjects.add(assignment.subject.value!);
+                      }
+                    }
+
+                    print("$allGrades\t$allSubjects");
+
+                    return allGrades.isEmpty
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
@@ -371,32 +284,19 @@ class _GradesListPageState extends State<GradesListPage> {
                             spacing: 20,
                             children: [
                               buildAverageBar(),
-                              ReorderableListView.builder(
+
+                              GridView.builder(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8),
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
-                                buildDefaultDragHandles: false,
-                                itemCount: subjectGradesList.length,
-                                onReorder: (oldIndex, newIndex) {
-                                  if (newIndex > oldIndex) newIndex--;
-                                  final subjectGrades = subjectGradesList.removeAt(oldIndex);
-                                  subjectGradesList.insert(newIndex, subjectGrades);
-
-                                  final order = subjectGradesList.map((e) => e.key.index).toList();
-                                  subjectOrderBox.put('order', order);
-                                },
-                                proxyDecorator: (Widget child, int index, Animation<double> animation) {
-                                  return Material(color: AppColors.background.adaptTo(context).withAlpha(150), child: child);
-                                },
+                                itemCount: allSubjects.length,
                                 itemBuilder: (context, index) {
-                                  final subjectGrades = subjectGradesList[index];
-                                  return Container(
-                                    key: ValueKey(subjectGrades.key),
-                                    child: buildSubjectBar(subjectGrades.key, grades: subjectGrades.value, index: index),
-                                  );
+                                  final subject = allSubjects[index];
+                                  return Container(child: buildSubjectBar(subject));
                                 },
                               ),
 
-                              if (subjectsWithFutureGrades.isNotEmpty) ...[
+                              if (allIncomingSubjects.isNotEmpty) ...[
                                 CupertinoPressable(
                                   onTap: () => setState(() => isIncomingGradesInfoExpanded = !isIncomingGradesInfoExpanded),
                                   child: Row(
@@ -439,11 +339,11 @@ class _GradesListPageState extends State<GradesListPage> {
 
                               ListView.builder(
                                 padding: EdgeInsets.zero,
+                                itemCount: allIncomingSubjects.length,
                                 itemBuilder: (context, index) {
-                                  final subjectFutureGrade = subjectsWithFutureGrades.elementAt(index);
+                                  final subjectFutureGrade = allIncomingSubjects.elementAt(index);
                                   return buildSubjectBar(subjectFutureGrade, isGradeUnknown: true);
                                 },
-                                itemCount: subjectsWithFutureGrades.length,
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
                               ),

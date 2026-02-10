@@ -33,12 +33,11 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: AppColors.text.adaptTo(context)),
                       title: Text("Inclure les week-ends"),
                       trailing: CupertinoSwitch(
-                        value: globals.settings.includeWeekends,
+                        value: globals.persistents.getBool("includeWeekends") ?? false,
                         onChanged: (newValue) {
                           setState(() {
-                            globals.settings.includeWeekends = newValue;
+                            globals.persistents.setBool("includeWeekends", newValue);
                           });
-                          globals.settings.save();
                         },
                       ),
                     ),

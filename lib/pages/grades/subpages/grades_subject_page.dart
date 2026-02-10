@@ -2,16 +2,17 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/grade_group_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
@@ -29,52 +30,13 @@ class GradesSubjectPage extends StatefulWidget {
 class _GradesSubjectPageState extends State<GradesSubjectPage> {
   final network = NetworkService();
   final globals = GlobalsService();
+  final database = DatabaseService();
 
-  Box<Grade> allGrades = Hive.box<Grade>("Grades");
-  Box<Assignment> allAssignment = Hive.box<Assignment>("Homework");
-
-  List<Grade> allSubjectGrades = [];
-  List<Grade> singleGrades = [];
-  Map<String, List> groups = {};
-  List<Assignment> subjectIncomingGrades = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadGrades();
-  }
-
-  void loadGrades() {
-    // Loading all this subject' grades
-    allSubjectGrades.clear();
-    allSubjectGrades = allGrades.values.where((grade) => grade.subject == widget.subject).toList();
-
-    // Loading single grades
-    singleGrades = allSubjectGrades.where((grade) => grade.groupName == null).toList().sorted((gradeA, gradeB) {
-      return gradeB.date.compareTo(gradeA.date);
-    });
-
-    // Loading groups
-    for (var grade in allSubjectGrades) {
-      if (grade.groupName == null) continue;
-      groups.putIfAbsent(grade.groupName!, () => []).add(grade);
-    }
-
-    // Loading incoming grades
-    subjectIncomingGrades =
-        allAssignment.values
-            .where(
-              (assignment) =>
-                  assignment.subject == widget.subject &&
-                  (assignment.isGraded || assignment.isTest) &&
-                  !allSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
-            )
-            .sortedBy((assignment) => assignment.dueDate)
-            .toList();
-  }
+  List<Grade> get thisSubjectGrades => database.grades.getAll().where((grade) => grade.subject.value?.code == widget.subject.code).toList();
+  late final allAssignments = database.assignments.getAll();
 
   Widget buildGroupBar(String groupName) {
-    final gradesInGroup = allSubjectGrades.where((grade) => grade.groupName == groupName).toList();
+    final gradesInGroup = thisSubjectGrades.where((grade) => grade.groupName == groupName).toList();
 
     return Column(
       children: [
@@ -140,10 +102,10 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => GradeGroupPage(grades: gradesInGroup))).then((_) {
-              loadGrades();
-              setState(() {});
-            });
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).push(CupertinoPageRoute(builder: (context) => GradeGroupPage(grades: gradesInGroup))).then((_) => setState(() {}));
           },
         ),
       ],
@@ -151,105 +113,102 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   }
 
   Widget buildList() {
-    loadGrades();
+    return StreamBuilder(
+      stream: database.grades.watchAll(),
+      builder: (context, _) {
+        final incomingGrades =
+            allAssignments
+                .where(
+                  (assignment) =>
+                      assignment.subject.value == widget.subject &&
+                      (assignment.isGraded || assignment.isTest) &&
+                      !thisSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
+                )
+                .sortedBy((assignment) => assignment.dueDate)
+                .toList();
 
-    return Column(
-      spacing: 1,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Expanded(
-          child: ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.only(top: 8),
+        final groups = {};
+        for (var grade in thisSubjectGrades) {
+          if (grade.groupName == null) continue;
+          groups.putIfAbsent(grade.groupName!, () => []).add(grade);
+        }
 
-            children: [
-              ...singleGrades.map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
-              ...groups.keys.map((groupName) => buildGroupBar(groupName)),
+        return Column(
+          spacing: 1,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: ListView(
+                shrinkWrap: true,
+                padding: EdgeInsets.only(top: 8),
 
-              if (subjectIncomingGrades.isNotEmpty) ...[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                    Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
+                children: [
+                  ...thisSubjectGrades
+                      .where((grade) => grade.groupName == null)
+                      .toList()
+                      .sorted((gradeA, gradeB) {
+                        return gradeB.date.compareTo(gradeA.date);
+                      })
+                      .map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
+
+                  ...groups.keys.map((groupName) => buildGroupBar(groupName)),
+
+                  if (incomingGrades.isNotEmpty) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                        Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
+                      ],
+                    ),
+
+                    ...incomingGrades.map((assignment) {
+                      final grade =
+                          Grade()
+                            ..title = assignment.content
+                            ..date = assignment.dueDate;
+                      final isIncoming = assignment.dueDate.isBefore(DateTime.now());
+                      final isPlanned = assignment.dueDate.isAfter(DateTime.now());
+
+                      return GradeBar(
+                        gradeData: grade,
+                        onTap: () {
+                          if (isIncoming) {
+                            showNewGradePopup(toReference: assignment);
+                            return;
+                          }
+
+                          Navigator.pop(context);
+                          MainPage.pageIndex.value = 1;
+                          assignmentListPageKey.currentState?.showAssignment(assignment);
+                        },
+                        isGradeUnknown: true,
+                        isIncoming: isIncoming,
+                        isPlanned: isPlanned,
+                      );
+                    }),
                   ],
-                ),
-
-                ...subjectIncomingGrades.map((assignment) {
-                  final grade =
-                      Grade()
-                        ..title = assignment.content
-                        ..date = assignment.dueDate;
-                  final isIncoming = assignment.dueDate.isBefore(DateTime.now());
-                  final isPlanned = assignment.dueDate.isAfter(DateTime.now());
-
-                  return GradeBar(
-                    gradeData: grade,
-                    onTap: () {
-                      if (isIncoming) {
-                        showNewGradePopup(toReference: assignment);
-                        return;
-                      }
-
-                      Navigator.pop(context);
-                      MainPage.pageIndex.value = 1;
-                      assignmentListPageKey.currentState?.showAssignment(assignment);
-                    },
-                    isGradeUnknown: true,
-                    isIncoming: isIncoming,
-                    isPlanned: isPlanned,
-                  );
-                }),
-              ],
-            ],
-          ),
-        ),
-      ],
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    final newGrade = await showCupertinoModalBottomSheet<Grade?>(
+    await showCupertinoModalBottomSheet<Grade?>(
       context: context,
       enableDrag: false,
-      builder:
-          (context) => NewGradePage(
-            subject: widget.subject,
-            toEdit: toEdit,
-            onDelete: () {
-              allGrades.delete(toEdit);
-              loadGrades();
-              setState(() {});
-
-              // Closing the page if empty
-              if (!allGrades.values.any((grade) => grade.subject == widget.subject)) {
-                if (mounted) Navigator.of(context).pop();
-              }
-            },
-            toReference: toReference,
-          ),
+      builder: (context) => NewGradePage(subject: widget.subject, toEdit: toEdit, toReference: toReference),
     );
 
-    if (newGrade == null) return;
-
-    if (toEdit != null) {
-      toEdit
-        ..title = newGrade.title
-        ..grade = newGrade.grade
-        ..subject = newGrade.subject
-        ..date = newGrade.date
-        ..weight = newGrade.weight
-        ..details = newGrade.details
-        ..groupName = newGrade.groupName;
-
-      await toEdit.save();
-    } else {
-      await Hive.box<Grade>("Grades").add(newGrade);
-    }
-
-    loadGrades();
     setState(() {});
+
+    // Closing the page if empty
+    if (thisSubjectGrades.isEmpty && mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -259,7 +218,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
         children: [
           NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [CupertinoSliverNavigationBar(largeTitle: Text(SubjectHelper.toFrench(widget.subject)), previousPageTitle: "Retour")];
+              return [CupertinoSliverNavigationBar(largeTitle: Text(widget.subject.name), previousPageTitle: "Retour")];
             },
             body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
           ),

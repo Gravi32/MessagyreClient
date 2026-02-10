@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 
 class GradeGroupPage extends StatefulWidget {
@@ -16,7 +16,7 @@ class GradeGroupPage extends StatefulWidget {
 }
 
 class _GradeGroupPageState extends State<GradeGroupPage> {
-  final Box<Grade> allGrades = Hive.box<Grade>("Grades");
+  final database = DatabaseService().isar;
 
   Widget buildList() {
     // Sorting grades by date
@@ -38,43 +38,18 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
       enableDrag: false,
       builder:
           (context) => NewGradePage(
-            subject: widget.grades.isNotEmpty ? widget.grades.first.subject : null,
+            subject: widget.grades.isNotEmpty ? widget.grades.first.subject.value : null,
             toEdit: toEdit,
-            onDelete: () {
-              widget.grades.remove(toEdit);
-              setState(() {});
-
-              // Closing the page if empty
-              if (widget.grades.isEmpty && mounted) {
-                Navigator.of(context).pop();
-              }
-            },
             groupName: widget.grades.isNotEmpty ? widget.grades.first.groupName : null,
           ),
     );
 
-    if (newGrade == null) return;
+    setState(() {});
 
-    if (toEdit != null) {
-      toEdit
-        ..title = newGrade.title
-        ..grade = newGrade.grade
-        ..subject = newGrade.subject
-        ..date = newGrade.date
-        ..weight = newGrade.weight
-        ..details = newGrade.details
-        ..groupName = newGrade.groupName;
-
-      await toEdit.save();
-
-      // Closing the page if empty
-      if (widget.grades.length == 1 && newGrade.groupName == null) {
-        if (mounted) Navigator.of(context).pop();
-        return;
-      }
-    } else {
-      await allGrades.add(newGrade);
-      setState(() => widget.grades.add(newGrade));
+    // Closing the page if empty
+    if (widget.grades.isEmpty && newGrade?.groupName == null) {
+      if (mounted) Navigator.of(context).pop();
+      return;
     }
   }
 

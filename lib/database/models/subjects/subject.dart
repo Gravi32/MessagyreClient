@@ -7,7 +7,8 @@ part 'subject.g.dart';
 class Subject {
   Id id = Isar.autoIncrement;
 
-  /// identificatore logico (es: "maths", "history")
+  /// identifier (ex: "maths", "history")
+  @Index(unique: true)
   late String code;
 
   late String name;

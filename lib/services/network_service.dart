@@ -8,13 +8,14 @@ import 'package:encrypt/encrypt.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:messagyre_client/database/models/chats/chat.dart';
+import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
-import 'package:messagyre_client/services/firebase_api_service.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:pointycastle/export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -30,30 +31,15 @@ class NetworkService {
   NetworkService._internal();
 
   // Singletons
-  late final globals = GlobalsService();
-  late final secureStorage = FlutterSecureStorage();
-  late final firebaseApi = FirebaseApi();
+  final globals = GlobalsService();
+  final database = DatabaseService();
+  final secureStorage = FlutterSecureStorage();
 
   final connectionState = ValueNotifier(ConnectionState.NotConnected);
   int connectionAttempts = 0;
   WebSocketChannel? _channel;
 
   bool isLoginPageOpen = false;
-
-  // #region -> Event streams
-
-  /* Stream for the received WebSocket messages */
-  final _messagesController = StreamController<Map<String, Object>>.broadcast();
-  Stream<Map<String, Object>> get onMessageReceived => _messagesController.stream;
-
-  /* Stream for the received WebSocket messages status updates */
-  final _messageStatusUpdatesController = StreamController<Map<String, Object>>.broadcast();
-  Stream<Map<String, Object>> get onMessageStatusUpdateReceived => _messageStatusUpdatesController.stream;
-
-  /* Stream for the received WebSocket messages deletion */
-  final _messageDeletionController = StreamController<Map<String, Object>>.broadcast();
-  Stream<Map<String, Object>> get onMessageDeletionReceived => _messageDeletionController.stream;
-  // #endregion
 
   // #region -> Initialization
 
@@ -271,6 +257,50 @@ class NetworkService {
   }
 
   void _handleMessage(Map<String, dynamic> rawMessageData) async {
+    // On message received
+    void onMessageReceived(String senderUsername, Map<String, dynamic> messageData) {
+      var receivedMessage = Message.fromMessageData(messageData);
+      var targetChat = database.chats.getByUsername(senderUsername);
+
+      if (targetChat == null) {
+        targetChat = Chat.custom(username: senderUsername);
+        targetChat.messages.add(receivedMessage);
+        targetChat.unreadMessages = 1;
+      } else {
+        targetChat.messages.add(receivedMessage);
+        targetChat.unreadMessages += 1;
+      }
+
+      database.messages.save(receivedMessage);
+      database.chats.addMessage(targetChat, receivedMessage);
+    }
+
+    // On message status update received
+    void onMessageStatusUpdateReceived(String senderUsername, String uuid, MessageStatus status) {
+      final targetChat = database.chats.getByUsername(senderUsername);
+      if (targetChat == null) return;
+
+      final targetMessage = database.messages.getByUuid(uuid);
+      if (targetMessage == null) return;
+
+      targetMessage.status = status;
+
+      database.messages.save(targetMessage);
+    }
+
+    // On message deletion received
+    void onMessageDeletionReceived(String senderUsername, String uuid) {
+      final targetChat = database.chats.getByUsername(senderUsername);
+      if (targetChat == null) return;
+
+      final targetMessage = database.messages.getByUuid(uuid);
+      if (targetMessage == null) return;
+
+      targetMessage.isDeleted = true;
+
+      database.messages.save(targetMessage);
+    }
+
     try {
       final sender = rawMessageData["SenderUsername"]?.toString();
       final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
@@ -286,11 +316,11 @@ class NetworkService {
 
         if (messageId == null) throw FormatException("Missing Message ID");
 
-        _messageStatusUpdatesController.add({"SenderUsername": sender, "ID": messageId, "Status": status});
+        onMessageStatusUpdateReceived(sender, messageId, status);
       } else if (isMessageDeletion) {
         if (messageId == null) throw FormatException("Missing Message ID");
 
-        _messageDeletionController.add({"SenderUsername": sender, "ID": messageId});
+        onMessageDeletionReceived(sender, messageId);
       } else {
         final rawSentAt = rawMessageData["SentAt"]?.toString();
         if (rawSentAt == null) throw FormatException("Missing SentAt");
@@ -342,7 +372,7 @@ class NetworkService {
 
         final sentAt = DateTime.parse(rawSentAt).toLocal();
 
-        _messagesController.add({"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt});
+        onMessageReceived(sender, {"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt});
 
         HapticFeedback.heavyImpact();
       }
@@ -524,7 +554,7 @@ class NetworkService {
   Future<void> uploadPublicKey() async {
     final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await globals.publicKey);
     final response = await post("/accounts/me/upload-public-key", {"PublicKey": stringPublicKey});
-    
+
     if (response.statusCode != 200) {
       debugPrint("[RSA] Uploading the public key failed. Server response: ${response.statusCode} ${response.body}");
     }
@@ -557,7 +587,7 @@ class NetworkService {
     await secureStorage.delete(key: "RefreshToken");
     await secureStorage.delete(key: "PublicKey");
     await secureStorage.delete(key: "PrivateKey");
-    await Hive.box("Misc").delete("Username");
+    globals.persistents.remove("Username");
 
     onUnauthorized();
 

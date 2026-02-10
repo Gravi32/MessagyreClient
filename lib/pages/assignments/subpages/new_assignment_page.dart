@@ -1,11 +1,11 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
@@ -26,12 +26,12 @@ class NewAssignmentPage extends StatefulWidget {
 
 class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final globals = GlobalsService();
-  final miscBox = Hive.box("Misc");
-  final gradesBox = Hive.box<Grade>("Grades");
+  final database = DatabaseService();
+  final calendar = DeviceCalendarPlugin();
 
   late final editMode = widget.toEdit != null;
 
-  late final subjectController = TextEditingController(text: subject == null ? null : SubjectHelper.toFrench(subject!));
+  late final subjectController = TextEditingController(text: subject?.name);
   late final titleController = TextEditingController(text: widget.toEdit?.title);
   late final contentController = TextEditingController(text: widget.toEdit?.content);
 
@@ -39,31 +39,65 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final titleFocusNode = FocusNode();
   final contentFocusNode = FocusNode();
 
-  late Subject? subject = widget.toEdit?.subject;
+  late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool isTest = widget.toEdit?.isTest ?? false;
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
-  late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : miscBox.get("EditsCalendar", defaultValue: true);
+  late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : true; // miscBox.get("EditsCalendar", defaultValue: true);
 
   final targetCalendar = ValueNotifier<Calendar?>(null);
 
-  void confirmAssignment() {
-    var assignment = widget.toEdit ?? Assignment();
-
+  void confirmAssignment() async {
     if (subject == null) return;
 
+    final assignment = widget.toEdit ?? Assignment();
+
     assignment
-      ..subject = subject ?? Subject.NotSet
+      ..subject.value = subject
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
       ..content = contentController.text.trim()
       ..dueDate = dueDate
       ..isGraded = isGraded
       ..isTest = isTest
-      ..referenceId = addingToGradesPage ? widget.toEdit?.referenceId ?? Uuid().v4() : null
-      ..calendarEventId = editsCalendar == false ? null : widget.toEdit?.calendarEventId;
+      ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
+      ..calendarEventId = editsCalendar ? assignment.calendarEventId : null;
 
-    Navigator.of(context).pop((assignment: assignment, editsCalendar: editsCalendar));
+    if (assignment.referenceId != null) {
+      final assignedGrade = database.grades.getByReferenceId(assignment.referenceId!);
+      if (assignedGrade != null) {
+        assignedGrade.subject.value = assignment.subject.value;
+        await database.grades.save(assignedGrade);
+      }
+    }
+
+    if (editsCalendar) {
+      final permissionResult = await calendar.hasPermissions();
+      if (!permissionResult.isSuccess || permissionResult.data != true) {
+        final requestResult = await calendar.requestPermissions();
+        if (!requestResult.isSuccess || requestResult.data != true) return;
+      }
+
+      final timeZone = getLocation("Europe/Zurich");
+
+      final event = Event(
+        targetCalendar.value!.id,
+        eventId: assignment.calendarEventId,
+        title: "Devoir ${assignment.subject.value?.name.withPreposition(lowercase: true)}",
+        start: TZDateTime.from(assignment.dueDate, timeZone),
+        end: TZDateTime.from(assignment.dueDate.add(const Duration(minutes: 45)), timeZone),
+        allDay: true,
+        description: assignment.content,
+      );
+
+      final result = await calendar.createOrUpdateEvent(event);
+      assignment.calendarEventId = result?.data ?? assignment.calendarEventId;
+    }
+
+    await database.assignments.save(assignment);
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 
   void showSubjectPicker() {
@@ -72,7 +106,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       builder:
           (_) => CustomSubjectPicker(
             onSubjectSelected: (selectedSubject) {
-              setState(() => subject = selectedSubject);
+              setState(() => subject = selectedSubject as Subject);
             },
           ),
     );
@@ -98,7 +132,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       context: context,
       builder: (dialogContext) {
         final missingInfos = [
-          if (subject == null || subject == Subject.NotSet) "la *branche*",
+          if (subject == null) "la *branche*",
           if ((isTest || isGraded) && titleController.text.isEmpty) "un *titre*",
           if (!(isTest || isGraded) && contentController.text.isEmpty) "une *description*",
         ];
@@ -136,15 +170,14 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   Widget build(BuildContext context) {
     final previewAssignment =
         Assignment()
-          ..subject = subject ?? Subject.NotSet
+          ..subject.value = subject
           ..title = titleController.text.isEmpty ? null : titleController.text.trim()
           ..content = contentController.text.trim()
           ..dueDate = dueDate
           ..isGraded = isGraded
           ..isTest = isTest;
 
-    final canBeSubmitted =
-        (subject != null && subject != Subject.NotSet) && ((isTest || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
+    final canBeSubmitted = (subject != null) && ((isTest || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
 
     return GestureDetector(
       onTap: unfocusFields,
@@ -334,7 +367,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                             onChanged:
                                 (value) => setState(() {
                                   editsCalendar = value;
-                                  miscBox.put("EditsCalendar", value);
+                                  // miscBox.put("EditsCalendar", value);
                                 }),
                           ),
                         ),

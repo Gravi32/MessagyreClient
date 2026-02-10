@@ -6,15 +6,17 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/database/models/chats/chat.dart';
+import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -22,12 +24,11 @@ import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';
 import 'package:pointycastle/export.dart' show RSAPublicKey;
-import 'package:uuid/uuid.dart';
 
 class ChatPage extends StatefulWidget {
-  final String recipientUsername;
+  final String username;
 
-  const ChatPage({super.key, required this.recipientUsername});
+  const ChatPage({super.key, required this.username});
 
   @override
   State<StatefulWidget> createState() => _ChatPageState();
@@ -36,11 +37,10 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final network = NetworkService();
   final globals = GlobalsService();
-  final chats = Hive.box<Chat>("Chats");
-  final misc = Hive.box("Misc");
+  final database = DatabaseService();
 
-  late var chatData = chats.get(widget.recipientUsername) ?? Chat(recipientUsername: widget.recipientUsername);
-  late var currentWallpaper = misc.get("CurrentWallpaper");
+  late var chatData = database.chats.getByUsername(widget.username) ?? Chat.custom(username: widget.username);
+  late var currentWallpaper = globals.persistents.getString("CurrentWallpaper");
 
   StreamSubscription? _keyboardVisibilitySub;
   StreamSubscription? _messageReceivedSub;
@@ -65,25 +65,27 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   bool isEncryptionAvailable = true;
 
   void messagesListener(Map<String, Object> messageData) {
-    if (messageData["SenderUsername"] != chatData.recipientUsername) return;
+    if (messageData["SenderUsername"] != chatData.username) return;
 
     final newMessage = Message.fromMessageData(messageData);
 
     setState(() {
-      chatData.content.add(newMessage);
-      messagesIdToAnimate.add(newMessage.id);
+      chatData.messages.add(newMessage);
+      messagesIdToAnimate.add(newMessage.uuid);
     });
 
-    network.sendMessageStatusUpdate([newMessage.id], chatData.recipientUsername, MessageStatus.Read);
+    network.sendMessageStatusUpdate([newMessage.uuid], chatData.username, MessageStatus.Read);
 
-    saveChatData();
     scrollDown();
   }
 
   void messageStatusUpdateListener(Map<String, Object> messageStatusUpdate) {
-    if (messageStatusUpdate["SenderUsername"] != chatData.recipientUsername) return;
+    if (messageStatusUpdate["SenderUsername"] != chatData.username) return;
 
-    final targetMessage = chatData.content.firstWhere((message) => message.isOwned && message.id == messageStatusUpdate["ID"], orElse: () => Message.empty());
+    final targetMessage = chatData.messages.firstWhere(
+      (message) => message.isOwned && message.uuid == messageStatusUpdate["ID"],
+      orElse: () => Message.empty(),
+    );
 
     targetMessage.status = (messageStatusUpdate["Status"] as MessageStatus?) ?? MessageStatus.Failed;
 
@@ -91,9 +93,9 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
 
   void messageDeletionListener(Map<String, Object> messageDeletion) {
-    if (messageDeletion["SenderUsername"] != chatData.recipientUsername) return;
+    if (messageDeletion["SenderUsername"] != chatData.username) return;
 
-    final targetMessages = chatData.content.where((message) => message.id == messageDeletion["ID"]);
+    final targetMessages = chatData.messages.where((message) => message.uuid == messageDeletion["ID"]);
 
     setState(() {
       for (var message in targetMessages) {
@@ -119,20 +121,19 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     HapticFeedback.mediumImpact();
 
     try {
-      final message = Message(id: Uuid().v4(), content: input, sentAt: DateTime.now(), isOwned: true);
+      final message = Message.custom(content: input, sentAt: DateTime.now(), isOwned: true);
 
-      setState(() {
-        chatData.content.add(message);
-        messagesIdToAnimate.add(message.id);
-      });
-      if (network.isConnected) {
-        network.send(message.id, widget.recipientUsername, recipientPublicKey, input);
-        message.statusNotifier.value = MessageStatus.Sent;
-      } else {
-        message.statusNotifier.value = MessageStatus.Failed;
-      }
+      await database.messages.save(message);
+      await database.chats.addMessage(chatData, message);
 
-      saveChatData();
+      messagesIdToAnimate.add(message.uuid);
+
+      setState(() {});
+
+      message.status = network.isConnected ? MessageStatus.Sent : MessageStatus.Failed;
+
+      await database.messages.save(message);
+
       messageFieldController.clear();
       messageFieldFocusNode.requestFocus();
       scrollDown();
@@ -141,24 +142,20 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     }
   }
 
-  void saveChatData() async {
-    chats.put(widget.recipientUsername, chatData);
-  }
-
   void updateAllMessagesToRead() async {
     if (chatData.unreadMessages <= 0) return;
     chatData.unreadMessages = 0;
 
     List<String> justReadMessages = [];
 
-    for (var message in chatData.content) {
+    for (var message in chatData.messages) {
       if (!message.isOwned && message.status != MessageStatus.Read) {
         message.status = MessageStatus.Read;
-        justReadMessages.add(message.id);
+        justReadMessages.add(message.uuid);
       }
     }
 
-    network.sendMessageStatusUpdate(justReadMessages, chatData.recipientUsername, MessageStatus.Read);
+    network.sendMessageStatusUpdate(justReadMessages, chatData.username, MessageStatus.Read);
   }
 
   void showMessageContextMenu(BuildContext context, Message message) {
@@ -168,7 +165,9 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     try {
       final overlay = Overlay.of(context, rootOverlay: true);
       final key = bubbleKeys["${message.id}-${message.isOwned}"];
+
       final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
+
       if (renderBox == null) return;
 
       final bubblePosition = renderBox.localToGlobal(Offset.zero);
@@ -269,8 +268,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                               CupertinoActionSheetAction(
                                                 onPressed: () {
                                                   setState(() {
-                                                    chatData.content.remove(message);
-                                                    saveChatData();
+                                                    chatData.messages.remove(message);
                                                   });
 
                                                   Navigator.pop(popupContext);
@@ -288,15 +286,14 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                                 CupertinoActionSheetAction(
                                                   onPressed: () {
                                                     try {
-                                                      final savedMessage = chatData.content.firstWhere((element) => element.id == message.id);
+                                                      final savedMessage = chatData.messages.firstWhere((element) => element.uuid == message.uuid);
 
                                                       setState(() {
                                                         savedMessage.isDeleted = true;
-                                                        saveChatData();
                                                       });
 
-                                                      network.sendMessageDelete([message.id], widget.recipientUsername);
-                                                      debugPrint("[Chat] Deletion request sent for ${message.id}");
+                                                      network.sendMessageDelete([message.uuid], widget.username);
+                                                      debugPrint("[Chat] Deletion request sent for ${message.uuid}");
                                                     } catch (e) {
                                                       debugPrint("[Chat] Failed sending deletion request: $e");
                                                     }
@@ -359,16 +356,13 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                               if (!message.isDeleted)
                                                 CupertinoActionSheetAction(
                                                   onPressed: () {
-                                                    globals.blockUser(chatData.recipientUsername);
+                                                    globals.blockUser(chatData.username);
                                                     Navigator.pop(popupContext);
                                                   },
                                                   child: Row(
                                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                     children: [
-                                                      Text(
-                                                        "Signaler et bloquer ${chatData.recipientUsername}",
-                                                        style: TextStyle(color: AppColors.red, fontSize: 18),
-                                                      ),
+                                                      Text("Signaler et bloquer ${chatData.username}", style: TextStyle(color: AppColors.red, fontSize: 18)),
                                                       HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, size: 20, color: AppColors.red),
                                                     ],
                                                   ),
@@ -402,7 +396,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           );
         },
       );
-
       overlay.insert(entry);
       animationController.forward();
     } catch (e, s) {
@@ -416,10 +409,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    globals.openChatUsername = widget.recipientUsername;
+    globals.openChatUsername = widget.username;
 
     network
-        .getPublicKey(widget.recipientUsername)
+        .getPublicKey(widget.username)
         .then(
           (result) => setState(() {
             recipientPublicKey = result;
@@ -427,10 +420,9 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           }),
         );
 
-    if (widget.recipientUsername == "support.messagyre" && chatData.content.isEmpty) {
-      chatData.content.add(
-        Message(
-          id: Uuid().v4(),
+    if (widget.username == "support.messagyre" && chatData.messages.isEmpty) {
+      chatData.messages.add(
+        Message.custom(
           content:
               "Salut👋 !\n\nTu as une *question* sur *Messagyre* ou tu as rencontré un *problème* ? Je suis là pour t'aider!\n\nÉcris ici ce dont tu as besoin dans la conversation et je ferai de mon mieux pour te répondre le plus vite possible ! 😄\n\nLe support de Messagyre",
           sentAt: DateTime.now(),
@@ -460,10 +452,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     globals.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
     globals.blockedUsersNotifier.addListener(onBlockedUsersChanged);
 
-    _messageReceivedSub = network.onMessageReceived.listen(messagesListener);
-    _statusUpdateSub = network.onMessageStatusUpdateReceived.listen(messageStatusUpdateListener);
-    _messageDeletionSub = network.onMessageDeletionReceived.listen(messageDeletionListener);
-
     chatScrollController.addListener(() {
       final offset = chatScrollController.offset;
       final maxOffset = chatScrollController.position.maxScrollExtent;
@@ -477,7 +465,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     scrollDown();
 
-    network.getAccount(widget.recipientUsername).then((account) => setState(() => chatData.recipientDisplayUsername = account?.displayName));
+    network.getAccount(widget.username).then((account) => setState(() => chatData.displayUsername = account?.displayName));
   }
 
   @override
@@ -503,7 +491,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   int getUnreadChats() {
     int count = 0;
-    for (var chat in chats.values) {
+    for (var chat in database.chats.getAll()) {
       count += chat.unreadMessages;
     }
     return count;
@@ -511,7 +499,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   Widget topBar(BuildContext context) {
     final unreadChats = getUnreadChats();
-    final isBlocked = globals.blockedUsers.contains(widget.recipientUsername);
+    final isBlocked = globals.blockedUsers.contains(widget.username);
 
     return ClipRect(
       child: BackdropFilter(
@@ -541,7 +529,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                 SizedBox(width: 16),
                 Container(
                   foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
-                  child: ProfilePictureDisplay(accountUsername: widget.recipientUsername),
+                  child: ProfilePictureDisplay(accountUsername: widget.username),
                 ),
                 SizedBox(width: 10),
                 Expanded(
@@ -555,19 +543,18 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                           children: [
                             if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
                             Text(
-                              chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
+                              chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
                               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
                             ),
                             if (isLoading) LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
                           ],
                         ),
-                        Text(widget.recipientUsername, style: TextStyle(color: AppColors.grey, fontSize: 14)),
+                        Text(widget.username, style: TextStyle(color: AppColors.grey, fontSize: 14)),
                       ],
                     ),
                     onTap: () async {
                       isLoading = true;
-                      var recipientAccount =
-                          widget.recipientUsername == lastAccountCache?.username ? lastAccountCache : await network.getAccount(widget.recipientUsername);
+                      var recipientAccount = widget.username == lastAccountCache?.username ? lastAccountCache : await network.getAccount(widget.username);
                       isLoading = false;
                       if (recipientAccount == null || !context.mounted) return;
                       lastAccountCache = recipientAccount;
@@ -587,6 +574,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, bool isPreview) {
     final shouldAnimate = messagesIdToAnimate.contains(data.id);
+    final statusIconData = getStatusIcon(data.status);
+
     bubbleKeys.putIfAbsent("${data.id}-${data.isOwned}", () => GlobalKey());
 
     BorderRadius getBubbleShape(bool isOwned) {
@@ -655,16 +644,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                   style: TextStyle(color: data.isDeleted ? AppColors.white.withAlpha(150) : AppColors.white, fontSize: 12),
                 ),
                 if (data.isOwned && !data.isDeleted)
-                  Padding(
-                    padding: EdgeInsets.only(left: 2),
-                    child: ValueListenableBuilder(
-                      valueListenable: data.statusNotifier,
-                      builder: (context, status, _) {
-                        final statusIconData = getStatusIcon(status);
-                        return HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13);
-                      },
-                    ),
-                  ),
+                  Padding(padding: EdgeInsets.only(left: 2), child: HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13)),
               ],
             ),
           ),
@@ -680,120 +660,130 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
 
   Widget messageList() {
-    return ListView.builder(
-      controller: chatScrollController,
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      itemCount: (chatData.content.length < visibleMessageCount ? chatData.content.length : visibleMessageCount) + 2,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Container(
-            margin: EdgeInsets.only(bottom: 12, top: 30),
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                ProfilePictureDisplay(accountUsername: widget.recipientUsername, radius: 30),
-                SizedBox(height: 6),
-                Text(
-                  chatData.recipientDisplayUsername ?? Account.getDefaultDisplayName(widget.recipientUsername),
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-                ),
-                Text(widget.recipientUsername, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                if (widget.recipientUsername != "support.messagyre") ...[
-                  SizedBox(height: 6),
-                  Text.rich(
+    return StreamBuilder(
+      stream: database.chats.watchAll(),
+      builder:
+          (_, _) => ListView.builder(
+            controller: chatScrollController,
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            itemCount: (chatData.messages.length < visibleMessageCount ? chatData.messages.length : visibleMessageCount) + 2,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Container(
+                  margin: EdgeInsets.only(bottom: 12, top: 30),
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
+                  child: Column(
+                    children: [
+                      ProfilePictureDisplay(accountUsername: widget.username, radius: 30),
+                      SizedBox(height: 6),
+                      Text(
+                        chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                      ),
+                      Text(widget.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                      if (widget.username != "support.messagyre") ...[
+                        SizedBox(height: 6),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: HugeIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
+                                ),
+                              ),
+                              ...CustomText.parseSpans(
+                                "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
+                                style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          softWrap: true,
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }
+
+              if (index == 1) {
+                final color = isEncryptionAvailable ? AppColors.tertiaryText.adaptTo(context) : AppColors.yellow.withAlpha(.5.toByte());
+
+                return Container(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
+                  child: Text.rich(
+                    textAlign: TextAlign.center,
                     TextSpan(
                       children: [
                         WidgetSpan(
                           alignment: PlaceholderAlignment.middle,
                           child: Padding(
                             padding: const EdgeInsets.only(right: 4),
-                            child: HugeIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
+                            child: HugeIcon(
+                              icon: isEncryptionAvailable ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedKnightShield,
+                              size: 16,
+                              color: color,
+                            ),
                           ),
                         ),
                         ...CustomText.parseSpans(
-                          "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
-                          style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
+                          isEncryptionAvailable
+                              ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls toi et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
+                              : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
+                          style: TextStyle(color: color, fontSize: 16),
                         ),
                       ],
                     ),
                     softWrap: true,
                   ),
-                ],
-              ],
-            ),
-          );
-        }
+                );
+              }
 
-        if (index == 1) {
-          final color = isEncryptionAvailable ? AppColors.tertiaryText.adaptTo(context) : AppColors.yellow.withAlpha(.5.toByte());
+              final msgIndex = index - 2;
 
-          return Container(
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
-            child: Text.rich(
-              textAlign: TextAlign.center,
-              TextSpan(
-                children: [
-                  WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: HugeIcon(
-                        icon: isEncryptionAvailable ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedKnightShield,
-                        size: 16,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                  ...CustomText.parseSpans(
-                    isEncryptionAvailable
-                        ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls toi et ${chatData.recipientDisplayUsername ?? chatData.recipientUsername} pouvez les lire."
-                        : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
-                    style: TextStyle(color: color, fontSize: 16),
-                  ),
-                ],
-              ),
-              softWrap: true,
-            ),
-          );
-        }
+              var allMessagesList = chatData.messages.toList();
+              var visibleMessagesList = allMessagesList.sublist(max(0, allMessagesList.length - visibleMessageCount));
 
-        final msgIndex = index - 2;
+              var currentMessage = visibleMessagesList[msgIndex];
+              var previousMessage = msgIndex > 0 ? visibleMessagesList[msgIndex - 1] : currentMessage;
+              var nextMessage = msgIndex < visibleMessagesList.length - 1 ? visibleMessagesList[msgIndex + 1] : currentMessage;
 
-        var allMessagesList = chatData.content;
-        var visibleMessagesList = allMessagesList.sublist(max(0, allMessagesList.length - visibleMessageCount));
+              final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
-        var currentMessage = visibleMessagesList[msgIndex];
-        var previousMessage = msgIndex > 0 ? visibleMessagesList[msgIndex - 1] : currentMessage;
-        var nextMessage = msgIndex < visibleMessagesList.length - 1 ? visibleMessagesList[msgIndex + 1] : currentMessage;
-
-        final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
-
-        return (currentMessage.sentAt.day != previousMessage.sentAt.day ||
-                currentMessage.sentAt.month != previousMessage.sentAt.month ||
-                currentMessage.sentAt.year != previousMessage.sentAt.year ||
-                msgIndex == 0)
-            ? Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(bottom: 12, top: 30),
-                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(120), borderRadius: BorderRadius.circular(10)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
+              return (currentMessage.sentAt.day != previousMessage.sentAt.day ||
+                      currentMessage.sentAt.month != previousMessage.sentAt.month ||
+                      currentMessage.sentAt.year != previousMessage.sentAt.year ||
+                      msgIndex == 0)
+                  ? Column(
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                      Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                      Container(
+                        margin: EdgeInsets.only(bottom: 12, top: 30),
+                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryBackground.adaptTo(context).withAlpha(120),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 8,
+                          children: [
+                            HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                            Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                          ],
+                        ),
+                      ),
+                      bubble,
                     ],
-                  ),
-                ),
-                bubble,
-              ],
-            )
-            : Container(margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == visibleMessagesList.length - 1) ? 12 : 0), child: bubble);
-      },
+                  )
+                  : Container(
+                    margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == visibleMessagesList.length - 1) ? 12 : 0),
+                    child: bubble,
+                  );
+            },
+          ),
     );
   }
 
@@ -862,7 +852,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     updateAllMessagesToRead();
-    saveChatData();
 
     return CupertinoPageScaffold(
       child: Stack(
@@ -871,7 +860,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 image:
-                    globals.settings.useDefaultWallpaper
+                    (globals.persistents.getBool("useDefaultWallpaper") ?? true) || currentWallpaper == null
                         ? DecorationImage(
                           image: AssetImage("assets/wallpaper.png"),
                           repeat: ImageRepeat.repeat,
@@ -879,7 +868,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                           opacity: .12,
                           colorFilter: globals.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
                         )
-                        : DecorationImage(image: Image.file(File(currentWallpaper)).image, fit: BoxFit.cover),
+                        : DecorationImage(image: Image.file(File(currentWallpaper!)).image, fit: BoxFit.cover),
               ),
             ),
           ),

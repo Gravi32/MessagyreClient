@@ -27,38 +27,33 @@ const AssignmentSchema = CollectionSchema(
       name: r'content',
       type: IsarType.string,
     ),
-    r'creationDate': PropertySchema(
-      id: 2,
-      name: r'creationDate',
-      type: IsarType.dateTime,
-    ),
     r'dueDate': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'isGraded': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'isGraded',
       type: IsarType.bool,
     ),
     r'isMarkedAsDone': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'isMarkedAsDone',
       type: IsarType.bool,
     ),
     r'isTest': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'isTest',
       type: IsarType.bool,
     ),
     r'referenceId': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'title',
       type: IsarType.string,
     )
@@ -120,13 +115,12 @@ void _assignmentSerialize(
 ) {
   writer.writeString(offsets[0], object.calendarEventId);
   writer.writeString(offsets[1], object.content);
-  writer.writeDateTime(offsets[2], object.creationDate);
-  writer.writeDateTime(offsets[3], object.dueDate);
-  writer.writeBool(offsets[4], object.isGraded);
-  writer.writeBool(offsets[5], object.isMarkedAsDone);
-  writer.writeBool(offsets[6], object.isTest);
-  writer.writeString(offsets[7], object.referenceId);
-  writer.writeString(offsets[8], object.title);
+  writer.writeDateTime(offsets[2], object.dueDate);
+  writer.writeBool(offsets[3], object.isGraded);
+  writer.writeBool(offsets[4], object.isMarkedAsDone);
+  writer.writeBool(offsets[5], object.isTest);
+  writer.writeString(offsets[6], object.referenceId);
+  writer.writeString(offsets[7], object.title);
 }
 
 Assignment _assignmentDeserialize(
@@ -138,14 +132,13 @@ Assignment _assignmentDeserialize(
   final object = Assignment();
   object.calendarEventId = reader.readStringOrNull(offsets[0]);
   object.content = reader.readString(offsets[1]);
-  object.creationDate = reader.readDateTime(offsets[2]);
-  object.dueDate = reader.readDateTime(offsets[3]);
+  object.dueDate = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.isGraded = reader.readBool(offsets[4]);
-  object.isMarkedAsDone = reader.readBool(offsets[5]);
-  object.isTest = reader.readBool(offsets[6]);
-  object.referenceId = reader.readStringOrNull(offsets[7]);
-  object.title = reader.readStringOrNull(offsets[8]);
+  object.isGraded = reader.readBool(offsets[3]);
+  object.isMarkedAsDone = reader.readBool(offsets[4]);
+  object.isTest = reader.readBool(offsets[5]);
+  object.referenceId = reader.readStringOrNull(offsets[6]);
+  object.title = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -163,16 +156,14 @@ P _assignmentDeserializeProp<P>(
     case 2:
       return (reader.readDateTime(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readBool(offset)) as P;
-    case 7:
       return (reader.readStringOrNull(offset)) as P;
-    case 8:
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -553,62 +544,6 @@ extension AssignmentQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'content',
         value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      creationDateEqualTo(DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'creationDate',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      creationDateGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'creationDate',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      creationDateLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'creationDate',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      creationDateBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'creationDate',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
       ));
     });
   }
@@ -1098,18 +1033,6 @@ extension AssignmentQuerySortBy
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByCreationDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'creationDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByCreationDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'creationDate', Sort.desc);
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByDueDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dueDate', Sort.asc);
@@ -1208,18 +1131,6 @@ extension AssignmentQuerySortThenBy
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByContentDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByCreationDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'creationDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByCreationDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'creationDate', Sort.desc);
     });
   }
 
@@ -1326,12 +1237,6 @@ extension AssignmentQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QDistinct> distinctByCreationDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'creationDate');
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QDistinct> distinctByDueDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'dueDate');
@@ -1389,12 +1294,6 @@ extension AssignmentQueryProperty
   QueryBuilder<Assignment, String, QQueryOperations> contentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'content');
-    });
-  }
-
-  QueryBuilder<Assignment, DateTime, QQueryOperations> creationDateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'creationDate');
     });
   }
 

@@ -35,7 +35,7 @@ class FirebaseApi {
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final username = response.payload;
         if (username != null && username.isNotEmpty) {
-          navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(recipientUsername: username)));
+          navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
         }
         resetBadge();
       },
@@ -88,7 +88,7 @@ class FirebaseApi {
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         final username = message.data['SenderUsername'];
         if (username == null) return;
-        navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(recipientUsername: username)));
+        navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
         resetBadge();
       });
 

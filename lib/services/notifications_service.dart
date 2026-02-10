@@ -95,7 +95,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
       child: GestureDetector(
         onTap: () {
           _dismiss();
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (_) => ChatPage(recipientUsername: widget.senderUsername)));
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (_) => ChatPage(username: widget.senderUsername)));
         },
         onVerticalDragStart: (_) {
           _isDragging = true;

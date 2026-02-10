@@ -5,9 +5,9 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dash/flutter_dash.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -46,6 +46,7 @@ class AssignmentCard extends StatefulWidget {
 
 class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProviderStateMixin {
   final globals = GlobalsService();
+  final database = DatabaseService().isar;
   final mainContainerKey = GlobalKey();
   late final controller = widget.controller ?? AssignmentCardController();
 
@@ -84,7 +85,9 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
     HapticFeedback.mediumImpact();
     widget.onMarkAsDoneButtonClicked?.call(newValue);
 
-    widget.assignment.save();
+    database.writeTxn(() async {
+      await database.assignments.put(widget.assignment);
+    });
   }
 
   void toggleExpanded() {
@@ -120,11 +123,7 @@ class _AssignmentCardState extends State<AssignmentCard> with SingleTickerProvid
     final isMarkedAsDone = widget.assignment.isMarkedAsDone;
     final isGraded = widget.assignment.isGraded;
 
-    final title =
-        isTest
-            ? "Test ${SubjectHelper.withPreposition(widget.assignment.subject) ?? ""}"
-            : SubjectHelper.toFrenchOrNull(widget.assignment.subject)?.capitalize();
-
+    final title = isTest ? "Test ${widget.assignment.subject.value?.name.withPreposition() ?? ""}" : widget.assignment.subject.value?.name.capitalize();
     return AnimatedScale(
       key: controller.key,
       scale: isBouncing ? 1.05 : 1,
