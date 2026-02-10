@@ -22,8 +22,8 @@ class SubjectRepository {
     return;
   }
 
-  Future<Subject?> getByCode(String code) async {
-    return await isar.subjects.filter().codeEqualTo(code).findFirst();
+  Subject? getByCode(String code) {
+    return isar.subjects.filter().codeEqualTo(code).findFirstSync();
   }
 
   Stream<List<Subject>> watchAll() {

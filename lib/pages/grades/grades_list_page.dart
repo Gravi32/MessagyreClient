@@ -1,7 +1,8 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
@@ -9,13 +10,12 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
-import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
-import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -27,6 +27,8 @@ class GradesListPage extends StatefulWidget {
 }
 
 class _GradesListPageState extends State<GradesListPage> {
+  static const double subjectTileMaxHeight = 106;
+
   final network = NetworkService();
   final globals = GlobalsService();
   final database = DatabaseService();
@@ -36,100 +38,99 @@ class _GradesListPageState extends State<GradesListPage> {
 
   Widget buildSubjectBar(Subject subject, {bool isGradeUnknown = false}) {
     final grades = database.grades.getAll().where((grade) => grade.subject.value?.code == subject.code).toList();
-    final thisSubjectGradedAssignment =
-        database.assignments
-            .getAll()
-            .where(
-              (assignment) =>
-                  assignment.subject.value == subject &&
-                  assignment.referenceId != null &&
-                  (assignment.isTest || assignment.isGraded) &&
-                  !grades.any((grade) => grade.referenceId != null && grade.referenceId == assignment.referenceId),
-            )
-            .toList();
+    final average = calculateAverage(grades, round: true);
 
-    // Passed tests that have not yet been graded
-    final incomingGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isBefore(DateTime.now())).toList();
-
-    // Tests that are planned in the future
-    final plannedGrades = thisSubjectGradedAssignment.where((assignment) => assignment.dueDate.isAfter(DateTime.now())).toList();
-
-    return Column(
-      children: [
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed:
-              isGradeUnknown
-                  ? () async {
-                    final firstIncomingGrade = incomingGrades.elementAtOrNull(0);
-                    final firstPlannedGrade = plannedGrades.elementAtOrNull(0);
-
-                    if (firstIncomingGrade != null) {
-                      showNewGradePopup(toReference: firstIncomingGrade);
-                      return;
-                    }
-
-                    if (firstPlannedGrade != null) {
-                      MainPage.pageIndex.value = 1;
-                      assignmentListPageKey.currentState?.showAssignment(firstPlannedGrade);
-                    }
-                  }
-                  : () {
-                    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: subject)));
-                  },
-          child: IntrinsicHeight(
-            child: Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.secondaryBackground.adaptTo(context),
+        border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      constraints: BoxConstraints(maxHeight: subjectTileMaxHeight),
+      child: CupertinoButton(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        onPressed: () {
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: subject)));
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 2,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SizedBox(width: 4),
-                GradeDisplay(
-                  grade: isGradeUnknown ? 0 : calculateAverage(grades),
-                  size: 48,
-                  isIncoming: incomingGrades.isNotEmpty,
-                  isPlanned: plannedGrades.isNotEmpty,
-                  roundGrade: false,
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.yellow,
+                    border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: SizedBox.square(
+                    dimension: 28,
+                    child: Padding(
+                      padding: EdgeInsets.all(2),
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedArtboard, color: AppColors.yellow.withBrightness(.5)),
+                    ),
+                  ),
                 ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: isGradeUnknown ? MainAxisAlignment.center : MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 2,
-                    children: [
-                      Text(
-                        subject.name,
-                        style: TextStyle(
-                          fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
-                          fontSize: 18,
-                          color: isGradeUnknown ? AppColors.tertiaryText.adaptTo(context) : adaptiveColor(AppColors.black, AppColors.white),
-                        ),
-                      ),
+                Text(average.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+              ],
+            ),
 
-                      CustomText(
-                        isGradeUnknown ? incomingGrades.join(", ") + plannedGrades.join(", ") : "${grades.length} note${grades.length > 1 ? 's' : ''}",
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        softWrap: true,
-                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 16),
-                      ),
-                    ],
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 10,
+              children: [
+                Text(
+                  subject.name,
+                  style: TextStyle(
+                    fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
+                    fontSize: 18,
+                    color: isGradeUnknown ? AppColors.tertiaryText.adaptTo(context) : adaptiveColor(AppColors.black, AppColors.white),
+                  ),
+                ),
+
+                Container(
+                  height: 8,
+                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final progress = average / 6;
+
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.yellow,
+                              border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
-        Divider(indent: 60, color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
-      ],
+      ),
     );
   }
 
-  Widget buildAverageBar() {
+  Widget buildGeneralAverageBar() {
     final grades = database.grades.getAll();
     final average = calculateAverage(grades.toList());
 
     return Padding(
-      padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
+      padding: const EdgeInsets.only(top: 6),
       child: CupertinoPressable(
         onTap: () => setState(() => isAverageBarExpanded = !isAverageBarExpanded),
         decoration: BoxDecoration(
@@ -199,6 +200,28 @@ class _GradesListPageState extends State<GradesListPage> {
     );
   }
 
+  Widget buildPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 2,
+      children: [
+        HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+        const SizedBox(height: 8),
+        Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
+        Text("Vos résultats s'afficheront ici", style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context))),
+        CupertinoButton(
+          onPressed: () => showNewGradePopup(),
+          padding: EdgeInsets.only(top: 40),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 6,
+            children: [Text("Ajouter une note", style: TextStyle(fontWeight: FontWeight.w400)), HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
+          ),
+        ),
+      ],
+    );
+  }
+
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
     await showCupertinoModalBottomSheet<Grade?>(
       enableDrag: false,
@@ -220,7 +243,7 @@ class _GradesListPageState extends State<GradesListPage> {
             body: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10),
+                padding: EdgeInsets.symmetric(horizontal: 12),
                 child: StreamBuilder(
                   stream: database.grades.watchAll(),
                   builder: (context, _) {
@@ -228,9 +251,11 @@ class _GradesListPageState extends State<GradesListPage> {
                     final allGrades = database.grades.getAll();
 
                     // A list of all the subjects with at least 1 grade
-                    final allSubjects = [];
+                    final List<Subject> allSubjects = [];
                     for (final grade in allGrades) {
-                      if (!allSubjects.contains(grade.subject.value)) allSubjects.add(grade.subject.value);
+                      if (grade.subject.value != null && !allSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
+                        allSubjects.add(grade.subject.value!);
+                      }
                     }
 
                     // All the assignments
@@ -248,101 +273,44 @@ class _GradesListPageState extends State<GradesListPage> {
                     }
 
                     return allGrades.isEmpty
-                        ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 2,
-                          children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Rien pour le moment...",
-                              style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
-                            ),
-                            Text(
-                              "Vos résultats s'afficheront ici",
-                              style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
-                            ),
-                            CupertinoButton(
-                              onPressed: () => showNewGradePopup(),
-                              padding: EdgeInsets.only(top: 40),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                spacing: 6,
-                                children: [
-                                  Text("Ajouter une note", style: TextStyle(fontWeight: FontWeight.w400)),
-                                  HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
+                        ? buildPlaceholder()
                         : SingleChildScrollView(
                           child: Column(
-                            spacing: 20,
+                            spacing: 10,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              buildAverageBar(),
+                              buildGeneralAverageBar(),
 
+                              SizedBox(),
+                              Text("Vos branches", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)),
                               GridView.builder(
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8),
+                                padding: EdgeInsets.zero,
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 8,
+                                  mainAxisExtent: subjectTileMaxHeight,
+                                ),
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
                                 itemCount: allSubjects.length,
                                 itemBuilder: (context, index) {
                                   final subject = allSubjects[index];
-                                  return Container(child: buildSubjectBar(subject));
+                                  return buildSubjectBar(subject);
                                 },
                               ),
 
-                              if (allIncomingSubjects.isNotEmpty) ...[
-                                CupertinoPressable(
-                                  onTap: () => setState(() => isIncomingGradesInfoExpanded = !isIncomingGradesInfoExpanded),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("Branches prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                                      HugeIcon(
-                                        icon: isIncomingGradesInfoExpanded ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedHelpCircle,
-                                        size: 18,
-                                        color: AppColors.tertiaryText.adaptTo(context),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                AnimatedSwitcher(
-                                  duration: Duration(milliseconds: 300),
-                                  switchInCurve: Curves.easeInOut,
-                                  switchOutCurve: Curves.easeInOut,
-                                  transitionBuilder: (child, animation) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, axisAlignment: 1, child: child),
-                                    );
-                                  },
-                                  child:
-                                      isIncomingGradesInfoExpanded
-                                          ? Padding(
-                                            padding: EdgeInsets.only(top: 4),
-                                            child: Text(
-                                              "Les branches en gris ci-dessous apparaîtront dans la liste des moyennes dès que vous ajouterez votre première note.\nMessagyre les crée automatiquement lorsque vous créez un devoir avec l'option « ajouter à la page des notes » activée.",
-                                              key: ValueKey("info"),
-                                              style: TextStyle(color: AppColors.tertiaryText.adaptTo(context)),
-                                            ),
-                                          )
-                                          : SizedBox(key: ValueKey("empty")),
-                                ),
-
-                                Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
-                              ],
-
+                              SizedBox(),
+                              Text("Évaluations récentes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)),
                               ListView.builder(
                                 padding: EdgeInsets.zero,
-                                itemCount: allIncomingSubjects.length,
-                                itemBuilder: (context, index) {
-                                  final subjectFutureGrade = allIncomingSubjects.elementAt(index);
-                                  return buildSubjectBar(subjectFutureGrade, isGradeUnknown: true);
-                                },
+                                itemCount: min(10, allGrades.length),
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  final grade = allGrades.elementAtOrNull(index);
+                                  return grade == null ? const SizedBox.shrink() : GradeBar(gradeData: grade, showSubject: true, onTap: null);
+                                },
                               ),
                             ],
                           ),

@@ -184,7 +184,7 @@ String formatDate(DateTime targetDate, {bool includeTime = false, bool includeAr
 // #endregion
 
 // #region -> Grades
-double calculateAverage(List<Grade> grades) {
+double calculateAverage(List<Grade> grades, {bool round = false}) {
   if (grades.isEmpty) return 0.0;
 
   double total = 0.0;
@@ -195,7 +195,9 @@ double calculateAverage(List<Grade> grades) {
     totalWeight += gradeData.weight;
   }
 
-  return totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
+  final double result = totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
+
+  return round ? (result * 2).roundToDouble() / 2 : result;
 }
 
 Map<double, String> fractions = {0.0: "0", 0.25: "¼", 0.33: "⅓", 0.5: "½", 0.66: "⅔", 0.75: "¾", 1.0: "1"};

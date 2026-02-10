@@ -9,12 +9,21 @@ import 'package:messagyre_client/utility/widgets/grade_display.dart';
 
 class GradeBar extends StatelessWidget {
   final Grade gradeData;
+  final bool showSubject;
   final bool isGradeUnknown;
   final bool isIncoming;
   final bool isPlanned;
-  final Function() onTap;
+  final Function()? onTap;
 
-  const GradeBar({super.key, required this.gradeData, required this.onTap, this.isGradeUnknown = false, this.isIncoming = false, this.isPlanned = false});
+  const GradeBar({
+    super.key,
+    required this.gradeData,
+    required this.onTap,
+    this.showSubject = false,
+    this.isGradeUnknown = false,
+    this.isIncoming = false,
+    this.isPlanned = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +32,7 @@ class GradeBar extends StatelessWidget {
     return Column(
       children: [
         CupertinoPressable(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.only(left: 1.5),
           onTap: onTap,
           child: Row(
             children: [
@@ -83,11 +92,11 @@ class GradeBar extends StatelessWidget {
                           Text(
                             isGradeUnknown
                                 ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                                : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
+                                : "${showSubject ? "${gradeData.subject.value?.name ?? ""} •" : "Reçu"} ${formatDate(gradeData.date, includeArticle: true)}",
                             maxLines: 2,
                             overflow: TextOverflow.fade,
                             softWrap: true,
-                            style: TextStyle(color: AppColors.separator.adaptTo(context), fontSize: 15),
+                            style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
                           ),
                         ],
                       ),
@@ -95,17 +104,18 @@ class GradeBar extends StatelessWidget {
                   ],
                 ),
               ),
-              HugeIcon(
-                icon:
-                    isGradeUnknown
-                        ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
-                        : HugeIcons.strokeRoundedPencilEdit02,
-                color: AppColors.tertiaryText.adaptTo(context),
-              ),
+              if (!showSubject)
+                HugeIcon(
+                  icon:
+                      isGradeUnknown
+                          ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
+                          : HugeIcons.strokeRoundedPencilEdit02,
+                  color: AppColors.tertiaryText.adaptTo(context),
+                ),
             ],
           ),
         ),
-        Divider(indent: 60, color: AppColors.separator.adaptTo(context).withAlpha(30)),
+        Divider(indent: 60, height: 10, color: AppColors.separator.adaptTo(context).withAlpha(30)),
       ],
     );
   }
