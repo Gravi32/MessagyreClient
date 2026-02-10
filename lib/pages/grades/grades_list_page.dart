@@ -230,7 +230,6 @@ class _GradesListPageState extends State<GradesListPage> {
                     // A list of all the subjects with at least 1 grade
                     final allSubjects = [];
                     for (final grade in allGrades) {
-                      print(grade.subject);
                       if (!allSubjects.contains(grade.subject.value)) allSubjects.add(grade.subject.value);
                     }
 
@@ -247,8 +246,6 @@ class _GradesListPageState extends State<GradesListPage> {
                         allIncomingSubjects.add(assignment.subject.value!);
                       }
                     }
-
-                    print("$allGrades\t$allSubjects");
 
                     return allGrades.isEmpty
                         ? Column(
