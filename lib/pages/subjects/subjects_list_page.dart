@@ -1,10 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/pages/subjects/subpages/subject_edit_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
-import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectsListPage extends StatefulWidget {
   const SubjectsListPage({super.key});
@@ -41,20 +40,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                         padding: EdgeInsets.all(10),
                         title: Row(
                           spacing: 16,
-                          children: [
-                            SizedBox.square(
-                              dimension: 36,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: subject.color.withBrightness(-.15),
-                                  border: Border.all(color: subject.color),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(child: Icon(subject.icon, color: AppColors.white, size: 18)),
-                              ),
-                            ),
-                            Text(subject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                          ],
+                          children: [SubjectBadge(subject: subject), Text(subject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500))],
                         ),
                         onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewSubjectPage(toEdit: subject))),
                       ),

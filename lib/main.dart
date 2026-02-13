@@ -182,7 +182,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (isAnimating) return;
     isAnimating = true;
     pageController
-        .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 200), curve: Curves.fastEaseInToSlowEaseOut)
+        .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 100), curve: Curves.fastEaseInToSlowEaseOut)
         .then((_) => isAnimating = false);
   }
 

@@ -17,6 +17,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesListPage extends StatefulWidget {
@@ -61,20 +62,8 @@ class _GradesListPageState extends State<GradesListPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.yellow,
-                    border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: SizedBox.square(
-                    dimension: 28,
-                    child: Padding(
-                      padding: EdgeInsets.all(2),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedArtboard, color: AppColors.yellow.withBrightness(.5)),
-                    ),
-                  ),
-                ),
+                SubjectBadge(subject: subject, size: 32),
+
                 Text(average.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
               ],
             ),
@@ -107,7 +96,7 @@ class _GradesListPageState extends State<GradesListPage> {
                           widthFactor: progress,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: AppColors.yellow,
+                              color: subject.color,
                               border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -232,6 +221,12 @@ class _GradesListPageState extends State<GradesListPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    database.subjects.watchAll().listen((_) => setState(() {}));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: Stack(
@@ -252,13 +247,10 @@ class _GradesListPageState extends State<GradesListPage> {
 
                     // A list of all the subjects with at least 1 grade
                     final List<Subject> allSubjects = [];
-                    int count = 0;
                     for (final grade in allGrades) {
-                      print("$count: $grade ${grade.subject}");
                       if (grade.subject.value != null && !allSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
                         allSubjects.add(grade.subject.value!);
                       }
-                      count++;
                     }
 
                     // All the assignments
