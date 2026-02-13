@@ -141,61 +141,61 @@ final List<IconData> availableIcons = [
 ];
 
 final List<Color> availableColors = [
-  // Reds / Pinks
-  const Color(0xFFE53935),
-  const Color(0xFFD81B60),
-  const Color(0xFFC2185B),
-  const Color(0xFFF06292),
-  const Color(0xFFF48FB1),
+  // Reds
+  const Color(0xFFC62828),
+  const Color(0xFFB71C1C),
+  const Color(0xFFD32F2F),
+  const Color(0xFFAD1457),
+  const Color(0xFF880E4F),
+  const Color(0xFF9A0036),
 
-  // Oranges / Yellows
-  const Color(0xFFFF9800),
-  const Color(0xFFFFA726),
-  const Color(0xFFFFB74D),
-  const Color(0xFFFFF176),
-  const Color(0xFFFFEB3B),
+  // Oranges / Ambers
+  const Color(0xFFEF6C00),
+  const Color(0xFFE65100),
+  const Color(0xFFFF8F00),
+  const Color(0xFFFF6F00),
+  const Color(0xFFFB8C00),
+  const Color(0xFFF57C00),
 
   // Greens
-  const Color(0xFF43A047),
-  const Color(0xFF66BB6A),
-  const Color(0xFF81C784),
-  const Color(0xFFA5D6A7),
-  const Color(0xFF8BC34A),
+  const Color(0xFF2E7D32),
+  const Color(0xFF1B5E20),
+  const Color(0xFF388E3C),
+  const Color(0xFF33691E),
+  const Color(0xFF2E7D32),
+  const Color(0xFF00695C),
 
   // Blues
-  const Color(0xFF1E88E5),
+  const Color(0xFF1565C0),
+  const Color(0xFF0D47A1),
   const Color(0xFF1976D2),
-  const Color(0xFF64B5F6),
-  const Color(0xFF90CAF9),
-  const Color(0xFF42A5F5),
+  const Color(0xFF0B3C5D),
+  const Color(0xFF1A237E),
+  const Color(0xFF283593),
 
   // Purples
-  const Color(0xFF8E24AA),
-  const Color(0xFFAB47BC),
-  const Color(0xFFBA68C8),
-  const Color(0xFFE1BEE7),
-  const Color(0xFF9C27B0),
+  const Color(0xFF6A1B9A),
+  const Color(0xFF4A148C),
+  const Color(0xFF7B1FA2),
+  const Color(0xFF512DA8),
+  const Color(0xFF4527A0),
+  const Color(0xFF311B92),
 
-  // Browns / Neutrals
+  // Browns
+  const Color(0xFF5D4037),
+  const Color(0xFF4E342E),
   const Color(0xFF6D4C41),
-  const Color(0xFFA1887F),
-  const Color(0xFFD7CCC8),
+  const Color(0xFF3E2723),
   const Color(0xFF795548),
-  const Color(0xFF8D6E63),
+  const Color(0xFF4B2E2B),
 
   // Teals / Cyans
-  const Color(0xFF009688),
-  const Color(0xFF26A69A),
-  const Color(0xFF4DB6AC),
-  const Color(0xFF80CBC4),
-  const Color(0xFF00ACC1),
-
-  // Deep Colors / Dark Variants
-  const Color(0xFF0D47A1),
+  const Color(0xFF00695C),
   const Color(0xFF004D40),
-  const Color(0xFF1B5E20),
-  const Color(0xFF4A148C),
-  const Color(0xFFB71C1C),
+  const Color(0xFF00796B),
+  const Color(0xFF00838F),
+  const Color(0xFF006064),
+  const Color(0xFF005662),
 ];
 
 class _NewSubjectPageState extends State<NewSubjectPage> {
@@ -346,8 +346,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
                                   return CupertinoPressable(
                                     decoration: BoxDecoration(
-                                      color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.secondaryBackground.adaptTo(context),
-                                      border: Border.all(color: isSelected ? colorNotifier.value : AppColors.transparent),
+                                      color: isSelected ? colorNotifier.value : AppColors.secondaryBackground.adaptTo(context),
+                                      border: Border.all(color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.transparent),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Center(child: Icon(thisIcon, size: 23, color: AppColors.white)),
