@@ -5,7 +5,7 @@ class AppColors {
   // Accent
   static const accent = Color.fromRGBO(171, 12, 179, 1.0);
 
-  // Backgrounds (tonalità coerenti)
+  // Backgrounds
   static const background = AppColor(light: Color.fromRGBO(242, 242, 247, 1.0), dark: Color.fromRGBO(16, 25, 34, 1.0));
   static const secondaryBackground = AppColor(light: Color.fromRGBO(232, 232, 237, 1.0), dark: Color.fromRGBO(24, 31, 48, 1.0));
   static const tertiaryBackground = AppColor(light: Color.fromRGBO(223, 223, 228, 1.0), dark: Color.fromRGBO(32, 41, 54, 1.0));

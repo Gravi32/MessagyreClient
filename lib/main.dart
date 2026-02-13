@@ -15,6 +15,7 @@ import 'package:messagyre_client/pages/chats/chats_list_page.dart';
 import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
+import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -208,9 +209,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     MainPage.pageIndex.addListener(swipeToPage);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       NotificationsService().init(context);
-      askUserToAcceptTermsOfService(context);
+      await askUserToAcceptTermsOfService(context);
+
+      final mountedContext = context;
+      if (!context.mounted) return;
+      await askUserToAddTheirSubjects(mountedContext);
     });
   }
 

@@ -18,6 +18,7 @@ import 'package:messagyre_client/pages/settings/subpages/calendar_settings_page.
 import 'package:messagyre_client/pages/settings/subpages/debug_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/storage_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
+import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
@@ -130,9 +131,8 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
-                              const SizedBox(width: 12), // spazio tra immagine e testo
+                              const SizedBox(width: 12),
                               Expanded(
-                                // fa espandere il testo a tutto lo spazio disponibile
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,11 +205,11 @@ class _SettingsListPageState extends State<SettingsListPage> {
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04),
                     title: Text("Calendrier"),
                   ),
-                  // CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  //   onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsSettingsPage())),
-                  //   leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
-                  //   header: Text("Vos branches"),
-                  // ),
+                  CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsListPage())),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
+                    title: Text("Branches"),
+                  ),
                 ],
               ),
 

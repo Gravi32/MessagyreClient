@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:flutter/material.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 
 part 'subject.g.dart';
 
@@ -22,10 +23,10 @@ class Subject {
   Subject();
 
   @ignore
-  Color? get color => colorValue != null ? Color(colorValue!) : null;
+  Color get color => colorValue != null ? Color(colorValue!) : AppColors.grey;
 
   @ignore
-  IconData? get icon => iconCodePoint != null ? IconData(iconCodePoint!, fontFamily: 'MaterialIcons') : null;
+  IconData get icon => iconCodePoint != null ? IconData(iconCodePoint!, fontFamily: 'MaterialIcons') : Icons.question_mark_rounded;
 
   @override
   String toString() => name;

@@ -130,6 +130,15 @@ extension ColorExtension on Color {
     final adjustedHsl = hsl.withLightness((hsl.lightness + brightness).clamp(0.0, 1.0));
     return adjustedHsl.toColor();
   }
+
+  int toInt() {
+    final alpha = (a * 255).toInt();
+    final red = (r * 255).toInt();
+    final green = (g * 255).toInt();
+    final blue = (b * 255).toInt();
+
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
+  }
 }
 
 Color adaptiveColor(Color light, Color dark) {
