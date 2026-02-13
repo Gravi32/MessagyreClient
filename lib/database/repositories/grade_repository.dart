@@ -6,7 +6,16 @@ class GradeRepository {
 
   GradeRepository(this.isar);
 
-  List<Grade> getAll() => isar.grades.where().findAllSync();
+  List<Grade> getAll() {
+    final grades = isar.grades.where().findAllSync();
+
+    for (final grade in grades) {
+      grade.subject.loadSync();
+    }
+
+    return grades;
+  }
+
   Grade? getByReferenceId(String id) => isar.grades.filter().referenceIdEqualTo(id).findFirstSync();
 
   Future<void> save(Grade grade) async {

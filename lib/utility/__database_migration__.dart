@@ -10,7 +10,7 @@ import 'package:messagyre_client/database/models/messages/message.dart' as isar_
 import 'package:messagyre_client/services/database_service.dart';
 
 import 'package:messagyre_client/utility/classes.dart'; // Hive classes
-import 'package:messagyre_client/utility/subjects.dart'; // enum Subject
+import 'package:messagyre_client/utility/subjects.dart';
 
 Future<void> migrateHiveToIsar() async {
   final database = DatabaseService().isar;
@@ -23,8 +23,49 @@ Future<void> migrateHiveToIsar() async {
 
   debugPrint("Starting Hive → database migration...");
 
-  // #region -> ASSIGNMENTS
+  // #region -> SUBJECTS
+  debugPrint("Migrating subjects...");
+  final gradeBox = Hive.box<Grade>("Grades");
   final assignmentBox = Hive.box<Assignment>("Homework");
+
+  final List<Subject> usedSubjects = [];
+  for (final assignment in assignmentBox.values) {
+    if (!usedSubjects.contains(assignment.subject)) usedSubjects.add(assignment.subject);
+  }
+  for (final grade in gradeBox.values) {
+    if (!usedSubjects.contains(grade.subject)) usedSubjects.add(grade.subject);
+  }
+
+  await database.writeTxn(() async {
+    for (final s in usedSubjects) {
+      try {
+        final existing = await database.subjects.filter().codeEqualTo(s.name).findFirst();
+        final subj =
+            existing ?? isar_subject.Subject()
+              ..code = s.name
+              ..name = SubjectHelper.toFrench(s);
+
+        if (existing == null) {
+          try {
+            await database.subjects.put(subj);
+          } on IsarError catch (e) {
+            if (e.message.contains('Unique index violated')) {
+              debugPrint("Subject ${subj.code} already exists, skipping...");
+            } else {
+              rethrow;
+            }
+          }
+        }
+        subjectMap[s] = subj;
+      } catch (e) {
+        logError("Subject ${s.name}", e);
+      }
+    }
+  });
+  debugPrint("Subjects migrated: ${subjectMap.length}");
+  // #endregion
+
+  // #region -> ASSIGNMENTS
   debugPrint("Migrating assignments...");
   await database.writeTxn(() async {
     int count = 0;
@@ -43,6 +84,7 @@ Future<void> migrateHiveToIsar() async {
               ..calendarEventId = old.calendarEventId;
 
         a.subject.value = subjectMap[old.subject];
+        print("Setting assignment ${a.title} (prev subj: ${old.subject}) new subj: ${a.subject.value} because ${subjectMap.entries.join(" ")}");
 
         if (existing == null) {
           try {
@@ -67,7 +109,6 @@ Future<void> migrateHiveToIsar() async {
   // #endregion
 
   // #region -> GRADES
-  final gradeBox = Hive.box<Grade>("Grades");
   debugPrint("Migrating grades...");
   await database.writeTxn(() async {
     int count = 0;
@@ -106,45 +147,6 @@ Future<void> migrateHiveToIsar() async {
     }
     debugPrint("Total grades migrated: $count");
   });
-  // #endregion
-
-  // #region -> SUBJECTS
-  debugPrint("Migrating subjects...");
-  final List<Subject> usedSubjects = [];
-  for (final assignment in assignmentBox.values) {
-    if (!usedSubjects.contains(assignment.subject)) usedSubjects.add(assignment.subject);
-  }
-  for (final grade in gradeBox.values) {
-    if (!usedSubjects.contains(grade.subject)) usedSubjects.add(grade.subject);
-  }
-
-  await database.writeTxn(() async {
-    for (final s in usedSubjects) {
-      try {
-        final existing = await database.subjects.filter().codeEqualTo(s.name).findFirst();
-        final subj =
-            existing ?? isar_subject.Subject()
-              ..code = s.name
-              ..name = SubjectHelper.toFrench(s);
-
-        if (existing == null) {
-          try {
-            await database.subjects.put(subj);
-          } on IsarError catch (e) {
-            if (e.message.contains('Unique index violated')) {
-              debugPrint("Subject ${subj.code} already exists, skipping...");
-            } else {
-              rethrow;
-            }
-          }
-        }
-        subjectMap[s] = subj;
-      } catch (e) {
-        logError("Subject ${s.name}", e);
-      }
-    }
-  });
-  debugPrint("Subjects migrated: ${subjectMap.length}");
   // #endregion
 
   // #region -> CHATS & MESSAGES

@@ -252,10 +252,13 @@ class _GradesListPageState extends State<GradesListPage> {
 
                     // A list of all the subjects with at least 1 grade
                     final List<Subject> allSubjects = [];
+                    int count = 0;
                     for (final grade in allGrades) {
+                      print("$count: $grade ${grade.subject}");
                       if (grade.subject.value != null && !allSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
                         allSubjects.add(grade.subject.value!);
                       }
+                      count++;
                     }
 
                     // All the assignments
