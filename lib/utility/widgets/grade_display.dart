@@ -102,9 +102,9 @@ class _GradeDisplayState extends State<GradeDisplay> {
                             Transform.flip(
                               flipX: true,
                               child: Transform.rotate(
-                                angle: pi / .25 / size,
+                                angle: pi / .25 / size + .015 * widget.strokeWidth,
                                 child: CircularProgressIndicator(
-                                  value: 1 - gradeAlpha - 1 / (.25 * size),
+                                  value: 1 - gradeAlpha - 1 / (.25 * size) - .005 * widget.strokeWidth,
                                   strokeWidth: widget.strokeWidth,
                                   strokeCap: StrokeCap.round,
                                   color: adaptiveColor(AppColors.black, AppColors.white).withAlpha(30),
