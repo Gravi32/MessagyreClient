@@ -10,6 +10,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_by_subject_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/recent_grades_page.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -259,7 +260,7 @@ class _GradesListPageState extends State<GradesListPage> {
 
                                   CupertinoButton(
                                     padding: EdgeInsets.zero,
-                                    onPressed: () {},
+                                    onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage())),
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
