@@ -9,7 +9,6 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/grade_group_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
-import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -181,7 +180,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
 
                           Navigator.pop(context);
                           MainPage.pageIndex.value = 1;
-                          assignmentListPageKey.currentState?.showAssignment(assignment);
+                          //assignmentListPageKey.currentState?.showAssignment(assignment);
                         },
                         isGradeUnknown: true,
                         isIncoming: isIncoming,

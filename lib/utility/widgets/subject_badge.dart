@@ -19,7 +19,7 @@ class SubjectBadge extends StatelessWidget {
           border: Border.all(color: subject.color.withBrightness(-.15)),
           borderRadius: BorderRadius.circular(size / 3.6),
         ),
-        child: Center(child: Icon(subject.icon, color: AppColors.white, size: size * (1 - size / 80))),
+        child: Center(child: Icon(subject.icon, color: AppColors.white, size: size * (1 - size / 70))),
       ),
     );
   }

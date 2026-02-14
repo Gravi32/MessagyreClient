@@ -24,7 +24,7 @@ class AppColors {
 
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);
-  static const red = Color.fromRGBO(255, 59, 48, 1.0);
+  static const red = Color.fromRGBO(240, 100, 100, 1.0);
   static const orange = Color.fromRGBO(255, 149, 0, 1.0);
   static const yellow = Color.fromRGBO(255, 204, 0, 1.0);
   static const green = Color.fromRGBO(52, 199, 89, 1.0);

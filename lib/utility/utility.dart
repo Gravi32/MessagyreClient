@@ -151,6 +151,8 @@ Color adaptiveColor(Color light, Color dark) {
 
 extension DateTimeExtension on DateTime {
   bool isSameDayAs(DateTime other) => year == other.year && month == other.month && day == other.day;
+
+  /// Returns the DateTime with just the day, month and year values.
   DateTime dateOnly() => DateTime(year, month, day);
 }
 
