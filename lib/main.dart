@@ -178,12 +178,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late final List<Widget> builtPages;
   bool isAnimating = false;
 
-  void swipeToPage() {
-    if (isAnimating) return;
+  void swipeToPage() async {
+    if (isAnimating) {
+      pageController.jumpToPage(MainPage.pageIndex.value);
+      return;
+    }
+
     isAnimating = true;
-    pageController
-        .animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 100), curve: Curves.fastEaseInToSlowEaseOut)
-        .then((_) => isAnimating = false);
+    await pageController.animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 100), curve: Curves.fastEaseInToSlowEaseOut);
+    isAnimating = false;
   }
 
   @override
@@ -254,7 +257,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               strokeColor: AppColors.transparent,
               selectedColor: AppColors.text.adaptTo(context),
               currentIndex: currentIndex,
-              onTap: (index) => MainPage.pageIndex.value = index,
+              onTap: (index) {
+                if (!isAnimating) MainPage.pageIndex.value = index;
+              },
               items:
                   App.pages
                       .map(
