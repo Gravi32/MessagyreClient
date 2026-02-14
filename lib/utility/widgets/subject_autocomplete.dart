@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectAutocomplete extends StatefulWidget {
   final void Function(Subject subject) onSelected;
@@ -179,11 +180,17 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text.rich(
-                          TextSpan(
-                            children: highlightSearchMatch(option.name, _controller.text, useCache: true),
-                            style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
-                          ),
+                        child: Row(
+                          spacing: 15,
+                          children: [
+                            SubjectBadge(subject: option),
+                            Text.rich(
+                              TextSpan(
+                                children: highlightSearchMatch(option.name, _controller.text, useCache: true),
+                                style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
