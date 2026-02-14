@@ -8,16 +8,14 @@ import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/pages/grades/subpages/grades_by_subject_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
-import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
+import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
-import 'package:messagyre_client/services/network_service.dart';
-import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesListPage extends StatefulWidget {
@@ -30,87 +28,52 @@ class GradesListPage extends StatefulWidget {
 class _GradesListPageState extends State<GradesListPage> {
   static const double subjectTileMaxHeight = 106;
 
-  final network = NetworkService();
-  final globals = GlobalsService();
   final database = DatabaseService();
 
   bool isAverageBarExpanded = false;
-  bool isIncomingGradesInfoExpanded = false;
 
-  Widget buildSubjectBar(Subject subject, {bool isGradeUnknown = false}) {
-    final grades = database.grades.getAll().where((grade) => grade.subject.value?.code == subject.code).toList();
-    final average = calculateAverage(grades, round: true);
+  Widget buildSubjectsGrid(List<Subject> allSubjects) {
+    const double maxHeight = 250;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.secondaryBackground.adaptTo(context),
-        border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-        borderRadius: BorderRadius.circular(12),
+    final rows = (allSubjects.length / 2).ceil();
+    final totalHeight = rows * subjectTileMaxHeight + (rows - 1) * 8; // mainAxisSpacing
+
+    final bool shouldFade = totalHeight > maxHeight;
+
+    Widget grid = GridView.builder(
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        mainAxisExtent: subjectTileMaxHeight,
       ),
-      constraints: BoxConstraints(maxHeight: subjectTileMaxHeight),
-      child: CupertinoButton(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        onPressed: () {
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: subject)));
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 2,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SubjectBadge(subject: subject, size: 32),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: allSubjects.length,
+      itemBuilder: (context, index) {
+        final subject = allSubjects[index];
+        return SubjectCard(subject: subject);
+      },
+    );
 
-                Text(average.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
-              ],
-            ),
-
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 10,
-              children: [
-                Text(
-                  subject.name,
-                  style: TextStyle(
-                    fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
-                    fontSize: 18,
-                    color: isGradeUnknown ? AppColors.tertiaryText.adaptTo(context) : adaptiveColor(AppColors.black, AppColors.white),
-                  ),
-                ),
-
-                Container(
-                  height: 8,
-                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final progress = average / 6;
-
-                      return Align(
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: progress,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: subject.color,
-                              border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: maxHeight),
+      child:
+          shouldFade
+              ? ShaderMask(
+                shaderCallback: (Rect rect) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [AppColors.black, AppColors.black, AppColors.transparent],
+                    stops: [0.0, 0.6, 1.0],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: grid,
+              )
+              : grid,
     );
   }
 
@@ -253,20 +216,6 @@ class _GradesListPageState extends State<GradesListPage> {
                       }
                     }
 
-                    // All the assignments
-                    final allAssignments = database.assignments.getAll();
-
-                    // A list of the subjects that are going to be added
-                    final allIncomingSubjects = [];
-                    for (final assignment in allAssignments.sortedBy((assignment) => assignment.dueDate)) {
-                      if ((assignment.isGraded || assignment.isTest) &&
-                          assignment.referenceId != null &&
-                          assignment.subject.value != null &&
-                          !allIncomingSubjects.contains(assignment.subject.value)) {
-                        allIncomingSubjects.add(assignment.subject.value!);
-                      }
-                    }
-
                     return allGrades.isEmpty
                         ? buildPlaceholder()
                         : SingleChildScrollView(
@@ -277,35 +226,79 @@ class _GradesListPageState extends State<GradesListPage> {
                               buildGeneralAverageBar(),
 
                               SizedBox(),
-                              Text("Vos branches", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)),
-                              GridView.builder(
-                                padding: EdgeInsets.zero,
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 8,
-                                  crossAxisSpacing: 8,
-                                  mainAxisExtent: subjectTileMaxHeight,
-                                ),
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: allSubjects.length,
-                                itemBuilder: (context, index) {
-                                  final subject = allSubjects[index];
-                                  return buildSubjectBar(subject);
-                                },
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Par branche", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => GradesBySubjectPage())),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          "Tout voir",
+                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context)),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
 
+                              buildSubjectsGrid(allSubjects),
+
                               SizedBox(),
-                              Text("Évaluations récentes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)),
-                              ListView.builder(
-                                padding: EdgeInsets.zero,
-                                itemCount: min(10, allGrades.length),
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  final grade = allGrades.elementAtOrNull(index);
-                                  return grade == null ? const SizedBox.shrink() : GradeBar(gradeData: grade, showSubject: true, onTap: null);
-                                },
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Récentes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () {},
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          "Tout voir",
+                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context)),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxHeight: 350),
+                                child: ShaderMask(
+                                  shaderCallback: (Rect rect) {
+                                    return const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [AppColors.black, AppColors.black, AppColors.transparent],
+                                      stops: [0.0, 0.6, 1.0],
+                                    ).createShader(rect);
+                                  },
+                                  blendMode: BlendMode.dstIn,
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    itemCount: min(10, allGrades.length),
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, index) {
+                                      final grade = allGrades.elementAtOrNull(index);
+                                      return grade == null
+                                          ? const SizedBox.shrink()
+                                          : GradeBar(gradeData: grade, showSubject: true, onTap: () => showNewGradePopup(toEdit: grade));
+                                    },
+                                  ),
+                                ),
                               ),
                             ],
                           ),
