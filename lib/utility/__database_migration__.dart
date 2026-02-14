@@ -84,7 +84,6 @@ Future<void> migrateHiveToIsar() async {
               ..calendarEventId = old.calendarEventId;
 
         a.subject.value = subjectMap[old.subject];
-        print("Setting assignment ${a.title} (prev subj: ${old.subject}) new subj: ${a.subject.value} because ${subjectMap.entries.join(" ")}");
 
         if (existing == null) {
           try {
