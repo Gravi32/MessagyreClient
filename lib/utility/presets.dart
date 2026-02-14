@@ -1,0 +1,55 @@
+final Map<String, DateTime> vaudSchoolHolidays = {
+  "Relâches 2026": DateTime(2026, 2, 14),
+  "Vacances de Pâques 2026": DateTime(2026, 4, 3),
+  "Vacances d'été 2026": DateTime(2026, 6, 27),
+  "Vacances d'automne 2026": DateTime(2026, 10, 10),
+  "Vacances d'hiver 2026": DateTime(2026, 12, 24),
+
+  "Relâches 2027": DateTime(2027, 2, 6),
+  "Vacances de Pâques 2027": DateTime(2027, 3, 26),
+  "Vacances d'été 2027": DateTime(2027, 7, 3),
+  "Vacances d'automne 2027": DateTime(2027, 10, 9),
+  "Vacances d'hiver 2027": DateTime(2027, 12, 24),
+
+  "Relâches 2028": DateTime(2028, 2, 12),
+  "Vacances de Pâques 2028": DateTime(2028, 4, 14),
+  "Vacances d'été 2028": DateTime(2028, 7, 1),
+  "Vacances d'automne 2028": DateTime(2028, 10, 14),
+  "Vacances d'hiver 2028": DateTime(2028, 12, 23),
+
+  "Relâches 2029": DateTime(2029, 2, 10),
+  "Vacances de Pâques 2029": DateTime(2029, 3, 30),
+  "Vacances d'été 2029": DateTime(2029, 6, 30),
+  "Vacances d'automne 2029": DateTime(2029, 10, 13),
+  "Vacances d'hiver 2029": DateTime(2029, 12, 22),
+
+  "Relâches 2030": DateTime(2030, 2, 16),
+  "Vacances de Pâques 2030": DateTime(2030, 4, 19),
+  "Vacances d'été 2030": DateTime(2030, 7, 6),
+  "Vacances d'automne 2030": DateTime(2030, 10, 12),
+  "Vacances d'hiver 2030": DateTime(2030, 12, 21),
+
+  "Relâches 2031": DateTime(2031, 2, 15),
+  "Vacances de Pâques 2031": DateTime(2031, 4, 11),
+  "Vacances d'été 2031": DateTime(2031, 7, 5),
+  "Vacances d'automne 2031": DateTime(2031, 10, 11),
+  "Vacances d'hiver 2031": DateTime(2031, 12, 20),
+
+  "Relâches 2032": DateTime(2032, 2, 14),
+  "Vacances de Pâques 2032": DateTime(2032, 3, 26),
+  "Vacances d'été 2032": DateTime(2032, 7, 3),
+  "Vacances d'automne 2032": DateTime(2032, 10, 9),
+  "Vacances d'hiver 2032": DateTime(2032, 12, 18),
+
+  "Relâches 2033": DateTime(2033, 2, 12),
+  "Vacances de Pâques 2033": DateTime(2033, 4, 15),
+  "Vacances d'été 2033": DateTime(2033, 7, 2),
+  "Vacances d'automne 2033": DateTime(2033, 10, 15),
+  "Vacances d'hiver 2033": DateTime(2033, 12, 24),
+
+  "Relâches 2034": DateTime(2034, 2, 11),
+  "Vacances de Pâques 2034": DateTime(2034, 4, 7),
+  "Vacances d'été 2034": DateTime(2034, 7, 1),
+  "Vacances d'automne 2034": DateTime(2034, 10, 14),
+  "Vacances d'hiver 2034": DateTime(2034, 12, 23),
+};
