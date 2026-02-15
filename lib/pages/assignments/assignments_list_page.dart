@@ -26,7 +26,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       bottom: MediaQuery.paddingOf(context).bottom + 20,
       right: 20,
       child: CupertinoPressable(
-        onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => NewAssignmentPage())),
+        onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage())),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
@@ -51,11 +51,6 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                 stream: database.assignments.watchAll(),
                 builder: (context, snapshot) {
                   final allAssignments = snapshot.data ?? [];
-
-                  print("");
-                  for (final a in allAssignments) {
-                    print("${a.title}    \t${a.content}\t\t${a.subject}");
-                  }
 
                   final today = DateTime.now().dateOnly();
                   final tomorrow = today.copyWith(day: today.day + 1);
