@@ -11,13 +11,10 @@ import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_by_subject_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/recent_grades_page.dart';
+import 'package:messagyre_client/pages/grades/widgets/grades_top_card.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
-import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
-import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/paged_card.dart';
-import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesListPage extends StatefulWidget {
@@ -77,54 +74,6 @@ class _GradesListPageState extends State<GradesListPage> {
     );
   }
 
-  Widget buildGeneralAverageBar() {
-    final grades = database.grades.getAll();
-    final average = calculateAverage(grades.toList());
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: PagedCard(
-        height: 150,
-        pages: [
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 10,
-            children: [
-              GradeDisplay(grade: average, size: 100, strokeWidth: 5, roundGrade: false, textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}"),
-              Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Bulletin", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children:
-                    database.subjects.getAll().map((subject) {
-                      return Row(
-                        spacing: 6,
-                        children: [
-                          SubjectBadge(subject: subject, size: 20),
-                          Text(subject.name),
-                          Text(calculateAverage(grades.where((g) => g.subject.value?.code == subject.code).toList(), round: true).toString()),
-                        ],
-                      );
-                    }).toList(),
-              ),
-              Spacer(),
-              Text("Total des points: ${calculateAverage(grades)}", style: const TextStyle(fontSize: 16)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget buildPlaceholder() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -179,7 +128,7 @@ class _GradesListPageState extends State<GradesListPage> {
                   stream: database.grades.watchAll(),
                   builder: (context, _) {
                     // All the grades
-                    final allGrades = database.grades.getAll();
+                    final allGrades = database.grades.getAll().sortedBy((grade) => grade.date).reversed;
 
                     // A list of all the subjects with at least 1 grade
                     final List<Subject> allSubjects = [];
@@ -196,7 +145,7 @@ class _GradesListPageState extends State<GradesListPage> {
                             spacing: 10,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              buildGeneralAverageBar(),
+                              GradesTopCard(),
 
                               SizedBox(),
                               Row(

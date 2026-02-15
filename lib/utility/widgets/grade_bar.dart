@@ -115,7 +115,7 @@ class GradeBar extends StatelessWidget {
             ],
           ),
         ),
-        Divider(indent: 60, height: 10, color: AppColors.separator.adaptTo(context).withAlpha(30)),
+        //Divider(indent: 60, height: 10, color: AppColors.separator.adaptTo(context).withAlpha(30)),
       ],
     );
   }
