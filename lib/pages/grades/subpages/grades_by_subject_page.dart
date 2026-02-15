@@ -67,24 +67,26 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                         },
                       ),
 
-                      const SizedBox(height: 20),
-                      Text("Branches sans notes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
-                      GridView.builder(
-                        padding: EdgeInsets.zero,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          mainAxisExtent: 120,
+                      if (allInactiveSubjects.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        Text("Branches sans notes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                        GridView.builder(
+                          padding: EdgeInsets.zero,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            mainAxisExtent: 120,
+                          ),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: allInactiveSubjects.length,
+                          itemBuilder: (context, index) {
+                            final subject = allInactiveSubjects[index];
+                            return SubjectCard(subject: subject, isSubjectActive: false);
+                          },
                         ),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: allInactiveSubjects.length,
-                        itemBuilder: (context, index) {
-                          final subject = allInactiveSubjects[index];
-                          return SubjectCard(subject: subject, isSubjectActive: false);
-                        },
-                      ),
+                      ],
                     ],
                   ),
                 );
