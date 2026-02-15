@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 1.33.558+558
+version: 2.35.578+578
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -37,6 +37,9 @@ version: 1.33.558+558
 # 1.31  Added Privacy Policy page
 # 1.32  Major codebase refactor
 # 1.33  Changed the app color
+# 2.33  Complete Grades and Assignments page redesign
+# 2.34  Database migration to Isar
+# 2.35  Added subjects managing page
 
 environment:
   sdk: ^3.7.2
