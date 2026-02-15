@@ -5,8 +5,9 @@ import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 
 class PagedCard extends StatefulWidget {
   final List<Widget> pages;
+  final double height;
 
-  const PagedCard({super.key, required this.pages});
+  const PagedCard({super.key, required this.pages, this.height = 100});
 
   @override
   State<PagedCard> createState() => _PagedCardState();
@@ -38,7 +39,7 @@ class _PagedCardState extends State<PagedCard> {
         child: Column(
           children: [
             SizedBox(
-              height: 100,
+              height: widget.height,
               child: PageView.builder(
                 controller: _controller,
                 itemCount: widget.pages.length,

@@ -14,9 +14,10 @@ import 'package:messagyre_client/pages/grades/subpages/recent_grades_page.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/paged_card.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesListPage extends StatefulWidget {
@@ -30,8 +31,6 @@ class _GradesListPageState extends State<GradesListPage> {
   static const double subjectTileMaxHeight = 106;
 
   final database = DatabaseService();
-
-  bool isAverageBarExpanded = false;
 
   Widget buildSubjectsGrid(List<Subject> allSubjects) {
     const double maxHeight = 250;
@@ -84,71 +83,44 @@ class _GradesListPageState extends State<GradesListPage> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
-      child: CupertinoPressable(
-        onTap: () => setState(() => isAverageBarExpanded = !isAverageBarExpanded),
-        decoration: BoxDecoration(
-          color: AppColors.secondaryBackground.adaptTo(context),
-          border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 10,
-              children: [
-                GradeDisplay(grade: average, size: 100, strokeWidth: 5, roundGrade: false, textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}"),
-                Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-              ],
-            ),
-
-            AnimatedSwitcher(
-              duration: Duration(milliseconds: 300),
-              switchInCurve: Curves.easeInOut,
-              switchOutCurve: Curves.easeInOut,
-              transitionBuilder: (child, animation) {
-                return FadeTransition(opacity: animation, child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, axisAlignment: 1, child: child));
-              },
-              child:
-                  isAverageBarExpanded
-                      ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: PagedCard(
+        height: 150,
+        pages: [
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 10,
+            children: [
+              GradeDisplay(grade: average, size: 100, strokeWidth: 5, roundGrade: false, textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}"),
+              Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Bulletin", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children:
+                    database.subjects.getAll().map((subject) {
+                      return Row(
+                        spacing: 6,
                         children: [
-                          const SizedBox(height: 10),
-                          Text(
-                            "Informations supplémentaires",
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white)),
-                          ),
-                          Text("Total des points: ${calculateAverage(grades)}", style: TextStyle(fontSize: 16)),
-                          Text(
-                            "Plusieurs options seront disponibles dans les prochaines mises à jours...",
-                            style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
-                          ),
-                          const SizedBox(height: 6),
+                          SubjectBadge(subject: subject, size: 20),
+                          Text(subject.name),
+                          Text(calculateAverage(grades.where((g) => g.subject.value?.code == subject.code).toList(), round: true).toString()),
                         ],
-                      )
-                      : const SizedBox.shrink(),
-            ),
-
-            Row(
-              spacing: 3,
-              children: [
-                Text("Voir ${isAverageBarExpanded ? "moins" : "plus"}", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-
-                HugeIcon(
-                  icon: isAverageBarExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                  size: 18,
-                  color: AppColors.tertiaryText.adaptTo(context),
-                ),
-              ],
-            ),
-          ],
-        ),
+                      );
+                    }).toList(),
+              ),
+              Spacer(),
+              Text("Total des points: ${calculateAverage(grades)}", style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+        ],
       ),
     );
   }
