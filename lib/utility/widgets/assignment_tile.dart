@@ -125,7 +125,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
           ),
         ],
       ),
-      onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment))),
+      onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false)),
     );
   }
 }

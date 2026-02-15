@@ -26,7 +26,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       bottom: MediaQuery.paddingOf(context).bottom + 20,
       right: 20,
       child: CupertinoPressable(
-        onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage())),
+        onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),

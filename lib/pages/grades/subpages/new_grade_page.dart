@@ -9,12 +9,12 @@ import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/autocomplete_field.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGradePage extends StatefulWidget {
@@ -368,10 +368,18 @@ class _NewGradePageState extends State<NewGradePage> {
                         if (isReferenceTileExpanded && referencedAssignment != null) ...[
                           const SizedBox(height: 10),
 
-                          Opacity(opacity: .9, child: AssignmentCard(assignment: referencedAssignment!, isPreview: true)),
+                          // Preview Assignment Tile
+                          Opacity(
+                            opacity: .9,
+                            child: CupertinoListSection.insetGrouped(
+                              margin: EdgeInsets.zero,
+                              backgroundColor: AppColors.transparent,
+                              children: [AssignmentTile(assignment: referencedAssignment!)],
+                            ),
+                          ),
                           const SizedBox(height: 10),
                           Text(
-                            "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans dissocier la note.",
+                            "Le titre que vous avez entré correspond à celui de ce devoir, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans la dissocier.",
                             style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                           ),
                           const SizedBox(height: 4),
@@ -530,10 +538,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
-                      leading: HugeIcon(
-                        icon: HugeIcons.strokeRoundedBookBookmark02,
-                        color: referenceId == null ? AppColors.tertiaryText.adaptTo(context) : AppColors.inactive.adaptTo(context),
-                      ),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
                       trailing:
                           referenceId == null ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)) : null,
                       title: SubjectAutocomplete(
@@ -565,7 +570,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     children: [
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.tertiaryText.adaptTo(context)),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01),
                         title: Text("Fait partie d'un groupe"),
                         trailing: CupertinoSwitch(
                           value: isInGroup,
@@ -673,8 +678,8 @@ class _NewGradePageState extends State<NewGradePage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: AppColors.tertiaryText.adaptTo(context)),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.placeholderText.adaptTo(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
+                      trailing: CupertinoListTileChevron(),
                       title: Text("Reçu ${formatDate(date, includeArticle: true)}"),
                       onTap: showDatePicker,
                     ),
@@ -688,7 +693,7 @@ class _NewGradePageState extends State<NewGradePage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal, color: AppColors.tertiaryText.adaptTo(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal),
                       trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
                       title: StatefulBuilder(
                         builder: (context, setInnerState) {
