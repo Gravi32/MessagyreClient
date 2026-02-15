@@ -62,9 +62,9 @@ class _GradesListPageState extends State<GradesListPage> {
                 shaderCallback: (Rect rect) {
                   return const LinearGradient(
                     begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                    end: Alignment(0, 1.1),
                     colors: [AppColors.black, AppColors.black, AppColors.transparent],
-                    stops: [0.0, 0.6, 1.0],
+                    stops: [0, 0.6, 1.0],
                   ).createShader(rect);
                 },
                 blendMode: BlendMode.dstIn,
