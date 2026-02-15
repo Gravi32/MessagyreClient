@@ -43,7 +43,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
           itemBuilder: (context, index) {
             final thisDay = monday.add(Duration(days: index));
             final thisDaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(thisDay));
-            final isSelected = thisDay.isSameDayAs(today.add(Duration(days: 2)));
+            final isSelected = thisDay.isSameDayAs(today);
 
             return Container(
               padding: EdgeInsets.all(4),
