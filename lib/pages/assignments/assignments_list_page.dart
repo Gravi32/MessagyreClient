@@ -49,8 +49,13 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
               top: false,
               child: StreamBuilder(
                 stream: database.assignments.watchAll(),
-                builder: (context, _) {
-                  final allAssignments = database.assignments.getAll();
+                builder: (context, snapshot) {
+                  final allAssignments = snapshot.data ?? [];
+
+                  print("");
+                  for (final a in allAssignments) {
+                    print("${a.title}    \t${a.content}\t\t${a.subject}");
+                  }
 
                   final today = DateTime.now().dateOnly();
                   final tomorrow = today.copyWith(day: today.day + 1);
@@ -69,7 +74,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                       CupertinoListSection.insetGrouped(
                         margin: EdgeInsets.zero,
                         backgroundColor: AppColors.transparent,
-                        children: list.map((a) => AssignmentTile(assignment: a, showDate: tilesShowDate, dim: dimTiles)).toList(),
+                        children: list.map((a) => AssignmentTile(key: ValueKey(a.referenceId), assignment: a, showDate: tilesShowDate, dim: dimTiles)).toList(),
                       ),
                       const SizedBox(height: 30),
                     ];

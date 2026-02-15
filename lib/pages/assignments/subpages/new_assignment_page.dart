@@ -10,7 +10,6 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/assignment_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,15 +33,17 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late final subjectController = TextEditingController(text: subject?.name);
   late final titleController = TextEditingController(text: widget.toEdit?.title);
   late final contentController = TextEditingController(text: widget.toEdit?.content);
+  late final ValueNotifier<bool> canSubmitNotifier;
 
   final subjectFocusNode = FocusNode();
   final titleFocusNode = FocusNode();
   final contentFocusNode = FocusNode();
 
+  late Mode mode = (widget.toEdit?.isTest ?? false) ? Mode.Test : Mode.Assignment;
+
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late bool isGraded = widget.toEdit?.isGraded ?? false;
-  late bool isTest = widget.toEdit?.isTest ?? false;
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
   late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : true; // miscBox.get("EditsCalendar", defaultValue: true);
 
@@ -59,7 +60,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ..content = contentController.text.trim()
       ..dueDate = dueDate
       ..isGraded = isGraded
-      ..isTest = isTest
+      ..isTest = mode == Mode.Test
       ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
       ..calendarEventId = editsCalendar ? assignment.calendarEventId : null;
 
@@ -133,8 +134,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       builder: (dialogContext) {
         final missingInfos = [
           if (subject == null) "la *branche*",
-          if ((isTest || isGraded) && titleController.text.isEmpty) "un *titre*",
-          if (!(isTest || isGraded) && contentController.text.isEmpty) "une *description*",
+          if ((mode == Mode.Test || isGraded) && titleController.text.isEmpty) "un *titre*",
+          if (!(mode == Mode.Test || isGraded) && contentController.text.isEmpty) "une *description*",
         ];
 
         return CupertinoAlertDialog(
@@ -146,12 +147,21 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     );
   }
 
+  void updateCanSubmit() {
+    canSubmitNotifier.value = (subject != null) && ((mode == Mode.Test || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
+  }
+
   @override
   void initState() {
     super.initState();
-    subjectController.addListener(() => setState(() {}));
-    titleController.addListener(() => setState(() {}));
-    contentController.addListener(() => setState(() {}));
+    canSubmitNotifier = ValueNotifier(false);
+
+    subjectController.addListener(updateCanSubmit);
+    titleController.addListener(updateCanSubmit);
+    contentController.addListener(updateCanSubmit);
+
+    updateCanSubmit();
+
     globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
 
@@ -168,17 +178,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final previewAssignment =
-        Assignment()
-          ..subject.value = subject
-          ..title = titleController.text.isEmpty ? null : titleController.text.trim()
-          ..content = contentController.text.trim()
-          ..dueDate = dueDate
-          ..isGraded = isGraded
-          ..isTest = isTest;
-
-    final canBeSubmitted = (subject != null) && ((isTest || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
-
     return GestureDetector(
       onTap: unfocusFields,
       child: CupertinoPageScaffold(
@@ -189,59 +188,55 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
           ),
-          trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: canBeSubmitted ? confirmAssignment : showMissingInfoPopup,
-            child: Text(
-              editMode ? "Terminé" : "Ajouter",
-              style: TextStyle(color: canBeSubmitted ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: FontWeight.w600),
-            ),
+          trailing: ValueListenableBuilder<bool>(
+            valueListenable: canSubmitNotifier,
+            builder:
+                (context, canBeSubmitted, _) => CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: canBeSubmitted ? confirmAssignment : showMissingInfoPopup,
+                  child: Text(
+                    editMode ? "Terminé" : "Ajouter",
+                    style: TextStyle(
+                      color: canBeSubmitted ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
           ),
         ),
         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
         child: SafeArea(
           child: ListView(
             physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 10),
             children: [
-              // Preview AssignmentCard
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-                child: AssignmentCard(
-                  assignment: previewAssignment,
-                  isPreview: true,
-                  onCardTap: () {
-                    if (subjectFocusNode.hasFocus || contentFocusNode.hasFocus) {
-                      unfocusFields();
-                    } else {
-                      subjectController.text.isEmpty ? subjectFocusNode.requestFocus() : contentFocusNode.requestFocus();
+              CupertinoSlidingSegmentedControl<Mode>(
+                groupValue: mode,
+                backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                thumbColor: AppColors.text.adaptTo(context).withAlpha(20),
+                children: const {
+                  Mode.Assignment: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Devoir", style: TextStyle(fontSize: 16))),
+                  Mode.Test: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Test", style: TextStyle(fontSize: 16))),
+                },
+                onValueChanged: (newMode) {
+                  if (newMode == null) return;
+                  setState(() {
+                    mode = newMode;
+                    if (mode == Mode.Test) {
+                      isGraded = false;
                     }
-                  },
-                ),
+                    updateCanSubmit();
+                  });
+                },
               ),
+              const SizedBox(height: 10),
 
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SubjectAutocomplete(
-                      decoration: const BoxDecoration(),
-                      padding: EdgeInsets.zero,
-                      controller: subjectController,
-                      focusNode: subjectFocusNode,
-                      placeholder: "Branche",
-                      prefix: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: AppColors.text.adaptTo(context)),
-                      ),
-                      suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
-                      suffixMode: OverlayVisibilityMode.notEditing,
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w500),
-                      onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
-                    ),
-                    SizedBox(height: 12),
-                    if (isTest || isGraded) ...[
+                    if (mode == Mode.Test || isGraded) ...[
                       CupertinoTextField(
                         controller: titleController,
                         focusNode: titleFocusNode,
@@ -265,8 +260,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         borderRadius: const BorderRadius.all(Radius.circular(8)),
                         border: Border.all(width: 0, color: AppColors.separator.adaptTo(context)),
                       ),
-                      placeholder: isTest ? "Description du test..." : "Ce que je dois faire...",
-                      minLines: isTest ? 4 : 5,
+                      placeholder: mode == Mode.Test ? "Description du test..." : "Ce que je dois faire...",
+                      minLines: mode == Mode.Test ? 4 : 5,
                       maxLines: 10,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                       placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
@@ -286,12 +281,35 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
-                header: const Text("Date de remise"),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                header: Text("Branche", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                margin: EdgeInsets.zero,
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: AppColors.text.adaptTo(context)),
+                    onTap: () => subjectFocusNode.requestFocus(),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
+                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
+                    title: SubjectAutocomplete(
+                      controller: subjectController,
+                      focusNode: subjectFocusNode,
+                      decoration: const BoxDecoration(),
+                      padding: EdgeInsets.zero,
+                      placeholder: "Entrez une branche",
+                      onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+                      forceValid: true,
+                    ),
+                  ),
+                ],
+              ),
+
+              CupertinoListSection.insetGrouped(
+                backgroundColor: AppColors.transparent,
+                header: const Text("Date de remise"),
+                margin: EdgeInsets.zero,
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                     trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
                     title: Text("Pour ${formatDate(dueDate)}"),
                     onTap: showDatePicker,
@@ -301,66 +319,23 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
-                header: const Text("Évaluation"),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04, color: (isTest ? AppColors.inactive : AppColors.text).adaptTo(context)),
-                    title: Text("Devoir noté", style: TextStyle(color: isTest ? AppColors.inactive.adaptTo(context) : AppColors.text.adaptTo(context))),
-                    trailing: CupertinoSwitch(value: isGraded, onChanged: isTest ? null : (value) => setState(() => isGraded = value)),
-                  ),
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedTextCheck, color: AppColors.text.adaptTo(context)),
-                    title: const Text("Test"),
-                    trailing: CupertinoSwitch(
-                      value: isTest,
-                      onChanged:
-                          (value) => setState(() {
-                            isTest = value;
-                            isGraded = false;
-                          }),
-                    ),
-                  ),
-                ],
-              ),
+                header: const Text("Autres"),
 
-              if (isGraded || isTest)
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  margin: const EdgeInsets.symmetric(horizontal: 10).add(EdgeInsetsGeometry.only(top: 10)),
-                  children: [
+                margin: EdgeInsets.zero,
+                children: [
+                  if (mode == Mode.Test)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, color: AppColors.text.adaptTo(context)),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
                       title: Text("Ajouter à la page des notes", style: TextStyle(color: AppColors.text.adaptTo(context))),
                       trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
                     ),
-                  ],
-                ),
-
-              ValueListenableBuilder(
-                valueListenable: targetCalendar,
-                builder:
-                    (context, newTargetCalendar, _) => CupertinoListSection.insetGrouped(
-                      backgroundColor: AppColors.transparent,
-                      header: const Text("Autres"),
-                      footer:
-                          editsCalendar && !editMode
-                              ? Padding(
-                                padding: EdgeInsetsGeometry.only(top: 6),
-                                child: Text(
-                                  "Un événement sera créé sur ${newTargetCalendar == null ? "votre calendrier prédefini." : "\"${newTargetCalendar.name}\"."} Vous pouvez changer de calendrier dans les réglages de votre dispositif.",
-                                  style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
-                                ),
-                              )
-                              : null,
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                      children: [
-                        CupertinoListTile(
+                  ValueListenableBuilder(
+                    valueListenable: targetCalendar,
+                    builder:
+                        (context, newTargetCalendar, _) => CupertinoListTile(
                           backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                          leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarAdd01, color: AppColors.text.adaptTo(context)),
+                          leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarAdd01),
                           title: Text("${editMode ? "Syncroniser avec le" : "Ajouter au"} calendrier du téléphone"),
                           trailing: CupertinoSwitch(
                             value: editsCalendar,
@@ -370,11 +345,50 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                   // miscBox.put("EditsCalendar", value);
                                 }),
                           ),
+                          subtitle: Text(
+                            newTargetCalendar == null ? "votre calendrier prédefini." : "Calendrier: ${newTargetCalendar.name}",
+                            style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
+                          ),
                         ),
-                      ],
-                    ),
+                  ),
+                ],
               ),
 
+              CupertinoListSection.insetGrouped(
+                backgroundColor: AppColors.transparent,
+                header: const SizedBox.shrink(),
+                margin: EdgeInsets.zero,
+                children: [
+                  if (widget.toEdit != null)
+                    CupertinoListTile(
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                      title: Text("Supprimer ${mode == Mode.Test ? "ce test" : "cette note"}", style: TextStyle(color: AppColors.red)),
+                      onTap: () {
+                        showCupertinoDialog(
+                          context: context,
+                          builder:
+                              (_) => CupertinoAlertDialog(
+                                title: Text("Supprimer ce ${mode == Mode.Test ? "test" : "note"}"),
+                                content: Text("Êtes-vous sûr de vouloir supprimer ${mode == Mode.Test ? "ce test" : "cette note"} ?"),
+                                actions: [
+                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                                  CupertinoDialogAction(
+                                    isDestructiveAction: true,
+                                    child: Text("Supprimer"),
+                                    onPressed: () {
+                                      database.assignments.delete(widget.toEdit!);
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop(widget.toEdit);
+                                    },
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
+                    ),
+                ],
+              ),
               const SizedBox(height: 10),
             ],
           ),
@@ -383,3 +397,5 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     );
   }
 }
+
+enum Mode { Assignment, Test }
