@@ -204,4 +204,6 @@ Future<void> migrateHiveToIsar() async {
     });
   }
   // #endregion
+
+  await Hive.deleteFromDisk();
 }
