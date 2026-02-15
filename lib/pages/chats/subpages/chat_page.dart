@@ -573,7 +573,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
 
   Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, bool isPreview) {
-    final shouldAnimate = messagesIdToAnimate.contains(data.id);
+    final shouldAnimate = messagesIdToAnimate.contains(data.uuid);
     final statusIconData = getStatusIcon(data.status);
 
     bubbleKeys.putIfAbsent("${data.id}-${data.isOwned}", () => GlobalKey());
