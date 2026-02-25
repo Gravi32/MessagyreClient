@@ -94,7 +94,11 @@ class _GradesTopCardState extends State<GradesTopCard> {
               // Subjects list
               Container(
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                child: ListView(padding: EdgeInsets.zero, children: subjects.map(buildSubjectRow).toList()),
+                child: ListView.builder(
+                  padding: EdgeInsets.only(bottom: 40),
+                  itemCount: subjects.length,
+                  itemBuilder: (context, index) => buildSubjectRow(subjects[index]),
+                ),
               ),
 
               // Stats
