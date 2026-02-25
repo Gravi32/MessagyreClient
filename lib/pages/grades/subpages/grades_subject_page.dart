@@ -126,7 +126,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 SubjectBadge(subject: widget.subject, size: 24),
                 Text("Moyenne", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
                 Spacer(),
-                Text(calculateAverage(thisSubjectGrades).toString(), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color)),
+                Text(calculateAverage(thisSubjectGrades).toStringAsFixed(2), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color)),
               ],
             ),
             Expanded(
