@@ -21,6 +21,28 @@ class AssignmentsListPage extends StatefulWidget {
 class AssignmentsListPageState extends State<AssignmentsListPage> {
   final database = DatabaseService();
 
+  Widget buildPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 2,
+      children: [
+        HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+        const SizedBox(height: 8),
+        Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
+        Text("Vos devoirs s'afficheront ici", style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context))),
+        CupertinoButton(
+          onPressed: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
+          padding: EdgeInsets.only(top: 40),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 6,
+            children: [Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w400)), HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget buildFloatingAddButton() {
     return Positioned(
       bottom: MediaQuery.paddingOf(context).bottom + 20,
@@ -75,17 +97,19 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     ];
                   }
 
-                  return ListView(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    physics: const ClampingScrollPhysics(),
-                    children: [
-                      AssignmentsTopCard(),
-                      if (todaysAssignments.isNotEmpty) ...buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
-                      if (tomorrowsAssignments.isNotEmpty) ...buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
-                      if (plannedAssignments.isNotEmpty) ...buildSection(plannedAssignments, "À venir"),
-                      if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true),
-                    ],
-                  );
+                  return allAssignments.isEmpty
+                      ? buildPlaceholder()
+                      : ListView(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        physics: const ClampingScrollPhysics(),
+                        children: [
+                          AssignmentsTopCard(),
+                          if (todaysAssignments.isNotEmpty) ...buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
+                          if (tomorrowsAssignments.isNotEmpty) ...buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
+                          if (plannedAssignments.isNotEmpty) ...buildSection(plannedAssignments, "À venir"),
+                          if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true),
+                        ],
+                      );
                 },
               ),
             ),
