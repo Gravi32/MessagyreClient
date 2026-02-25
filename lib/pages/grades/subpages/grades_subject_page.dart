@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,8 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/paged_card.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesSubjectPage extends StatefulWidget {
@@ -90,13 +93,12 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                               ],
                             ),
                           ),
-                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
+                          CupertinoListTileChevron(),
                         ],
                       ),
                     ),
                   ],
                 ),
-                Divider(indent: 60, color: AppColors.separator.adaptTo(context).withAlpha(30)),
               ],
             ),
           ),
@@ -111,92 +113,130 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
     );
   }
 
-  Widget buildList() {
-    return StreamBuilder(
-      stream: database.grades.watchAll(),
-      builder: (context, _) {
-        final incomingGrades =
-            allAssignments
-                .where(
-                  (assignment) =>
-                      assignment.subject.value == widget.subject &&
-                      (assignment.isGraded || assignment.isTest) &&
-                      !thisSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
-                )
-                .sortedBy((assignment) => assignment.dueDate)
-                .toList();
-
-        final groups = {};
-        for (var grade in thisSubjectGrades) {
-          if (grade.groupName == null) continue;
-          groups.putIfAbsent(grade.groupName!, () => []).add(grade);
-        }
-
-        final listContent = [
-          ...thisSubjectGrades
-              .where((grade) => grade.groupName == null)
-              .toList()
-              .sorted((gradeA, gradeB) {
-                return gradeB.date.compareTo(gradeA.date);
-              })
-              .map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
-
-          ...groups.keys.map((groupName) => buildGroupBar(groupName)),
-
-          if (incomingGrades.isNotEmpty) ...[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget buildTopCard() {
+    return PagedCard(
+      height: 160,
+      pages: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              spacing: 8,
               children: [
-                Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
+                SubjectBadge(subject: widget.subject, size: 24),
+                Text("Moyenne", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
+                Spacer(),
+                Text(calculateAverage(thisSubjectGrades).toString(), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color)),
               ],
             ),
-
-            ...incomingGrades.map((assignment) {
-              final grade =
-                  Grade()
-                    ..title = assignment.content
-                    ..date = assignment.dueDate;
-              final isIncoming = assignment.dueDate.isBefore(DateTime.now());
-              final isPlanned = assignment.dueDate.isAfter(DateTime.now());
-
-              return GradeBar(
-                gradeData: grade,
-                onTap: () {
-                  if (isIncoming) {
-                    showNewGradePopup(toReference: assignment);
-                    return;
-                  }
-
-                  Navigator.pop(context);
-                  MainPage.pageIndex.value = 1;
-                  //assignmentListPageKey.currentState?.showAssignment(assignment);
-                },
-                isGradeUnknown: true,
-                isIncoming: isIncoming,
-                isPlanned: isPlanned,
-              );
-            }),
-          ],
-        ];
-
-        return Column(
-          spacing: 1,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.max,
-          children: [
             Expanded(
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.only(top: 8),
-                itemCount: listContent.length,
-                itemBuilder: (context, index) => listContent[index],
-                separatorBuilder: (_, _) => SizedBox(height: 8),
+              child: Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: LineChart(
+                  LineChartData(
+                    minY: 1,
+                    maxY: 6,
+                    lineBarsData: [
+                      LineChartBarData(
+                        color: widget.subject.color,
+                        isCurved: true,
+                        barWidth: 3,
+                        preventCurveOverShooting: true,
+                        isStrokeCapRound: true,
+                        isStrokeJoinRound: true,
+                        dotData: FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [widget.subject.color.withAlpha(80), AppColors.transparent],
+                          ),
+                        ),
+                        spots:
+                            thisSubjectGrades
+                                .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
+                                .mapIndexed(
+                                  (index, grade) => FlSpot(
+                                    index / thisSubjectGrades.length,
+                                    calculateAverage(thisSubjectGrades.where((element) => element.date.compareTo(grade.date) <= 0).toList()),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+                    ],
+                    titlesData: FlTitlesData(show: false),
+                    lineTouchData: LineTouchData(enabled: false),
+                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
+                    borderData: FlBorderData(show: false),
+                  ),
+                ),
               ),
             ),
           ],
-        );
-      },
+        ),
+
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text("Évolution des notes", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(top: 10, bottom: 8, left: 4),
+                child: LineChart(
+                  LineChartData(
+                    minY: 1,
+                    maxY: 6,
+                    lineBarsData: [
+                      LineChartBarData(
+                        color: widget.subject.color,
+                        isCurved: true,
+                        barWidth: 3,
+                        preventCurveOverShooting: true,
+                        isStrokeCapRound: true,
+                        isStrokeJoinRound: true,
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [widget.subject.color.withAlpha(80), AppColors.transparent],
+                          ),
+                        ),
+                        spots:
+                            thisSubjectGrades
+                                .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
+                                .mapIndexed((index, grade) => FlSpot(index / thisSubjectGrades.length, grade.grade))
+                                .toList(),
+                      ),
+                    ],
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(),
+                      bottomTitles: AxisTitles(),
+                      topTitles: AxisTitles(),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          reservedSize: 18,
+                          getTitlesWidget:
+                              (value, meta) => Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(meta.formattedValue, style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
+                              ),
+                        ),
+                      ),
+                    ),
+                    lineTouchData: LineTouchData(enabled: false),
+                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
+                    borderData: FlBorderData(show: false),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -222,7 +262,95 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [CupertinoSliverNavigationBar(largeTitle: Text(widget.subject.name), previousPageTitle: "Retour")];
             },
-            body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
+            body: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: StreamBuilder(
+                  stream: database.grades.watchAll(),
+                  builder: (context, _) {
+                    final incomingGrades =
+                        allAssignments
+                            .where(
+                              (assignment) =>
+                                  assignment.subject.value == widget.subject &&
+                                  (assignment.isGraded || assignment.isTest) &&
+                                  !thisSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
+                            )
+                            .sortedBy((assignment) => assignment.dueDate)
+                            .toList();
+
+                    final groups = {};
+                    for (var grade in thisSubjectGrades) {
+                      if (grade.groupName == null) continue;
+                      groups.putIfAbsent(grade.groupName!, () => []).add(grade);
+                    }
+
+                    final listContent = [
+                      buildTopCard(),
+                      ...thisSubjectGrades
+                          .where((grade) => grade.groupName == null)
+                          .toList()
+                          .sorted((gradeA, gradeB) {
+                            return gradeB.date.compareTo(gradeA.date);
+                          })
+                          .map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
+
+                      if (groups.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: Text("Groupes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                        ),
+                      ...groups.keys.map((groupName) => buildGroupBar(groupName)),
+
+                      if (incomingGrades.isNotEmpty) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                            Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
+                          ],
+                        ),
+
+                        ...incomingGrades.map((assignment) {
+                          final grade =
+                              Grade()
+                                ..title = assignment.content
+                                ..date = assignment.dueDate;
+                          final isIncoming = assignment.dueDate.isBefore(DateTime.now());
+                          final isPlanned = assignment.dueDate.isAfter(DateTime.now());
+
+                          return GradeBar(
+                            gradeData: grade,
+                            onTap: () {
+                              if (isIncoming) {
+                                showNewGradePopup(toReference: assignment);
+                                return;
+                              }
+
+                              Navigator.pop(context);
+                              MainPage.pageIndex.value = 1;
+                              //assignmentListPageKey.currentState?.showAssignment(assignment);
+                            },
+                            isGradeUnknown: true,
+                            isIncoming: isIncoming,
+                            isPlanned: isPlanned,
+                          );
+                        }),
+                      ],
+                    ];
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.only(top: 8),
+                      itemCount: listContent.length,
+                      itemBuilder: (context, index) => listContent[index],
+                      separatorBuilder: (_, _) => SizedBox(height: 8),
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
 
           Positioned(
