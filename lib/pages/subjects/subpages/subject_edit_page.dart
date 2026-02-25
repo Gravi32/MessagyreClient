@@ -19,8 +19,12 @@ class NewSubjectPage extends StatefulWidget {
 }
 
 final List<IconData> availableIcons = [
+  // Education / Books
   Icons.menu_book,
   Icons.auto_stories,
+  Icons.school,
+  Icons.local_library,
+  Icons.comment_bank,
   Icons.translate,
   Icons.language,
   Icons.public,
@@ -29,6 +33,12 @@ final List<IconData> availableIcons = [
   Icons.forum,
   Icons.comment,
   Icons.speaker_notes,
+  Icons.question_mark,
+  Icons.book,
+  Icons.book_online,
+  Icons.menu_book_outlined,
+
+  // Math / Statistics
   Icons.calculate,
   Icons.functions,
   Icons.percent,
@@ -39,6 +49,12 @@ final List<IconData> availableIcons = [
   Icons.show_chart,
   Icons.bar_chart,
   Icons.trending_up,
+  Icons.bubble_chart,
+  Icons.insert_chart,
+  Icons.insert_chart_outlined,
+  Icons.query_stats,
+
+  // Science / Biology / Chemistry
   Icons.eco,
   Icons.spa,
   Icons.pets,
@@ -51,7 +67,13 @@ final List<IconData> availableIcons = [
   Icons.bloodtype,
   Icons.science,
   Icons.biotech,
-  Icons.bubble_chart,
+  Icons.psychology,
+  Icons.psychology_alt,
+  Icons.medical_services,
+  Icons.medication,
+  Icons.vaccines,
+
+  // Physics / Chemistry / Energy
   Icons.local_fire_department,
   Icons.ac_unit,
   Icons.opacity,
@@ -62,10 +84,16 @@ final List<IconData> availableIcons = [
   Icons.rocket_launch,
   Icons.speed,
   Icons.flash_on,
-  Icons.waves,
   Icons.electric_bolt,
   Icons.sensors,
   Icons.radio,
+  Icons.battery_charging_full,
+  Icons.air,
+  Icons.water,
+  Icons.light_mode,
+  Icons.dark_mode,
+
+  // Computing / Technology
   Icons.autorenew,
   Icons.device_hub,
   Icons.code,
@@ -78,6 +106,15 @@ final List<IconData> availableIcons = [
   Icons.smartphone,
   Icons.desktop_mac,
   Icons.devices,
+  Icons.router,
+  Icons.sim_card,
+  Icons.settings_input_component,
+  Icons.watch,
+  Icons.keyboard,
+  Icons.mouse,
+  Icons.print,
+
+  // Geography / History / Society
   Icons.account_balance,
   Icons.museum,
   Icons.gavel,
@@ -88,16 +125,14 @@ final List<IconData> availableIcons = [
   Icons.flag,
   Icons.landscape,
   Icons.public,
-  Icons.psychology,
-  Icons.lightbulb,
-  Icons.psychology_alt,
-  Icons.forum,
-  Icons.question_mark,
-  Icons.menu_book,
-  Icons.auto_stories,
-  Icons.school,
-  Icons.local_library,
-  Icons.comment_bank,
+  Icons.terrain,
+  Icons.emoji_flags,
+  Icons.sailing,
+  Icons.park,
+  Icons.waves,
+  Icons.campaign,
+
+  // Art / Music / Creativity
   Icons.palette,
   Icons.brush,
   Icons.color_lens,
@@ -108,16 +143,34 @@ final List<IconData> availableIcons = [
   Icons.library_music,
   Icons.mic,
   Icons.audiotrack,
+  Icons.photo_camera,
+  Icons.theaters,
+  Icons.movie,
+  Icons.lightbulb,
+  Icons.design_services,
+  Icons.architecture,
+  Icons.photo_album,
+  Icons.video_collection,
+  Icons.video_camera_back,
+
+  // Economy / Business / Finance
   Icons.account_balance_wallet,
-  Icons.gavel,
   Icons.attach_money,
-  Icons.trending_up,
   Icons.business_center,
   Icons.request_quote,
   Icons.credit_card,
   Icons.shopping_cart,
   Icons.sell,
   Icons.storefront,
+  Icons.monetization_on,
+  Icons.wallet_giftcard,
+  Icons.corporate_fare,
+  Icons.price_change,
+  Icons.money_off,
+  Icons.account_tree,
+  Icons.analytics,
+
+  // Sports / Physical Education
   Icons.sports_soccer,
   Icons.fitness_center,
   Icons.directions_run,
@@ -128,74 +181,130 @@ final List<IconData> availableIcons = [
   Icons.sports_volleyball,
   Icons.sports_hockey,
   Icons.sports_motorsports,
+  Icons.sports_handball,
+  Icons.sports_cricket,
+  Icons.sports_esports,
+  Icons.sports_kabaddi,
+  Icons.sports_rugby,
+  Icons.sports_mma,
+
+  // Engineering / Technology / Misc
   Icons.engineering,
   Icons.category,
   Icons.miscellaneous_services,
   Icons.build,
-  Icons.architecture,
-  Icons.design_services,
-  Icons.light_mode,
-  Icons.dark_mode,
   Icons.extension,
   Icons.new_releases,
+  Icons.light_mode,
+  Icons.dark_mode,
+  Icons.bug_report,
+  Icons.settings,
+  Icons.settings_applications,
+  Icons.build_circle,
+  Icons.biotech,
+  Icons.science_outlined,
+  Icons.auto_fix_high,
+  Icons.autorenew,
 ];
 
 final List<Color> availableColors = [
-  // Reds
-  const Color(0xFFC62828),
-  const Color(0xFFB71C1C),
-  const Color(0xFFD32F2F),
-  const Color(0xFFAD1457),
+  // Reds (12)
   const Color(0xFF880E4F),
   const Color(0xFF9A0036),
+  const Color(0xFFB71C1C),
+  const Color(0xFFC62828),
+  const Color(0xFFD32F2F),
+  const Color(0xFFE53935),
+  const Color(0xFFF44336),
+  const Color(0xFFEF5350),
+  const Color(0xFFE57373),
+  const Color(0xFFEF9A9A),
+  const Color(0xFFFF8A80),
+  const Color(0xFFFF5252),
 
-  // Oranges / Ambers
-  const Color(0xFFEF6C00),
+  // Oranges / Ambers (12)
   const Color(0xFFE65100),
-  const Color(0xFFFF8F00),
-  const Color(0xFFFF6F00),
-  const Color(0xFFFB8C00),
+  const Color(0xFFEF6C00),
   const Color(0xFFF57C00),
+  const Color(0xFFFB8C00),
+  const Color(0xFFFF6F00),
+  const Color(0xFFFF8F00),
+  const Color(0xFFFFA726),
+  const Color(0xFFFFB74D),
+  const Color(0xFFFFCC80),
+  const Color(0xFFFFD180),
+  const Color(0xFFFFE0B2),
+  const Color(0xFFFFF3E0),
 
-  // Greens
-  const Color(0xFF2E7D32),
+  // Greens (12)
   const Color(0xFF1B5E20),
-  const Color(0xFF388E3C),
-  const Color(0xFF33691E),
   const Color(0xFF2E7D32),
-  const Color(0xFF00695C),
+  const Color(0xFF33691E),
+  const Color(0xFF388E3C),
+  const Color(0xFF43A047),
+  const Color(0xFF4CAF50),
+  const Color(0xFF66BB6A),
+  const Color(0xFF81C784),
+  const Color(0xFFA5D6A7),
+  const Color(0xFFB9F6CA),
+  const Color(0xFF69F0AE),
+  const Color(0xFF00E676),
 
-  // Blues
-  const Color(0xFF1565C0),
+  // Blues (12)
   const Color(0xFF0D47A1),
+  const Color(0xFF1565C0),
   const Color(0xFF1976D2),
-  const Color(0xFF0B3C5D),
-  const Color(0xFF1A237E),
-  const Color(0xFF283593),
+  const Color(0xFF1E88E5),
+  const Color(0xFF2196F3),
+  const Color(0xFF42A5F5),
+  const Color(0xFF64B5F6),
+  const Color(0xFF90CAF9),
+  const Color(0xFFBBDEFB),
+  const Color(0xFF64C5F6),
+  const Color(0xFF42D5F5),
+  const Color(0xFF29E0F7),
 
-  // Purples
-  const Color(0xFF6A1B9A),
-  const Color(0xFF4A148C),
-  const Color(0xFF7B1FA2),
-  const Color(0xFF512DA8),
-  const Color(0xFF4527A0),
+  // Purples (12)
   const Color(0xFF311B92),
+  const Color(0xFF4A148C),
+  const Color(0xFF4527A0),
+  const Color(0xFF512DA8),
+  const Color(0xFF6A1B9A),
+  const Color(0xFF7B1FA2),
+  const Color(0xFF8E24AA),
+  const Color(0xFF9C27B0),
+  const Color(0xFFAB47BC),
+  const Color(0xFFBA68C8),
+  const Color(0xFFCE93D8),
+  const Color(0xFFE1BEE7),
 
-  // Browns
-  const Color(0xFF5D4037),
-  const Color(0xFF4E342E),
-  const Color(0xFF6D4C41),
+  // Browns (12)
   const Color(0xFF3E2723),
-  const Color(0xFF795548),
   const Color(0xFF4B2E2B),
+  const Color(0xFF4E342E),
+  const Color(0xFF5D4037),
+  const Color(0xFF6D4C41),
+  const Color(0xFF795548),
+  const Color(0xFF8D6E63),
+  const Color(0xFFA1887F),
+  const Color(0xFFBCAAA4),
+  const Color(0xFFD7CCC8),
+  const Color(0xFFE0B8A0),
+  const Color(0xFFC49A7D),
 
-  // Teals / Cyans
-  const Color(0xFF00695C),
+  // Teals / Cyans (12)
   const Color(0xFF004D40),
+  const Color(0xFF006064),
+  const Color(0xFF00695C),
   const Color(0xFF00796B),
   const Color(0xFF00838F),
-  const Color(0xFF006064),
-  const Color(0xFF005662),
+  const Color(0xFF009688),
+  const Color(0xFF26A69A),
+  const Color(0xFF4DB6AC),
+  const Color(0xFF80CBC4),
+  const Color(0xFFB2DFDB),
+  const Color(0xFF80E5E0),
+  const Color(0xFF4DEEE8),
 ];
 
 class _NewSubjectPageState extends State<NewSubjectPage> {
@@ -255,7 +364,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   @override
   void initState() {
     super.initState();
-    nameController.addListener(() => setState(() {}));
+    nameController.addListener(() => setState(() => nameController.value = TextEditingValue(text: nameController.text.trim())));
   }
 
   @override
@@ -271,6 +380,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
   @override
   Widget build(BuildContext context) {
+    final fieldsHeight = (MediaQuery.of(context).size.width - 20) / 2;
+
     return GestureDetector(
       onTap: unfocusFields,
       child: CupertinoPageScaffold(
@@ -311,8 +422,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                       focusNode: titleFocusNode,
                       decoration: const BoxDecoration(),
                       placeholder: "Titre de la branche",
-                      minLines: 1,
-                      maxLines: 2,
+                      maxLines: 1,
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
                       placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
                       onTapOutside: (event) => titleFocusNode.unfocus(),
@@ -329,7 +439,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                     padding: const EdgeInsets.all(8),
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     title: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 150),
+                      constraints: BoxConstraints(maxHeight: fieldsHeight),
                       child: ValueListenableBuilder<Color>(
                         valueListenable: colorNotifier,
                         builder: (context, selectedColor, _) {
@@ -373,7 +483,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                     padding: const EdgeInsets.all(8),
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     title: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 150),
+                      constraints: BoxConstraints(maxHeight: fieldsHeight),
                       child: ValueListenableBuilder<Color>(
                         valueListenable: colorNotifier,
                         builder: (context, selectedColor, _) {
@@ -422,7 +532,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context)),
-                      title: Text("Supprimer la note", style: TextStyle(color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context))),
+                      title: Text("Supprimer cette branche", style: TextStyle(color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context))),
 
                       onTap:
                           canBeDeleted
@@ -452,6 +562,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                     ),
                   ],
                 ),
+              const SizedBox(height: 10),
             ],
           ),
         ),
