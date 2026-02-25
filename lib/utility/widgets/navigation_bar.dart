@@ -14,16 +14,16 @@ class NavigationBar extends StatefulWidget {
 class _NavigationBarState extends State<NavigationBar> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ValueListenableBuilder<int>(
-        valueListenable: MainPage.pageIndex,
-        builder:
-            (context, currentIndex, _) => Container(
-              height: 60,
-              width: MediaQuery.of(context).size.width,
-              alignment: Alignment.bottomCenter,
-              margin: EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+    return ValueListenableBuilder<int>(
+      valueListenable: MainPage.pageIndex,
+      builder:
+          (context, currentIndex, _) => Container(
+            height: 60,
+            width: MediaQuery.of(context).size.width,
+            alignment: Alignment.bottomCenter,
+            margin: EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+            child: SafeArea(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -48,7 +48,7 @@ class _NavigationBarState extends State<NavigationBar> {
                     }).toList(),
               ),
             ),
-      ),
+          ),
     );
   }
 }
