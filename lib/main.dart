@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:custom_navigation_bar/custom_navigation_bar.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/pages/chats/chats_list_page.dart';
@@ -20,6 +19,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
+import 'package:messagyre_client/utility/widgets/navigation_bar.dart';
 import 'package:messagyre_client/utility/__database_migration__.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
@@ -247,42 +247,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         },
         children: builtPages,
       ),
-      bottomNavigationBar: ValueListenableBuilder<int>(
-        valueListenable: MainPage.pageIndex,
-        builder:
-            (context, currentIndex, _) => CustomNavigationBar(
-              isFloating: true,
-              borderRadius: const Radius.circular(12),
-              backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-              strokeColor: AppColors.transparent,
-              selectedColor: AppColors.text.adaptTo(context),
-              currentIndex: currentIndex,
-              onTap: (index) {
-                if (!isAnimating) MainPage.pageIndex.value = index;
-              },
-              items:
-                  App.pages
-                      .map(
-                        (page) => CustomNavigationBarItem(
-                          icon: HugeIcon(icon: page.icon),
-                          selectedIcon: HugeIcon(icon: page.icon, strokeWidth: 1.5),
-                          title: Text(
-                            page.name,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            style: TextStyle(fontSize: 10, color: AppColors.secondaryText.adaptTo(context)),
-                          ),
-                          selectedTitle: Text(
-                            page.name,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            style: TextStyle(fontSize: 10, color: AppColors.text.adaptTo(context)),
-                          ),
-                        ),
-                      )
-                      .toList(),
-            ),
-      ),
+      bottomNavigationBar: NavigationBar()
     );
   }
 }
