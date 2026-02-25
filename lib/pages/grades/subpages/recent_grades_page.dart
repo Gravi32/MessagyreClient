@@ -45,7 +45,7 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
                     return CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       padding: EdgeInsets.all(6),
-                      title: GradeBar(gradeData: grade, onTap: () => showNewGradePopup(grade)),
+                      title: GradeBar(gradeData: grade, onTap: () => showNewGradePopup(grade), showSubject: true),
                     );
                   }).toList(),
             );
@@ -81,15 +81,13 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final grades = database.grades.getAll().where((g) => g.groupName == null).sorted((a, b) => b.date.compareTo(a.date));
+    final grades = database.grades.getAll().sorted((a, b) => b.date.compareTo(a.date));
 
     final total = grades.length;
 
-    // Percentuale sopra soglia
     final threshold = 5.0;
     final aboveThreshold = grades.isEmpty ? 0 : (grades.where((g) => g.grade >= threshold).length / total * 100).round();
 
-    // Stabilità = deviazione standard
     double? stdDev;
     if (grades.isNotEmpty) {
       final avg = grades.map((g) => g.grade).reduce((a, b) => a + b) / total;
