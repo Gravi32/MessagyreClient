@@ -400,7 +400,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    onTap: () => showTermsOfServiceReadOnly(context),
+                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => TermsOfServicePage(readOnly: true))),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Conditions d'utilisation"),

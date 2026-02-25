@@ -188,22 +188,3 @@ Future<void> askUserToAcceptTermsOfService(BuildContext context) async {
     ),
   );
 }
-
-Future<void> showTermsOfServiceReadOnly(BuildContext context) async {
-  if (!context.mounted) return;
-
-  Navigator.of(context).push(
-    PageRouteBuilder(
-      opaque: false,
-      pageBuilder: (context, animation, secondaryAnimation) => TermsOfServicePage(readOnly: true),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return CupertinoFullscreenDialogTransition(
-          primaryRouteAnimation: animation,
-          secondaryRouteAnimation: secondaryAnimation,
-          linearTransition: true,
-          child: child,
-        );
-      },
-    ),
-  );
-}
