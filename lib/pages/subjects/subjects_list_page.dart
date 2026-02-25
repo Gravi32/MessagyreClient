@@ -32,7 +32,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   backgroundColor: AppColors.transparent,
-                  header: Text("Branches"),
+                  header: Text("Vos branches"),
                   children: [
                     ...allSubjects.map(
                       (subject) => CupertinoListTile.notched(
@@ -42,6 +42,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                           spacing: 16,
                           children: [SubjectBadge(subject: subject), Text(subject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500))],
                         ),
+                        trailing: CupertinoListTileChevron(),
                         onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewSubjectPage(toEdit: subject))),
                       ),
                     ),
