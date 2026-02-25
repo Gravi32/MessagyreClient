@@ -18,7 +18,7 @@ class _NavigationBarState extends State<NavigationBar> {
       valueListenable: MainPage.pageIndex,
       builder:
           (context, currentIndex, _) => Container(
-            height: 60,
+            height: MediaQuery.of(context).padding.bottom + 60,
             width: MediaQuery.of(context).size.width,
             alignment: Alignment.bottomCenter,
             margin: EdgeInsets.symmetric(horizontal: 2),
