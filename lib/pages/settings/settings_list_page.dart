@@ -16,7 +16,6 @@ import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/calendar_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/debug_settings_page.dart';
-import 'package:messagyre_client/pages/settings/subpages/storage_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -223,14 +222,6 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 backgroundColor: AppColors.transparent,
                 header: Text("Stockage"),
                 children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => StorageSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01),
-                    trailing: CupertinoListTileChevron(),
-                    title: Text("Effacer les données"),
-                  ),
-
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () async {
