@@ -45,22 +45,18 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: AppColors.background.adaptTo(context),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text("Politique de confidentialité", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
-              ),
+              Text("Politique de confidentialité", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
               SizedBox(height: 16),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(10),
                   child: SingleChildScrollView(
                     controller: scrollController,
                     child: CustomText("""*Politique de confidentialité de Messagyre*
@@ -166,9 +162,11 @@ Pour toute question relative à la protection des données personnelles ou à la
 
               if (!widget.readOnly) ...[
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       title: Text(
                         "J'ai lu et j'accepte les conditions",
                         style: TextStyle(color: hasScrolledToEnd ? AppColors.white : AppColors.inactive.adaptTo(context)),
@@ -182,11 +180,13 @@ Pour toute question relative à la protection des données personnelles ou à la
 
                 if (accepted)
                   CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.zero,
                     backgroundColor: AppColors.transparent,
                     children: [
                       Shimmer(
                         interval: Duration(seconds: 5),
                         child: CupertinoListTile(
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
                           onTap: _acceptEula,
                         ),
@@ -197,9 +197,11 @@ Pour toute question relative à la protection des données personnelles ou à la
 
               if (widget.readOnly)
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
                       onTap: _acceptEula,
                     ),

@@ -45,22 +45,18 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: AppColors.background.adaptTo(context),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text("Conditions d'utilisation", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
-              ),
+              Text("Conditions d'utilisation", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
               SizedBox(height: 16),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(10),
                   child: SingleChildScrollView(
                     controller: scrollController,
                     child: CustomText("""*Conditions d'utilisation de Messagyre*
@@ -72,7 +68,7 @@ En utilisant Messagyre, l'utilisateur confirme avoir lu et accepte integralement
 L'utilisateur est seul responsable de l'ensemble des contenus qu'il partage. Tout contenu illegal, diffamatoire, haineux, incitant a la violence, sexuellement explicite impliquant des mineurs, ou contraire aux lois et reglements est strictement interdit. Tout manquement peut entrainer la suspension ou la suppression definitive du compte.
 
 *3. Chiffrement et limites techniques*
-Les messages prives echanges sur Messagyre sont chiffrés de bout en bout. En raison de ce chiffre­ment, les messages prives ne peuvent pas etre lus, filtres ou analyses par Messagyre. Par consequent, le filtrage automatique s'applique uniquement aux contenus non chiffrés tels que pseudonymes, biographies, images de profil, noms de groupes et autres informations publiques ou semi-publiques.
+Les messages prives echanges sur Messagyre sont chiffrés de bout en bout. En raison de ce chiffr­ement, les messages prives ne peuvent pas etre lus, filtres ou analyses par Messagyre. Par consequent, le filtrage automatique s'applique uniquement aux contenus non chiffrés tels que pseudonymes, biographies, images de profil, noms de groupes et autres informations publiques ou semi-publiques.
 
 *4. Systeme automatique de detection*
 Messagyre utilise un systeme automatique minimal de detection pour empecher la publication de contenus non chiffrés potentiellement offensants, illegaux ou contraires a ces conditions. Ce systeme vise uniquement a prevenir la diffusion de contenus manifestement problematiques et ne s'applique pas aux messages prives.
@@ -116,13 +112,16 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
               if (!widget.readOnly) ...[
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
+                      padding: EdgeInsets.zero,
                       title: Text(
                         "J'ai lu et j'accepte les conditions",
                         style: TextStyle(color: hasScrolledToEnd ? AppColors.white : AppColors.inactive.adaptTo(context)),
                       ),
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
                       subtitle: hasScrolledToEnd ? null : Text("Lire le document pour continuer"),
                       onTap: null,
@@ -132,11 +131,14 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
                 if (accepted)
                   CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.zero,
                     backgroundColor: AppColors.transparent,
                     children: [
                       Shimmer(
                         interval: Duration(seconds: 5),
                         child: CupertinoListTile(
+                          padding: EdgeInsets.zero,
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
                           onTap: _acceptTermsOfService,
                         ),
@@ -147,9 +149,12 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
               if (widget.readOnly)
                 CupertinoListSection.insetGrouped(
+                  margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
+                      padding: EdgeInsets.zero,
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
                       onTap: _acceptTermsOfService,
                     ),
