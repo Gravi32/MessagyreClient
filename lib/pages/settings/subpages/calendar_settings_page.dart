@@ -45,7 +45,17 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
                 ),
                 SizedBox(height: 20),
 
-                CustomDatePicker(initialDate: DateTime.now(), onDateSelected: (_) {}, isPreviewMode: true),
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: AppColors.transparent,
+                  margin: EdgeInsets.zero,
+                  children: [
+                    CupertinoListTile(
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                      padding: EdgeInsets.zero,
+                      title: CustomDatePicker(initialDate: DateTime.now(), onDateSelected: (_) {}, isPreviewMode: true),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],

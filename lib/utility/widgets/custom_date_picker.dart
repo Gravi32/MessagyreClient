@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime initialDate;
@@ -60,7 +60,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(
-      decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      decoration:
+          widget.isPreviewMode
+              ? null
+              : BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -153,10 +156,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                   ),
                                   itemCount: totalCells,
                                   itemBuilder: (context, i) {
-                                    if (i < offset) return SizedBox();
+                                    if (i < offset) return SizedBox.shrink();
 
                                     final dayIndex = i - offset;
-                                    if (dayIndex >= visibleDays.length) return SizedBox();
+                                    if (dayIndex >= visibleDays.length) return SizedBox.shrink();
 
                                     final dayDate = visibleDays[dayIndex];
                                     final dayNumber = dayDate.day;
@@ -164,28 +167,27 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                     final today = DateTime.now();
                                     final isSelected = tempDate.isSameDayAs(dayDate);
                                     final isToday = today.isSameDayAs(dayDate);
+                                    final isWeekend = dayDate.weekday == DateTime.saturday || dayDate.weekday == DateTime.sunday;
 
-                                    return GestureDetector(
-                                      onTap: () {
-                                        setState(() => tempDate = dayDate);
-                                      },
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: isSelected ? AppColors.accent : AppColors.secondaryBackground.adaptTo(context),
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                            child: Text(dayNumber.toString(), style: TextStyle(fontSize: 16, color: AppColors.text.adaptTo(context))),
+                                    return Opacity(
+                                      opacity: isWeekend ? .5 : 1,
+                                      child: CupertinoPressable(
+                                        onTap: () {
+                                          setState(() => tempDate = dayDate);
+                                        },
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isSelected
+                                                  ? AppColors.accent
+                                                  : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            dayNumber.toString(),
+                                            style: TextStyle(color: AppColors.text.adaptTo(context), fontWeight: isToday ? FontWeight.w800 : null),
                                           ),
-                                          if (isToday)
-                                            Positioned(
-                                              top: 5,
-                                              left: 5,
-                                              child: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 10, color: AppColors.text.adaptTo(context)),
-                                            ),
-                                        ],
+                                        ),
                                       ),
                                     );
                                   },
