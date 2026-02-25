@@ -132,63 +132,66 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
           groups.putIfAbsent(grade.groupName!, () => []).add(grade);
         }
 
+        final listContent = [
+          ...thisSubjectGrades
+              .where((grade) => grade.groupName == null)
+              .toList()
+              .sorted((gradeA, gradeB) {
+                return gradeB.date.compareTo(gradeA.date);
+              })
+              .map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
+
+          ...groups.keys.map((groupName) => buildGroupBar(groupName)),
+
+          if (incomingGrades.isNotEmpty) ...[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
+              ],
+            ),
+
+            ...incomingGrades.map((assignment) {
+              final grade =
+                  Grade()
+                    ..title = assignment.content
+                    ..date = assignment.dueDate;
+              final isIncoming = assignment.dueDate.isBefore(DateTime.now());
+              final isPlanned = assignment.dueDate.isAfter(DateTime.now());
+
+              return GradeBar(
+                gradeData: grade,
+                onTap: () {
+                  if (isIncoming) {
+                    showNewGradePopup(toReference: assignment);
+                    return;
+                  }
+
+                  Navigator.pop(context);
+                  MainPage.pageIndex.value = 1;
+                  //assignmentListPageKey.currentState?.showAssignment(assignment);
+                },
+                isGradeUnknown: true,
+                isIncoming: isIncoming,
+                isPlanned: isPlanned,
+              );
+            }),
+          ],
+        ];
+
         return Column(
           spacing: 1,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.max,
           children: [
             Expanded(
-              child: ListView(
+              child: ListView.separated(
                 shrinkWrap: true,
                 padding: EdgeInsets.only(top: 8),
-
-                children: [
-                  ...thisSubjectGrades
-                      .where((grade) => grade.groupName == null)
-                      .toList()
-                      .sorted((gradeA, gradeB) {
-                        return gradeB.date.compareTo(gradeA.date);
-                      })
-                      .map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
-
-                  ...groups.keys.map((groupName) => buildGroupBar(groupName)),
-
-                  if (incomingGrades.isNotEmpty) ...[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                        Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
-                      ],
-                    ),
-
-                    ...incomingGrades.map((assignment) {
-                      final grade =
-                          Grade()
-                            ..title = assignment.content
-                            ..date = assignment.dueDate;
-                      final isIncoming = assignment.dueDate.isBefore(DateTime.now());
-                      final isPlanned = assignment.dueDate.isAfter(DateTime.now());
-
-                      return GradeBar(
-                        gradeData: grade,
-                        onTap: () {
-                          if (isIncoming) {
-                            showNewGradePopup(toReference: assignment);
-                            return;
-                          }
-
-                          Navigator.pop(context);
-                          MainPage.pageIndex.value = 1;
-                          //assignmentListPageKey.currentState?.showAssignment(assignment);
-                        },
-                        isGradeUnknown: true,
-                        isIncoming: isIncoming,
-                        isPlanned: isPlanned,
-                      );
-                    }),
-                  ],
-                ],
+                itemCount: listContent.length,
+                itemBuilder: (context, index) => listContent[index],
+                separatorBuilder: (_, _) => SizedBox(height: 8),
               ),
             ),
           ],

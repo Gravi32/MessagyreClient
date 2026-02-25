@@ -208,7 +208,7 @@ class _GradesListPageState extends State<GradesListPage> {
                                     ).createShader(rect);
                                   },
                                   blendMode: BlendMode.dstIn,
-                                  child: ListView.builder(
+                                  child: ListView.separated(
                                     padding: EdgeInsets.zero,
                                     itemCount: min(10, allGrades.length),
                                     shrinkWrap: true,
@@ -219,6 +219,7 @@ class _GradesListPageState extends State<GradesListPage> {
                                           ? const SizedBox.shrink()
                                           : GradeBar(gradeData: grade, showSubject: true, onTap: () => showNewGradePopup(toEdit: grade));
                                     },
+                                    separatorBuilder: (_, _) => SizedBox(height: 8),
                                   ),
                                 ),
                               ),

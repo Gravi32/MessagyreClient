@@ -24,11 +24,12 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
       return gradeB.date.compareTo(gradeA.date);
     });
 
-    return ListView.builder(
+    return ListView.separated(
       padding: EdgeInsets.only(top: 8),
       itemCount: widget.grades.length,
       itemBuilder:
           (context, index) => GradeBar(gradeData: widget.grades.elementAt(index), onTap: () => showNewGradePopup(toEdit: widget.grades.elementAt(index))),
+      separatorBuilder: (context, index) => SizedBox(height: 8),
     );
   }
 
