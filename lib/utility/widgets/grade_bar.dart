@@ -6,6 +6,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class GradeBar extends StatelessWidget {
   final Grade gradeData;
@@ -89,15 +90,26 @@ class GradeBar extends StatelessWidget {
                               ),
                             ),
 
-                          Text(
-                            isGradeUnknown
-                                ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                                : "${showSubject ? "${gradeData.subject.value?.name ?? ""} •" : "Reçu"} ${formatDate(gradeData.date, includeArticle: true)}",
-                            maxLines: 2,
-                            overflow: TextOverflow.fade,
-                            softWrap: true,
-                            style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
-                          ),
+                          showSubject
+                              ? Row(
+                                spacing: 6,
+                                children: [
+                                  if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
+                                  Text(
+                                    "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date, includeArticle: true)}",
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                                  ),
+                                ],
+                              )
+                              : Text(
+                                isGradeUnknown
+                                    ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
+                                    : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
+                                maxLines: 2,
+                                overflow: TextOverflow.fade,
+                                softWrap: true,
+                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
+                              ),
                         ],
                       ),
                     ),
