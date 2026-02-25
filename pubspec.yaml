@@ -120,8 +120,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  # image_path: "assets/icons/full.png"           # Generic Icon
-  image_path: "assets/icons/full-christmas.png"   # Christmas Icon
+  image_path: "assets/icons/full.png"           # Generic Icon
+  # image_path: "assets/icons/full-christmas.png"   # Christmas Icon
 
 flutter_native_splash:
   android: true
