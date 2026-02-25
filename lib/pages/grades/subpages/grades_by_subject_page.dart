@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -30,7 +31,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
               builder: (context, _) {
                 // All the grades
                 final allGrades = database.grades.getAll();
-                final allSubjects = database.subjects.getAll();
+                final allSubjects = database.subjects.getAll().sorted((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
 
                 // A list of all the subjects with at least 1 grade
                 final List<Subject> allActiveSubjects = [];
@@ -39,11 +40,14 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                     allActiveSubjects.add(grade.subject.value!);
                   }
                 }
+                allActiveSubjects.sort((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
 
                 final List<Subject> allInactiveSubjects = [];
                 for (final subject in allSubjects) {
                   if (!allActiveSubjects.any((activeSubject) => activeSubject.code == subject.code)) allInactiveSubjects.add(subject);
                 }
+                allInactiveSubjects.sort((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
+
 
                 return SingleChildScrollView(
                   child: Column(

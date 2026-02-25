@@ -171,7 +171,7 @@ class _GradesListPageState extends State<GradesListPage> {
                                 ],
                               ),
 
-                              buildSubjectsGrid(allSubjects),
+                              buildSubjectsGrid(allSubjects.sorted((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name))),
 
                               SizedBox(),
                               Row(
