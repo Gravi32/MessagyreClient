@@ -364,7 +364,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   @override
   void initState() {
     super.initState();
-    nameController.addListener(() => setState(() => nameController.value = TextEditingValue(text: nameController.text.trim())));
+    nameController.addListener(() => setState(() {}));
   }
 
   @override
