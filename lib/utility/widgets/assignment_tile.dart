@@ -96,16 +96,21 @@ class _AssignmentTileState extends State<AssignmentTile> {
                         padding: EdgeInsets.all(2),
                         child: Text("TEST", style: TextStyle(fontSize: 14, letterSpacing: .4)),
                       ),
+
                     AnimatedLineThrough(
                       isCrossed: assignment.isTest ? widget.dim : isDone,
                       duration: animationDuration,
                       child: Text(
-                        assignment.title ?? assignment.content,
+                        "${assignment.isTest ? assignment.title : assignment.content}",
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: assignment.isTest ? AppColors.red : null),
                       ),
                     ),
                   ],
                 ),
+
+                // Description
+                if (assignment.isTest && assignment.content.isNotEmpty)
+                  Text(assignment.content, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context))),
 
                 // Subject and date
                 if (assignment.subject.value != null)
