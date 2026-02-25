@@ -96,7 +96,7 @@ class GradeBar extends StatelessWidget {
                                 children: [
                                   if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
                                   Text(
-                                    "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date, includeArticle: true)}",
+                                    "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
                                   ),
                                 ],
