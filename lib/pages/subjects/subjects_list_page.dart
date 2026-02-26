@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/subjects/subpages/subject_edit_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectsListPage extends StatefulWidget {
@@ -108,6 +111,30 @@ Future<void> askUserToAddTheirSubjects(BuildContext context) async {
 
   if (database.subjects.getAll().length > 5) return;
   if (!context.mounted) return;
+
+  final defaultSubjects = [
+    Subject()
+      ..name = "Français"
+      ..code = "french"
+      ..iconCodePoint = Icons.translate.codePoint
+      ..colorValue = const Color(0xFF1976D2).toInt(),
+
+    Subject()
+      ..name = "Mathématiques"
+      ..code = "math"
+      ..iconCodePoint = Icons.calculate.codePoint
+      ..colorValue = const Color(0xFF388E3C).toInt(),
+
+    Subject()
+      ..name = "Anglais"
+      ..code = "english"
+      ..iconCodePoint = Icons.language.codePoint
+      ..colorValue = const Color(0xFF7B1FA2).toInt(),
+  ];
+
+  for (var subject in defaultSubjects) {
+    database.subjects.save(subject);
+  }
 
   Navigator.of(context).push(
     PageRouteBuilder(
