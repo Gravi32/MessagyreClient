@@ -22,7 +22,10 @@ class _NavigationBarState extends State<NavigationBar> {
             width: MediaQuery.of(context).size.width,
             alignment: Alignment.bottomCenter,
             margin: EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: AppColors.secondaryBackground.adaptTo(context),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+            ),
             child: SafeArea(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
