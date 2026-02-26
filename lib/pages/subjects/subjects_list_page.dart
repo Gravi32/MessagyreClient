@@ -55,6 +55,14 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
       navigationBar: CupertinoNavigationBar(
         leading: widget.isBootstrap ? CupertinoButton(padding: EdgeInsets.zero, onPressed: onSkipButtonPressed, child: Text("Passer")) : null,
         middle: Text("Branches"),
+        trailing:
+            widget.isBootstrap && database.subjects.getAll().length >= 5
+                ? CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text("Terminé", style: TextStyle(fontWeight: FontWeight.w800)),
+                )
+                : null,
       ),
       child: SafeArea(
         child: StreamBuilder(
