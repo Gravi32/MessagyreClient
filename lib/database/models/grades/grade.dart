@@ -19,8 +19,6 @@ class Grade {
   String? groupName;
   String? referenceId;
 
-  get value => null;
-
   @override
   String toString() => '$title ($grade)';
 }
