@@ -43,15 +43,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
-  late bool isGraded = widget.toEdit?.isGraded ?? false;
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
   late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : true; // miscBox.get("EditsCalendar", defaultValue: true);
 
   final targetCalendar = ValueNotifier<Calendar?>(null);
 
   void confirmAssignment() async {
-    if (subject == null) return;
-
     final assignment = widget.toEdit ?? Assignment();
 
     assignment
@@ -59,8 +56,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
       ..content = contentController.text.trim()
       ..dueDate = dueDate
-      ..isGraded = isGraded
       ..isTest = mode == Mode.Test
+      ..isLeave = mode == Mode.Leave
       ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
       ..calendarEventId = editsCalendar ? assignment.calendarEventId : null;
 
@@ -134,8 +131,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       builder: (dialogContext) {
         final missingInfos = [
           if (subject == null) "la *branche*",
-          if ((mode == Mode.Test || isGraded) && titleController.text.isEmpty) "un *titre*",
-          if (!(mode == Mode.Test || isGraded) && contentController.text.isEmpty) "une *description*",
+          if ((mode == Mode.Test) && titleController.text.isEmpty) "un *titre*",
+          if (!(mode == Mode.Test) && contentController.text.isEmpty) "une *description*",
         ];
 
         return CupertinoAlertDialog(
@@ -147,8 +144,20 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     );
   }
 
+  void updateMode(Mode? newMode) {
+    if (newMode == null) return;
+    setState(() {
+      mode = newMode;
+      updateCanSubmit();
+    });
+  }
+
   void updateCanSubmit() {
-    canSubmitNotifier.value = (subject != null) && ((mode == Mode.Test || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
+    canSubmitNotifier.value = switch (mode) {
+      Mode.Assignment => subject != null && contentController.text.isNotEmpty,
+      Mode.Test => subject != null && titleController.text.isNotEmpty,
+      Mode.Leave => true,
+    };
   }
 
   @override
@@ -160,7 +169,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     titleController.addListener(updateCanSubmit);
     contentController.addListener(updateCanSubmit);
 
-    updateCanSubmit();
+    updateMode(Mode.Assignment);
 
     globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
@@ -213,98 +222,98 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               CupertinoSlidingSegmentedControl<Mode>(
                 groupValue: mode,
                 backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                thumbColor: AppColors.text.adaptTo(context).withAlpha(20),
+                thumbColor: adaptiveColor(AppColors.background.adaptTo(context), AppColors.text.adaptTo(context).withAlpha(20)),
                 children: const {
                   Mode.Assignment: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Devoir", style: TextStyle(fontSize: 16))),
                   Mode.Test: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Test", style: TextStyle(fontSize: 16))),
+                  Mode.Leave: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Congé", style: TextStyle(fontSize: 16))),
                 },
-                onValueChanged: (newMode) {
-                  if (newMode == null) return;
-                  setState(() {
-                    mode = newMode;
-                    if (mode == Mode.Test) {
-                      isGraded = false;
-                    }
-                    updateCanSubmit();
-                  });
-                },
+                onValueChanged: updateMode,
               ),
-              const SizedBox(height: 10),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              if (mode != Mode.Leave)
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: AppColors.transparent,
+                  header: const SizedBox(),
+                  margin: EdgeInsets.zero,
                   children: [
-                    if (mode == Mode.Test || isGraded) ...[
-                      CupertinoTextField(
-                        controller: titleController,
-                        focusNode: titleFocusNode,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                          border: Border.all(width: 0, color: AppColors.separator.adaptTo(context)),
+                    // Title Tile
+                    if (mode == Mode.Test)
+                      CupertinoListTile.notched(
+                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSubtitle),
+
+                        title: CupertinoTextField(
+                          controller: titleController,
+                          focusNode: titleFocusNode,
+                          decoration: BoxDecoration(),
+                          placeholder: "Titre",
+                          minLines: 1,
+                          maxLines: 2,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+                          placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
+                          onTapOutside: (event) => titleFocusNode.unfocus(),
                         ),
-                        placeholder: "Titre",
-                        minLines: 1,
-                        maxLines: 2,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+
+                        trailing: Opacity(
+                          opacity: .2,
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                        ),
+                      ),
+
+                    // Description Tile
+                    CupertinoListTile.notched(
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+
+                      title: CupertinoTextField(
+                        controller: contentController,
+                        focusNode: contentFocusNode,
+                        decoration: BoxDecoration(),
+                        placeholder: switch (mode) {
+                          Mode.Assignment => "Ce que vous devez faire...",
+                          Mode.Test => "Si vous voulez, entrez une déscription du test...",
+                          Mode.Leave => "Motif, période ou durée du congé...",
+                        },
+                        minLines: mode == Mode.Test ? 4 : 5,
+                        maxLines: 10,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                         placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
-                        onTapOutside: (event) => titleFocusNode.unfocus(),
+                        onTapOutside: (event) => contentFocusNode.unfocus(),
                       ),
-                      SizedBox(height: 6),
-                    ],
-                    CupertinoTextField(
-                      controller: contentController,
-                      focusNode: contentFocusNode,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        border: Border.all(width: 0, color: AppColors.separator.adaptTo(context)),
+
+                      trailing: Opacity(
+                        opacity: .2,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                       ),
-                      placeholder: mode == Mode.Test ? "Description du test..." : "Ce que je dois faire...",
-                      minLines: mode == Mode.Test ? 4 : 5,
-                      maxLines: 10,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
-                      onTapOutside: (event) => contentFocusNode.unfocus(),
                     ),
-                    SizedBox(height: 6),
-                    Padding(
-                      padding: EdgeInsetsGeometry.symmetric(horizontal: 6),
-                      child: Text(
-                        "Écrivez les mots entre astérisques pour les mettre en gras",
-                        style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
+
+                    // Subject Tile
+                    CupertinoListTile(
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      onTap: () => subjectFocusNode.requestFocus(),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
+                      trailing: Opacity(
+                        opacity: .2,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                      ),
+                      title: SubjectAutocomplete(
+                        controller: subjectController,
+                        focusNode: subjectFocusNode,
+                        decoration: const BoxDecoration(),
+                        padding: EdgeInsets.zero,
+                        placeholder: "Entrez une branche",
+                        onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+                        forceValid: true,
                       ),
                     ),
                   ],
                 ),
-              ),
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
-                header: Text("Branche", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                margin: EdgeInsets.zero,
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    onTap: () => subjectFocusNode.requestFocus(),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
-                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
-                    title: SubjectAutocomplete(
-                      controller: subjectController,
-                      focusNode: subjectFocusNode,
-                      decoration: const BoxDecoration(),
-                      padding: EdgeInsets.zero,
-                      placeholder: "Entrez une branche",
-                      onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
-                      forceValid: true,
-                    ),
-                  ),
-                ],
-              ),
-
-              CupertinoListSection.insetGrouped(
-                backgroundColor: AppColors.transparent,
-                header: const Text("Date de remise"),
+                header: Text("Date ${mode == Mode.Leave ? "" : "de remise"}"),
                 margin: EdgeInsets.zero,
                 children: [
                   CupertinoListTile(
@@ -398,4 +407,4 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   }
 }
 
-enum Mode { Assignment, Test }
+enum Mode { Assignment, Test, Leave }
