@@ -68,21 +68,7 @@ void main() async {
 
         //initMessageNotifiers();
         final globals = GlobalsService(); // DATA IS TO BE CALLED AFTER HIVE INITIALIZATION
-
-        // Misc data
-        try {
-          final miscBox = await Hive.openBox("Misc");
-          globals.username = miscBox.get("Username")?.toString();
-        } catch (e) {
-          debugPrint("Misc box could not be opened: $e");
-        }
-
-        try {
-          await Hive.openBox("RegistrationData");
-        } catch (e) {
-          debugPrint("RegistrationData box could not be opened: $e");
-        }
-
+        globals.username = globals.persistent.getString("Username");
         globals.appBrightnessNotifier.value = Brightness.dark;
 
         // Firebase
@@ -247,7 +233,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         },
         children: builtPages,
       ),
-      bottomNavigationBar: NavigationBar()
+      bottomNavigationBar: NavigationBar(),
     );
   }
 }
