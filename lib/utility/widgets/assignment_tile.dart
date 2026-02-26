@@ -125,7 +125,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                 ),
 
                 // Description
-                if (assignment.type == AssignmentType.leave && assignment.content.isNotEmpty)
+                if (assignment.type == AssignmentType.test && assignment.content.isNotEmpty)
                   Text(assignment.content, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context))),
 
                 // Subject and date

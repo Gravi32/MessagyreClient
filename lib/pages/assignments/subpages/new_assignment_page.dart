@@ -54,7 +54,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     assignment
       ..subject.value = subject
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
-      ..content = contentController.text.trim().isEmpty ? "Congé ${formatDate(dueDate, includeArticle: true)}" : contentController.text.trim()
+      ..content =
+          mode == AssignmentType.leave && contentController.text.trim().isEmpty
+              ? "Congé ${formatDate(dueDate, includeArticle: true)}"
+              : contentController.text.trim()
       ..dueDate = dueDate
       ..type = mode
       ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
@@ -168,7 +171,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     titleController.addListener(updateCanSubmit);
     contentController.addListener(updateCanSubmit);
 
-    updateMode(AssignmentType.assignment);
+    updateMode(mode);
 
     globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
@@ -236,56 +239,28 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 onValueChanged: updateMode,
               ),
 
-              if (mode != AssignmentType.leave)
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  header: const SizedBox(),
-                  margin: EdgeInsets.zero,
-                  children: [
-                    // Title Tile
-                    if (mode == AssignmentType.test)
-                      CupertinoListTile.notched(
-                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSubtitle),
-
-                        title: CupertinoTextField(
-                          controller: titleController,
-                          focusNode: titleFocusNode,
-                          decoration: BoxDecoration(),
-                          placeholder: "Titre",
-                          minLines: 1,
-                          maxLines: 2,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-                          placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
-                          onTapOutside: (event) => titleFocusNode.unfocus(),
-                        ),
-
-                        trailing: Opacity(
-                          opacity: .2,
-                          child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                        ),
-                      ),
-
-                    // Description Tile
+              CupertinoListSection.insetGrouped(
+                backgroundColor: AppColors.transparent,
+                header: const SizedBox(),
+                margin: EdgeInsets.zero,
+                children: [
+                  // Title Tile
+                  if (mode == AssignmentType.test)
                     CupertinoListTile.notched(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedSubtitle),
 
                       title: CupertinoTextField(
-                        controller: contentController,
-                        focusNode: contentFocusNode,
+                        controller: titleController,
+                        focusNode: titleFocusNode,
                         decoration: BoxDecoration(),
-                        placeholder: switch (mode) {
-                          AssignmentType.assignment => "Ce que vous devez faire...",
-                          AssignmentType.test => "Si vous voulez, entrez une déscription du test...",
-                          AssignmentType.leave => "Motif, période ou durée du congé...",
-                        },
-                        minLines: mode == AssignmentType.test ? 4 : 5,
-                        maxLines: 10,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                        placeholder: "Titre",
+                        minLines: 1,
+                        maxLines: 2,
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
                         placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
-                        onTapOutside: (event) => contentFocusNode.unfocus(),
+                        onTapOutside: (event) => titleFocusNode.unfocus(),
                       ),
 
                       trailing: Opacity(
@@ -294,7 +269,32 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       ),
                     ),
 
-                    // Subject Tile
+                  // Description Tile
+                  CupertinoListTile.notched(
+                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+
+                    title: CupertinoTextField(
+                      controller: contentController,
+                      focusNode: contentFocusNode,
+                      decoration: BoxDecoration(),
+                      placeholder: switch (mode) {
+                        AssignmentType.assignment => "Ce que vous devez faire...",
+                        AssignmentType.test => "Si vous voulez, entrez une déscription du test...",
+                        AssignmentType.leave => "Motif, période ou durée du congé...",
+                      },
+                      minLines: mode == AssignmentType.test ? 4 : 5,
+                      maxLines: 10,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
+                      onTapOutside: (event) => contentFocusNode.unfocus(),
+                    ),
+
+                    trailing: Opacity(opacity: .2, child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1)),
+                  ),
+
+                  // Subject Tile
+                  if (mode != AssignmentType.leave)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
@@ -309,12 +309,15 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         decoration: const BoxDecoration(),
                         padding: EdgeInsets.zero,
                         placeholder: "Entrez une branche",
-                        onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+                        onSelected: (selectedSubject) {
+                          setState(() => subject = selectedSubject);
+                          updateCanSubmit();
+                        },
                         forceValid: true,
                       ),
                     ),
-                  ],
-                ),
+                ],
+              ),
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
