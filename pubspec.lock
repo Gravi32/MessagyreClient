@@ -1514,6 +1514,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.7"
+  text_gradiate:
+    dependency: "direct main"
+    description:
+      name: text_gradiate
+      sha256: "3a456f1955ef1a254a0b0b572b87129462ad78b48e875375bd10fd916185b11e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   time:
     dependency: transitive
     description:

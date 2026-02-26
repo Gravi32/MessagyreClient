@@ -8,6 +8,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/presets.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
+import 'package:text_gradiate/text_gradiate.dart';
 
 class AssignmentsTopCard extends StatefulWidget {
   const AssignmentsTopCard({super.key});
@@ -27,12 +28,12 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   late final DateTime nextHolidayDate;
   late DateTime lastHolidayDate;
 
-  Widget buildWeekPeekTab(List<Assignment> allAssignments) {
+  Widget buildWeekPeek(List<Assignment> allAssignments, {required DateTime weekStart, required String title}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
       children: [
-        Text("Cette semaine en un coup d'oeil", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20)),
+        Text(title, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20), overflow: TextOverflow.ellipsis, maxLines: 1),
 
         GridView.builder(
           padding: EdgeInsets.zero,
@@ -41,7 +42,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 65),
           itemCount: 7,
           itemBuilder: (context, index) {
-            final thisDay = monday.add(Duration(days: index));
+            final thisDay = weekStart.add(Duration(days: index));
             final thisDaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(thisDay));
             final isSelected = thisDay.isSameDayAs(today);
 
@@ -72,7 +73,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                         final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
 
                         return thisDaysAssignment.type == AssignmentType.leave
-                            ? Align(alignment: Alignment.bottomCenter, child: Icon(Icons.star_rounded, color: AppColors.orange, size: 7))
+                            ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
                             : Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: BoxShape.circle));
                       }),
                     ),
@@ -86,6 +87,14 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
     );
   }
 
+  Widget buildWeekPeekTab(List<Assignment> allAssignments) {
+    return buildWeekPeek(allAssignments, weekStart: monday, title: "Cette semaine en un coup d'oeil");
+  }
+
+  Widget buildNextWeekPeekTab(List<Assignment> allAssignments) {
+    return buildWeekPeek(allAssignments, weekStart: monday.add(Duration(days: 7)), title: "La semaine prochaine en un coup d'oeil");
+  }
+
   Widget buildNextHolidaysTab() {
     final daysDistance = nextHolidayDate.difference(lastHolidayDate).inDays;
     final daysLeft = nextHolidayDate.difference(today).inDays;
@@ -95,7 +104,12 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
       spacing: 0,
       children: [
         Text("Prochaines vacances", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.tertiaryText.adaptTo(context))),
-        Text(nextHolidayName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
+        TextGradiate(
+          text: Text(nextHolidayName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
+          colors: [AppColors.orange.withBrightness(.1), AppColors.yellow],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        ),
         Spacer(),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -120,7 +134,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                   widthFactor: progress,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.yellow,
+                      gradient: LinearGradient(colors: [AppColors.orange, AppColors.yellow]),
                       border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -151,6 +165,6 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   Widget build(BuildContext context) {
     final allAssignments = database.assignments.getAll();
 
-    return PagedCard(height: 101, pages: [buildWeekPeekTab(allAssignments), buildNextHolidaysTab()]);
+    return PagedCard(height: 101, pages: [buildWeekPeekTab(allAssignments), buildNextWeekPeekTab(allAssignments), buildNextHolidaysTab()]);
   }
 }
