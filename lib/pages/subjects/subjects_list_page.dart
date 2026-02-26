@@ -9,7 +9,9 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectsListPage extends StatefulWidget {
-  const SubjectsListPage({super.key});
+  final bool isBootstrap;
+
+  const SubjectsListPage({super.key, this.isBootstrap = false});
 
   @override
   State<StatefulWidget> createState() => _SubjectsListPageState();
@@ -18,10 +20,42 @@ class SubjectsListPage extends StatefulWidget {
 class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBindingObserver {
   final database = DatabaseService();
 
+  void onSkipButtonPressed() {
+    showCupertinoDialog(
+      context: context,
+      builder: (dialogContext) {
+        return CupertinoAlertDialog(
+          title: const Text("Êtes-vous sûr de vouloir passer ?"),
+          content: const Text("Vous ne pourrez pas ajouter de notes et de devoirs pour les branches qui ne sont pas dans la liste."),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text("Annuler"),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).pop();
+              },
+              child: const Text("Passer"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(middle: Text("Branches")),
+      navigationBar: CupertinoNavigationBar(
+        leading: widget.isBootstrap ? CupertinoButton(padding: EdgeInsets.zero, onPressed: onSkipButtonPressed, child: Text("Passer")) : null,
+        middle: Text("Branches"),
+      ),
       child: SafeArea(
         child: StreamBuilder(
           stream: database.subjects.watchAll(),
@@ -139,7 +173,7 @@ Future<void> askUserToAddTheirSubjects(BuildContext context) async {
   Navigator.of(context).push(
     PageRouteBuilder(
       opaque: false,
-      pageBuilder: (context, animation, secondaryAnimation) => SubjectsListPage(),
+      pageBuilder: (context, animation, secondaryAnimation) => SubjectsListPage(isBootstrap: true),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return CupertinoFullscreenDialogTransition(
           primaryRouteAnimation: animation,
