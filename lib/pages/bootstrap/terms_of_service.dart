@@ -116,7 +116,6 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
                   backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
-                      padding: EdgeInsets.zero,
                       title: Text(
                         "J'ai lu et j'accepte les conditions",
                         style: TextStyle(color: hasScrolledToEnd ? AppColors.white : AppColors.inactive.adaptTo(context)),
@@ -131,7 +130,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
                 if (accepted)
                   CupertinoListSection.insetGrouped(
-                    margin: EdgeInsets.zero,
+                    margin: EdgeInsets.only(top: 10),
                     backgroundColor: AppColors.transparent,
                     children: [
                       Shimmer(
