@@ -54,10 +54,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     assignment
       ..subject.value = subject
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
-      ..content =
-          mode == AssignmentType.leave && contentController.text.trim().isEmpty
-              ? "Congé ${formatDate(dueDate, includeArticle: true)}"
-              : contentController.text.trim()
+      ..content = mode == AssignmentType.leave && contentController.text.trim().isEmpty ? "Congé sans titre" : contentController.text.trim()
       ..dueDate = dueDate
       ..type = mode
       ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
