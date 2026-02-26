@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
@@ -32,13 +32,13 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
       children: [
-        Text("Semaine en un coup d'oeil", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20)),
+        Text("Cette semaine en un coup d'oeil", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20)),
 
         GridView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 62),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 65),
           itemCount: 7,
           itemBuilder: (context, index) {
             final thisDay = monday.add(Duration(days: index));
@@ -68,9 +68,12 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                       children: List.generate(min(thisDaysAssignments.length, 3), (index) {
                         final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
                         if (thisDaysAssignment == null) return SizedBox.shrink();
+
                         final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
-                        if (thisDaysAssignmentSubject == null) return SizedBox.shrink();
-                        return Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject.color, shape: BoxShape.circle));
+
+                        return thisDaysAssignment.type == AssignmentType.leave
+                            ? Align(alignment: Alignment.bottomCenter, child: Icon(Icons.star_rounded, color: AppColors.orange, size: 7))
+                            : Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: BoxShape.circle));
                       }),
                     ),
                   ],
@@ -148,6 +151,6 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   Widget build(BuildContext context) {
     final allAssignments = database.assignments.getAll();
 
-    return PagedCard(pages: [buildWeekPeekTab(allAssignments), buildNextHolidaysTab()]);
+    return PagedCard(height: 101, pages: [buildWeekPeekTab(allAssignments), buildNextHolidaysTab()]);
   }
 }
