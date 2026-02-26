@@ -46,13 +46,12 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppColors.background.adaptTo(context),
+      navigationBar: CupertinoNavigationBar(middle: Text("Conditions d'utilisation"), automaticallyImplyLeading: widget.readOnly),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Column(
             children: [
-              Text("Conditions d'utilisation", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
-              SizedBox(height: 16),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
@@ -145,20 +144,6 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
                     ],
                   ),
               ],
-
-              if (widget.readOnly)
-                CupertinoListSection.insetGrouped(
-                  margin: EdgeInsets.zero,
-                  backgroundColor: AppColors.transparent,
-                  children: [
-                    CupertinoListTile(
-                      padding: EdgeInsets.zero,
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
-                      onTap: _acceptTermsOfService,
-                    ),
-                  ],
-                ),
             ],
           ),
         ),

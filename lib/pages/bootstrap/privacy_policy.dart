@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:shimmer_animation/shimmer_animation.dart';
 
 class PrivacyPolicyPage extends StatefulWidget {
   final bool readOnly;
@@ -13,6 +12,8 @@ class PrivacyPolicyPage extends StatefulWidget {
 }
 
 class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
+  final globals = GlobalsService();
+
   bool accepted = false;
   bool hasScrolledToEnd = false;
   final ScrollController scrollController = ScrollController();
@@ -33,26 +34,16 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
     super.dispose();
   }
 
-  Future<void> _acceptEula() async {
-    if (!widget.readOnly) {
-      final box = await Hive.openBox('Misc');
-      await box.put('eulaAccepted', true);
-    }
-    final mountedContext = context;
-    if (context.mounted) Navigator.of(mountedContext).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppColors.background.adaptTo(context),
+      navigationBar: CupertinoNavigationBar(middle: Text("Politique de confidentialité")),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Column(
             children: [
-              Text("Politique de confidentialité", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.white)),
-              SizedBox(height: 16),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
@@ -159,54 +150,6 @@ Pour toute question relative à la protection des données personnelles ou à la
                 ),
               ),
               SizedBox(height: 16),
-
-              if (!widget.readOnly) ...[
-                CupertinoListSection.insetGrouped(
-                  margin: EdgeInsets.zero,
-                  backgroundColor: AppColors.transparent,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: Text(
-                        "J'ai lu et j'accepte les conditions",
-                        style: TextStyle(color: hasScrolledToEnd ? AppColors.white : AppColors.inactive.adaptTo(context)),
-                      ),
-                      trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
-                      subtitle: hasScrolledToEnd ? null : Text("Lire le document pour continuer"),
-                      onTap: null,
-                    ),
-                  ],
-                ),
-
-                if (accepted)
-                  CupertinoListSection.insetGrouped(
-                    margin: EdgeInsets.zero,
-                    backgroundColor: AppColors.transparent,
-                    children: [
-                      Shimmer(
-                        interval: Duration(seconds: 5),
-                        child: CupertinoListTile(
-                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                          title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
-                          onTap: _acceptEula,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-
-              if (widget.readOnly)
-                CupertinoListSection.insetGrouped(
-                  margin: EdgeInsets.zero,
-                  backgroundColor: AppColors.transparent,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: Center(child: Text("Fermer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
-                      onTap: _acceptEula,
-                    ),
-                  ],
-                ),
             ],
           ),
         ),
