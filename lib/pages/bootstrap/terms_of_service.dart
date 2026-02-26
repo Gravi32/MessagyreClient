@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
@@ -13,6 +13,8 @@ class TermsOfServicePage extends StatefulWidget {
 }
 
 class _TermsOfServicePageState extends State<TermsOfServicePage> {
+  final globals = GlobalsService();
+
   bool accepted = false;
   bool hasScrolledToEnd = false;
   final ScrollController scrollController = ScrollController();
@@ -35,8 +37,7 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
 
   Future<void> _acceptTermsOfService() async {
     if (!widget.readOnly) {
-      final box = await Hive.openBox('Misc');
-      await box.put('eulaAccepted', true);
+      globals.persistent.setBool("UserAcceptedToS", true);
     }
     final mountedContext = context;
     if (context.mounted) Navigator.of(mountedContext).pop();
@@ -153,8 +154,9 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 }
 
 Future<void> askUserToAcceptTermsOfService(BuildContext context) async {
-  final box = await Hive.openBox('Misc');
-  if (box.get('eulaAccepted') == true) return;
+  final globals = GlobalsService();
+
+  if (globals.persistent.getBool("UserAcceptedToS") == true) return;
   if (!context.mounted) return;
 
   Navigator.of(context).push(

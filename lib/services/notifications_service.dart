@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -49,12 +48,12 @@ class NotificationPopup extends StatefulWidget {
 }
 
 class _NotificationPopupsState extends State<NotificationPopup> {
+  final database = DatabaseService();
+
   late double _top = widget.outScreenOffset;
   double _dragOffset = 0;
   Timer? _timer;
   bool _isDragging = false;
-
-  final allChats = Hive.box<Chat>("Chats");
 
   @override
   void initState() {
@@ -84,7 +83,7 @@ class _NotificationPopupsState extends State<NotificationPopup> {
 
   @override
   Widget build(BuildContext context) {
-    final unreadMessages = allChats.get(widget.senderUsername)?.unreadMessages;
+    final unreadMessages = database.chats.getByUsername(widget.senderUsername)?.unreadMessages;
 
     return AnimatedPositioned(
       duration: Duration(milliseconds: 600),

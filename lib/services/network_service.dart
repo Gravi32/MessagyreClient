@@ -587,7 +587,7 @@ class NetworkService {
     await secureStorage.delete(key: "RefreshToken");
     await secureStorage.delete(key: "PublicKey");
     await secureStorage.delete(key: "PrivateKey");
-    globals.persistents.remove("Username");
+    globals.persistent.remove("Username");
 
     onUnauthorized();
 

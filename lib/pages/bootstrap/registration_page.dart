@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -27,7 +26,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final network = NetworkService();
   final globals = GlobalsService();
   final secureStorage = FlutterSecureStorage();
-  final registrationDataBox = Hive.box("RegistrationData");
 
   final pageController = PageController();
   final emailController = TextEditingController();
@@ -56,6 +54,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
     pageController.animateToPage(index, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 
+  void clearRegistrationCache() {
+    globals.persistent
+      ..remove("RegistrationToken")
+      ..remove("EmailAddress")
+      ..remove("Page");
+  }
+
   void sendEmail() async {
     startResendTimer();
     isWaitingForResponse = true;
@@ -77,9 +82,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       emailError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
       registrationToken = jsonDecode(response.body)["RegistrationToken"];
-      registrationDataBox.put("RegistrationToken", registrationToken);
-      registrationDataBox.put("EmailAddress", emailController.text.trim());
-      registrationDataBox.put("Page", 1);
+
+      globals.persistent
+        ..setString("RegistrationToken", registrationToken ?? "")
+        ..setString("EmailAddress", emailController.text.trim())
+        ..setInt("Page", 1);
 
       goToPage(1);
     }
@@ -104,7 +111,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     } else if (response.statusCode != 200) {
       codeError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
     } else {
-      registrationDataBox.put("Page", 2);
+      globals.persistent.setInt("Page", 2);
       goToPage(2);
     }
   }
@@ -135,8 +142,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
 
-      await Hive.box("Misc").put("Username", username);
-      await registrationDataBox.clear();
+      await globals.persistent.setString("Username", username);
+      clearRegistrationCache();
 
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -377,9 +384,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             CupertinoDialogAction(
               isDestructiveAction: true,
               onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-                registrationDataBox.clear();
+                Navigator.of(context)
+                  ..pop()
+                  ..pop();
+                clearRegistrationCache();
               },
               child: Text("Oui"),
             ),
@@ -392,10 +400,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   void initState() {
-    emailController.value = TextEditingValue(text: registrationDataBox.get("EmailAddress", defaultValue: ""));
+    emailController.value = TextEditingValue(text: globals.persistent.getString("EmailAddress") ?? "");
 
     if (widget.passwordResetMode || widget.isResumingRegistration) {
-      setState(() => currentPage = registrationDataBox.get("Page", defaultValue: 1));
+      setState(() => currentPage = globals.persistent.getInt("Page") ?? 1);
 
       startResendTimer();
       registrationToken = widget.registrationTokenOverride;

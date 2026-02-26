@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
@@ -92,7 +91,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
 
-      await Hive.box("Misc").put("Username", username);
+      await globals.persistent.setString("Username", username);
     } catch (e, s) {
       debugPrint("[Access] Error decoding response: '$e'. Stack trace: $s");
     }
@@ -269,8 +268,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void resumeIfNeeded() async {
-    final registrationDataBox = Hive.box("RegistrationData");
-    final storedRegistrationToken = await registrationDataBox.get("RegistrationToken");
+    final storedRegistrationToken = globals.persistent.getString("RegistrationToken");
     final isResumingRegistration = storedRegistrationToken != null;
     final mountedContext = context;
 

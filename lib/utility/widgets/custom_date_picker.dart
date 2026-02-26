@@ -56,7 +56,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final includeWeekends = globals.persistents.getBool("includeWeekends") ?? false;
+    final includeWeekends = globals.persistent.getBool("includeWeekends") ?? false;
     final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
     return Container(

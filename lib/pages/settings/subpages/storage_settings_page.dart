@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/classes.dart';
 
@@ -36,33 +34,35 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
   }
 
   Future<int> getBoxSize<T>(String boxName) async {
-    try {
-      final box = Hive.box<T>(boxName);
-      if (box.path == null) return 0;
-      final file = File(box.path!);
-      return await file.length();
-    } catch (_) {
-      return 0;
-    }
+    // try {
+    //   final box = Hive.box<T>(boxName);
+    //   if (box.path == null) return 0;
+    //   final file = File(box.path!);
+    //   return await file.length();
+    // } catch (_) {
+    //   return 0;
+    // }
+
+    return 0;
   }
 
   Future<void> deleteBox(String name) async {
-    try {
-      Box<HiveObject>? box;
-      bool isOpen = Hive.isBoxOpen(name);
+    // try {
+    //   Box<HiveObject>? box;
+    //   bool isOpen = Hive.isBoxOpen(name);
 
-      if (name == "Chats") {
-        box = isOpen ? Hive.box<Chat>(name) : await Hive.openBox<Chat>(name);
-      } else if (name == "Assignment") {
-        box = isOpen ? Hive.box<Assignment>(name) : await Hive.openBox<Assignment>(name);
-      } else if (name == "Grades") {
-        box = isOpen ? Hive.box<Grade>(name) : await Hive.openBox<Grade>(name);
-      }
+    //   if (name == "Chats") {
+    //     box = isOpen ? Hive.box<Chat>(name) : await Hive.openBox<Chat>(name);
+    //   } else if (name == "Assignment") {
+    //     box = isOpen ? Hive.box<Assignment>(name) : await Hive.openBox<Assignment>(name);
+    //   } else if (name == "Grades") {
+    //     box = isOpen ? Hive.box<Grade>(name) : await Hive.openBox<Grade>(name);
+    //   }
 
-      await box?.clear();
-    } catch (e, s) {
-      debugPrintStack(stackTrace: s, label: e.toString());
-    }
+    //   await box?.clear();
+    // } catch (e, s) {
+    //   debugPrintStack(stackTrace: s, label: e.toString());
+    // }
   }
 
   String formatBytes(int bytes) => "${(bytes / 1024).toStringAsFixed(1)} Ko";

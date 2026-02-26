@@ -4,7 +4,6 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:pointycastle/key_generators/api.dart';
 import 'package:pointycastle/key_generators/rsa_key_generator.dart';
@@ -15,7 +14,7 @@ class GlobalsService {
   factory GlobalsService() => _instance;
 
   GlobalsService._internal() {
-    SharedPreferences.getInstance().then((instance) => persistents = instance);
+    SharedPreferences.getInstance().then((instance) => persistent = instance);
   }
 
   String? token;
@@ -25,7 +24,7 @@ class GlobalsService {
   late final network = NetworkService();
 
   // #region -> Settings
-  late final SharedPreferences persistents;
+  late final SharedPreferences persistent;
 
   // #endregion
 
@@ -178,14 +177,14 @@ class GlobalsService {
 
   List<String> get blockedUsers {
     if (_blockedUsers == null) {
-      _blockedUsers = List<String>.from(Hive.box("Misc").get("BlockedUsers", defaultValue: <String>[]));
+      _blockedUsers = List<String>.from(persistent.getStringList("BlockedUsers") ?? []);
       blockedUsersNotifier.value = List<String>.from(_blockedUsers!);
     }
     return blockedUsersNotifier.value;
   }
 
   Future<void> _saveBlockedUsers() async {
-    await Hive.box("Misc").put("BlockedUsers", blockedUsersNotifier.value);
+    await persistent.setStringList("BlockedUsers", blockedUsersNotifier.value);
   }
 
   Future<void> blockUser(String id) async {

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,15 +20,14 @@ class WallpaperSettingsPage extends StatefulWidget {
 class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
   final globals = GlobalsService();
 
-  final box = Hive.box("Misc");
-  late final savedWallpapers = List<String>.from(box.get("SavedWallpapers", defaultValue: <String>[]));
-  late String currentWallpaper = box.get("CurrentWallpaper", defaultValue: "");
+  late final savedWallpapers = List<String>.from(globals.persistent.getStringList("SavedWallpapers") ?? []);
+  late String currentWallpaper = globals.persistent.getString("CurrentWallpaper") ?? "";
 
   bool isEditMode = false;
 
   void saveData() {
-    box.put("SavedWallpapers", savedWallpapers);
-    box.put("CurrentWallpaper", currentWallpaper);
+    globals.persistent.setStringList("SavedWallpapers", savedWallpapers);
+    globals.persistent.setString("CurrentWallpaper", currentWallpaper);
   }
 
   void pickImage(ImageSource source) async {
@@ -89,17 +87,17 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
-                      value: globals.persistents.getBool("useDefaultWallpaper") ?? true,
+                      value: globals.persistent.getBool("useDefaultWallpaper") ?? true,
                       onChanged: (newValue) {
                         setState(() {
-                          globals.persistents.setBool("useDefaultWallpaper", newValue);
+                          globals.persistent.setBool("useDefaultWallpaper", newValue);
                         });
                       },
                     ),
                   ),
                 ],
               ),
-              if (!(globals.persistents.getBool("useDefaultWallpaper") ?? true)) ...[
+              if (!(globals.persistent.getBool("useDefaultWallpaper") ?? true)) ...[
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context)),

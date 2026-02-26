@@ -40,7 +40,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final database = DatabaseService();
 
   late var chatData = database.chats.getByUsername(widget.username) ?? Chat.custom(username: widget.username);
-  late var currentWallpaper = globals.persistents.getString("CurrentWallpaper");
+  late var currentWallpaper = globals.persistent.getString("CurrentWallpaper");
 
   StreamSubscription? _keyboardVisibilitySub;
   StreamSubscription? _messageReceivedSub;
@@ -860,7 +860,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 image:
-                    (globals.persistents.getBool("useDefaultWallpaper") ?? true) || currentWallpaper == null
+                    (globals.persistent.getBool("useDefaultWallpaper") ?? true) || currentWallpaper == null
                         ? DecorationImage(
                           image: AssetImage("assets/wallpaper.png"),
                           repeat: ImageRepeat.repeat,
