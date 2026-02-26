@@ -218,6 +218,8 @@ class NetworkService {
       connectionAttempts = 0;
       _isConnecting = false;
       debugPrint("[WebSocket] Connected successfully!");
+
+      uploadAppVersion();
     } catch (e) {
       debugPrint("[WebSocket] Connection FAILED: $e");
 
@@ -549,6 +551,16 @@ class NetworkService {
 
     debugPrint("[RefreshToken] Refresh failed with status ${response.statusCode}: ${response.body}");
     return response;
+  }
+
+  Future<void> uploadAppVersion() async {
+    final response = await post("/accounts/me/upload-app-version", {"AppVersion": globals.appVersion});
+
+    if (response.statusCode != 200) {
+      debugPrint("[Network] Uploading the app version failed. Server response: ${response.statusCode} ${response.body}");
+    }
+
+    return;
   }
 
   Future<void> uploadPublicKey() async {

@@ -88,6 +88,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       final refreshToken = responseData["RefreshToken"];
       globals.token = accessToken;
       globals.username = username;
+
       await secureStorage.write(key: "AccessToken", value: accessToken);
       await secureStorage.write(key: "RefreshToken", value: refreshToken);
 
@@ -102,6 +103,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
     // Closing the page
     debugPrint("[Login successful] Token received and stored.");
+
     if (mounted) Navigator.of(context).pop();
   }
 

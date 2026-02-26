@@ -5,6 +5,7 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:messagyre_client/services/network_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pointycastle/key_generators/api.dart';
 import 'package:pointycastle/key_generators/rsa_key_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ class GlobalsService {
 
   GlobalsService._internal() {
     SharedPreferences.getInstance().then((instance) => persistent = instance);
+    PackageInfo.fromPlatform().then((appInfo) => appVersion = appInfo.version);
   }
 
   String? token;
@@ -157,6 +159,7 @@ class GlobalsService {
 
   // #region -> Debugging
 
+  String appVersion = "Loading";
   List<String> appLogs = [];
 
   void log(String? message) {

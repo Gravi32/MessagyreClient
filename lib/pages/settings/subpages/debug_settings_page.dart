@@ -6,7 +6,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class DebugSettingsPage extends StatefulWidget {
   const DebugSettingsPage({super.key});
@@ -21,7 +20,6 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
   final secureStorage = FlutterSecureStorage();
 
   bool isRefreshTokenStored = false;
-  String appVersion = "?";
 
   Future<void> checkRefreshToken() async {
     final token = await secureStorage.read(key: "RefreshToken");
@@ -30,19 +28,11 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
     });
   }
 
-  Future<void> loadVersion() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      appVersion = info.version;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
 
     checkRefreshToken();
-    loadVersion();
   }
 
   @override
@@ -63,7 +53,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                   title: Text("Nom d'utilisateur"),
                   trailing: Text(globals.username ?? "-"),
                 ),
-                CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context), title: Text("Version"), trailing: Text(appVersion)),
+                CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context), title: Text("Version"), trailing: Text(globals.appVersion)),
                 CupertinoListTile(
                   backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title: Text("Photos de profil en cache"),
