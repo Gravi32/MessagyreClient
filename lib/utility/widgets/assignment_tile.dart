@@ -64,7 +64,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
       title: Row(
         spacing: 16,
         children: [
-          if (!assignment.isTest)
+          if (assignment.type == AssignmentType.assignment)
             SizedBox(
               height: 30,
               child: GestureDetector(
@@ -82,11 +82,11 @@ class _AssignmentTileState extends State<AssignmentTile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 8,
               children: [
-                // Title and tags
+                // Title and tag
                 Row(
                   spacing: 10,
                   children: [
-                    if (assignment.isTest)
+                    if (assignment.type == AssignmentType.test)
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.red.withBrightness(-.25),
@@ -94,22 +94,38 @@ class _AssignmentTileState extends State<AssignmentTile> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         padding: EdgeInsets.all(2),
-                        child: Text("TEST", style: TextStyle(fontSize: 14, letterSpacing: .4)),
+                        child: Text("TEST", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
+                      ),
+
+                    if (assignment.type == AssignmentType.leave)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.orange.withBrightness(-.05),
+                          border: Border.all(color: AppColors.yellow, strokeAlign: BorderSide.strokeAlignOutside),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: EdgeInsets.all(2),
+                        child: Text("CONGÉ", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
                       ),
 
                     AnimatedLineThrough(
-                      isCrossed: assignment.isTest ? widget.dim : isDone,
+                      isCrossed: switch (assignment.type) {
+                        AssignmentType.assignment => isDone,
+                        AssignmentType.test => widget.dim,
+                        AssignmentType.leave => false,
+                      },
                       duration: animationDuration,
-                      child: Text(
-                        "${assignment.isTest ? assignment.title : assignment.content}",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: assignment.isTest ? AppColors.red : null),
-                      ),
+                      child: Text(switch (assignment.type) {
+                        AssignmentType.assignment => assignment.content,
+                        AssignmentType.test => assignment.title ?? "Test sans titre",
+                        AssignmentType.leave => assignment.content,
+                      }, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: assignment.type == AssignmentType.test ? AppColors.red : null)),
                     ),
                   ],
                 ),
 
                 // Description
-                if (assignment.isTest && assignment.content.isNotEmpty)
+                if (assignment.type == AssignmentType.leave && assignment.content.isNotEmpty)
                   Text(assignment.content, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context))),
 
                 // Subject and date

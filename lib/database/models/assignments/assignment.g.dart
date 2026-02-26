@@ -32,30 +32,26 @@ const AssignmentSchema = CollectionSchema(
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
-    r'isGraded': PropertySchema(
-      id: 3,
-      name: r'isGraded',
-      type: IsarType.bool,
-    ),
     r'isMarkedAsDone': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'isMarkedAsDone',
       type: IsarType.bool,
     ),
-    r'isTest': PropertySchema(
-      id: 5,
-      name: r'isTest',
-      type: IsarType.bool,
-    ),
     r'referenceId': PropertySchema(
-      id: 6,
+      id: 4,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 7,
+      id: 5,
       name: r'title',
       type: IsarType.string,
+    ),
+    r'type': PropertySchema(
+      id: 6,
+      name: r'type',
+      type: IsarType.byte,
+      enumMap: _AssignmenttypeEnumValueMap,
     )
   },
   estimateSize: _assignmentEstimateSize,
@@ -116,11 +112,10 @@ void _assignmentSerialize(
   writer.writeString(offsets[0], object.calendarEventId);
   writer.writeString(offsets[1], object.content);
   writer.writeDateTime(offsets[2], object.dueDate);
-  writer.writeBool(offsets[3], object.isGraded);
-  writer.writeBool(offsets[4], object.isMarkedAsDone);
-  writer.writeBool(offsets[5], object.isTest);
-  writer.writeString(offsets[6], object.referenceId);
-  writer.writeString(offsets[7], object.title);
+  writer.writeBool(offsets[3], object.isMarkedAsDone);
+  writer.writeString(offsets[4], object.referenceId);
+  writer.writeString(offsets[5], object.title);
+  writer.writeByte(offsets[6], object.type.index);
 }
 
 Assignment _assignmentDeserialize(
@@ -134,11 +129,12 @@ Assignment _assignmentDeserialize(
   object.content = reader.readString(offsets[1]);
   object.dueDate = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.isGraded = reader.readBool(offsets[3]);
-  object.isMarkedAsDone = reader.readBool(offsets[4]);
-  object.isTest = reader.readBool(offsets[5]);
-  object.referenceId = reader.readStringOrNull(offsets[6]);
-  object.title = reader.readStringOrNull(offsets[7]);
+  object.isMarkedAsDone = reader.readBool(offsets[3]);
+  object.referenceId = reader.readStringOrNull(offsets[4]);
+  object.title = reader.readStringOrNull(offsets[5]);
+  object.type =
+      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+          AssignmentType.assignment;
   return object;
 }
 
@@ -158,17 +154,27 @@ P _assignmentDeserializeProp<P>(
     case 3:
       return (reader.readBool(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
-    case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (_AssignmenttypeValueEnumMap[reader.readByteOrNull(offset)] ??
+          AssignmentType.assignment) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _AssignmenttypeEnumValueMap = {
+  'assignment': 0,
+  'test': 1,
+  'leave': 2,
+};
+const _AssignmenttypeValueEnumMap = {
+  0: AssignmentType.assignment,
+  1: AssignmentType.test,
+  2: AssignmentType.leave,
+};
 
 Id _assignmentGetId(Assignment object) {
   return object.id;
@@ -655,31 +661,11 @@ extension AssignmentQueryFilter
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition> isGradedEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isGraded',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
       isMarkedAsDoneEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isMarkedAsDone',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition> isTestEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isTest',
         value: value,
       ));
     });
@@ -985,6 +971,59 @@ extension AssignmentQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition> typeEqualTo(
+      AssignmentType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition> typeGreaterThan(
+    AssignmentType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition> typeLessThan(
+    AssignmentType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition> typeBetween(
+    AssignmentType lower,
+    AssignmentType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension AssignmentQueryObject
@@ -1045,18 +1084,6 @@ extension AssignmentQuerySortBy
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByIsGraded() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isGraded', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByIsGradedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isGraded', Sort.desc);
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByIsMarkedAsDone() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isMarkedAsDone', Sort.asc);
@@ -1067,18 +1094,6 @@ extension AssignmentQuerySortBy
       sortByIsMarkedAsDoneDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isMarkedAsDone', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByIsTest() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isTest', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByIsTestDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isTest', Sort.desc);
     });
   }
 
@@ -1103,6 +1118,18 @@ extension AssignmentQuerySortBy
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
@@ -1158,18 +1185,6 @@ extension AssignmentQuerySortThenBy
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByIsGraded() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isGraded', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByIsGradedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isGraded', Sort.desc);
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByIsMarkedAsDone() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isMarkedAsDone', Sort.asc);
@@ -1180,18 +1195,6 @@ extension AssignmentQuerySortThenBy
       thenByIsMarkedAsDoneDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isMarkedAsDone', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByIsTest() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isTest', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByIsTestDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isTest', Sort.desc);
     });
   }
 
@@ -1216,6 +1219,18 @@ extension AssignmentQuerySortThenBy
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
@@ -1243,21 +1258,9 @@ extension AssignmentQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QDistinct> distinctByIsGraded() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isGraded');
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QDistinct> distinctByIsMarkedAsDone() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isMarkedAsDone');
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QDistinct> distinctByIsTest() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isTest');
     });
   }
 
@@ -1272,6 +1275,12 @@ extension AssignmentQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QDistinct> distinctByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type');
     });
   }
 }
@@ -1303,21 +1312,9 @@ extension AssignmentQueryProperty
     });
   }
 
-  QueryBuilder<Assignment, bool, QQueryOperations> isGradedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isGraded');
-    });
-  }
-
   QueryBuilder<Assignment, bool, QQueryOperations> isMarkedAsDoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isMarkedAsDone');
-    });
-  }
-
-  QueryBuilder<Assignment, bool, QQueryOperations> isTestProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isTest');
     });
   }
 
@@ -1330,6 +1327,12 @@ extension AssignmentQueryProperty
   QueryBuilder<Assignment, String?, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
+    });
+  }
+
+  QueryBuilder<Assignment, AssignmentType, QQueryOperations> typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 }

@@ -299,7 +299,10 @@ class _NewGradePageState extends State<NewGradePage> {
                                         children: [
                                           WidgetSpan(
                                             child: HugeIcon(
-                                              icon: assignment.isTest ? HugeIcons.strokeRoundedTextCheck : HugeIcons.strokeRoundedCheckmarkBadge04,
+                                              icon:
+                                                  assignment.type == AssignmentType.test
+                                                      ? HugeIcons.strokeRoundedTextCheck
+                                                      : HugeIcons.strokeRoundedCheckmarkBadge04,
                                               color: AppColors.inactive.adaptTo(context),
                                             ),
                                           ),

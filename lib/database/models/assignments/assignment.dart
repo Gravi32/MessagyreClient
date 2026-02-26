@@ -14,8 +14,9 @@ class Assignment {
 
   late DateTime dueDate;
 
-  bool isGraded = false;
-  bool isTest = false;
+  @enumerated
+  AssignmentType type = AssignmentType.assignment;
+
   bool isMarkedAsDone = false;
 
   String? referenceId;
@@ -24,3 +25,5 @@ class Assignment {
   @override
   String toString() => title ?? content;
 }
+
+enum AssignmentType { assignment, test, leave }

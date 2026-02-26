@@ -126,7 +126,10 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 SubjectBadge(subject: widget.subject, size: 24),
                 Text("Moyenne", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
                 Spacer(),
-                Text(calculateAverage(thisSubjectGrades).toStringAsFixed(2), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color)),
+                Text(
+                  calculateAverage(thisSubjectGrades).toStringAsFixed(2),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color),
+                ),
               ],
             ),
             Expanded(
@@ -274,7 +277,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                             .where(
                               (assignment) =>
                                   assignment.subject.value == widget.subject &&
-                                  (assignment.isGraded || assignment.isTest) &&
+                                  assignment.type == AssignmentType.test &&
                                   !thisSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
                             )
                             .sortedBy((assignment) => assignment.dueDate)

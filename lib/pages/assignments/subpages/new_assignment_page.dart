@@ -39,7 +39,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final titleFocusNode = FocusNode();
   final contentFocusNode = FocusNode();
 
-  late Mode mode = (widget.toEdit?.isTest ?? false) ? Mode.Test : Mode.Assignment;
+  late AssignmentType mode = widget.toEdit?.type ?? AssignmentType.assignment;
 
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
@@ -54,10 +54,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     assignment
       ..subject.value = subject
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
-      ..content = contentController.text.trim()
+      ..content = contentController.text.trim().isEmpty ? "Congé ${formatDate(dueDate, includeArticle: true)}" : contentController.text.trim()
       ..dueDate = dueDate
-      ..isTest = mode == Mode.Test
-      ..isLeave = mode == Mode.Leave
+      ..type = mode
       ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
       ..calendarEventId = editsCalendar ? assignment.calendarEventId : null;
 
@@ -131,8 +130,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       builder: (dialogContext) {
         final missingInfos = [
           if (subject == null) "la *branche*",
-          if ((mode == Mode.Test) && titleController.text.isEmpty) "un *titre*",
-          if (!(mode == Mode.Test) && contentController.text.isEmpty) "une *description*",
+          if (mode == AssignmentType.test && titleController.text.isEmpty) "un *titre*",
+          if (mode == AssignmentType.assignment && contentController.text.isEmpty) "une *description*",
         ];
 
         return CupertinoAlertDialog(
@@ -144,7 +143,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     );
   }
 
-  void updateMode(Mode? newMode) {
+  void updateMode(AssignmentType? newMode) {
     if (newMode == null) return;
     setState(() {
       mode = newMode;
@@ -154,9 +153,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   void updateCanSubmit() {
     canSubmitNotifier.value = switch (mode) {
-      Mode.Assignment => subject != null && contentController.text.isNotEmpty,
-      Mode.Test => subject != null && titleController.text.isNotEmpty,
-      Mode.Leave => true,
+      AssignmentType.assignment => subject != null && contentController.text.isNotEmpty,
+      AssignmentType.test => subject != null && titleController.text.isNotEmpty,
+      AssignmentType.leave => true,
     };
   }
 
@@ -169,7 +168,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     titleController.addListener(updateCanSubmit);
     contentController.addListener(updateCanSubmit);
 
-    updateMode(Mode.Assignment);
+    updateMode(AssignmentType.assignment);
 
     globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
@@ -219,26 +218,32 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
             physics: const ClampingScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: 10),
             children: [
-              CupertinoSlidingSegmentedControl<Mode>(
+              CupertinoSlidingSegmentedControl<AssignmentType>(
                 groupValue: mode,
                 backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                 thumbColor: adaptiveColor(AppColors.background.adaptTo(context), AppColors.text.adaptTo(context).withAlpha(20)),
                 children: const {
-                  Mode.Assignment: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Devoir", style: TextStyle(fontSize: 16))),
-                  Mode.Test: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Test", style: TextStyle(fontSize: 16))),
-                  Mode.Leave: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Congé", style: TextStyle(fontSize: 16))),
+                  AssignmentType.assignment: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    child: Text("Devoir", style: TextStyle(fontSize: 16)),
+                  ),
+                  AssignmentType.test: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6), child: Text("Test", style: TextStyle(fontSize: 16))),
+                  AssignmentType.leave: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    child: Text("Congé", style: TextStyle(fontSize: 16)),
+                  ),
                 },
                 onValueChanged: updateMode,
               ),
 
-              if (mode != Mode.Leave)
+              if (mode != AssignmentType.leave)
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   header: const SizedBox(),
                   margin: EdgeInsets.zero,
                   children: [
                     // Title Tile
-                    if (mode == Mode.Test)
+                    if (mode == AssignmentType.test)
                       CupertinoListTile.notched(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                         padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -272,11 +277,11 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         focusNode: contentFocusNode,
                         decoration: BoxDecoration(),
                         placeholder: switch (mode) {
-                          Mode.Assignment => "Ce que vous devez faire...",
-                          Mode.Test => "Si vous voulez, entrez une déscription du test...",
-                          Mode.Leave => "Motif, période ou durée du congé...",
+                          AssignmentType.assignment => "Ce que vous devez faire...",
+                          AssignmentType.test => "Si vous voulez, entrez une déscription du test...",
+                          AssignmentType.leave => "Motif, période ou durée du congé...",
                         },
-                        minLines: mode == Mode.Test ? 4 : 5,
+                        minLines: mode == AssignmentType.test ? 4 : 5,
                         maxLines: 10,
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                         placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
@@ -313,7 +318,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
-                header: Text("Date ${mode == Mode.Leave ? "" : "de remise"}"),
+                header: Text("Date ${mode == AssignmentType.leave ? "" : "de remise"}"),
                 margin: EdgeInsets.zero,
                 children: [
                   CupertinoListTile(
@@ -332,7 +337,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
                 margin: EdgeInsets.zero,
                 children: [
-                  if (mode == Mode.Test)
+                  if (mode == AssignmentType.test)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
@@ -372,14 +377,14 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                      title: Text("Supprimer ${mode == Mode.Test ? "ce test" : "cette note"}", style: TextStyle(color: AppColors.red)),
+                      title: Text("Supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"}", style: TextStyle(color: AppColors.red)),
                       onTap: () {
                         showCupertinoDialog(
                           context: context,
                           builder:
                               (_) => CupertinoAlertDialog(
-                                title: Text("Supprimer ce ${mode == Mode.Test ? "test" : "note"}"),
-                                content: Text("Êtes-vous sûr de vouloir supprimer ${mode == Mode.Test ? "ce test" : "cette note"} ?"),
+                                title: Text("Supprimer ce ${mode == AssignmentType.test ? "test" : "note"}"),
+                                content: Text("Êtes-vous sûr de vouloir supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"} ?"),
                                 actions: [
                                   CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
                                   CupertinoDialogAction(
@@ -406,5 +411,3 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     );
   }
 }
-
-enum Mode { Assignment, Test, Leave }
