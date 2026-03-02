@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
-import 'package:messagyre_client/services/notifications_service.dart';
+import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:messagyre_client/main.dart';
@@ -73,7 +73,7 @@ class FirebaseApi {
     final sender = data['SenderUsername'];
 
     if (state == AppLifecycleState.resumed) {
-      NotificationsService().showInAppOverlay(title, sender, body);
+      NotificationOverlaysService().spawn(title, sender, body);
       resetBadge();
     } else {
       await _showSystemNotification(title, body, imageUrl, sender);
