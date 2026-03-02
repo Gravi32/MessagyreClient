@@ -155,7 +155,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
             ),
           ),
           onPressed: () {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => ChatPage(username: chatData.username)));
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).push(CupertinoPageRoute(builder: (builder) => ChatPage(username: chatData.username))).then((_) => setState(() {}));
           },
         ),
 
