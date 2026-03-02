@@ -15,16 +15,16 @@ import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
+import 'package:messagyre_client/services/api/firebase_api.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
-import 'package:messagyre_client/services/notifications_service.dart';
+import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/utility/widgets/navigation_bar.dart';
 import 'package:messagyre_client/utility/__database_migration__.dart';
 import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
-import 'package:messagyre_client/services/firebase_api_service.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -199,7 +199,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     MainPage.pageIndex.addListener(swipeToPage);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      NotificationsService().init(context);
+      NotificationOverlaysService().init(context);
       await askUserToAcceptTermsOfService(context);
 
       final mountedContext = context;
