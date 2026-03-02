@@ -35,6 +35,11 @@ class NetworkService {
   final database = DatabaseService();
   final secureStorage = FlutterSecureStorage();
 
+  // Streams
+  final messageStreamController = StreamController<(String sender, Message message)>.broadcast();
+  final messageStatusUpdateStreamController = StreamController<(String sender, Message message)>.broadcast();
+  final messageDeletionStreamController = StreamController<(String sender, Message message)>.broadcast();
+
   final connectionState = ValueNotifier(ConnectionState.NotConnected);
   int connectionAttempts = 0;
   WebSocketChannel? _channel;
@@ -47,10 +52,10 @@ class NetworkService {
     final useLocalhost = isLocalhost || forceLocalhost;
 
     if (useWebsocket) {
-      return useLocalhost ? "ws://192.168.1.230:5066" : "wss://api.gravi.dev/messagyre/";
+      return useLocalhost ? "ws://192.168.1.230:5067" : "wss://api.gravi.dev/messagyre/";
     }
 
-    final url = useLocalhost ? "http://192.168.1.230:5066${route ?? ""}" : "https://api.gravi.dev/messagyre${route ?? ""}";
+    final url = useLocalhost ? "http://192.168.1.230:5067${route ?? ""}" : "https://api.gravi.dev/messagyre${route ?? ""}";
     return Uri.parse(url);
   }
 
@@ -266,15 +271,14 @@ class NetworkService {
 
       if (targetChat == null) {
         targetChat = Chat.custom(username: senderUsername);
-        targetChat.messages.add(receivedMessage);
         targetChat.unreadMessages = 1;
       } else {
-        targetChat.messages.add(receivedMessage);
         targetChat.unreadMessages += 1;
       }
 
-      database.messages.save(receivedMessage);
       database.chats.addMessage(targetChat, receivedMessage);
+
+      messageStreamController.add((senderUsername, receivedMessage));
     }
 
     // On message status update received
@@ -288,6 +292,8 @@ class NetworkService {
       targetMessage.status = status;
 
       database.messages.save(targetMessage);
+
+      messageStatusUpdateStreamController.add((senderUsername, targetMessage));
     }
 
     // On message deletion received
@@ -301,6 +307,8 @@ class NetworkService {
       targetMessage.isDeleted = true;
 
       database.messages.save(targetMessage);
+
+      messageDeletionStreamController.add((senderUsername, targetMessage));
     }
 
     try {

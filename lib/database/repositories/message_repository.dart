@@ -16,6 +16,14 @@ class MessageRepository {
     return;
   }
 
+  Future<void> markAsDeleted(Message message) async {
+    await isar.writeTxn(() async {
+      message.isDeleted = true;
+      await isar.messages.put(message);
+    });
+    return;
+  }
+
   Future<void> delete(Message message) async {
     await isar.writeTxn(() async {
       await isar.messages.delete(message.id);

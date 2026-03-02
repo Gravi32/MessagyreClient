@@ -15,7 +15,7 @@ class Message {
   late String content;
 
   late DateTime sentAt;
-  
+
   late bool isOwned;
 
   @enumerated
@@ -34,7 +34,7 @@ class Message {
       return Message()
         ..uuid = data['ID'] ?? const Uuid().v4()
         ..content = data['Content']
-        ..sentAt = DateTime.parse(data['SentAt'])
+        ..sentAt = data['SentAt']
         ..isOwned = false
         ..status = MessageStatus.Delivered;
     } catch (e) {

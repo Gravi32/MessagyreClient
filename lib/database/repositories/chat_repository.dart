@@ -24,9 +24,7 @@ class ChatRepository {
       await isar.messages.put(message);
       chat.messages.add(message);
       await chat.messages.save();
-      await isar.chats.put(chat);
     });
-    return;
   }
 
   Future<void> incrementUnread(Chat chat) async {
