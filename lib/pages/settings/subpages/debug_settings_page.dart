@@ -41,10 +41,11 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
       navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Débogage")),
       child: SafeArea(
         child: ListView(
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
           physics: const ClampingScrollPhysics(),
           children: [
             CupertinoListSection.insetGrouped(
-              margin: EdgeInsets.symmetric(horizontal: 10),
+               margin: EdgeInsets.zero,
               backgroundColor: AppColors.transparent,
               header: Text("Informations générales"),
               children: [
@@ -62,7 +63,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               ],
             ),
             CupertinoListSection.insetGrouped(
-              margin: EdgeInsets.symmetric(horizontal: 10),
+               margin: EdgeInsets.zero,
               backgroundColor: AppColors.transparent,
               header: Text("Connexion"),
               children: [
@@ -91,7 +92,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               ],
             ),
             CupertinoListSection.insetGrouped(
-              margin: EdgeInsets.symmetric(horizontal: 10),
+              margin: EdgeInsets.zero,
               backgroundColor: AppColors.transparent,
               header: Text("Jetons"),
               children: [
@@ -113,7 +114,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               ],
             ),
             CupertinoListSection.insetGrouped(
-              margin: EdgeInsets.symmetric(horizontal: 10),
+              margin: EdgeInsets.zero,
               backgroundColor: AppColors.transparent,
               header: Text("Logs de l'application"),
               children: [
@@ -127,36 +128,38 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                   backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title:
                       globals.appLogs.isNotEmpty
-                          ? ListView.builder(
-                            itemBuilder: (context, index) {
-                              final logIndex = globals.appLogs.length - 1 - index;
-                              final content = globals.appLogs[logIndex].split(" ");
+                          ? ConstrainedBox(
+                            constraints: BoxConstraints(maxHeight: 450),
+                            child: ListView.separated(
+                              itemCount: globals.appLogs.length,
+                              reverse: true,
+                              itemBuilder: (context, index) {
+                                final logIndex = globals.appLogs.length - 1 - index;
+                                final content = globals.appLogs[logIndex].split(" ");
 
-                              return Padding(
-                                padding: EdgeInsets.only(top: 8),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(child: Text(content.sublist(1).join(" "), style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))),
-                                        Text(
-                                          content[0].replaceAll(RegExp(r'[\[\]]'), ''),
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                                return Padding(
+                                  padding: EdgeInsets.only(top: 8),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          content.sublist(1).join(" "),
+                                          style: TextStyle(fontSize: 14, color: AppColors.secondaryText.adaptTo(context)),
+                                          softWrap: true,
                                         ),
-                                      ],
-                                    ),
-                                    Divider(color: AppColors.separator.adaptTo(context).withAlpha(10)),
-                                  ],
-                                ),
-                              );
-                            },
-                            itemCount: globals.appLogs.length,
-                            reverse: true,
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
+                                      ),
+                                      Text(
+                                        content[0].replaceAll(RegExp(r'[\[\]]'), ''),
+                                        textAlign: TextAlign.end,
+                                        style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              separatorBuilder: (context, index) => Divider(height: 0, color: AppColors.separator.adaptTo(context).withAlpha(10)),
+                            ),
                           )
                           : Row(spacing: 8, children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")]),
                 ),
