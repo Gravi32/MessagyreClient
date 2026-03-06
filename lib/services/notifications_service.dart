@@ -19,6 +19,8 @@ class NotificationsService {
   Future<void> scheduleAssignmentNotification({required int notificationId, required String title, required String body, required DateTime dueDate}) async {
     final scheduled = TZDateTime.from(dueDate.subtract(const Duration(days: 1)), local);
 
+    if (await isNotificationScheduled(notificationId)) await cancel(notificationId); // Cancel existing notification if already scheduled
+
     await _plugin.zonedSchedule(
       notificationId,
       title,
@@ -31,6 +33,12 @@ class NotificationsService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
+  }
+
+  Future<bool> isNotificationScheduled(int id) async {
+    final plugin = FlutterLocalNotificationsPlugin();
+    final pending = await plugin.pendingNotificationRequests();
+    return pending.any((n) => n.id == id);
   }
 
   Future<void> cancel(int id) async {
