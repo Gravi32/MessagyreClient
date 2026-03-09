@@ -26,7 +26,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 2,
       children: [
-        const SizedBox(height: 30),
+        const SizedBox(height: 60),
         HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
         const SizedBox(height: 8),
         Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
