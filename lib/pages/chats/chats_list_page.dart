@@ -28,6 +28,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
   final globals = GlobalsService();
   final database = DatabaseService();
 
+  final pageScrollController = ScrollController();
+
   List<Chat> get allChats =>
       database.chats.getAll()..sort((a, b) {
         if (a.isPinned && !b.isPinned) return -1;
@@ -173,8 +175,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) setState(() {}); // Forces rebuild to draw the page title when starting the app
+      await pageScrollController.animateTo(-15, duration: Duration(milliseconds: 10), curve: Curves.linear);
+      await pageScrollController.animateTo(0, duration: Duration(milliseconds: 10), curve: Curves.linear);
     });
 
     globals.blockedUsersNotifier.addListener(() => setState(() {}));
@@ -220,6 +224,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: NestedScrollView(
+        controller: pageScrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             ValueListenableBuilder(
