@@ -218,6 +218,18 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
             physics: const ClampingScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: 10),
             children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 14),
+                child: Text(
+                  "Nouveau ${mode == AssignmentType.assignment
+                      ? "devoir"
+                      : mode == AssignmentType.test
+                      ? "test"
+                      : "congé"}",
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+                ),
+              ),
+
               CupertinoSlidingSegmentedControl<AssignmentType>(
                 groupValue: mode,
                 backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
