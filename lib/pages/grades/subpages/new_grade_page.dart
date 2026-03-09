@@ -16,6 +16,7 @@ import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class NewGradePage extends StatefulWidget {
   final Grade? toEdit;
@@ -202,7 +203,12 @@ class _NewGradePageState extends State<NewGradePage> {
 
   List<Assignment> getPlannedGrades() {
     return allAssignments
-        .where((assignment) => assignment.referenceId != null && !allGrades.any((grade) => grade.referenceId == assignment.referenceId))
+        .where(
+          (assignment) =>
+              assignment.referenceId != null &&
+              !allGrades.any((grade) => grade.referenceId == assignment.referenceId) &&
+              assignment.dueDate.isBefore(DateTime.now()),
+        )
         .toList();
   }
 
@@ -285,30 +291,33 @@ class _NewGradePageState extends State<NewGradePage> {
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                             placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w500),
                             items: getPlannedGrades(),
-                            header: Padding(
-                              padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8),
-                              child: Text("Depuis la page des devoirs :", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
-                            ),
+                            header: Padding(padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8), child: Text("Depuis la page des devoirs :")),
                             itemBuilder: (assignment, query) {
                               if (assignment is! Assignment) return SizedBox.shrink();
                               return Column(
-                                spacing: 4,
+                                spacing: 8,
                                 children: [
                                   Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text.rich(
                                       TextSpan(
                                         children: [
-                                          WidgetSpan(
-                                            child: HugeIcon(
-                                              icon:
-                                                  assignment.type == AssignmentType.test
-                                                      ? HugeIcons.strokeRoundedTextCheck
-                                                      : HugeIcons.strokeRoundedCheckmarkBadge04,
-                                              color: AppColors.inactive.adaptTo(context),
+                                          if (assignment.subject.value != null)
+                                            WidgetSpan(
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.red.withBrightness(-.25),
+                                                  border: Border.all(color: AppColors.red),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                padding: EdgeInsets.all(2),
+                                                child: Text(
+                                                  "TEST",
+                                                  style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white),
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                          WidgetSpan(child: SizedBox(width: 4)),
+                                          WidgetSpan(child: SizedBox(width: 10)),
                                           ...highlightSearchMatch(assignment.title ?? assignment.content, query, useCache: true),
                                         ],
                                         style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
@@ -319,11 +328,17 @@ class _NewGradePageState extends State<NewGradePage> {
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     spacing: 4,
                                     children: [
-                                      Text(
-                                        assignment.subject.value?.name ?? "Choisir une branche",
-                                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                                      ),
-                                      Text(formatDate(assignment.dueDate), style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
+                                      if (assignment.subject.value != null)
+                                        Row(
+                                          spacing: 8,
+                                          children: [
+                                            SubjectBadge(subject: assignment.subject.value!, size: 20),
+                                            Text(
+                                              "${assignment.subject.value!.name}  •  ${formatDate(assignment.dueDate)}",
+                                              style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                                            ),
+                                          ],
+                                        ),
                                     ],
                                   ),
                                 ],
