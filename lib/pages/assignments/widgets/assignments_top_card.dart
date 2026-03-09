@@ -88,11 +88,11 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   }
 
   Widget buildWeekPeekTab(List<Assignment> allAssignments) {
-    return buildWeekPeek(allAssignments, weekStart: monday, title: "Cette semaine en un coup d'oeil");
+    return buildWeekPeek(allAssignments, weekStart: monday, title: "Pour cette semaine :");
   }
 
   Widget buildNextWeekPeekTab(List<Assignment> allAssignments) {
-    return buildWeekPeek(allAssignments, weekStart: monday.add(Duration(days: 7)), title: "La semaine prochaine en un coup d'oeil");
+    return buildWeekPeek(allAssignments, weekStart: monday.add(Duration(days: 7)), title: "Pour la semaine prochaine :");
   }
 
   Widget buildNextHolidaysTab() {
