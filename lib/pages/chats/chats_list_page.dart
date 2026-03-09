@@ -173,6 +173,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {}); // Forces rebuild to draw the page title when starting the app
+    });
+
     globals.blockedUsersNotifier.addListener(() => setState(() {}));
 
     // On connection to WebSocket
