@@ -567,7 +567,10 @@ class _NewGradePageState extends State<NewGradePage> {
                         decoration: const BoxDecoration(),
                         padding: EdgeInsets.zero,
                         placeholder: "Entrez une branche",
-                        onSelected: (selectedSubject) => setState(() => subject = selectedSubject),
+                        onSelected: (selectedSubject) {
+                          subjectFocusNode.unfocus();
+                          setState(() => subject = selectedSubject);
+                        },
                         forceValid: true,
                         enabled: referenceId == null,
                       ),
