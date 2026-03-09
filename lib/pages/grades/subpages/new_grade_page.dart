@@ -34,8 +34,8 @@ class _NewGradePageState extends State<NewGradePage> {
 
   late final editMode = widget.toEdit != null;
 
-  late final allAssignments = database.assignments.getAll();
-  late final allGrades = database.grades.getAll();
+  late var allAssignments = database.assignments.getAll();
+  late var allGrades = database.grades.getAll();
 
   late Subject? subject = widget.toEdit?.subject.value ?? widget.subject;
   late double grade = widget.toEdit?.grade ?? 4;
@@ -206,18 +206,16 @@ class _NewGradePageState extends State<NewGradePage> {
         .toList();
   }
 
-  List<({String groupName, Subject groupSubject})> getGroups() {
-    final resultList = <({String groupName, Subject groupSubject})>[];
+  List<String> getGroups() {
+    final resultList = <String>[];
 
-    if (groupName != null && subject != null) resultList.add((groupName: groupName!, groupSubject: subject!));
+    if (groupName != null && subject != null) resultList.add(groupName!);
 
     for (var storedGrade in allGrades) {
-      if (storedGrade.groupName == null ||
-          storedGrade.subject.value != subject ||
-          resultList.contains((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject.value))) {
+      if (storedGrade.groupName == null || storedGrade.subject.value?.code != subject?.code || resultList.contains(storedGrade.groupName!)) {
         continue;
       }
-      resultList.add((groupName: storedGrade.groupName!, groupSubject: storedGrade.subject.value!));
+      resultList.add(storedGrade.groupName!);
     }
 
     return resultList;
@@ -241,6 +239,9 @@ class _NewGradePageState extends State<NewGradePage> {
 
   @override
   Widget build(BuildContext context) {
+    allGrades = database.grades.getAll();
+    allAssignments = database.assignments.getAll();
+
     return CupertinoPageScaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
@@ -262,6 +263,7 @@ class _NewGradePageState extends State<NewGradePage> {
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Padding(padding: EdgeInsets.only(bottom: 10), child: Text("Nouvelle note", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600))),
                 Row(
                   spacing: 14,
                   children: [
@@ -563,13 +565,16 @@ class _NewGradePageState extends State<NewGradePage> {
                     backgroundColor: AppColors.transparent,
                     header: Text("Groupe"),
                     margin: EdgeInsets.zero,
-                    footer: Padding(
-                      padding: EdgeInsetsGeometry.only(top: 6),
-                      child: Text(
-                        "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
-                        style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                      ),
-                    ),
+                    footer:
+                        isInGroup
+                            ? null
+                            : Padding(
+                              padding: EdgeInsetsGeometry.only(top: 6),
+                              child: Text(
+                                "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
+                                style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                              ),
+                            ),
                     children: [
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -587,90 +592,78 @@ class _NewGradePageState extends State<NewGradePage> {
                           },
                         ),
                       ),
-                      if (isInGroup) ...[
-                        ...getGroups().map((group) {
-                          final gradesInGroup = allGrades.where(
-                            (storedGrade) => storedGrade.subject.value == group.groupSubject && storedGrade.groupName == group.groupName,
-                          );
+                    ],
+                  ),
 
-                          return CupertinoListTile(
-                            backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                            title: Row(
-                              spacing: 6,
-                              children: [
-                                Text(group.groupName, style: TextStyle(fontWeight: FontWeight.w600)),
-                                Text(
-                                  "${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
-                                  style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                                ),
-                              ],
-                            ),
-                            onTap:
-                                () => setState(() {
-                                  groupName = group.groupName;
-                                }),
-                            trailing: groupName == group.groupName ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
-                          );
-                        }),
-                        CupertinoListTile(
+                if (isInGroup)
+                  CupertinoListSection.insetGrouped(
+                    backgroundColor: AppColors.transparent,
+                    margin: EdgeInsets.zero,
+                    children: [
+                      ...getGroups().map((existingGroupName) {
+                        return CupertinoListTile.notched(
                           backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                          title: Row(
-                            children: [
-                              HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
-                              const SizedBox(width: 10),
-                              Text("Ajouter un groupe"),
-                            ],
-                          ),
-                          onTap: () {
-                            showCupertinoDialog(
-                              context: context,
-                              builder: (dialogContext) {
-                                final controller = TextEditingController();
-                                return CupertinoAlertDialog(
-                                  title: Row(
-                                    spacing: 8,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.accent), Text("Nouveau groupe")],
-                                  ),
-                                  content: Column(
-                                    children: [
-                                      SizedBox(height: 10),
-                                      SizedBox(
-                                        height: 40,
-                                        child: DismissableTextField(
-                                          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                          decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
-                                          controller: controller,
-                                          placeholder: "Nom du groupe",
-                                        ),
+                          leading: groupName == existingGroupName ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
+                          title: Text(existingGroupName, style: TextStyle(fontWeight: FontWeight.w600)),
+                          onTap:
+                              () => setState(() {
+                                groupName = existingGroupName;
+                              }),
+                        );
+                      }),
+                      CupertinoListTile(
+                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                        title: Text("Créer un nouveau groupe", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                        onTap: () {
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (dialogContext) {
+                              final controller = TextEditingController();
+                              return CupertinoAlertDialog(
+                                title: Row(
+                                  spacing: 8,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.accent), Text("Nouveau groupe")],
+                                ),
+                                content: Column(
+                                  children: [
+                                    SizedBox(height: 10),
+                                    SizedBox(
+                                      height: 40,
+                                      child: DismissableTextField(
+                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                        decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
+                                        controller: controller,
+                                        placeholder: "Nom du groupe",
                                       ),
-                                    ],
-                                  ),
-                                  actions: [
-                                    CupertinoDialogAction(
-                                      child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                                      onPressed: () => Navigator.pop(dialogContext),
-                                    ),
-                                    CupertinoDialogAction(
-                                      isDefaultAction: true,
-                                      child: Text("Ajouter", style: TextStyle(color: AppColors.accent)),
-                                      onPressed: () {
-                                        final newName = controller.text.trim();
-                                        try {
-                                          if (newName.isNotEmpty) setState(() => groupName = newName);
-                                        } catch (e) {
-                                          debugPrint("Error adding group: $e");
-                                        }
-                                        Navigator.pop(dialogContext);
-                                      },
                                     ),
                                   ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                                    onPressed: () => Navigator.pop(dialogContext),
+                                  ),
+                                  CupertinoDialogAction(
+                                    isDefaultAction: true,
+                                    child: Text("Ajouter", style: TextStyle(color: AppColors.accent)),
+                                    onPressed: () {
+                                      final newName = controller.text.trim();
+                                      try {
+                                        if (newName.isNotEmpty) setState(() => groupName = newName);
+                                      } catch (e) {
+                                        debugPrint("Error adding group: $e");
+                                      }
+                                      Navigator.pop(dialogContext);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
 
