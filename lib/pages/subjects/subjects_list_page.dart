@@ -6,6 +6,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/subjects/subpages/subject_edit_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectsListPage extends StatefulWidget {
@@ -78,6 +79,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   backgroundColor: AppColors.transparent,
                   header: Text("Vos branches"),
+
                   children: [
                     ...allSubjects.map(
                       (subject) => CupertinoListTile.notched(
@@ -130,6 +132,13 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                   margin: EdgeInsets.symmetric(horizontal: 10),
                   backgroundColor: AppColors.transparent,
                   header: const SizedBox.shrink(),
+                  footer: Padding(
+                    padding: EdgeInsets.only(top: 20),
+                    child: CustomText(
+                      "Ajoutez ici les branches pour lesquelles vous souhaitez ajouter des notes et des devoirs. Vous pourrez toujours en ajouter ou en supprimer plus tard dans *Réglages > Branches*.",
+                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 12),
+                    ),
+                  ),
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
