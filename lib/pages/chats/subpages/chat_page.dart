@@ -52,7 +52,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final messageFieldFocusNode = FocusNode();
   final Map<String, GlobalKey> bubbleKeys = {};
 
-  int visibleMessageCount = 150;
   double blurAmount = 6;
   // Color barLightColor = AppColors.grey5.withAlpha(150);
   // Color barDarkColor = AppColors.darkBackgroundGray.withAlpha(150);
@@ -668,7 +667,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         return ListView.builder(
           controller: chatScrollController,
           padding: EdgeInsets.symmetric(horizontal: 10),
-          itemCount: (chatData.messages.length < visibleMessageCount ? chatData.messages.length : visibleMessageCount) + 2,
+          itemCount: chatData.messages.length,
           itemBuilder: (context, index) {
             if (index == 0) {
               return Container(
@@ -747,11 +746,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             final msgIndex = index - 2;
 
             var allMessagesList = chatData.messages.toList();
-            var visibleMessagesList = allMessagesList.sublist(max(0, allMessagesList.length - visibleMessageCount));
 
-            var currentMessage = visibleMessagesList[msgIndex];
-            var previousMessage = msgIndex > 0 ? visibleMessagesList[msgIndex - 1] : currentMessage;
-            var nextMessage = msgIndex < visibleMessagesList.length - 1 ? visibleMessagesList[msgIndex + 1] : currentMessage;
+            var currentMessage = allMessagesList[msgIndex];
+            var previousMessage = msgIndex > 0 ? allMessagesList[msgIndex - 1] : currentMessage;
+            var nextMessage = msgIndex < allMessagesList.length - 1 ? allMessagesList[msgIndex + 1] : currentMessage;
 
             final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
@@ -777,10 +775,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     bubble,
                   ],
                 )
-                : Container(
-                  margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == visibleMessagesList.length - 1) ? 12 : 0),
-                  child: bubble,
-                );
+                : Container(margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == allMessagesList.length - 1) ? 12 : 0), child: bubble);
           },
         );
       },
