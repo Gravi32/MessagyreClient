@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -84,6 +85,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   final plannedAssignments = allAssignments.where((a) => a.dueDate.isAfter(tomorrow));
 
                   List<Widget> buildSection(Iterable<Assignment> list, String title, {Color? titleColor, bool tilesShowDate = true, bool dimTiles = false}) {
+                    list = list.sorted((a, b) => a.dueDate.compareTo(b.dueDate));
+
                     return [
                       Padding(
                         padding: EdgeInsets.only(bottom: 6),
