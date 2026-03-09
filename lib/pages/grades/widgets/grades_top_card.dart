@@ -143,10 +143,6 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     final total = grades.length;
 
-    if (total == 0) {
-      return Center(child: Text("Aucune note disponible"));
-    }
-
     // Extract grade values and sort them
     final values = grades.map((g) => g.grade).toList()..sort();
 
@@ -210,7 +206,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
-      child: PagedCard(height: 150, pages: [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
+      child: PagedCard(height: 150, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
     );
   }
 }

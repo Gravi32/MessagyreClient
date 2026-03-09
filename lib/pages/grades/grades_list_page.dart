@@ -74,28 +74,6 @@ class _GradesListPageState extends State<GradesListPage> {
     );
   }
 
-  Widget buildPlaceholder() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 2,
-      children: [
-        HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
-        const SizedBox(height: 8),
-        Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
-        Text("Vos résultats s'afficheront ici", style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context))),
-        CupertinoButton(
-          onPressed: () => showNewGradePopup(),
-          padding: EdgeInsets.only(top: 40),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 6,
-            children: [Text("Ajouter une note", style: TextStyle(fontWeight: FontWeight.w400)), HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
-          ),
-        ),
-      ],
-    );
-  }
-
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
     await showCupertinoModalBottomSheet<Grade?>(
       enableDrag: false,
@@ -166,56 +144,58 @@ class _GradesListPageState extends State<GradesListPage> {
 
                           buildSubjectsGrid(allSubjects),
 
-                          SizedBox(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("Récentes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                          if (allGrades.isNotEmpty) ...[
+                            SizedBox(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Récentes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
 
-                              CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage())),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      "Tout voir",
-                                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context)),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
-                                  ],
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage())),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "Tout voir",
+                                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context)),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 350),
+                              child: ShaderMask(
+                                shaderCallback: (Rect rect) {
+                                  return const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [AppColors.black, AppColors.black, AppColors.transparent],
+                                    stops: [0.0, 0.6, 1.0],
+                                  ).createShader(rect);
+                                },
+                                blendMode: BlendMode.dstIn,
+                                child: ListView.separated(
+                                  padding: EdgeInsets.zero,
+                                  itemCount: min(10, allGrades.length),
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final grade = allGrades.elementAtOrNull(index);
+                                    return grade == null
+                                        ? const SizedBox.shrink()
+                                        : GradeBar(gradeData: grade, showSubject: true, onTap: () => showNewGradePopup(toEdit: grade));
+                                  },
+                                  separatorBuilder: (_, _) => SizedBox(height: 8),
                                 ),
                               ),
-                            ],
-                          ),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 350),
-                            child: ShaderMask(
-                              shaderCallback: (Rect rect) {
-                                return const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [AppColors.black, AppColors.black, AppColors.transparent],
-                                  stops: [0.0, 0.6, 1.0],
-                                ).createShader(rect);
-                              },
-                              blendMode: BlendMode.dstIn,
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemCount: min(10, allGrades.length),
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  final grade = allGrades.elementAtOrNull(index);
-                                  return grade == null
-                                      ? const SizedBox.shrink()
-                                      : GradeBar(gradeData: grade, showSubject: true, onTap: () => showNewGradePopup(toEdit: grade));
-                                },
-                                separatorBuilder: (_, _) => SizedBox(height: 8),
-                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     );
