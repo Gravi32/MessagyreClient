@@ -26,6 +26,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 2,
       children: [
+        const SizedBox(height: 30),
         HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
         const SizedBox(height: 8),
         Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
@@ -97,19 +98,18 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     ];
                   }
 
-                  return allAssignments.isEmpty
-                      ? buildPlaceholder()
-                      : ListView(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        physics: const ClampingScrollPhysics(),
-                        children: [
-                          AssignmentsTopCard(),
-                          if (todaysAssignments.isNotEmpty) ...buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
-                          if (tomorrowsAssignments.isNotEmpty) ...buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
-                          if (plannedAssignments.isNotEmpty) ...buildSection(plannedAssignments, "À venir"),
-                          if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true),
-                        ],
-                      );
+                  return ListView(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    physics: const ClampingScrollPhysics(),
+                    children: [
+                      AssignmentsTopCard(),
+                      if (todaysAssignments.isNotEmpty) ...buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
+                      if (tomorrowsAssignments.isNotEmpty) ...buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
+                      if (plannedAssignments.isNotEmpty) ...buildSection(plannedAssignments, "À venir"),
+                      if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true),
+                      if (allAssignments.isEmpty) buildPlaceholder(),
+                    ],
+                  );
                 },
               ),
             ),
