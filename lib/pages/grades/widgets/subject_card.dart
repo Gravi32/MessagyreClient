@@ -8,13 +8,14 @@ import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectCard extends StatelessWidget {
   final Subject subject;
-  final bool isSubjectActive;
 
-  const SubjectCard({super.key, required this.subject, this.isSubjectActive = true});
+  const SubjectCard({super.key, required this.subject});
 
   @override
   Widget build(BuildContext context) {
     final database = DatabaseService();
+
+    final isSubjectEmpty = database.grades.getAll().where((grade) => grade.subject.value?.code == subject.code).isEmpty;
 
     final grades = database.grades.getAll().where((grade) => grade.subject.value?.code == subject.code).toList();
     final average = calculateAverage(grades, round: true);
@@ -40,9 +41,11 @@ class SubjectCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Subject badge
                 SubjectBadge(subject: subject, size: 32),
 
-                if (isSubjectActive)
+                // Average label
+                if (!isSubjectEmpty)
                   Text(average.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
               ],
             ),
@@ -57,7 +60,7 @@ class SubjectCard extends StatelessWidget {
                 Text(subject.name, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white))),
 
                 // Progress bar
-                if (isSubjectActive)
+                if (!isSubjectEmpty)
                   Container(
                     height: 8,
                     decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
@@ -84,7 +87,7 @@ class SubjectCard extends StatelessWidget {
               ],
             ),
 
-            if (!isSubjectActive) Text("+ Appuyez pour ajouter une note", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
+            if (isSubjectEmpty) Text("+ Ajouter une note", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
           ],
         ),
       ),
