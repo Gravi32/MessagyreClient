@@ -175,12 +175,6 @@ class _ChatsListPageState extends State<ChatsListPage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted) setState(() {}); // Forces rebuild to draw the page title when starting the app
-      await pageScrollController.animateTo(-15, duration: Duration(milliseconds: 10), curve: Curves.linear);
-      await pageScrollController.animateTo(0, duration: Duration(milliseconds: 10), curve: Curves.linear);
-    });
-
     globals.blockedUsersNotifier.addListener(() => setState(() {}));
 
     // On connection to WebSocket
@@ -222,6 +216,12 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Forces rebuild to draw the page title when starting the app
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) await pageScrollController.animateTo(15, duration: Duration(milliseconds: 10), curve: Curves.linear);
+      if (mounted) await pageScrollController.animateTo(0, duration: Duration(milliseconds: 10), curve: Curves.linear);
+    });
+
     return CupertinoPageScaffold(
       child: NestedScrollView(
         controller: pageScrollController,
