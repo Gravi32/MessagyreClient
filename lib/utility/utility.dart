@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -235,15 +236,15 @@ String? getFractionString(double value) {
 ({List<List<dynamic>> icon, Color color}) getStatusIcon(MessageStatus status) {
   switch (status) {
     case MessageStatus.Failed:
-      return (icon: HugeIcons.strokeRoundedCancel01, color: Colors.red);
+      return (icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red);
     case MessageStatus.Sending:
-      return (icon: HugeIcons.strokeRoundedMoreHorizontal, color: Colors.white);
+      return (icon: HugeIcons.strokeRoundedMoreHorizontal, color: AppColors.white);
     case MessageStatus.Sent:
-      return (icon: HugeIcons.strokeRoundedTick02, color: Colors.white);
+      return (icon: HugeIcons.strokeRoundedTick02, color: AppColors.white);
     case MessageStatus.Delivered:
-      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Colors.white);
+      return (icon: HugeIcons.strokeRoundedTickDouble02, color: AppColors.white);
     case MessageStatus.Read:
-      return (icon: HugeIcons.strokeRoundedTickDouble02, color: Color(0xFF641968).withBrightness(.25));
+      return (icon: HugeIcons.strokeRoundedTickDouble02, color: AppColors.accent);
   }
 }
 // #endregion
