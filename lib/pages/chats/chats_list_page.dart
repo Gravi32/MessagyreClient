@@ -90,7 +90,14 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: HugeIcon(icon: statusIconData.icon, size: 20, color: statusIconData.color.withAlpha(.6.toByte())),
+                                            child: HugeIcon(
+                                              icon: statusIconData.icon,
+                                              size: 20,
+                                              color:
+                                                  statusIconData.color == AppColors.white && Theme.of(context).brightness == Brightness.light
+                                                      ? AppColors.grey
+                                                      : statusIconData.color.withAlpha(.6.toByte()),
+                                            ),
                                           ),
                                         ),
                                       if (lastMessage.isDeleted)
