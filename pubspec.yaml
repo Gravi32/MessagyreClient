@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 2.42.660+660
+version: 2.43.666+666
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -47,6 +47,7 @@ version: 2.42.660+660
 # 2.40  Added a second week peek in the assignments page's top card
 # 2.41  Improved pages placeholders
 # 2.42  Changed new grade page autocomplete options to match the new subjects system
+# 2.43  Added a "missing content" warning to the assignment page
 
 environment:
   sdk: ^3.7.2
