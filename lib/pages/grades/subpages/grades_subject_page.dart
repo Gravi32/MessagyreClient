@@ -18,7 +18,6 @@ import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesSubjectPage extends StatefulWidget {
   final Subject subject;
@@ -244,7 +243,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    await showCupertinoModalBottomSheet<Grade?>(
+    await showCupertinoSheet<Grade?>(
       context: context,
       enableDrag: false,
       builder: (context) => NewGradePage(subject: widget.subject, toEdit: toEdit, toReference: toReference),
