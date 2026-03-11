@@ -127,7 +127,7 @@ class App extends StatelessWidget {
           theme: CupertinoThemeData(
             brightness: brightness,
             primaryColor: AppColors.accent,
-            textTheme: CupertinoTextThemeData(textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17)),
+            textTheme: CupertinoTextThemeData(primaryColor: AppColors.accent, textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17)),
             scaffoldBackgroundColor: AppColors.background.adaptTo(context),
             barBackgroundColor: AppColors.background.adaptTo(context),
           ),
