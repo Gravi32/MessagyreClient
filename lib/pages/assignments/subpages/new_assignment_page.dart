@@ -46,6 +46,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
   late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : true; // miscBox.get("EditsCalendar", defaultValue: true);
 
+  bool isMissingTitle = false;
+  bool isMissingContent = false;
+  bool isMissingSubject = false;
+
   final targetCalendar = ValueNotifier<Calendar?>(null);
 
   void confirmAssignment() async {
@@ -128,16 +132,33 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     showCupertinoDialog(
       context: context,
       builder: (dialogContext) {
-        final missingInfos = [
-          if (subject == null) "la *branche*",
-          if (mode == AssignmentType.test && titleController.text.isEmpty) "un *titre*",
-          if (mode == AssignmentType.assignment && contentController.text.isEmpty) "une *description*",
-        ];
+        final missingInfos = [];
+
+        if (subject == null) {
+          missingInfos.add("la *branche*");
+          isMissingSubject = true;
+        }
+        if (mode == AssignmentType.test && titleController.text.isEmpty) {
+          missingInfos.add("un *titre*");
+          isMissingTitle = true;
+        }
+        if (mode == AssignmentType.assignment && contentController.text.isEmpty) {
+          missingInfos.add("une *description*");
+          isMissingContent = true;
+        }
 
         return CupertinoAlertDialog(
           title: Text("Informations manquantes"),
           content: CustomText("Vous n'oubliez pas quelque chose ?\nPour créer ce devoir entrez ${missingInfos.join(" et ")} !", textAlign: TextAlign.center),
-          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
+          actions: [
+            CupertinoDialogAction(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                setState(() {});
+              },
+            ),
+          ],
         );
       },
     );
@@ -147,6 +168,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     if (newMode == null) return;
     setState(() {
       mode = newMode;
+      isMissingTitle = false;
+      isMissingContent = false;
+      isMissingSubject = false;
       updateCanSubmit();
     });
   }
@@ -230,6 +254,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 ),
               ),
 
+              // Mode Switcher
               CupertinoSlidingSegmentedControl<AssignmentType>(
                 groupValue: mode,
                 backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -252,6 +277,16 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 backgroundColor: AppColors.transparent,
                 header: const SizedBox(),
                 margin: EdgeInsets.zero,
+                footer:
+                    mode == AssignmentType.leave
+                        ? null
+                        : Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            "Merci de remplir les champs obligatoires *",
+                            style: TextStyle(fontSize: 14, color: canSubmitNotifier.value ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
+                          ),
+                        ),
                 children: [
                   // Title Tile
                   if (mode == AssignmentType.test)
@@ -264,18 +299,24 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         controller: titleController,
                         focusNode: titleFocusNode,
                         decoration: BoxDecoration(),
-                        placeholder: "Titre",
+                        placeholder: "Titre ${mode == AssignmentType.test ? "*" : ""}",
                         minLines: 1,
                         maxLines: 2,
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-                        placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
+                        placeholderStyle: TextStyle(
+                          color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        onTap: () => setState(() => isMissingTitle = false),
                         onTapOutside: (event) => titleFocusNode.unfocus(),
                       ),
-
-                      trailing: Opacity(
-                        opacity: .2,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                      ),
+                      trailing:
+                          isMissingTitle
+                              ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                              : Opacity(
+                                opacity: .5,
+                                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                              ),
                     ),
 
                   // Description Tile
@@ -288,18 +329,27 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       focusNode: contentFocusNode,
                       decoration: BoxDecoration(),
                       placeholder: switch (mode) {
-                        AssignmentType.assignment => "Ce que vous devez faire...",
+                        AssignmentType.assignment => "Ce que vous devez faire... *",
                         AssignmentType.test => "Si vous voulez, entrez une déscription du test...",
                         AssignmentType.leave => "Motif, période ou durée du congé...",
                       },
                       minLines: mode == AssignmentType.test ? 4 : 5,
                       maxLines: 10,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
-                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
+                      placeholderStyle: TextStyle(
+                        color: isMissingContent ? AppColors.red : AppColors.placeholderText.adaptTo(context),
+                        fontWeight: FontWeight.w400,
+                      ),
+                      onTap: () => setState(() => isMissingContent = false),
                       onTapOutside: (event) => contentFocusNode.unfocus(),
                     ),
-
-                    trailing: Opacity(opacity: .2, child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1)),
+                    trailing:
+                        isMissingContent
+                            ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                            : Opacity(
+                              opacity: .5,
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                            ),
                   ),
 
                   // Subject Tile
@@ -308,18 +358,25 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
-                      trailing: Opacity(
-                        opacity: .2,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedPen01, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                      ),
+                      trailing:
+                          isMissingSubject
+                              ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                              : Opacity(
+                                opacity: .5,
+                                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                              ),
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
-                        decoration: const BoxDecoration(),
+                        decoration: BoxDecoration(),
                         padding: EdgeInsets.zero,
-                        placeholder: "Entrez une branche",
+                        placeholder: "Entrez une branche *",
+                        placeholderStyle: isMissingSubject ? TextStyle(color: AppColors.red) : null,
                         onSelected: (selectedSubject) {
-                          setState(() => subject = selectedSubject);
+                          setState(() {
+                            subject = selectedSubject;
+                            isMissingSubject = false;
+                          });
                           updateCanSubmit();
                         },
                         forceValid: true,

@@ -55,6 +55,8 @@ class _NewGradePageState extends State<NewGradePage> {
 
   bool isValuePickerExpanded = false;
   bool isReferenceTileExpanded = false;
+  bool isMissingTitle = false;
+  bool isMissingSubject = false;
   Assignment? referencedAssignment;
 
   void confirmGrade() async {
@@ -65,7 +67,15 @@ class _NewGradePageState extends State<NewGradePage> {
             (dialogContext) => CupertinoAlertDialog(
               title: Text("Titre requis"),
               content: Text("Veuillez entrer un titre pour la note."),
-              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    setState(() => isMissingTitle = true);
+                  },
+                ),
+              ],
             ),
       );
       return;
@@ -78,7 +88,15 @@ class _NewGradePageState extends State<NewGradePage> {
             (dialogContext) => CupertinoAlertDialog(
               title: Text("Branche requise"),
               content: Text("Veuillez entrer la branche de la note."),
-              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
+              actions: [
+                CupertinoDialogAction(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    setState(() => isMissingSubject = true);
+                  },
+                ),
+              ],
             ),
       );
       return;
@@ -285,11 +303,20 @@ class _NewGradePageState extends State<NewGradePage> {
                             decoration: BoxDecoration(),
                             padding: EdgeInsets.zero,
                             placeholder: "Titre",
+                            placeholderStyle: TextStyle(
+                              color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
+                              fontWeight: FontWeight.w500,
+                            ),
                             forceValid: false,
-                            suffix: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
+                            suffix:
+                                isMissingTitle
+                                    ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                                    : Opacity(
+                                      opacity: .5,
+                                      child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                                    ),
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-                            placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w500),
                             items: getPlannedGrades(),
                             header: Padding(padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8), child: Text("Depuis la page des devoirs :")),
                             itemBuilder: (assignment, query) {
@@ -543,16 +570,22 @@ class _NewGradePageState extends State<NewGradePage> {
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   header: Text("Branche", style: referenceId == null ? null : TextStyle(color: AppColors.inactive.adaptTo(context))),
-                  footer:
-                      referenceId == null
-                          ? null
-                          : Padding(
-                            padding: EdgeInsetsGeometry.only(top: 6),
-                            child: Text(
+                  footer: Padding(
+                    padding: EdgeInsetsGeometry.only(top: 6),
+                    child:
+                        referenceId != null
+                            ? Text(
                               "La branche ne peut pas etre changé parce que cette note est associé à un devoir.",
                               style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                            )
+                            : Text(
+                              "Merci de remplir les champs obligatoires *",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: titleController.text.isNotEmpty && subject != null ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow,
+                              ),
                             ),
-                          ),
+                  ),
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
@@ -560,16 +593,25 @@ class _NewGradePageState extends State<NewGradePage> {
                       onTap: () => subjectFocusNode.requestFocus(),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
                       trailing:
-                          referenceId == null ? HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)) : null,
+                          isMissingSubject
+                              ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                              : Opacity(
+                                opacity: .5,
+                                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                              ),
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
                         decoration: const BoxDecoration(),
                         padding: EdgeInsets.zero,
-                        placeholder: "Entrez une branche",
+                        placeholder: "Entrez une branche *",
+                        placeholderStyle: isMissingSubject ? TextStyle(color: AppColors.red) : null,
                         onSelected: (selectedSubject) {
                           subjectFocusNode.unfocus();
-                          setState(() => subject = selectedSubject);
+                          setState(() {
+                            subject = selectedSubject;
+                            isMissingSubject = false;
+                          });
                         },
                         forceValid: true,
                         enabled: referenceId == null,
@@ -708,7 +750,10 @@ class _NewGradePageState extends State<NewGradePage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal),
-                      trailing: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context)),
+                      trailing: Opacity(
+                        opacity: .5,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                      ),
                       title: StatefulBuilder(
                         builder: (context, setInnerState) {
                           final focusNode = FocusNode();
