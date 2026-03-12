@@ -4,6 +4,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class SubjectCard extends StatelessWidget {
@@ -60,30 +61,7 @@ class SubjectCard extends StatelessWidget {
                 Text(subject.name, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white))),
 
                 // Progress bar
-                if (!isSubjectEmpty)
-                  Container(
-                    height: 8,
-                    decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final progress = average / 6;
-
-                        return Align(
-                          alignment: Alignment.centerLeft,
-                          child: FractionallySizedBox(
-                            widthFactor: progress,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: subject.color,
-                                border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                if (!isSubjectEmpty) ProgressBar(progress: average / 6, color: subject.color),
               ],
             ),
 

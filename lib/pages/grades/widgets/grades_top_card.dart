@@ -5,10 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/pages/grades/subpages/report_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
+import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class GradesTopCard extends StatefulWidget {
@@ -54,13 +56,23 @@ class _GradesTopCardState extends State<GradesTopCard> {
       averagePerSubject[subject] = gradesPerSubject[subject] != null ? calculateAverage(gradesPerSubject[subject]!, round: true) : 0;
     }
 
-    Widget statBox(String label, String value) {
+    Widget statBox(String label, String value, String hint, double progress, {Color? color}) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 1,
+        spacing: 0,
         children: [
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-          Text(label, style: TextStyle(fontSize: 12, color: AppColors.secondaryText.adaptTo(context))),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            spacing: 4,
+            children: [
+              Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+              Text(hint, style: TextStyle(fontSize: 12, color: AppColors.secondaryText.adaptTo(context))),
+              Spacer(),
+              Text(label, style: TextStyle(fontSize: 12, color: AppColors.secondaryText.adaptTo(context))),
+            ],
+          ),
+          ProgressBar(progress: progress, height: 6, color: color),
         ],
       );
     }
@@ -91,6 +103,19 @@ class _GradesTopCardState extends State<GradesTopCard> {
             crossAxisSpacing: 8,
             physics: NeverScrollableScrollPhysics(),
             children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("Tout voir", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context))),
+                    const SizedBox(width: 4),
+                    Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                  ],
+                ),
+              ),
+
               // Subjects list
               Container(
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
@@ -104,12 +129,25 @@ class _GradesTopCardState extends State<GradesTopCard> {
               // Stats
               Container(
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 8,
+                  spacing: 12,
                   children: [
-                    statBox("Points", "${averagePerSubject.values.sum} / ${6 * averagePerSubject.length}"),
-                    statBox("Notes insuffisantes", "${averagePerSubject.values.where((avg) => avg < 4).length} / 4"),
+                    statBox(
+                      "Points",
+                      averagePerSubject.values.sum.removeTrailingZero(),
+                      "/ ${4 * averagePerSubject.length} min",
+                      averagePerSubject.values.sum / (6 * averagePerSubject.length),
+                      color: averagePerSubject.values.sum < 4 * averagePerSubject.length ? AppColors.red : AppColors.accent,
+                    ),
+                    statBox(
+                      "Sous la moy.",
+                      "${averagePerSubject.values.where((avg) => avg < 4).length}",
+                      "/ 4 max",
+                      1 - (averagePerSubject.values.where((avg) => avg < 4).length / 4),
+                      color: averagePerSubject.values.where((avg) => avg < 4).isNotEmpty ? AppColors.red : AppColors.green,
+                    ),
                   ],
                 ),
               ),
