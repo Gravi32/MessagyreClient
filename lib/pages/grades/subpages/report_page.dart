@@ -3,13 +3,14 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/progress_bar.dart';
+import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class ReportCardPage extends StatefulWidget {
@@ -25,49 +26,83 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   late final grades = database.grades.getAll();
   late final subjects = database.subjects.getAll();
+  late final restrictedGroupSubjectCodes = globals.persistent.getStringList("RestrictedGroupSubjects") ?? [];
 
-  final Map<String, List<Grade>> gradesPerSubject = {};
-  final Map<String, double> averagePerSubject = {};
+  final Map<String, double> allAverages = {};
 
   late var usingDoubleCompensation = globals.persistent.getBool("UseDoubleCompensation") ?? false;
   late var usingRestrictedGroup = globals.persistent.getBool("UseRestrictedGroup") ?? false;
 
+  void calculateAllAverages() {
+    for (final subject in subjects) {
+      if (subject.isLocked) {
+        allAverages.putIfAbsent(subject.code, () => subject.lockedGrade ?? 0);
+        continue;
+      }
+
+      final thisSubjectsGrades = database.grades.getAll().where((storedGrade) => storedGrade.subject.value?.code == subject.code);
+      allAverages.putIfAbsent(subject.code, () => thisSubjectsGrades.isNotEmpty ? calculateAverage(thisSubjectsGrades.toList(), round: true) : 0);
+    }
+  }
+
   Widget buildSubjectRow(Subject subject) {
+    double? grade = subject.lockedGrade ?? allAverages[subject.code];
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        spacing: 10,
+        spacing: 4,
         children: [
           SubjectBadge(subject: subject, size: 24),
+          const SizedBox(width: 8),
           Expanded(child: Text(subject.name, style: TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
-          Text((averagePerSubject[subject.code] ?? "-").toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
+          Text((grade ?? "-").toString(), style: TextStyle(fontSize: 18, color: (grade ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
         ],
       ),
     );
   }
 
-  Widget buildNumberedProgressBar(String lowerBound, String upperBound, double progress, String value, Color color) {
+  Widget buildNumberedProgressBar(String lowerBound, String upperBound, double progress, String value, Color color, {bool centered = false}) {
     final textStyle = TextStyle(fontSize: 32, fontWeight: FontWeight.w800, backgroundColor: AppColors.secondaryBackground.adaptTo(context));
+
     final textWidth = measureTextWidth(value, textStyle);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 4,
       children: [
-        // Bounds
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(lowerBound), Text(upperBound)]),
 
         LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
-            final position = width * progress;
+
+            double position;
+
+            if (!centered) {
+              final p = progress.clamp(0.0, 1.0);
+              position = width * p;
+            } else {
+              final p = progress.clamp(-1.0, 1.0);
+              final center = width / 2;
+              position = center + (p * width / 2);
+            }
 
             final left = (position - textWidth / 2).clamp(0.0, width - textWidth);
 
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                ProgressBar(progress: progress, gradient: LinearGradient(colors: [color, AppColors.white], stops: [.5, 1])),
+                ProgressBar(
+                  progress: progress,
+                  centered: centered,
+                  gradient: LinearGradient(
+                    colors: [color, color.withBrightness(.15)],
+                    stops: [.5, 1],
+                    transform: GradientRotation(centered && progress < 0 ? pi : 0),
+                  ),
+                ),
 
                 Positioned(left: left, bottom: 8, child: Text(value, style: textStyle)),
               ],
@@ -79,8 +114,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
   }
 
   Widget buildTotalPointsPart() {
-    final totalPoints = 14.0;
-    averagePerSubject.values.sum;
+    var totalPoints = allAverages.values.sum;
     final minPoints = subjects.length * 4;
     final maxPoints = subjects.length * 6;
 
@@ -90,21 +124,16 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 4,
+      spacing: 0,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("Points totaux"),
-            Text(
-              isLowerThanMinimum
-                  ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
-                  : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
-              style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
-            ),
-          ],
+        const Text("Points totaux", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+        Text(
+          isLowerThanMinimum
+              ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
+              : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
+          style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
 
         buildNumberedProgressBar(
           isLowerThanMinimum ? "0" : minPoints.toString(),
@@ -118,10 +147,16 @@ class _ReportCardPageState extends State<ReportCardPage> {
   }
 
   Widget buildRestrictedGroupPointsPart() {
-    final totalPoints = 14.0;
-    averagePerSubject.values.sum;
-    final minPoints = subjects.length * 4;
-    final maxPoints = subjects.length * 6;
+    final restrictedGroupAverages = <double>[];
+    for (final subjectCode in restrictedGroupSubjectCodes) {
+      if (allAverages.containsKey(subjectCode) && allAverages[subjectCode] != null) restrictedGroupAverages.add(allAverages[subjectCode]!);
+    }
+
+    final totalPoints = restrictedGroupAverages.sum;
+    final minPoints = restrictedGroupAverages.length * 4;
+    final maxPoints = restrictedGroupAverages.length * 6;
+
+    print(totalPoints);
 
     final isLowerThanMinimum = totalPoints < minPoints;
 
@@ -129,21 +164,16 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 4,
+      spacing: 0,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("Points totaux"),
-            Text(
-              isLowerThanMinimum
-                  ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
-                  : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
-              style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
-            ),
-          ],
+        const Text("Points du groupe restreint", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+        Text(
+          isLowerThanMinimum
+              ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
+              : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
+          style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
 
         buildNumberedProgressBar(
           isLowerThanMinimum ? "0" : minPoints.toString(),
@@ -156,23 +186,48 @@ class _ReportCardPageState extends State<ReportCardPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    for (final grade in grades) {
-      final subject = grade.subject.value;
-      if (subject == null) continue;
-      gradesPerSubject.putIfAbsent(subject.code, () => []).add(grade);
+  Widget buildDoubleCompensationPart() {
+    var deficit = .0;
+    for (final average in allAverages.values) {
+      if (average < 4) deficit += average - 4;
     }
-
-    for (final subject in gradesPerSubject.keys) {
-      averagePerSubject[subject] = gradesPerSubject[subject] != null ? calculateAverage(gradesPerSubject[subject]!, round: true) : 0;
+    var surplus = .0;
+    for (final average in allAverages.values) {
+      if (average > 4) surplus += average - 4;
     }
+    final result = surplus + deficit * 2;
+
+    final isFailing = result < 0;
+
+    final progress = result / (deficit.abs() + surplus);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 0,
+      children: [
+        const Text("Double compensation", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+        if (isFailing)
+          Text("+${(result.abs() * 2.0).removeTrailingZero()} points pour compenser, courage !", style: TextStyle(fontSize: 14, color: AppColors.red)),
+        const SizedBox(height: 20),
+
+        buildNumberedProgressBar(
+          deficit.toDouble().removeTrailingZero(),
+          "+${surplus.toDouble().removeTrailingZero()}",
+          progress,
+          result.toDouble().removeTrailingZero(),
+          isFailing ? AppColors.red : AppColors.green,
+          centered: true,
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    calculateAllAverages();
+
+    final restrictedGroupSubjects = subjects.where((subject) => restrictedGroupSubjectCodes.contains(subject.code)).toList();
+
     return CupertinoPageScaffold(
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -180,63 +235,126 @@ class _ReportCardPageState extends State<ReportCardPage> {
         },
         body: SafeArea(
           top: false,
-          child: Padding(
+
+          child: ListView(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 10,
-              children: [
-                // Subjects list part
-                Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < subjects.length; i++) ...[
-                        buildSubjectRow(subjects[i]),
-                        if (i != subjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+            children: [
+              // Subjects list part
+              Container(
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                child: Column(
+                  children: [
+                    for (final subject in subjects.indexed) ...[
+                      if (!restrictedGroupSubjectCodes.contains(subject.$2.code)) buildSubjectRow(subject.$2),
+                      if (subject.$1 != subjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                    ],
+                    if (usingRestrictedGroup && restrictedGroupSubjects.isNotEmpty) ...[
+                      Padding(padding: EdgeInsets.only(top: 10, bottom: 2), child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600))),
+                      for (final restrictedGroupSubject in restrictedGroupSubjects.indexed) ...[
+                        buildSubjectRow(restrictedGroupSubject.$2),
+                        if (restrictedGroupSubject.$1 != restrictedGroupSubjects.length - 1)
+                          Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                       ],
                     ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Points part
+              Container(
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Column(
+                  spacing: 6,
+                  children: [
+                    buildTotalPointsPart(),
+                    if (usingRestrictedGroup && restrictedGroupSubjectCodes.isNotEmpty) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildRestrictedGroupPointsPart()],
+                    if (usingDoubleCompensation) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildDoubleCompensationPart()],
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.zero,
+                backgroundColor: AppColors.transparent,
+                header: Text("Options de calcul"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    title: Text("Groupe restreint"),
+                    trailing: CupertinoSwitch(
+                      value: usingRestrictedGroup,
+                      onChanged: (newValue) {
+                        globals.persistent.setBool("UseRestrictedGroup", newValue);
+                        setState(() => usingRestrictedGroup = newValue);
+                      },
+                    ),
                   ),
-                ),
+                ],
+              ),
 
-                // Points part
-                Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Column(children: [buildTotalPointsPart()]),
-                ),
-
+              if (usingRestrictedGroup) ...[
+                const SizedBox(height: 10),
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
                   children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: Text("Double compensation"),
-                      trailing: CupertinoSwitch(
-                        value: usingDoubleCompensation,
-                        onChanged: (newValue) {
-                          globals.persistent.setBool("UseDoubleCompensation", newValue);
-                          setState(() => usingDoubleCompensation = newValue);
-                        },
+                    for (final subject in restrictedGroupSubjects)
+                      CupertinoListTile(
+                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                        leading: GestureDetector(
+                          onTap: () {
+                            restrictedGroupSubjectCodes.remove(subject.code);
+                            globals.persistent.setStringList("RestrictedGroupSubjects", restrictedGroupSubjectCodes);
+                            setState(() {});
+                          },
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
+                        ),
+                        title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
                       ),
-                    ),
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: Text("Groupe restreint"),
-                      trailing: CupertinoSwitch(
-                        value: usingRestrictedGroup,
-                        onChanged: (newValue) {
-                          globals.persistent.setBool("UseRestrictedGroup", newValue);
-                          setState(() => usingRestrictedGroup = newValue);
-                        },
+
+                    if (subjects.length - restrictedGroupSubjects.length > 1)
+                      CupertinoListTile(
+                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
+                        title: SubjectAutocomplete(
+                          placeholder: "Entrez une branche du groupe restreint",
+                          onSelected: (selectedSubject) {
+                            restrictedGroupSubjectCodes.add(selectedSubject.code);
+                            globals.persistent.setStringList("RestrictedGroupSubjects", restrictedGroupSubjectCodes);
+                            setState(() {});
+                          },
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ],
-            ),
+
+              const SizedBox(height: 20),
+
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.zero,
+                backgroundColor: AppColors.transparent,
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    title: Text("Double compensation"),
+                    trailing: CupertinoSwitch(
+                      value: usingDoubleCompensation,
+                      onChanged: (newValue) {
+                        globals.persistent.setBool("UseDoubleCompensation", newValue);
+                        setState(() => usingDoubleCompensation = newValue);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
