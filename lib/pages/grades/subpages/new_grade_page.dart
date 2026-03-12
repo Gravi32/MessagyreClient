@@ -309,7 +309,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             focusNode: titleFocusNode,
                             decoration: BoxDecoration(),
                             padding: EdgeInsets.zero,
-                            placeholder: "Titre",
+                            placeholder: "Titre*",
                             placeholderStyle: TextStyle(
                               color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
                               fontWeight: FontWeight.w500,
