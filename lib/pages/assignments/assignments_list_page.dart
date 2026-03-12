@@ -84,8 +84,17 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   final tomorrowsAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(tomorrow));
                   final plannedAssignments = allAssignments.where((a) => a.dueDate.isAfter(tomorrow));
 
-                  List<Widget> buildSection(Iterable<Assignment> list, String title, {Color? titleColor, bool tilesShowDate = true, bool dimTiles = false}) {
+                  List<Widget> buildSection(
+                    Iterable<Assignment> list,
+                    String title, {
+                    Color? titleColor,
+                    bool tilesShowDate = true,
+                    bool dimTiles = false,
+                    bool reverseSort = false,
+                  }) {
                     list = list.sorted((a, b) => a.dueDate.compareTo(b.dueDate));
+
+                    if (reverseSort) list = list.toList().reversed;
 
                     return [
                       Padding(
@@ -109,7 +118,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                       if (todaysAssignments.isNotEmpty) ...buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
                       if (tomorrowsAssignments.isNotEmpty) ...buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
                       if (plannedAssignments.isNotEmpty) ...buildSection(plannedAssignments, "À venir"),
-                      if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true),
+                      if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true, reverseSort: true),
                       if (allAssignments.isEmpty) buildPlaceholder(),
                     ],
                   );
