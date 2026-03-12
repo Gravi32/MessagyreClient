@@ -394,7 +394,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                     trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
-                    title: Text("Pour ${formatDate(dueDate)}"),
+                    title: Text("Pour ${formatDate(dueDate, includeArticle: true)}", style: TextStyle(fontWeight: FontWeight.w600)),
                     onTap: showDatePicker,
                   ),
                 ],
