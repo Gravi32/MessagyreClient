@@ -15,6 +15,7 @@ import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
@@ -161,69 +162,6 @@ class _NewGradePageState extends State<NewGradePage> {
 
     titleFocusNode.unfocus();
     subjectFocusNode.unfocus();
-  }
-
-  Widget buildGradePicker() {
-    final grades = List.generate(11, (i) => i * .5 + 1);
-    final controller = FixedExtentScrollController(initialItem: grades.indexOf(grade));
-
-    return SizedBox(
-      height: 60,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          RotatedBox(
-            quarterTurns: -1,
-            child: ListWheelScrollView.useDelegate(
-              controller: controller,
-              itemExtent: 60,
-              diameterRatio: 2,
-              physics: const FixedExtentScrollPhysics(),
-              onSelectedItemChanged: (index) {
-                setState(() => grade = grades[index]);
-                HapticFeedback.selectionClick();
-              },
-              childDelegate: ListWheelChildBuilderDelegate(
-                childCount: grades.length,
-                builder: (context, index) {
-                  final thisGrade = grades[index];
-                  final isWhole = thisGrade % 1 == 0;
-                  final display = isWhole ? thisGrade.toInt().toString() : thisGrade.toStringAsFixed(1);
-                  final isSelected = grade == thisGrade;
-
-                  return GestureDetector(
-                    onTap: () => controller.animateToItem(index, duration: Duration(milliseconds: 200), curve: Curves.easeOut),
-                    child: RotatedBox(
-                      quarterTurns: 1,
-                      child: Center(
-                        child: Text(
-                          display,
-                          style: TextStyle(
-                            fontSize: isSelected ? 28 : 22,
-                            color: isSelected ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          IgnorePointer(
-            child: Align(
-              alignment: Alignment.center,
-              child: Container(
-                width: 60,
-                height: 80,
-                decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   List<Assignment> getPlannedGrades() {
@@ -488,7 +426,7 @@ class _NewGradePageState extends State<NewGradePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      buildGradePicker(),
+                      GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
                       Divider(thickness: .25, color: AppColors.separator.adaptTo(context)),
 
                       Text("Valeur", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
