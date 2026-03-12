@@ -8,6 +8,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/presets.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
+import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:text_gradiate/text_gradiate.dart';
 
 class AssignmentsTopCard extends StatefulWidget {
@@ -122,28 +123,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
         ),
 
         // Progress bar
-        Container(
-          height: 6,
-          decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final progress = 1 - daysLeft / daysDistance;
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: progress,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [AppColors.orange, AppColors.yellow]),
-                      border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        ProgressBar(progress: 1 - daysLeft / daysDistance, height: 6, gradient: LinearGradient(colors: [AppColors.orange, AppColors.yellow])),
       ],
     );
   }

@@ -120,6 +120,13 @@ List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCach
 
 extension DoubleExtension on double {
   int toByte() => (this * 255).round().clamp(0, 255);
+
+  String removeTrailingZero() {
+    if (this == truncateToDouble()) {
+      return toInt().toString();
+    }
+    return toString();
+  }
 }
 
 // #endregion
