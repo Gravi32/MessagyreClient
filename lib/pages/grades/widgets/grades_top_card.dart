@@ -244,7 +244,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
-      child: PagedCard(height: 150, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
+      child: PagedCard(height: 155, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
     );
   }
 }

@@ -145,6 +145,6 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   Widget build(BuildContext context) {
     final allAssignments = database.assignments.getAll();
 
-    return PagedCard(height: 101, pages: [buildWeekPeekTab(allAssignments), buildNextWeekPeekTab(allAssignments), buildNextHolidaysTab()]);
+    return PagedCard(height: 110, pages: [buildWeekPeekTab(allAssignments), buildNextWeekPeekTab(allAssignments), buildNextHolidaysTab()]);
   }
 }
