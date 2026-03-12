@@ -12,7 +12,6 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/autocomplete_field.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
-import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
@@ -123,18 +122,6 @@ class _NewGradePageState extends State<NewGradePage> {
 
     final mountedContext = context;
     if (mountedContext.mounted) Navigator.of(mountedContext).pop();
-  }
-
-  void showSubjectPicker() {
-    showCupertinoModalPopup(
-      context: context,
-      builder:
-          (_) => CustomSubjectPicker(
-            onSubjectSelected: (selectedSubject) {
-              setState(() => subject = selectedSubject as Subject);
-            },
-          ),
-    );
   }
 
   void showDatePicker() {
