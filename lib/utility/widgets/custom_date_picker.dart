@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ class CustomDatePicker extends StatefulWidget {
   final bool allowPast;
   final ValueChanged<DateTime> onDateSelected;
   final bool isPreviewMode;
+  final Map<DateTime, List<Color>> pins;
 
   const CustomDatePicker({
     super.key,
@@ -20,6 +23,7 @@ class CustomDatePicker extends StatefulWidget {
     this.allowFuture = true,
     this.allowPast = true,
     this.isPreviewMode = false,
+    this.pins = const {},
   });
 
   @override
@@ -148,7 +152,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                               Expanded(
                                 child: GridView.builder(
                                   padding: EdgeInsets.zero,
-                                  shrinkWrap: true,
                                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: crossAxisCount,
                                     crossAxisSpacing: 4,
@@ -165,28 +168,64 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                     final dayNumber = dayDate.day;
 
                                     final today = DateTime.now();
+                                    final isEnabled = (widget.allowPast || !dayDate.isBefore(today)) && (widget.allowFuture || !dayDate.isAfter(today));
                                     final isSelected = tempDate.isSameDayAs(dayDate);
                                     final isToday = today.isSameDayAs(dayDate);
                                     final isWeekend = dayDate.weekday == DateTime.saturday || dayDate.weekday == DateTime.sunday;
+                                    final thisDayPins =
+                                        widget.pins.entries.firstWhere((entry) => entry.key.isSameDayAs(dayDate), orElse: () => MapEntry(dayDate, [])).value;
 
                                     return Opacity(
-                                      opacity: isWeekend ? .5 : 1,
+                                      opacity:
+                                          isEnabled
+                                              ? isWeekend
+                                                  ? .5
+                                                  : 1
+                                              : .25,
                                       child: CupertinoPressable(
-                                        onTap: () {
-                                          setState(() => tempDate = dayDate);
-                                        },
+                                        onTap:
+                                            isEnabled
+                                                ? () {
+                                                  setState(() => tempDate = dayDate);
+                                                }
+                                                : null,
                                         decoration: BoxDecoration(
                                           color:
                                               isSelected
                                                   ? AppColors.accent
                                                   : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Center(
-                                          child: Text(
-                                            dayNumber.toString(),
-                                            style: TextStyle(color: AppColors.text.adaptTo(context), fontWeight: isToday ? FontWeight.w800 : null),
-                                          ),
+                                        child: Stack(
+                                          children: [
+                                            Center(
+                                              child: Text(
+                                                dayNumber.toString(),
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: AppColors.text.adaptTo(context),
+                                                  fontWeight: isToday ? FontWeight.w800 : null,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isToday)
+                                              Positioned(top: 4, right: 0, left: 0, child: Center(child: Text("Auj.", style: TextStyle(fontSize: 13)))),
+                                            Positioned(
+                                              bottom: 8,
+                                              right: 0,
+                                              left: 0,
+                                              child: Row(
+                                                spacing: 2,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: List.generate(min(thisDayPins.length, 3), (index) {
+                                                  final thisPin = thisDayPins.elementAtOrNull(index);
+                                                  if (thisPin == null) return SizedBox.shrink();
+
+                                                  return Container(width: 4, height: 4, decoration: BoxDecoration(color: thisPin, shape: BoxShape.circle));
+                                                }),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     );

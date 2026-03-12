@@ -137,9 +137,16 @@ class _NewGradePageState extends State<NewGradePage> {
   }
 
   void showDatePicker() {
+    final pins = <DateTime, List<Color>>{};
+
+    for (var grade in allGrades) {
+      final date = grade.date.dateOnly();
+      (pins[date] ??= []).add(grade.subject.value?.color ?? AppColors.grey);
+    }
+
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CustomDatePicker(initialDate: date, allowFuture: false, onDateSelected: (newDate) => setState(() => date = newDate)),
+      builder: (_) => CustomDatePicker(initialDate: date, allowFuture: false, onDateSelected: (newDate) => setState(() => date = newDate), pins: pins),
     );
   }
 
@@ -736,7 +743,7 @@ class _NewGradePageState extends State<NewGradePage> {
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                       trailing: CupertinoListTileChevron(),
-                      title: Text("Reçu ${formatDate(date, includeArticle: true)}"),
+                      title: Text("Reçu ${formatDate(date, includeArticle: true)}", style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: showDatePicker,
                     ),
                   ],

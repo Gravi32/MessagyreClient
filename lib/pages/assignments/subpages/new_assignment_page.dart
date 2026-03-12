@@ -114,9 +114,16 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   }
 
   void showDatePicker() {
+    final pins = <DateTime, List<Color>>{};
+
+    for (var assignment in database.assignments.getAll()) {
+      final date = assignment.dueDate.dateOnly();
+      (pins[date] ??= []).add(assignment.subject.value?.color ?? AppColors.grey);
+    }
+
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CustomDatePicker(initialDate: dueDate, onDateSelected: (newDate) => setState(() => dueDate = newDate)),
+      builder: (_) => CustomDatePicker(initialDate: dueDate, onDateSelected: (newDate) => setState(() => dueDate = newDate), pins: pins),
     );
   }
 
