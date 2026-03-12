@@ -40,7 +40,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
           padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 65),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 70),
           itemCount: 7,
           itemBuilder: (context, index) {
             final thisDay = weekStart.add(Duration(days: index));
@@ -49,7 +49,8 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
 
             return Container(
               padding: EdgeInsets.all(4),
-              decoration: isSelected ? BoxDecoration(color: AppColors.white.withAlpha(20), borderRadius: BorderRadius.circular(12)) : null,
+              margin: EdgeInsets.symmetric(horizontal: 1),
+              decoration: BoxDecoration(color: AppColors.text.adaptTo(context).withAlpha(isSelected ? 20 : 5), borderRadius: BorderRadius.circular(12)),
               child: Opacity(
                 opacity: (thisDay.weekday + 1) % 7 < 2 ? .4 : 1,
                 child: Column(
