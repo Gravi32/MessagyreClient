@@ -1,10 +1,15 @@
+import 'dart:math';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class ReportCardPage extends StatefulWidget {
@@ -16,12 +21,16 @@ class ReportCardPage extends StatefulWidget {
 
 class _ReportCardPageState extends State<ReportCardPage> {
   final database = DatabaseService();
+  final globals = GlobalsService();
 
   late final grades = database.grades.getAll();
   late final subjects = database.subjects.getAll();
 
   final Map<String, List<Grade>> gradesPerSubject = {};
   final Map<String, double> averagePerSubject = {};
+
+  late var usingDoubleCompensation = globals.persistent.getBool("UseDoubleCompensation") ?? false;
+  late var usingRestrictedGroup = globals.persistent.getBool("UseRestrictedGroup") ?? false;
 
   Widget buildSubjectRow(Subject subject) {
     return Padding(
@@ -34,6 +43,116 @@ class _ReportCardPageState extends State<ReportCardPage> {
           Text((averagePerSubject[subject.code] ?? "-").toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         ],
       ),
+    );
+  }
+
+  Widget buildNumberedProgressBar(String lowerBound, String upperBound, double progress, String value, Color color) {
+    final textStyle = TextStyle(fontSize: 32, fontWeight: FontWeight.w800, backgroundColor: AppColors.secondaryBackground.adaptTo(context));
+    final textWidth = measureTextWidth(value, textStyle);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 4,
+      children: [
+        // Bounds
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(lowerBound), Text(upperBound)]),
+
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final position = width * progress;
+
+            final left = (position - textWidth / 2).clamp(0.0, width - textWidth);
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ProgressBar(progress: progress, gradient: LinearGradient(colors: [color, AppColors.white], stops: [.5, 1])),
+
+                Positioned(left: left, bottom: 8, child: Text(value, style: textStyle)),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget buildTotalPointsPart() {
+    final totalPoints = 14.0;
+    averagePerSubject.values.sum;
+    final minPoints = subjects.length * 4;
+    final maxPoints = subjects.length * 6;
+
+    final isLowerThanMinimum = totalPoints < minPoints;
+
+    final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 4,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Points totaux"),
+            Text(
+              isLowerThanMinimum
+                  ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
+                  : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
+              style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        buildNumberedProgressBar(
+          isLowerThanMinimum ? "0" : minPoints.toString(),
+          (isLowerThanMinimum ? minPoints : maxPoints).toString(),
+          progress,
+          totalPoints.removeTrailingZero(),
+          isLowerThanMinimum ? AppColors.red : AppColors.green,
+        ),
+      ],
+    );
+  }
+
+  Widget buildRestrictedGroupPointsPart() {
+    final totalPoints = 14.0;
+    averagePerSubject.values.sum;
+    final minPoints = subjects.length * 4;
+    final maxPoints = subjects.length * 6;
+
+    final isLowerThanMinimum = totalPoints < minPoints;
+
+    final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 4,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Points totaux"),
+            Text(
+              isLowerThanMinimum
+                  ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
+                  : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
+              style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        buildNumberedProgressBar(
+          isLowerThanMinimum ? "0" : minPoints.toString(),
+          (isLowerThanMinimum ? minPoints : maxPoints).toString(),
+          progress,
+          totalPoints.removeTrailingZero(),
+          isLowerThanMinimum ? AppColors.red : AppColors.green,
+        ),
+      ],
     );
   }
 
@@ -64,8 +183,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 10,
               children: [
+                // Subjects list part
                 Container(
                   decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
@@ -78,6 +199,14 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     ],
                   ),
                 ),
+
+                // Points part
+                Container(
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Column(children: [buildTotalPointsPart()]),
+                ),
+
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
@@ -85,12 +214,24 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       title: Text("Double compensation"),
-                      trailing: CupertinoSwitch(value: false, onChanged: (_) {}),
+                      trailing: CupertinoSwitch(
+                        value: usingDoubleCompensation,
+                        onChanged: (newValue) {
+                          globals.persistent.setBool("UseDoubleCompensation", newValue);
+                          setState(() => usingDoubleCompensation = newValue);
+                        },
+                      ),
                     ),
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       title: Text("Groupe restreint"),
-                      trailing: CupertinoSwitch(value: false, onChanged: (_) {}),
+                      trailing: CupertinoSwitch(
+                        value: usingRestrictedGroup,
+                        onChanged: (newValue) {
+                          globals.persistent.setBool("UseRestrictedGroup", newValue);
+                          setState(() => usingRestrictedGroup = newValue);
+                        },
+                      ),
                     ),
                   ],
                 ),

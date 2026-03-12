@@ -1,5 +1,5 @@
+import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -254,6 +254,16 @@ String? getFractionString(double value) {
       return (icon: HugeIcons.strokeRoundedTickDouble02, color: AppColors.accent);
   }
 }
+// #endregion
+
+// #region -> Text
+
+double measureTextWidth(String text, TextStyle style) {
+  final painter = TextPainter(text: TextSpan(text: text, style: style), textDirection: ui.TextDirection.ltr, maxLines: 1)..layout();
+
+  return painter.size.width;
+}
+
 // #endregion
 
 // #region -> Miscellaneous
