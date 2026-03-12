@@ -4,6 +4,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
@@ -23,7 +24,7 @@ class SubjectCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.secondaryBackground.adaptTo(context),
+        color: subject.isLocked ? AppColors.transparent : AppColors.secondaryBackground.adaptTo(context),
         border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -31,7 +32,20 @@ class SubjectCard extends StatelessWidget {
       child: CupertinoButton(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         onPressed: () {
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: subject)));
+          subject.isLocked
+              ? showCupertinoDialog(
+                context: context,
+                builder:
+                    (context) => CupertinoAlertDialog(
+                      title: Text("Branche bloquée"),
+                      content: CustomText(
+                        "Cette branche est *bloquée à ${subject.lockedGrade?.removeTrailingZero() ?? 4}*,\npour la débloquer ou changer la note: *Réglages > Branches*.",
+                        textAlign: TextAlign.center,
+                      ),
+                      actions: [CupertinoDialogAction(child: Text("Fermer"), onPressed: () => Navigator.pop(context))],
+                    ),
+              )
+              : Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: subject)));
         },
         child: Column(
           mainAxisSize: MainAxisSize.max,
@@ -46,8 +60,11 @@ class SubjectCard extends StatelessWidget {
                 SubjectBadge(subject: subject, size: 32),
 
                 // Average label
-                if (!isSubjectEmpty)
-                  Text(average.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                if (!isSubjectEmpty || subject.isLocked)
+                  Text(
+                    (subject.lockedGrade ?? average).removeTrailingZero(),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                  ),
               ],
             ),
 
@@ -58,14 +75,22 @@ class SubjectCard extends StatelessWidget {
               spacing: 10,
               children: [
                 // Subject title
-                Text(subject.name, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white))),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  spacing: 6,
+                  children: [
+                    Text(subject.name, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context))),
+                    if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 18, color: AppColors.text.adaptTo(context)),
+                  ],
+                ),
 
                 // Progress bar
-                if (!isSubjectEmpty) ProgressBar(progress: average / 6, color: subject.color),
+                if (!isSubjectEmpty && !subject.isLocked) ProgressBar(progress: average / 6, color: subject.color),
               ],
             ),
 
-            if (isSubjectEmpty) Text("+ Ajouter une note", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
+            if (isSubjectEmpty && !subject.isLocked) Text("+ Ajouter une note", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
           ],
         ),
       ),

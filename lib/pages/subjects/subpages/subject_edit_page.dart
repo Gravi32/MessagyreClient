@@ -8,6 +8,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 
 class NewSubjectPage extends StatefulWidget {
   final Subject? toEdit;
@@ -320,6 +321,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
   late final ValueNotifier<Color> colorNotifier = ValueNotifier(widget.toEdit?.color ?? AppColors.grey);
   late final ValueNotifier<IconData> iconNotifier = ValueNotifier(widget.toEdit?.icon ?? Icons.question_mark_rounded);
+  late var isLocked = widget.toEdit?.isLocked ?? false;
+  late var grade = widget.toEdit?.lockedGrade ?? 4.0;
 
   late final bool canBeDeleted =
       !(!editMode ||
@@ -334,7 +337,9 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
       ..name = nameController.text
       ..code = widget.toEdit?.code ?? nameController.text.normalize().replaceAll(' ', '_').toLowerCase()
       ..iconCodePoint = iconNotifier.value.codePoint
-      ..colorValue = colorNotifier.value.toInt();
+      ..colorValue = colorNotifier.value.toInt()
+      ..isLocked = isLocked
+      ..lockedGrade = isLocked ? grade : null;
 
     await database.subjects.save(subject);
 
@@ -513,6 +518,43 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                 ],
               ),
 
+              // Lock option
+              CupertinoListSection.insetGrouped(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                backgroundColor: AppColors.transparent,
+                header: const Text("Options"),
+                children: [
+                  CupertinoListTile.notched(
+                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                    leading: HugeIcon(icon: isLocked ? HugeIcons.strokeRoundedSquareLock02 : HugeIcons.strokeRoundedSquareUnlock02),
+                    title: Text("Branche bloquée"),
+                    trailing: CupertinoSwitch(value: isLocked, onChanged: (value) => setState(() => isLocked = value)),
+                  ),
+                ],
+              ),
+
+              // Grade picker
+              if (isLocked)
+                CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.only(right: 10, left: 10, top: 10),
+                  backgroundColor: AppColors.transparent,
+                  footer: Padding(
+                    padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
+                    child: Text(
+                      "Choisissez la note qui sera attribuée à cette branche dans le bulletin. Les branches bloquées ne peuvent pas être modifiées dans la page des notes.",
+                      style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
+                    ),
+                  ),
+                  children: [
+                    CupertinoListTile(
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      title: GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
+                    ),
+                  ],
+                ),
+
+              // Delete button
               if (editMode)
                 CupertinoListSection.insetGrouped(
                   margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -562,6 +604,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                     ),
                   ],
                 ),
+
               const SizedBox(height: 10),
             ],
           ),

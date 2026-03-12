@@ -37,8 +37,18 @@ const SubjectSchema = CollectionSchema(
       name: r'imagePath',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(
+    r'isLocked': PropertySchema(
       id: 4,
+      name: r'isLocked',
+      type: IsarType.bool,
+    ),
+    r'lockedGrade': PropertySchema(
+      id: 5,
+      name: r'lockedGrade',
+      type: IsarType.double,
+    ),
+    r'name': PropertySchema(
+      id: 6,
       name: r'name',
       type: IsarType.string,
     )
@@ -98,7 +108,9 @@ void _subjectSerialize(
   writer.writeLong(offsets[1], object.colorValue);
   writer.writeLong(offsets[2], object.iconCodePoint);
   writer.writeString(offsets[3], object.imagePath);
-  writer.writeString(offsets[4], object.name);
+  writer.writeBool(offsets[4], object.isLocked);
+  writer.writeDouble(offsets[5], object.lockedGrade);
+  writer.writeString(offsets[6], object.name);
 }
 
 Subject _subjectDeserialize(
@@ -113,7 +125,9 @@ Subject _subjectDeserialize(
   object.iconCodePoint = reader.readLongOrNull(offsets[2]);
   object.id = id;
   object.imagePath = reader.readStringOrNull(offsets[3]);
-  object.name = reader.readString(offsets[4]);
+  object.isLocked = reader.readBool(offsets[4]);
+  object.lockedGrade = reader.readDoubleOrNull(offsets[5]);
+  object.name = reader.readString(offsets[6]);
   return object;
 }
 
@@ -133,6 +147,10 @@ P _subjectDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
+      return (reader.readBool(offset)) as P;
+    case 5:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -794,6 +812,94 @@ extension SubjectQueryFilter
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> isLockedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isLocked',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedGradeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lockedGrade',
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedGradeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lockedGrade',
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedGradeEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lockedGrade',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedGradeGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lockedGrade',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedGradeLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lockedGrade',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedGradeBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lockedGrade',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -980,6 +1086,30 @@ extension SubjectQuerySortBy on QueryBuilder<Subject, Subject, QSortBy> {
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByIsLocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLocked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByIsLockedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLocked', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByLockedGrade() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedGrade', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByLockedGradeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedGrade', Sort.desc);
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1055,6 +1185,30 @@ extension SubjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByIsLocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLocked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByIsLockedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLocked', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByLockedGrade() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedGrade', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByLockedGradeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedGrade', Sort.desc);
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1096,6 +1250,18 @@ extension SubjectQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Subject, Subject, QDistinct> distinctByIsLocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isLocked');
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QDistinct> distinctByLockedGrade() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lockedGrade');
+    });
+  }
+
   QueryBuilder<Subject, Subject, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1133,6 +1299,18 @@ extension SubjectQueryProperty
   QueryBuilder<Subject, String?, QQueryOperations> imagePathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'imagePath');
+    });
+  }
+
+  QueryBuilder<Subject, bool, QQueryOperations> isLockedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isLocked');
+    });
+  }
+
+  QueryBuilder<Subject, double?, QQueryOperations> lockedGradeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lockedGrade');
     });
   }
 

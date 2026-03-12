@@ -20,6 +20,10 @@ class Subject {
 
   int? colorValue;
 
+  bool isLocked = false;
+
+  double? lockedGrade;
+
   Subject();
 
   @ignore

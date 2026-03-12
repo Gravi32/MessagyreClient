@@ -86,8 +86,13 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                         padding: EdgeInsets.all(10),
                         title: Row(
-                          spacing: 16,
-                          children: [SubjectBadge(subject: subject), Text(subject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500))],
+                          spacing: 6,
+                          children: [
+                            SubjectBadge(subject: subject),
+                            const SizedBox(width: 4),
+                            Text(subject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                            if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                          ],
                         ),
                         trailing: CupertinoListTileChevron(),
                         onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewSubjectPage(toEdit: subject))),

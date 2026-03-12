@@ -42,11 +42,19 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                 }
                 allActiveSubjects.sort((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
 
+                // A list of all the subjects without any grade
                 final List<Subject> allInactiveSubjects = [];
                 for (final subject in allSubjects) {
-                  if (!allActiveSubjects.any((activeSubject) => activeSubject.code == subject.code)) allInactiveSubjects.add(subject);
+                  if (!allActiveSubjects.any((activeSubject) => activeSubject.code == subject.code) && !subject.isLocked) allInactiveSubjects.add(subject);
                 }
                 allInactiveSubjects.sort((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
+
+                // A list of all the locked subjects
+                final List<Subject> allLockedSubjects = [];
+                for (final subject in allSubjects) {
+                  if (subject.isLocked) allLockedSubjects.add(subject);
+                }
+                allLockedSubjects.sort((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
 
                 return SingleChildScrollView(
                   child: Column(
@@ -70,8 +78,29 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                         },
                       ),
 
+                      if (allLockedSubjects.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        Text("Branches bloquées", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                        GridView.builder(
+                          padding: EdgeInsets.zero,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            mainAxisExtent: 90,
+                          ),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: allLockedSubjects.length,
+                          itemBuilder: (context, index) {
+                            final subject = allLockedSubjects[index];
+                            return SubjectCard(subject: subject);
+                          },
+                        ),
+                      ],
+
                       if (allInactiveSubjects.isNotEmpty) ...[
-                        if (allActiveSubjects.isNotEmpty) const SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Text("Branches sans notes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
                         GridView.builder(
                           padding: EdgeInsets.zero,
