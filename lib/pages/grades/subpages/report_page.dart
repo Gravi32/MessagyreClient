@@ -25,7 +25,12 @@ class _ReportCardPageState extends State<ReportCardPage> {
   final globals = GlobalsService();
 
   late final grades = database.grades.getAll();
-  late final subjects = database.subjects.getAll();
+  late final subjects = database.subjects.getAll().sorted((a, b) {
+    if (a.isLocked != b.isLocked) {
+      return a.isLocked ? 1 : -1;
+    }
+    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  });
   late final restrictedGroupSubjectCodes = globals.persistent.getStringList("RestrictedGroupSubjects") ?? [];
 
   final Map<String, double> allAverages = {};
@@ -47,6 +52,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   Widget buildSubjectRow(Subject subject) {
     double? grade = subject.lockedGrade ?? allAverages[subject.code];
+
+    if (grade != null && grade < 1) grade = null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -271,7 +278,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   spacing: 6,
                   children: [
                     buildTotalPointsPart(),
-                    if (usingRestrictedGroup && restrictedGroupSubjectCodes.isNotEmpty) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildRestrictedGroupPointsPart()],
+                    if (usingRestrictedGroup && restrictedGroupSubjectCodes.isNotEmpty) ...[
+                      Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
+                      buildRestrictedGroupPointsPart(),
+                    ],
                     if (usingDoubleCompensation) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildDoubleCompensationPart()],
                   ],
                 ),
