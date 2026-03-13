@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -69,7 +70,12 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
         child: StreamBuilder(
           stream: database.subjects.watchAll(),
           builder: (context, _) {
-            final allSubjects = database.subjects.getAll();
+            final allSubjects = database.subjects.getAll().sorted((a, b) {
+              if (a.isLocked != b.isLocked) {
+                return a.isLocked ? 1 : -1;
+              }
+              return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+            });
 
             return ListView(
               padding: EdgeInsets.only(bottom: 20),
