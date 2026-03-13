@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
@@ -28,13 +29,93 @@ class _GradesTopCardState extends State<GradesTopCard> {
   Widget buildGeneralAverageTab() {
     final average = calculateAverage(grades.toList());
 
+    grades.sort((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date));
+
+    final allDays = List.generate(
+      grades.isEmpty ? 0 : grades.last.date.difference(grades.first.date).inDays,
+      (index) => grades.first.date.add(Duration(days: index)),
+    );
+    final averageByDay = [];
+
+    var lastAverage = .0;
+    for (final day in allDays) {
+      var thisDaysGrades = grades.where((grade) => grade.date.isSameDayAs(day)).toList();
+      print(thisDaysGrades);
+      if (thisDaysGrades.isNotEmpty) lastAverage = calculateAverage(thisDaysGrades);
+
+      averageByDay.add(lastAverage);
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 10,
       children: [
-        GradeDisplay(grade: average, size: 100, strokeWidth: 5, roundGrade: false, textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}"),
+        Expanded(
+          child: Stack(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 10, left: 100),
+                  child: LineChart(
+                    LineChartData(
+                      minY: 1,
+                      maxY: 6,
+                      lineBarsData: [
+                        LineChartBarData(
+                          color: AppColors.accent,
+                          isCurved: true,
+                          barWidth: 3,
+                          preventCurveOverShooting: true,
+                          isStrokeCapRound: true,
+                          isStrokeJoinRound: true,
+                          dotData: FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [AppColors.accent.withAlpha(80), AppColors.transparent],
+                            ),
+                          ),
+                          spots: averageByDay.mapIndexed((index, thisDayAverage) => FlSpot(index / averageByDay.length, thisDayAverage)).toList(),
+                        ),
+                      ],
+                      titlesData: FlTitlesData(show: false),
+                      lineTouchData: LineTouchData(enabled: false),
+                      gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
+                      borderData: FlBorderData(show: false),
+                    ),
+                  ),
+                ),
+              ),
+
+              Positioned(
+                left: 0,
+                top: -5,
+                bottom: -5,
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: BoxShape.circle)),
+                ),
+              ),
+
+              Positioned(
+                left: 8,
+                top: 0,
+                bottom: 0,
+                child: GradeDisplay(
+                  grade: average,
+                  size: 100,
+                  strokeWidth: 5,
+                  roundGrade: false,
+                  textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
+                ),
+              ),
+            ],
+          ),
+        ),
         Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
       ],
     );
