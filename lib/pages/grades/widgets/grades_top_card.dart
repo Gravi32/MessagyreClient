@@ -5,14 +5,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
-import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/report_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
-import 'package:messagyre_client/utility/widgets/progress_bar.dart';
-import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class GradesTopCard extends StatefulWidget {
   const GradesTopCard({super.key});
@@ -23,6 +22,7 @@ class GradesTopCard extends StatefulWidget {
 
 class _GradesTopCardState extends State<GradesTopCard> {
   final database = DatabaseService();
+  final report = ReportService();
 
   List<Grade> grades = [];
 
@@ -90,8 +90,8 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
               Positioned(
                 left: 0,
-                top: -5,
-                bottom: -5,
+                top: 0,
+                bottom: 0,
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: BoxShape.circle)),
@@ -119,119 +119,121 @@ class _GradesTopCardState extends State<GradesTopCard> {
   }
 
   Widget buildReportCardTab() {
-    final subjects = database.subjects.getAll();
+    List<Widget> buildTotalPointsIndicator() {
+      var totalPoints = report.totalPoints;
+      final minPoints = report.allSubjects.length * 4;
+      final maxPoints = report.allSubjects.length * 6;
 
-    final Map<String, List<Grade>> gradesPerSubject = {};
-    final Map<String, double> averagePerSubject = {};
+      final isLowerThanMinimum = totalPoints < minPoints;
 
-    for (final grade in grades) {
-      final subject = grade.subject.value;
-      if (subject == null) continue;
-      gradesPerSubject.putIfAbsent(subject.code, () => []).add(grade);
-    }
-
-    for (final subject in gradesPerSubject.keys) {
-      averagePerSubject[subject] = gradesPerSubject[subject] != null ? calculateAverage(gradesPerSubject[subject]!, round: true) : 0;
-    }
-
-    Widget statBox(String label, String value, String hint, double progress, {Color? color}) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 0,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            spacing: 4,
-            children: [
-              Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-              Text(hint, style: TextStyle(fontSize: 12, color: AppColors.secondaryText.adaptTo(context))),
-              Spacer(),
-              Text(label, style: TextStyle(fontSize: 12, color: AppColors.secondaryText.adaptTo(context))),
-            ],
-          ),
-          ProgressBar(progress: progress, height: 6, color: color),
-        ],
-      );
-    }
-
-    Widget buildSubjectRow(Subject subject) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          spacing: 6,
-          children: [
-            SubjectBadge(subject: subject, size: 20),
-            Expanded(child: Text(subject.name, overflow: TextOverflow.ellipsis)),
-            Text((averagePerSubject[subject.code] ?? "-").toString()),
-          ],
+      final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
+      return [
+        Text("Points totaux", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.tertiaryText.adaptTo(context))),
+        NumberedProgressBar(
+          lowerBound: isLowerThanMinimum ? "0" : minPoints.toString(),
+          upperBound: (isLowerThanMinimum ? minPoints : maxPoints).toString(),
+          progress: progress,
+          value: totalPoints.removeTrailingZero(),
+          color: isLowerThanMinimum ? AppColors.red : AppColors.green,
+          fontSize: 26,
+          barHeight: 6,
         ),
-      );
+      ];
+    }
+
+    List<Widget> buildDoubleCompensationIndicator() {
+      var deficit = .0;
+      for (final average in report.allAverages.values) {
+        if (average < 4) deficit += average - 4;
+      }
+      var surplus = .0;
+      for (final average in report.allAverages.values) {
+        if (average > 4) surplus += average - 4;
+      }
+      final result = surplus + deficit * 2;
+
+      final isFailing = result < 0;
+
+      final progress = result / (deficit.abs() + surplus);
+      return [
+        Text("Double compensation", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.tertiaryText.adaptTo(context))),
+        NumberedProgressBar(
+          lowerBound: deficit.toDouble().removeTrailingZero(),
+          upperBound: "+${surplus.toDouble().removeTrailingZero()}",
+          progress: progress,
+          value: result.toDouble().removeTrailingZero(),
+          color: isFailing ? AppColors.red : AppColors.green,
+          centered: true,
+          fontSize: 26,
+          barHeight: 6,
+        ),
+      ];
+    }
+
+    List<Widget> buildRestrictedGroupIndicator() {
+      final restrictedGroupAverages = <double>[];
+      for (final subjectCode in report.restrictedGroupSubjectCodes) {
+        if (report.allAverages.containsKey(subjectCode) && report.allAverages[subjectCode] != null) {
+          restrictedGroupAverages.add(report.allAverages[subjectCode]!);
+        }
+      }
+
+      final totalPoints = restrictedGroupAverages.sum;
+      final minPoints = restrictedGroupAverages.length * 4;
+      final maxPoints = restrictedGroupAverages.length * 6;
+
+      final isLowerThanMinimum = totalPoints < minPoints;
+
+      final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
+
+      return [
+        Text("Points du groupe restreint", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.tertiaryText.adaptTo(context))),
+        NumberedProgressBar(
+          lowerBound: isLowerThanMinimum ? "0" : minPoints.toString(),
+          upperBound: (isLowerThanMinimum ? minPoints : maxPoints).toString(),
+          progress: progress,
+          value: totalPoints.removeTrailingZero(),
+          color: isLowerThanMinimum ? AppColors.red : AppColors.green,
+          fontSize: 26,
+          barHeight: 6,
+        ),
+      ];
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Bulletin", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-        const SizedBox(height: 10),
-        Expanded(
-          child: GridView.count(
-            crossAxisCount: 2,
-            padding: EdgeInsets.zero,
-            crossAxisSpacing: 8,
-            physics: NeverScrollableScrollPhysics(),
-            children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text("Tout voir", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context))),
-                    const SizedBox(width: 4),
-                    Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
-                  ],
-                ),
-              ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Bulletin", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+            GestureDetector(
+              onTap:
+                  () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())).then((_) {
+                    if (mounted) setState(() {});
+                  }),
 
-              // Subjects list
-              Container(
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                child: ListView.builder(
-                  padding: EdgeInsets.only(bottom: 80),
-                  itemCount: subjects.length,
-                  itemBuilder: (context, index) => buildSubjectRow(subjects[index]),
-                ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 4,
+                children: [
+                  Text("Tout voir", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context))),
+                  Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                ],
               ),
-
-              // Stats
-              Container(
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 12,
-                  children: [
-                    statBox(
-                      "Points",
-                      averagePerSubject.values.sum.removeTrailingZero(),
-                      "/ ${4 * averagePerSubject.length} min",
-                      averagePerSubject.values.sum / (6 * averagePerSubject.length),
-                      color: averagePerSubject.values.sum < 4 * averagePerSubject.length ? AppColors.red : AppColors.accent,
-                    ),
-                    statBox(
-                      "Sous la moy.",
-                      "${averagePerSubject.values.where((avg) => avg < 4).length}",
-                      "/ 4 max",
-                      1 - (averagePerSubject.values.where((avg) => avg < 4).length / 4),
-                      color: averagePerSubject.values.where((avg) => avg < 4).isNotEmpty ? AppColors.red : AppColors.green,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+
+        Spacer(),
+
+        ...buildTotalPointsIndicator(),
+
+        Spacer(),
+
+        if (report.usingRestrictedGroup) ...buildRestrictedGroupIndicator(),
+        if (report.usingDoubleCompensation && !report.usingRestrictedGroup) ...buildDoubleCompensationIndicator(),
       ],
     );
   }
@@ -323,7 +325,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
-      child: PagedCard(height: 155, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
+      child: PagedCard(height: 160, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
     );
   }
 }

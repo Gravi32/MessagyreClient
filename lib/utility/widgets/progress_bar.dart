@@ -3,17 +3,17 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 
 class ProgressBar extends StatelessWidget {
   final double progress;
-  final double height;
+  final double? height;
   final bool centered;
   final Color? color;
   final Gradient? gradient;
 
-  const ProgressBar({super.key, required this.progress, this.height = 8, this.centered = false, this.color = AppColors.accent, this.gradient});
+  const ProgressBar({super.key, required this.progress, this.height, this.centered = false, this.color = AppColors.accent, this.gradient});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
+      height: height ?? 8,
       decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
       child: LayoutBuilder(
         builder: (context, constraints) {

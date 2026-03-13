@@ -258,10 +258,10 @@ String? getFractionString(double value) {
 
 // #region -> Text
 
-double measureTextWidth(String text, TextStyle style) {
+Size measureTextSize(String text, TextStyle style) {
   final painter = TextPainter(text: TextSpan(text: text, style: style), textDirection: ui.TextDirection.ltr, maxLines: 1)..layout();
 
-  return painter.size.width;
+  return painter.size;
 }
 
 // #endregion
