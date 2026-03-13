@@ -150,8 +150,8 @@ class _GradesTopCardState extends State<GradesTopCard> {
   Widget buildReportCardTab() {
     List<Widget> buildTotalPointsIndicator() {
       var totalPoints = report.totalPoints;
-      final minPoints = report.allSubjects.length * 4;
-      final maxPoints = report.allSubjects.length * 6;
+      final minPoints = report.allAverages.length * 4;
+      final maxPoints = report.allAverages.length * 6;
 
       final isLowerThanMinimum = totalPoints < minPoints;
 
