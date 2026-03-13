@@ -40,7 +40,6 @@ class _GradesTopCardState extends State<GradesTopCard> {
     var lastAverage = .0;
     for (final day in allDays) {
       var thisDaysGrades = grades.where((grade) => grade.date.isSameDayAs(day)).toList();
-      print(thisDaysGrades);
       if (thisDaysGrades.isNotEmpty) lastAverage = calculateAverage(thisDaysGrades);
 
       averageByDay.add(lastAverage);
