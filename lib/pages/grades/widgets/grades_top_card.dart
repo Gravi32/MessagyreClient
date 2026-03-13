@@ -288,8 +288,9 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     // Recent trend = average of last 3 grades
     final recentCount = min(3, total);
-    final recentAverage = values.take(recentCount).reduce((a, b) => a + b) / recentCount;
-
+    final recentGrades = grades..sort((a, b) => b.date.compareTo(a.date));
+    final recentAverage = recentGrades.take(recentCount).map((g) => g.grade).reduce((a, b) => a + b) / recentCount;
+    
     // Build the grid of statistics
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
