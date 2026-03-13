@@ -153,6 +153,18 @@ Color adaptiveColor(Color light, Color dark) {
   return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
+Color getGradeColor(double grade) {
+  Color result = AppColors.red;
+
+  if (grade >= 4) {
+    result = AppColors.accent;
+  } else if (grade > 3.75) {
+    result = AppColors.orange;
+  }
+
+  return result;
+}
+
 // #endregion
 
 // #region -> Dates
@@ -232,13 +244,6 @@ String? getFractionString(double value) {
 // #endregion
 
 // #region -> Messages
-// void initMessageNotifiers() {
-//   for (var chat in Hive.box<Chat>("Chats").values) {
-//     for (var message in chat.content) {
-//       message.initNotifier();
-//     }
-//   }
-// }
 
 ({List<List<dynamic>> icon, Color color}) getStatusIcon(MessageStatus status) {
   switch (status) {

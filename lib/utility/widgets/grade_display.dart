@@ -41,13 +41,6 @@ class _GradeDisplayState extends State<GradeDisplay> {
     final size = widget.size;
     final int alpha = ((.25 + widget.weight * .75) * 255).toInt();
 
-    final color =
-        widget.grade >= 4
-            ? AppColors.accent
-            : widget.grade > 3.75
-            ? AppColors.orange
-            : AppColors.red;
-
     List<List<dynamic>>? badge;
     if (widget.isIncoming) {
       badge = HugeIcons.strokeRoundedClock01;
@@ -96,7 +89,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                               value: gradeAlpha,
                               strokeWidth: widget.strokeWidth,
                               strokeCap: StrokeCap.round,
-                              color: color.withAlpha(alpha),
+                              color: getGradeColor(widget.grade).withAlpha(alpha),
                             ),
 
                             Transform.flip(

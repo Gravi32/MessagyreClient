@@ -27,22 +27,29 @@ class _GradesTopCardState extends State<GradesTopCard> {
   List<Grade> grades = [];
 
   Widget buildGeneralAverageTab() {
-    final average = calculateAverage(grades.toList());
+    final generalAverage = calculateAverage(grades.toList());
+    final color = getGradeColor(generalAverage);
 
-    grades.sort((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date));
+    grades.sort((a, b) => a.date.compareTo(b.date));
 
-    final allDays = List.generate(
-      grades.isEmpty ? 0 : grades.last.date.difference(grades.first.date).inDays,
-      (index) => grades.first.date.add(Duration(days: index)),
-    );
-    final averageByDay = [];
+    double sum = 0;
+    int count = 0;
 
-    var lastAverage = .0;
-    for (final day in allDays) {
-      var thisDaysGrades = grades.where((grade) => grade.date.isSameDayAs(day)).toList();
-      if (thisDaysGrades.isNotEmpty) lastAverage = calculateAverage(thisDaysGrades);
+    double minAverage = double.infinity;
+    double maxAverage = -double.infinity;
 
-      averageByDay.add(lastAverage);
+    final allAverages = <double>[];
+
+    for (final grade in grades) {
+      sum += grade.grade;
+      count++;
+
+      final average = sum / count;
+
+      allAverages.add(average);
+
+      if (average < minAverage) minAverage = average;
+      if (average > maxAverage) maxAverage = average;
     }
 
     return Column(
@@ -55,14 +62,14 @@ class _GradesTopCardState extends State<GradesTopCard> {
           child: Stack(
             children: [
               Padding(
-                padding: EdgeInsets.only(top: 10, left: 100),
+                padding: EdgeInsets.only(top: 15, bottom: 15, left: 55),
                 child: LineChart(
                   LineChartData(
-                    minY: 1,
-                    maxY: 6,
+                    minY: max(minAverage.floor().toDouble(), 1),
+                    maxY: min(maxAverage.ceil().toDouble(), 6),
                     lineBarsData: [
                       LineChartBarData(
-                        color: AppColors.accent,
+                        color: color,
                         isCurved: true,
                         barWidth: 3,
                         preventCurveOverShooting: true,
@@ -74,40 +81,62 @@ class _GradesTopCardState extends State<GradesTopCard> {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [AppColors.accent.withAlpha(80), AppColors.transparent],
+                            colors: [color.withAlpha(80), AppColors.transparent],
                           ),
                         ),
-                        spots: averageByDay.mapIndexed((index, thisDayAverage) => FlSpot(index / averageByDay.length, thisDayAverage)).toList(),
+                        spots: allAverages.mapIndexed((index, average) => FlSpot(index / allAverages.length, average)).toList(),
                       ),
                     ],
-                    titlesData: FlTitlesData(show: false),
+                    titlesData: FlTitlesData(
+                      topTitles: AxisTitles(),
+                      leftTitles: AxisTitles(),
+                      bottomTitles: AxisTitles(),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          getTitlesWidget:
+                              (value, meta) => SideTitleWidget(
+                                meta: meta,
+                                child: Text(value.removeTrailingZero(), style: TextStyle(fontSize: 12, color: AppColors.text.adaptTo(context).withAlpha(65))),
+                              ),
+                        ),
+                      ),
+                    ),
                     lineTouchData: LineTouchData(enabled: false),
-                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
-                    borderData: FlBorderData(show: false),
+                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: .5),
+                    borderData: FlBorderData(show: true, border: Border.symmetric(horizontal: BorderSide(color: AppColors.text.adaptTo(context).withAlpha(1)))),
                   ),
                 ),
               ),
 
               Positioned(
-                left: 0,
+                left: 5,
                 top: 0,
                 bottom: 0,
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: BoxShape.circle)),
-                ),
-              ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned(
+                      top: -15,
+                      right: -15,
+                      left: -15,
+                      bottom: -15,
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: BoxShape.circle)),
+                      ),
+                    ),
 
-              Positioned(
-                left: 8,
-                top: 0,
-                bottom: 0,
-                child: GradeDisplay(
-                  grade: average,
-                  size: 100,
-                  strokeWidth: 5,
-                  roundGrade: false,
-                  textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
+                    GradeDisplay(
+                      grade: generalAverage,
+                      size: 100,
+                      strokeWidth: 5,
+                      roundGrade: false,
+                      textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
+                    ),
+                  ],
                 ),
               ),
             ],
