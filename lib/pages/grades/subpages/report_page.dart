@@ -111,7 +111,25 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   ),
                 ),
 
-                Positioned(left: left, bottom: 8, child: Text(value, style: textStyle)),
+                Positioned(
+                  left: left - 8,
+                  bottom: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      // Gradient radiale o lineare per sfumare i bordi
+                      gradient: RadialGradient(
+                        colors: [AppColors.secondaryBackground.adaptTo(context), AppColors.secondaryBackground.adaptTo(context).withAlpha(0)],
+                        stops: [.5, .95],
+                        radius: 1, // Regola la "morbidezza" della sfumatura
+                      ),
+                    ),
+                    child: Text(
+                      value,
+                      style: textStyle.copyWith(backgroundColor: Colors.transparent), // Rimuovi il vecchio bg
+                    ),
+                  ),
+                ),
               ],
             );
           },
