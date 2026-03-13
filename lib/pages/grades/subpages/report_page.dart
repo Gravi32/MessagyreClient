@@ -242,8 +242,9 @@ class _ReportCardPageState extends State<ReportCardPage> {
                         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                         leading: GestureDetector(
                           onTap: () {
-                            report.restrictedGroupSubjectCodes.remove(subject.code);
-                            globals.persistent.setStringList("RestrictedGroupSubjects", report.restrictedGroupSubjectCodes);
+                            final newList = report.restrictedGroupSubjectCodes;
+                            newList.remove(subject.code);
+                            globals.persistent.setStringList("RestrictedGroupSubjects", newList);
                             setState(() {});
                           },
                           child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
@@ -258,8 +259,9 @@ class _ReportCardPageState extends State<ReportCardPage> {
                         title: SubjectAutocomplete(
                           placeholder: "Entrez une branche du groupe restreint",
                           onSelected: (selectedSubject) {
-                            report.restrictedGroupSubjectCodes.add(selectedSubject.code);
-                            globals.persistent.setStringList("RestrictedGroupSubjects", report.restrictedGroupSubjectCodes);
+                            final newList = report.restrictedGroupSubjectCodes;
+                            newList.add(selectedSubject.code);
+                            globals.persistent.setStringList("RestrictedGroupSubjects", newList);
                             setState(() {});
                           },
                         ),

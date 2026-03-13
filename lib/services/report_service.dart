@@ -21,7 +21,8 @@ class ReportService {
   bool get usingDoubleCompensation => globals.persistent.getBool("UseDoubleCompensation") ?? false;
   bool get usingRestrictedGroup => globals.persistent.getBool("UseRestrictedGroup") ?? false;
 
-  List<String> get restrictedGroupSubjectCodes => globals.persistent.getStringList("RestrictedGroupSubjects") ?? [];
+  List<String> get restrictedGroupSubjectCodes =>
+      globals.persistent.getStringList("RestrictedGroupSubjects")?.where((code) => database.subjects.getByCode(code) != null).toList() ?? [];
   List<Subject> get restrictedGroupSubjects => allSubjects.where((subject) => restrictedGroupSubjectCodes.contains(subject.code)).toList();
 
   double get totalPoints => allAverages.values.sum;
