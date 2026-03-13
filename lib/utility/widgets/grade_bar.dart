@@ -68,23 +68,10 @@ class GradeBar extends StatelessWidget {
                           ),
                           if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
                             Padding(
-                              padding: EdgeInsetsGeometry.only(top: 2, right: 20),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    WidgetSpan(
-                                      alignment: PlaceholderAlignment.middle,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(right: 4),
-                                        child: HugeIcon(icon: HugeIcons.strokeRoundedTextAlignLeft, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                                      ),
-                                    ),
-                                    ...CustomText.parseSpans(
-                                      gradeData.details!,
-                                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
-                                    ),
-                                  ],
-                                ),
+                              padding: EdgeInsetsGeometry.only(right: 20),
+                              child: CustomText(
+                                gradeData.details!,
+                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
