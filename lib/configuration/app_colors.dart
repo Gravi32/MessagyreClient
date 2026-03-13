@@ -12,10 +12,10 @@ class AppColors {
   static const separator = AppColor(light: Color.fromRGBO(0, 0, 0, 0.2), dark: Color.fromRGBO(255, 255, 255, 0.2));
 
   // Text
-  static const text = AppColor(light: Color.fromRGBO(28, 28, 30, 1.0), dark: Color.fromRGBO(229, 229, 234, 1.0));
-  static const secondaryText = AppColor(light: Color.fromRGBO(28, 28, 30, 0.6), dark: Color.fromRGBO(255, 255, 255, 0.6));
-  static const tertiaryText = AppColor(light: Color.fromRGBO(28, 28, 30, 0.4), dark: Color.fromRGBO(255, 255, 255, 0.4));
-  static const quaternaryText = AppColor(light: Color.fromRGBO(28, 28, 30, 0.33), dark: Color.fromRGBO(255, 255, 255, 0.33));
+  static const text = AppColor(light: Color.fromRGBO(80, 80, 80, 1.0), dark: Color.fromRGBO(229, 229, 234, 1.0));
+  static const secondaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.6), dark: Color.fromRGBO(255, 255, 255, 0.6));
+  static const tertiaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.4), dark: Color.fromRGBO(255, 255, 255, 0.4));
+  static const quaternaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.33), dark: Color.fromRGBO(255, 255, 255, 0.33));
   static const placeholderText = AppColor(light: Color.fromRGBO(60, 60, 67, .5), dark: Color.fromRGBO(142, 142, 147, 1.0));
 
   // Chat bubbles
