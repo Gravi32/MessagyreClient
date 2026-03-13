@@ -32,23 +32,18 @@ const SubjectSchema = CollectionSchema(
       name: r'iconCodePoint',
       type: IsarType.long,
     ),
-    r'imagePath': PropertySchema(
-      id: 3,
-      name: r'imagePath',
-      type: IsarType.string,
-    ),
     r'isLocked': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'isLocked',
       type: IsarType.bool,
     ),
     r'lockedGrade': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'lockedGrade',
       type: IsarType.double,
     ),
     r'name': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'name',
       type: IsarType.string,
     )
@@ -88,12 +83,6 @@ int _subjectEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.code.length * 3;
-  {
-    final value = object.imagePath;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   bytesCount += 3 + object.name.length * 3;
   return bytesCount;
 }
@@ -107,10 +96,9 @@ void _subjectSerialize(
   writer.writeString(offsets[0], object.code);
   writer.writeLong(offsets[1], object.colorValue);
   writer.writeLong(offsets[2], object.iconCodePoint);
-  writer.writeString(offsets[3], object.imagePath);
-  writer.writeBool(offsets[4], object.isLocked);
-  writer.writeDouble(offsets[5], object.lockedGrade);
-  writer.writeString(offsets[6], object.name);
+  writer.writeBool(offsets[3], object.isLocked);
+  writer.writeDouble(offsets[4], object.lockedGrade);
+  writer.writeString(offsets[5], object.name);
 }
 
 Subject _subjectDeserialize(
@@ -124,10 +112,9 @@ Subject _subjectDeserialize(
   object.colorValue = reader.readLongOrNull(offsets[1]);
   object.iconCodePoint = reader.readLongOrNull(offsets[2]);
   object.id = id;
-  object.imagePath = reader.readStringOrNull(offsets[3]);
-  object.isLocked = reader.readBool(offsets[4]);
-  object.lockedGrade = reader.readDoubleOrNull(offsets[5]);
-  object.name = reader.readString(offsets[6]);
+  object.isLocked = reader.readBool(offsets[3]);
+  object.lockedGrade = reader.readDoubleOrNull(offsets[4]);
+  object.name = reader.readString(offsets[5]);
   return object;
 }
 
@@ -145,12 +132,10 @@ P _subjectDeserializeProp<P>(
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
-    case 4:
       return (reader.readBool(offset)) as P;
-    case 5:
+    case 4:
       return (reader.readDoubleOrNull(offset)) as P;
-    case 6:
+    case 5:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -666,152 +651,6 @@ extension SubjectQueryFilter
     });
   }
 
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'imagePath',
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'imagePath',
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'imagePath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'imagePath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'imagePath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'imagePath',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'imagePath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'imagePath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'imagePath',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'imagePath',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'imagePath',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterFilterCondition> imagePathIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'imagePath',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<Subject, Subject, QAfterFilterCondition> isLockedEqualTo(
       bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -1074,18 +913,6 @@ extension SubjectQuerySortBy on QueryBuilder<Subject, Subject, QSortBy> {
     });
   }
 
-  QueryBuilder<Subject, Subject, QAfterSortBy> sortByImagePath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'imagePath', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterSortBy> sortByImagePathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'imagePath', Sort.desc);
-    });
-  }
-
   QueryBuilder<Subject, Subject, QAfterSortBy> sortByIsLocked() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isLocked', Sort.asc);
@@ -1173,18 +1000,6 @@ extension SubjectQuerySortThenBy
     });
   }
 
-  QueryBuilder<Subject, Subject, QAfterSortBy> thenByImagePath() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'imagePath', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Subject, Subject, QAfterSortBy> thenByImagePathDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'imagePath', Sort.desc);
-    });
-  }
-
   QueryBuilder<Subject, Subject, QAfterSortBy> thenByIsLocked() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isLocked', Sort.asc);
@@ -1243,13 +1058,6 @@ extension SubjectQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Subject, Subject, QDistinct> distinctByImagePath(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'imagePath', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Subject, Subject, QDistinct> distinctByIsLocked() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isLocked');
@@ -1293,12 +1101,6 @@ extension SubjectQueryProperty
   QueryBuilder<Subject, int?, QQueryOperations> iconCodePointProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'iconCodePoint');
-    });
-  }
-
-  QueryBuilder<Subject, String?, QQueryOperations> imagePathProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'imagePath');
     });
   }
 

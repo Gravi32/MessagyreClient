@@ -14,8 +14,6 @@ class Subject {
 
   late String name;
 
-  String? imagePath;
-
   int? iconCodePoint;
 
   int? colorValue;
