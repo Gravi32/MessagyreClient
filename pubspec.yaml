@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 2.43.682+682
+version: 2.46.692+692
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -48,6 +48,9 @@ version: 2.43.682+682
 # 2.41  Improved pages placeholders
 # 2.42  Changed new grade page autocomplete options to match the new subjects system
 # 2.43  Added a "missing content" warning to the assignment page
+# 2.44  Added a report card page
+# 2.45  Implemented locked subjects
+# 2.46  Added a general average chart showing its progress
 
 environment:
   sdk: ^3.7.2
@@ -127,7 +130,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/full.png"           # Generic Icon
+  image_path: "assets/icons/full.png" # Generic Icon
   # image_path: "assets/icons/full-christmas.png"   # Christmas Icon
 
 flutter_native_splash:
@@ -136,10 +139,8 @@ flutter_native_splash:
 
   image: assets/icons/purple.png
   image_dark: assets/icons/white.png
-  
+
   color: "#ffffff"
   color_dark: "#000000"
 
   android_gravity: center
-
-  
