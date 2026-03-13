@@ -343,9 +343,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 10),
               ],
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               CupertinoListSection.insetGrouped(
                 margin: EdgeInsets.zero,
