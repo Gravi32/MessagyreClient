@@ -53,31 +53,41 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
               decoration: BoxDecoration(color: AppColors.text.adaptTo(context).withAlpha(isSelected ? 20 : 5), borderRadius: BorderRadius.circular(12)),
               child: Opacity(
                 opacity: (thisDay.weekday + 1) % 7 < 2 ? .4 : 1,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Text(
-                      DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
-                      style:
-                          isSelected
-                              ? TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)
-                              : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                    ),
-                    Text(thisDay.day.toString(), style: TextStyle(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 20)),
-                    SizedBox(height: 6),
-                    Row(
-                      spacing: 2,
+                    Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(min(thisDaysAssignments.length, 3), (index) {
-                        final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
-                        if (thisDaysAssignment == null) return SizedBox.shrink();
+                      children: [
+                        Text(
+                          DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
+                          style:
+                              isSelected
+                                  ? TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)
+                                  : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                        ),
+                        Text(thisDay.day.toString(), style: TextStyle(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 20)),
+                        const SizedBox(height: 8,)
+                      ],
+                    ),
+                    Positioned(
+                      bottom: 5,
+                      right: 0,
+                      left: 0,
+                      child: Row(
+                        spacing: 2,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(min(thisDaysAssignments.length, 3), (index) {
+                          final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
+                          if (thisDaysAssignment == null) return SizedBox.shrink();
 
-                        final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
+                          final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
 
-                        return thisDaysAssignment.type == AssignmentType.leave
-                            ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
-                            : Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: BoxShape.circle));
-                      }),
+                          return thisDaysAssignment.type == AssignmentType.leave
+                              ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
+                              : Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: BoxShape.circle));
+                        }),
+                      ),
                     ),
                   ],
                 ),
