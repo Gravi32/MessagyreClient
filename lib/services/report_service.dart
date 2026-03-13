@@ -13,8 +13,10 @@ class ReportService {
   final database = DatabaseService();
   final globals = GlobalsService();
 
-  late final List<Grade> allGrades = database.grades.getAll();
-  late final List<Subject> allSubjects = database.subjects.getAll();
+  List<Grade> get allGrades => database.grades.getAll();
+  List<Subject> get allSubjects => database.subjects.getAll().sorted(
+    (a, b) => (a.isLocked ? 1 : 0).compareTo(b.isLocked ? 1 : 0) == 0 ? a.name.toLowerCase().compareTo(b.name.toLowerCase()) : (a.isLocked ? 1 : -1),
+  );
 
   bool get usingDoubleCompensation => globals.persistent.getBool("UseDoubleCompensation") ?? false;
   bool get usingRestrictedGroup => globals.persistent.getBool("UseRestrictedGroup") ?? false;
@@ -28,14 +30,14 @@ class ReportService {
     final averages = <String, double>{};
 
     for (final subject in allSubjects) {
-      if (subject.isLocked) {
-        averages[subject.code] = subject.lockedGrade ?? 0;
+      if (subject.isLocked && subject.lockedGrade != null) {
+        averages[subject.code] = subject.lockedGrade!;
         continue;
       }
 
       final subjectGrades = allGrades.where((g) => g.subject.value?.code == subject.code).toList();
 
-      averages[subject.code] = subjectGrades.isEmpty ? 0 : calculateAverage(subjectGrades, round: true);
+      if (subjectGrades.isNotEmpty) averages[subject.code] = calculateAverage(subjectGrades, round: true);
     }
 
     return averages;

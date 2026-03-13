@@ -46,8 +46,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   Widget buildTotalPointsPart() {
     var totalPoints = report.totalPoints;
-    final minPoints = report.allSubjects.length * 4;
-    final maxPoints = report.allSubjects.length * 6;
+    final minPoints = report.allAverages.length * 4;
+    final maxPoints = report.allAverages.length * 6;
 
     final isLowerThanMinimum = totalPoints < minPoints;
 
@@ -170,7 +170,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 child: Column(
                   children: [
                     for (final subject in report.allSubjects.indexed) ...[
-                      if (!report.restrictedGroupSubjectCodes.contains(subject.$2.code)) buildSubjectRow(subject.$2),
+                      if (!(report.usingRestrictedGroup && report.restrictedGroupSubjectCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
                       if (subject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                     ],
                     if (report.usingRestrictedGroup && report.restrictedGroupSubjects.isNotEmpty) ...[
