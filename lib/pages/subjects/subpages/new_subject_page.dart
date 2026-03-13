@@ -268,7 +268,6 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
   final subjectFocusNode = FocusNode();
   final titleFocusNode = FocusNode();
-  final contentFocusNode = FocusNode();
 
   late final ValueNotifier<Color> colorNotifier = ValueNotifier(widget.toEdit?.color ?? AppColors.grey);
   late final ValueNotifier<IconData> iconNotifier = ValueNotifier(widget.toEdit?.icon ?? Icons.question_mark_rounded);
@@ -301,7 +300,6 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   void unfocusFields() {
     subjectFocusNode.unfocus();
     titleFocusNode.unfocus();
-    contentFocusNode.unfocus();
   }
 
   void showMissingInfoPopup() {
@@ -328,7 +326,6 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
     nameController.dispose();
     subjectFocusNode.dispose();
     titleFocusNode.dispose();
-    contentFocusNode.dispose();
     iconNotifier.dispose();
     colorNotifier.dispose();
     super.dispose();
