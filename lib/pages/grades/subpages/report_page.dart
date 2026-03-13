@@ -52,6 +52,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
     final isLowerThanMinimum = totalPoints < minPoints;
 
     final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
+    final difference = (minPoints - totalPoints).abs().removeTrailingZero();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,8 +61,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
         const Text("Points totaux", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
         Text(
           isLowerThanMinimum
-              ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
-              : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
+              ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
+              : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
           style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
         ),
         const SizedBox(height: 6),
@@ -90,6 +91,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
     final isLowerThanMinimum = totalPoints < minPoints;
 
     final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
+    final difference = (minPoints - totalPoints).abs().removeTrailingZero();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -98,8 +100,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
         const Text("Points du groupe restreint", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
         Text(
           isLowerThanMinimum
-              ? "Encore ${(minPoints - totalPoints).removeTrailingZero()} points, courage !"
-              : "${(totalPoints - minPoints).removeTrailingZero()} points au-dessus du minimum !",
+              ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
+              : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
           style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
         ),
         const SizedBox(height: 6),
@@ -129,6 +131,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
     final isFailing = result < 0;
 
     final progress = result / (deficit.abs() + surplus);
+    final difference = result.abs() * 2.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -136,7 +139,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
       children: [
         const Text("Double compensation", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
         if (isFailing)
-          Text("+${(result.abs() * 2.0).removeTrailingZero()} points pour compenser, courage !", style: TextStyle(fontSize: 14, color: AppColors.red)),
+          Text(
+            "+${difference.removeTrailingZero()} point${difference == 1.0 ? "" : "s"} pour compenser, courage !",
+            style: TextStyle(fontSize: 14, color: AppColors.red),
+          ),
         const SizedBox(height: 6),
 
         NumberedProgressBar(
