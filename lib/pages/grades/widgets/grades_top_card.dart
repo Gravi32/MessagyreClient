@@ -54,38 +54,36 @@ class _GradesTopCardState extends State<GradesTopCard> {
         Expanded(
           child: Stack(
             children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 10, left: 100),
-                  child: LineChart(
-                    LineChartData(
-                      minY: 1,
-                      maxY: 6,
-                      lineBarsData: [
-                        LineChartBarData(
-                          color: AppColors.accent,
-                          isCurved: true,
-                          barWidth: 3,
-                          preventCurveOverShooting: true,
-                          isStrokeCapRound: true,
-                          isStrokeJoinRound: true,
-                          dotData: FlDotData(show: false),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [AppColors.accent.withAlpha(80), AppColors.transparent],
-                            ),
+              Padding(
+                padding: EdgeInsets.only(top: 10, left: 100),
+                child: LineChart(
+                  LineChartData(
+                    minY: 1,
+                    maxY: 6,
+                    lineBarsData: [
+                      LineChartBarData(
+                        color: AppColors.accent,
+                        isCurved: true,
+                        barWidth: 3,
+                        preventCurveOverShooting: true,
+                        isStrokeCapRound: true,
+                        isStrokeJoinRound: true,
+                        dotData: FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [AppColors.accent.withAlpha(80), AppColors.transparent],
                           ),
-                          spots: averageByDay.mapIndexed((index, thisDayAverage) => FlSpot(index / averageByDay.length, thisDayAverage)).toList(),
                         ),
-                      ],
-                      titlesData: FlTitlesData(show: false),
-                      lineTouchData: LineTouchData(enabled: false),
-                      gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
-                      borderData: FlBorderData(show: false),
-                    ),
+                        spots: averageByDay.mapIndexed((index, thisDayAverage) => FlSpot(index / averageByDay.length, thisDayAverage)).toList(),
+                      ),
+                    ],
+                    titlesData: FlTitlesData(show: false),
+                    lineTouchData: LineTouchData(enabled: false),
+                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
+                    borderData: FlBorderData(show: false),
                   ),
                 ),
               ),
@@ -290,7 +288,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
     final recentCount = min(3, total);
     final recentGrades = grades..sort((a, b) => b.date.compareTo(a.date));
     final recentAverage = recentGrades.take(recentCount).map((g) => g.grade).reduce((a, b) => a + b) / recentCount;
-    
+
     // Build the grid of statistics
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
