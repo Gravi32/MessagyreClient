@@ -125,12 +125,10 @@ final List<IconData> availableIcons = [
   Icons.place,
   Icons.flag,
   Icons.landscape,
-  Icons.public,
   Icons.terrain,
   Icons.emoji_flags,
   Icons.sailing,
   Icons.park,
-  Icons.waves,
   Icons.campaign,
 
   // Art / Music / Creativity
@@ -196,116 +194,69 @@ final List<IconData> availableIcons = [
   Icons.build,
   Icons.extension,
   Icons.new_releases,
-  Icons.light_mode,
-  Icons.dark_mode,
-  Icons.bug_report,
   Icons.settings,
   Icons.settings_applications,
   Icons.build_circle,
-  Icons.biotech,
   Icons.science_outlined,
   Icons.auto_fix_high,
-  Icons.autorenew,
 ];
 
 final List<Color> availableColors = [
-  // Reds (12)
+  // Red
   const Color(0xFF880E4F),
   const Color(0xFF9A0036),
   const Color(0xFFB71C1C),
   const Color(0xFFC62828),
   const Color(0xFFD32F2F),
   const Color(0xFFE53935),
-  const Color(0xFFF44336),
-  const Color(0xFFEF5350),
-  const Color(0xFFE57373),
-  const Color(0xFFEF9A9A),
-  const Color(0xFFFF8A80),
-  const Color(0xFFFF5252),
 
-  // Oranges / Ambers (12)
+  // Orange
   const Color(0xFFE65100),
   const Color(0xFFEF6C00),
   const Color(0xFFF57C00),
-  const Color(0xFFFB8C00),
   const Color(0xFFFF6F00),
-  const Color(0xFFFF8F00),
+  const Color(0xFFFB8C00),
   const Color(0xFFFFA726),
-  const Color(0xFFFFB74D),
-  const Color(0xFFFFCC80),
-  const Color(0xFFFFD180),
-  const Color(0xFFFFE0B2),
-  const Color(0xFFFFF3E0),
 
-  // Greens (12)
+  // Green
   const Color(0xFF1B5E20),
-  const Color(0xFF2E7D32),
   const Color(0xFF33691E),
+  const Color(0xFF2E7D32),
   const Color(0xFF388E3C),
   const Color(0xFF43A047),
   const Color(0xFF4CAF50),
-  const Color(0xFF66BB6A),
-  const Color(0xFF81C784),
-  const Color(0xFFA5D6A7),
-  const Color(0xFFB9F6CA),
-  const Color(0xFF69F0AE),
-  const Color(0xFF00E676),
 
-  // Blues (12)
+  // Blue
   const Color(0xFF0D47A1),
   const Color(0xFF1565C0),
   const Color(0xFF1976D2),
   const Color(0xFF1E88E5),
   const Color(0xFF2196F3),
   const Color(0xFF42A5F5),
-  const Color(0xFF64B5F6),
-  const Color(0xFF90CAF9),
-  const Color(0xFFBBDEFB),
-  const Color(0xFF64C5F6),
-  const Color(0xFF42D5F5),
-  const Color(0xFF29E0F7),
 
-  // Purples (12)
+  // Purple
   const Color(0xFF311B92),
   const Color(0xFF4A148C),
   const Color(0xFF4527A0),
   const Color(0xFF512DA8),
   const Color(0xFF6A1B9A),
   const Color(0xFF7B1FA2),
-  const Color(0xFF8E24AA),
-  const Color(0xFF9C27B0),
-  const Color(0xFFAB47BC),
-  const Color(0xFFBA68C8),
-  const Color(0xFFCE93D8),
-  const Color(0xFFE1BEE7),
 
-  // Browns (12)
+  // Brown
   const Color(0xFF3E2723),
   const Color(0xFF4B2E2B),
   const Color(0xFF4E342E),
   const Color(0xFF5D4037),
   const Color(0xFF6D4C41),
   const Color(0xFF795548),
-  const Color(0xFF8D6E63),
-  const Color(0xFFA1887F),
-  const Color(0xFFBCAAA4),
-  const Color(0xFFD7CCC8),
-  const Color(0xFFE0B8A0),
-  const Color(0xFFC49A7D),
 
-  // Teals / Cyans (12)
+  // Teal / Cyan
   const Color(0xFF004D40),
   const Color(0xFF006064),
   const Color(0xFF00695C),
   const Color(0xFF00796B),
   const Color(0xFF00838F),
   const Color(0xFF009688),
-  const Color(0xFF26A69A),
-  const Color(0xFF4DB6AC),
-  const Color(0xFF80CBC4),
-  const Color(0xFFB2DFDB),
-  const Color(0xFF80E5E0),
-  const Color(0xFF4DEEE8),
 ];
 
 class _NewSubjectPageState extends State<NewSubjectPage> {
