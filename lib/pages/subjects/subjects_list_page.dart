@@ -8,6 +8,7 @@ import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_p
 import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
@@ -124,7 +125,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                           title: Row(
                             spacing: 6,
                             children: [
-                              SubjectBadge(subject: compositeSubject.firstSubject.value ?? Subject()),
+                              CompositeSubjectBadge(compositeSubject: compositeSubject),
                               const SizedBox(width: 4),
                               Text(compositeSubject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                             ],
