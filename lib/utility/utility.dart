@@ -5,8 +5,10 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 
 // #region -> Strings
@@ -227,6 +229,23 @@ double calculateAverage(List<Grade> grades, {bool round = false}) {
   }
 
   final double result = totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
+
+  return round ? (result * 2).roundToDouble() / 2 : result;
+}
+
+double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {bool round = false}) {
+  final database = DatabaseService();
+  final allGrades = database.grades.getAll();
+
+  final firstSubjectGrades = allGrades.where((g) => g.subject.value?.code == compositeSubject.firstSubject.value?.code).toList();
+  if (firstSubjectGrades.isEmpty) return null;
+  final secondSubjectGrades = allGrades.where((g) => g.subject.value?.code == compositeSubject.secondSubject.value?.code).toList();
+  if (secondSubjectGrades.isEmpty) return null;
+
+  final result =
+      (calculateAverage(firstSubjectGrades) * compositeSubject.firstSubjectPeriodsPerWeek +
+          calculateAverage(firstSubjectGrades) * compositeSubject.firstSubjectPeriodsPerWeek) /
+      compositeSubject.totalPeriodsPerWeek;
 
   return round ? (result * 2).roundToDouble() / 2 : result;
 }

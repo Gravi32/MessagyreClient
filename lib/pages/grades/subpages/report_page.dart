@@ -5,10 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
@@ -25,9 +27,9 @@ class _ReportCardPageState extends State<ReportCardPage> {
   final report = ReportService();
 
   Widget buildSubjectRow(Subject subject) {
-    double? grade = subject.lockedGrade ?? report.allAverages[subject.code];
+    double? average = subject.lockedGrade ?? report.allAverages[subject.code];
 
-    if (grade != null && grade < 1) grade = null;
+    if (average != null && average < 1) average = null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -38,7 +40,26 @@ class _ReportCardPageState extends State<ReportCardPage> {
           const SizedBox(width: 8),
           Expanded(child: Text(subject.name, style: TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
           if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
-          Text((grade ?? "-").toString(), style: TextStyle(fontSize: 18, color: (grade ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
+          Text((average ?? "-").toString(), style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+
+  Widget buildCompositeSubjectRow(CompositeSubject compositeSubject) {
+    double? average = calculateCompositeSubjectAverage(compositeSubject);
+
+    if (average != null && average < 1) average = null;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        spacing: 4,
+        children: [
+          CompositeSubjectBadge(compositeSubject: compositeSubject, size: 24),
+          const SizedBox(width: 8),
+          Expanded(child: Text(compositeSubject.name, style: TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
+          Text((average ?? "-").toString(), style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
         ],
       ),
     );
@@ -170,15 +191,25 @@ class _ReportCardPageState extends State<ReportCardPage> {
           child: ListView(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             children: [
+              // All subjects list
               Container(
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                 child: Column(
                   children: [
+                    // Composite subjects
+                    for (final compositeSubject in report.allCompositeSubjects.indexed) ...[
+                      buildCompositeSubjectRow(compositeSubject.$2),
+                      if (compositeSubject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                    ],
+
+                    // Normal subjects
                     for (final subject in report.allSubjects.indexed) ...[
                       if (!(report.usingRestrictedGroup && report.restrictedGroupSubjectCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
                       if (subject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                     ],
+
+                    // Restricted group subjects
                     if (report.usingRestrictedGroup && report.restrictedGroupSubjects.isNotEmpty) ...[
                       Padding(padding: EdgeInsets.only(top: 10, bottom: 2), child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600))),
                       for (final restrictedGroupSubject in report.restrictedGroupSubjects.indexed) ...[
