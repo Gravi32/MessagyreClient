@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
@@ -29,7 +30,7 @@ class _GradesListPageState extends State<GradesListPage> {
 
   final database = DatabaseService();
 
-  Widget buildSubjectsGrid(List<Subject> subjects) {
+  Widget buildSubjectsGrid(List<Subject> subjects, List<CompositeSubject> compositeSubjects) {
     const double maxHeight = 250;
 
     final rows = (subjects.length / 2).ceil();
@@ -47,10 +48,11 @@ class _GradesListPageState extends State<GradesListPage> {
       ),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: subjects.length,
+      itemCount: subjects.length + compositeSubjects.length,
       itemBuilder: (context, index) {
-        final subject = subjects[index];
-        return SubjectCard(subject: subject);
+        final subject = subjects.elementAtOrNull(index);
+        final compositeSubject = subject == null ? compositeSubjects.elementAt(index - subjects.length) : null;
+        return SubjectCard(subject: subject, compositeSubject: compositeSubject);
       },
     );
 
@@ -109,7 +111,8 @@ class _GradesListPageState extends State<GradesListPage> {
                     final allGrades = database.grades.getAll().sortedBy((grade) => grade.date).reversed;
 
                     // A list of all the subjects with at least 1 grade
-                    final List<Subject> allSubjects = database.subjects.getAll().sorted((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
+                    final List<Subject> allSubjects = database.subjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
+                    final List<CompositeSubject> allCompositeSubjects = database.compositeSubjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
 
                     return SingleChildScrollView(
                       child: Column(
@@ -142,7 +145,7 @@ class _GradesListPageState extends State<GradesListPage> {
                             ],
                           ),
 
-                          buildSubjectsGrid(allSubjects),
+                          buildSubjectsGrid(allSubjects, allCompositeSubjects),
 
                           if (allGrades.isNotEmpty) ...[
                             SizedBox(),

@@ -31,7 +31,8 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
               builder: (context, _) {
                 // All the grades
                 final allGrades = database.grades.getAll();
-                final allSubjects = database.subjects.getAll().sorted((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
+                final allSubjects = database.subjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
+                final allCompositeSubjects = database.compositeSubjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
 
                 // A list of all the subjects with at least 1 grade
                 final List<Subject> allActiveSubjects = [];
@@ -71,10 +72,11 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                         ),
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: allActiveSubjects.length,
+                        itemCount: allCompositeSubjects.length + allActiveSubjects.length,
                         itemBuilder: (context, index) {
-                          final subject = allActiveSubjects[index];
-                          return SubjectCard(subject: subject);
+                          final compositeSubject = allCompositeSubjects.elementAtOrNull(index);
+                          final subject = compositeSubject == null ? allSubjects.elementAt(index - allCompositeSubjects.length) : null;
+                          return SubjectCard(subject: subject, compositeSubject: compositeSubject);
                         },
                       ),
 
