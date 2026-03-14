@@ -8,7 +8,8 @@ class CustomText extends StatelessWidget {
   final bool softWrap;
   final TextOverflow overflow;
   final int? maxLines;
-  final List<InlineSpan>? extraSpans;
+  final List<InlineSpan>? prefixSpans;
+  final List<InlineSpan>? suffixSpans;
   final TextAlign textAlign;
 
   const CustomText(
@@ -19,12 +20,13 @@ class CustomText extends StatelessWidget {
     this.softWrap = true,
     this.overflow = TextOverflow.clip,
     this.maxLines,
-    this.extraSpans,
+    this.prefixSpans,
+    this.suffixSpans,
     this.textAlign = TextAlign.start,
   });
 
   static List<InlineSpan> parseSpans(String text, {TextStyle? style, FontWeight? boldWeight}) {
-    final spans = <TextSpan>[];
+    final spans = <InlineSpan>[];
     final regex = RegExp(r'\*(.*?)\*');
     int lastMatchEnd = 0;
 
@@ -52,17 +54,17 @@ class CustomText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spans = parseSpans(text, style: style, boldWeight: boldWeight);
-    if (extraSpans != null) {
-      spans.addAll(extraSpans!);
-    }
+    final spans = <InlineSpan>[
+      if (prefixSpans != null) ...prefixSpans!,
+      ...parseSpans(text, style: style, boldWeight: boldWeight),
+      if (suffixSpans != null) ...suffixSpans!,
+    ];
 
     return RichText(
       text: TextSpan(
         children: spans,
         style: (style ?? DefaultTextStyle.of(context).style).merge(TextStyle(color: style?.color ?? DefaultTextStyle.of(context).style.color)),
       ),
-
       overflow: overflow,
       softWrap: softWrap,
       maxLines: maxLines,

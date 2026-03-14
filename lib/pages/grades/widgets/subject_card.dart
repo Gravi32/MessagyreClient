@@ -18,6 +18,7 @@ class SubjectCard extends StatelessWidget {
   const SubjectCard({super.key, this.subject, this.compositeSubject});
 
   void pushPage(BuildContext context, Subject pageSubject) {
+    Navigator.pop(context);
     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: pageSubject)));
   }
 
@@ -78,6 +79,30 @@ class SubjectCard extends StatelessWidget {
               builder:
                   (context) => CupertinoActionSheet(
                     actions: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 10,
+                          children: [
+                            Row(
+                              spacing: 6,
+                              children: [
+                                HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
+                                Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
+                                Spacer(),
+                                HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
+                              ],
+                            ),
+
+                            CustomText(
+                              "\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            Text("Appuyez pour voir les notes de :", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                          ],
+                        ),
+                      ),
                       CupertinoActionSheetAction(
                         onPressed: () => pushPage(context, firstSubject),
                         child: Row(
@@ -85,6 +110,8 @@ class SubjectCard extends StatelessWidget {
                           children: [
                             Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SubjectBadge(subject: firstSubject)),
                             Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
+                            Spacer(),
+                            CupertinoListTileChevron(),
                           ],
                         ),
                       ),
@@ -95,6 +122,8 @@ class SubjectCard extends StatelessWidget {
                           children: [
                             Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SubjectBadge(subject: secondSubject)),
                             Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
+                            Spacer(),
+                            CupertinoListTileChevron(),
                           ],
                         ),
                       ),
