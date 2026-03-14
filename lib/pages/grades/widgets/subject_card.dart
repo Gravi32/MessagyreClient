@@ -17,8 +17,8 @@ class SubjectCard extends StatelessWidget {
 
   const SubjectCard({super.key, this.subject, this.compositeSubject});
 
-  void pushPage(BuildContext context, Subject pageSubject) {
-    Navigator.pop(context);
+  void pushPage(BuildContext context, Subject pageSubject, {BuildContext? dialogContext}) {
+    if (dialogContext != null && dialogContext.mounted) Navigator.pop(dialogContext);
     Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: pageSubject)));
   }
 
@@ -51,6 +51,7 @@ class SubjectCard extends StatelessWidget {
       child: CupertinoButton(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         onPressed: () {
+          // If the subject is locked
           if (isSubjectLocked) {
             showCupertinoDialog(
               context: context,
@@ -64,10 +65,16 @@ class SubjectCard extends StatelessWidget {
                     actions: [CupertinoDialogAction(child: Text("Fermer"), onPressed: () => Navigator.pop(context))],
                   ),
             );
+            return;
           }
 
-          if (subject != null) pushPage(context, subject!);
+          // If it's a normal subject
+          if (subject != null) {
+            pushPage(context, subject!);
+            return;
+          }
 
+          // If it's a composite subject
           if (compositeSubject != null) {
             final firstSubject = compositeSubject?.firstSubject.value;
             final secondSubject = compositeSubject?.secondSubject.value;
@@ -77,7 +84,7 @@ class SubjectCard extends StatelessWidget {
             showCupertinoModalPopup(
               context: context,
               builder:
-                  (context) => CupertinoActionSheet(
+                  (dialogContext) => CupertinoActionSheet(
                     actions: [
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -104,7 +111,7 @@ class SubjectCard extends StatelessWidget {
                         ),
                       ),
                       CupertinoActionSheetAction(
-                        onPressed: () => pushPage(context, firstSubject),
+                        onPressed: () => pushPage(context, firstSubject, dialogContext: dialogContext),
                         child: Row(
                           spacing: 8,
                           children: [
@@ -116,7 +123,7 @@ class SubjectCard extends StatelessWidget {
                         ),
                       ),
                       CupertinoActionSheetAction(
-                        onPressed: () => pushPage(context, secondSubject),
+                        onPressed: () => pushPage(context, secondSubject, dialogContext: dialogContext),
                         child: Row(
                           spacing: 8,
                           children: [
