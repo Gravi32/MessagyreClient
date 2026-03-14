@@ -295,6 +295,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                             globals.persistent.setStringList("RestrictedGroupSubjects", newList);
                             setState(() {});
                           },
+                          useCompositeSubjects: true,
                         ),
                       ),
                   ],

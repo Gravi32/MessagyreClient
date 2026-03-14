@@ -5,6 +5,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
@@ -23,6 +24,7 @@ class SubjectAutocomplete extends StatefulWidget {
   final double optionsMaxHeight;
   final bool forceValid;
   final bool enabled;
+  final bool useCompositeSubjects;
 
   const SubjectAutocomplete({
     super.key,
@@ -40,6 +42,7 @@ class SubjectAutocomplete extends StatefulWidget {
     this.optionsMaxHeight = 180,
     this.forceValid = true,
     this.enabled = true,
+    this.useCompositeSubjects = false,
   });
 
   @override
@@ -48,6 +51,7 @@ class SubjectAutocomplete extends StatefulWidget {
 
 class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
   final database = DatabaseService();
+  final report = ReportService();
 
   late TextEditingController _controller;
   late FocusNode _focusNode;
@@ -58,7 +62,8 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
     _focusNode = widget.focusNode ?? FocusNode();
-    _subjectsNormalized = database.subjects.getAll().map((subject) => MapEntry(subject, _normalize(subject.name))).toList();
+    _subjectsNormalized =
+        (widget.useCompositeSubjects ? report.allSubjects : database.subjects.getAll()).map((subject) => MapEntry(subject, _normalize(subject.name))).toList();
     if (widget.forceValid) {
       _focusNode.addListener(() {
         if (!_focusNode.hasFocus) _validateAndFix();
