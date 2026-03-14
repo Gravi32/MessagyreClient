@@ -14,13 +14,15 @@ class CompositeSubject {
   late String name;
 
   final firstSubject = IsarLink<Subject>();
-  late double firstSubjectWeight;
+  late double firstSubjectPeriodsPerWeek;
 
   final secondSubject = IsarLink<Subject>();
-  late double secondSubjectWeight;
+  late double secondSubjectPeriodsPerWeek;
 
   CompositeSubject();
 
   @override
   String toString() => name;
+
+  double get totalPeriodsPerWeek => firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek;
 }

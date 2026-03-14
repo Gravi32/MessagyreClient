@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -77,6 +78,8 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
               return a.name.toLowerCase().compareTo(b.name.toLowerCase());
             });
 
+            final allCompositeSubjects = database.compositeSubjects.getAll().sorted((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
             return ListView(
               padding: EdgeInsets.only(bottom: 20),
               physics: const ClampingScrollPhysics(),
@@ -105,39 +108,33 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                       ),
                     ),
                   ],
-
-                  // CupertinoListSection.insetGrouped(
-                  //   margin: EdgeInsets.symmetric(horizontal: 10),
-                  //   backgroundColor: AppColors.transparent,
-                  //   header: Text("Branches composées"),
-                  //   children: [
-                  //     ...allSubjects.map(
-                  //       (subject) => CupertinoListTile(
-                  //         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  //         leading: SizedBox(
-                  //           width: 28,
-                  //           height: 28,
-                  //           child: Container(
-                  //             decoration: BoxDecoration(
-                  //               color: subject.color.withBrightness(-.15),
-                  //               border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                  //               borderRadius: BorderRadius.circular(10),
-                  //             ),
-                  //             child: Center(child: Icon(subject.icon, color: subject.color, size: 18)),
-                  //           ),
-                  //         ),
-                  //         title: Text(subject.name),
-                  //       ),
-                  //     ),
-
-                  //     CupertinoListTile(
-                  //       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  //       leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01),
-                  //       title: Text("Ajouter"),
-                  //     ),
-                  //   ],
-                  // ),
                 ),
+
+                if (allCompositeSubjects.isNotEmpty)
+                  CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    backgroundColor: AppColors.transparent,
+                    header: Text("Branches composées"),
+
+                    children: [
+                      ...allCompositeSubjects.map(
+                        (compositeSubject) => CupertinoListTile.notched(
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                          padding: EdgeInsets.all(10),
+                          title: Row(
+                            spacing: 6,
+                            children: [
+                              SubjectBadge(subject: compositeSubject.firstSubject.value ?? Subject()),
+                              const SizedBox(width: 4),
+                              Text(compositeSubject.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                            ],
+                          ),
+                          trailing: CupertinoListTileChevron(),
+                          onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewCompositeSubjectPage(toEdit: compositeSubject))),
+                        ),
+                      ),
+                    ],
+                  ),
 
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.symmetric(horizontal: 10),
@@ -146,16 +143,28 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                   footer: Padding(
                     padding: EdgeInsets.only(top: 20),
                     child: CustomText(
-                      "Ajoutez ici les branches pour lesquelles vous souhaitez ajouter des notes et des devoirs. Vous pourrez toujours en ajouter ou en supprimer plus tard dans *Réglages > Branches*.",
+                      "Ajoutez ici les branches pour lesquelles vous souhaitez ajouter des notes et des devoirs. ${widget.isBootstrap ? "Vous pourrez toujours en ajouter ou en supprimer plus tard dans *Réglages > Branches*." : ""}",
                       style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 12),
                     ),
                   ),
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context)),
+                      leading: Opacity(
+                        opacity: AppColors.secondaryText.adaptTo(context).a,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                      ),
                       title: Text("Ajouter", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewSubjectPage())),
+                    ),
+                    CupertinoListTile(
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                      leading: Opacity(
+                        opacity: AppColors.secondaryText.adaptTo(context).a,
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, color: AppColors.text.adaptTo(context)),
+                      ),
+                      title: Text("Ajouter une branche composée", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                      onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewCompositeSubjectPage())),
                     ),
                   ],
                 ),

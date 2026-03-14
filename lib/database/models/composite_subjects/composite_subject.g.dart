@@ -22,9 +22,9 @@ const CompositeSubjectSchema = CollectionSchema(
       name: r'code',
       type: IsarType.string,
     ),
-    r'firstSubjectWeight': PropertySchema(
+    r'firstSubjectPeriodsPerWeek': PropertySchema(
       id: 1,
-      name: r'firstSubjectWeight',
+      name: r'firstSubjectPeriodsPerWeek',
       type: IsarType.double,
     ),
     r'name': PropertySchema(
@@ -32,9 +32,14 @@ const CompositeSubjectSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'secondSubjectWeight': PropertySchema(
+    r'secondSubjectPeriodsPerWeek': PropertySchema(
       id: 3,
-      name: r'secondSubjectWeight',
+      name: r'secondSubjectPeriodsPerWeek',
+      type: IsarType.double,
+    ),
+    r'totalPeriodsPerWeek': PropertySchema(
+      id: 4,
+      name: r'totalPeriodsPerWeek',
       type: IsarType.double,
     )
   },
@@ -97,9 +102,10 @@ void _compositeSubjectSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.code);
-  writer.writeDouble(offsets[1], object.firstSubjectWeight);
+  writer.writeDouble(offsets[1], object.firstSubjectPeriodsPerWeek);
   writer.writeString(offsets[2], object.name);
-  writer.writeDouble(offsets[3], object.secondSubjectWeight);
+  writer.writeDouble(offsets[3], object.secondSubjectPeriodsPerWeek);
+  writer.writeDouble(offsets[4], object.totalPeriodsPerWeek);
 }
 
 CompositeSubject _compositeSubjectDeserialize(
@@ -110,10 +116,10 @@ CompositeSubject _compositeSubjectDeserialize(
 ) {
   final object = CompositeSubject();
   object.code = reader.readString(offsets[0]);
-  object.firstSubjectWeight = reader.readDouble(offsets[1]);
+  object.firstSubjectPeriodsPerWeek = reader.readDouble(offsets[1]);
   object.id = id;
   object.name = reader.readString(offsets[2]);
-  object.secondSubjectWeight = reader.readDouble(offsets[3]);
+  object.secondSubjectPeriodsPerWeek = reader.readDouble(offsets[3]);
   return object;
 }
 
@@ -131,6 +137,8 @@ P _compositeSubjectDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readDouble(offset)) as P;
+    case 4:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -472,13 +480,13 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectWeightEqualTo(
+      firstSubjectPeriodsPerWeekEqualTo(
     double value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'firstSubjectWeight',
+        property: r'firstSubjectPeriodsPerWeek',
         value: value,
         epsilon: epsilon,
       ));
@@ -486,7 +494,7 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectWeightGreaterThan(
+      firstSubjectPeriodsPerWeekGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -494,7 +502,7 @@ extension CompositeSubjectQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'firstSubjectWeight',
+        property: r'firstSubjectPeriodsPerWeek',
         value: value,
         epsilon: epsilon,
       ));
@@ -502,7 +510,7 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectWeightLessThan(
+      firstSubjectPeriodsPerWeekLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -510,7 +518,7 @@ extension CompositeSubjectQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'firstSubjectWeight',
+        property: r'firstSubjectPeriodsPerWeek',
         value: value,
         epsilon: epsilon,
       ));
@@ -518,7 +526,7 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectWeightBetween(
+      firstSubjectPeriodsPerWeekBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -527,7 +535,7 @@ extension CompositeSubjectQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'firstSubjectWeight',
+        property: r'firstSubjectPeriodsPerWeek',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -730,13 +738,13 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectWeightEqualTo(
+      secondSubjectPeriodsPerWeekEqualTo(
     double value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'secondSubjectWeight',
+        property: r'secondSubjectPeriodsPerWeek',
         value: value,
         epsilon: epsilon,
       ));
@@ -744,7 +752,7 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectWeightGreaterThan(
+      secondSubjectPeriodsPerWeekGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -752,7 +760,7 @@ extension CompositeSubjectQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'secondSubjectWeight',
+        property: r'secondSubjectPeriodsPerWeek',
         value: value,
         epsilon: epsilon,
       ));
@@ -760,7 +768,7 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectWeightLessThan(
+      secondSubjectPeriodsPerWeekLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -768,7 +776,7 @@ extension CompositeSubjectQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'secondSubjectWeight',
+        property: r'secondSubjectPeriodsPerWeek',
         value: value,
         epsilon: epsilon,
       ));
@@ -776,7 +784,7 @@ extension CompositeSubjectQueryFilter
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectWeightBetween(
+      secondSubjectPeriodsPerWeekBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -785,7 +793,73 @@ extension CompositeSubjectQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'secondSubjectWeight',
+        property: r'secondSubjectPeriodsPerWeek',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+      totalPeriodsPerWeekEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalPeriodsPerWeek',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+      totalPeriodsPerWeekGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalPeriodsPerWeek',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+      totalPeriodsPerWeekLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalPeriodsPerWeek',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+      totalPeriodsPerWeekBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalPeriodsPerWeek',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -846,16 +920,16 @@ extension CompositeSubjectQuerySortBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByFirstSubjectWeight() {
+      sortByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firstSubjectWeight', Sort.asc);
+      return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByFirstSubjectWeightDesc() {
+      sortByFirstSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firstSubjectWeight', Sort.desc);
+      return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.desc);
     });
   }
 
@@ -873,16 +947,30 @@ extension CompositeSubjectQuerySortBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortBySecondSubjectWeight() {
+      sortBySecondSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secondSubjectWeight', Sort.asc);
+      return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortBySecondSubjectWeightDesc() {
+      sortBySecondSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secondSubjectWeight', Sort.desc);
+      return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+      sortByTotalPeriodsPerWeek() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalPeriodsPerWeek', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+      sortByTotalPeriodsPerWeekDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalPeriodsPerWeek', Sort.desc);
     });
   }
 }
@@ -903,16 +991,16 @@ extension CompositeSubjectQuerySortThenBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByFirstSubjectWeight() {
+      thenByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firstSubjectWeight', Sort.asc);
+      return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByFirstSubjectWeightDesc() {
+      thenByFirstSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firstSubjectWeight', Sort.desc);
+      return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.desc);
     });
   }
 
@@ -943,16 +1031,30 @@ extension CompositeSubjectQuerySortThenBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenBySecondSubjectWeight() {
+      thenBySecondSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secondSubjectWeight', Sort.asc);
+      return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenBySecondSubjectWeightDesc() {
+      thenBySecondSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secondSubjectWeight', Sort.desc);
+      return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+      thenByTotalPeriodsPerWeek() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalPeriodsPerWeek', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+      thenByTotalPeriodsPerWeekDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalPeriodsPerWeek', Sort.desc);
     });
   }
 }
@@ -967,9 +1069,9 @@ extension CompositeSubjectQueryWhereDistinct
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
-      distinctByFirstSubjectWeight() {
+      distinctByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'firstSubjectWeight');
+      return query.addDistinctBy(r'firstSubjectPeriodsPerWeek');
     });
   }
 
@@ -981,9 +1083,16 @@ extension CompositeSubjectQueryWhereDistinct
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
-      distinctBySecondSubjectWeight() {
+      distinctBySecondSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'secondSubjectWeight');
+      return query.addDistinctBy(r'secondSubjectPeriodsPerWeek');
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
+      distinctByTotalPeriodsPerWeek() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'totalPeriodsPerWeek');
     });
   }
 }
@@ -1003,9 +1112,9 @@ extension CompositeSubjectQueryProperty
   }
 
   QueryBuilder<CompositeSubject, double, QQueryOperations>
-      firstSubjectWeightProperty() {
+      firstSubjectPeriodsPerWeekProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'firstSubjectWeight');
+      return query.addPropertyName(r'firstSubjectPeriodsPerWeek');
     });
   }
 
@@ -1016,9 +1125,16 @@ extension CompositeSubjectQueryProperty
   }
 
   QueryBuilder<CompositeSubject, double, QQueryOperations>
-      secondSubjectWeightProperty() {
+      secondSubjectPeriodsPerWeekProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'secondSubjectWeight');
+      return query.addPropertyName(r'secondSubjectPeriodsPerWeek');
+    });
+  }
+
+  QueryBuilder<CompositeSubject, double, QQueryOperations>
+      totalPeriodsPerWeekProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'totalPeriodsPerWeek');
     });
   }
 }

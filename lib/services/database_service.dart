@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:isar/isar.dart';
+import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/repositories/assignment_repository.dart';
 import 'package:messagyre_client/database/repositories/chat_repository.dart';
+import 'package:messagyre_client/database/repositories/composite_subject_repository.dart';
 import 'package:messagyre_client/database/repositories/grade_repository.dart';
 import 'package:messagyre_client/database/repositories/message_repository.dart';
 import 'package:messagyre_client/database/repositories/subject_repository.dart';
@@ -29,6 +31,7 @@ class DatabaseService {
   late final assignments = AssignmentRepository(_isar);
   late final grades = GradeRepository(_isar);
   late final subjects = SubjectRepository(_isar);
+  late final compositeSubjects = CompositeSubjectRepository(_isar);
 
   // #endregion
 
@@ -36,7 +39,7 @@ class DatabaseService {
     try {
       final dir = await getApplicationDocumentsDirectory();
 
-      _isar = Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema], directory: dir.path);
+      _isar = Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
     } catch (e, s) {
       debugPrint("[Database Failure] Could not open Isar. $e\n\n$s");
     }
