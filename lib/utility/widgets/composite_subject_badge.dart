@@ -16,11 +16,11 @@ class CompositeSubjectBadge extends StatelessWidget {
         children: [
           ClipPath(
             clipper: _LeftHalfClipper(),
-            child: Padding(padding: EdgeInsets.all(1.5), child: SubjectBadge(subject: compositeSubject.firstSubject.value!, size: size)),
+            child: Padding(padding: EdgeInsets.all(1.5), child: SubjectBadge(subject: compositeSubject.firstSubject.value, size: size)),
           ),
           ClipPath(
             clipper: _RightHalfClipper(),
-            child: Padding(padding: EdgeInsets.all(1.5), child: SubjectBadge(subject: compositeSubject.secondSubject.value!, size: size)),
+            child: Padding(padding: EdgeInsets.all(1.5), child: SubjectBadge(subject: compositeSubject.secondSubject.value, size: size)),
           ),
         ],
       ),
