@@ -140,10 +140,11 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   Widget buildDoubleCompensationPart() {
     var deficit = .0;
-    var surplus = .0;
-
     for (final average in report.allAverages.values) {
       if (average < 4) deficit += average - 4;
+    }
+    var surplus = .0;
+    for (final average in report.allAverages.values) {
       if (average > 4) surplus += average - 4;
     }
     final result = surplus + deficit * 2;
@@ -216,17 +217,26 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                 child: Column(
                   children: [
-                    // Composite subjects
-                    for (final compositeSubject in allCompositeSubjects.indexed) ...[
-                      if (!(usingRestrictedGroup && restrictedGroupCodes.contains(compositeSubject.$2.code))) buildCompositeSubjectRow(compositeSubject.$2),
-                      if (compositeSubject.$1 != allCompositeSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
-                    ],
+                    // All subjects
+                    ...() {
+                      final filteredList =
+                          [...allCompositeSubjects, ...allSubjects].where((subject) {
+                            final String code = (subject as dynamic).code;
+                            return !(usingRestrictedGroup && restrictedGroupCodes.contains(code));
+                          }).toList();
 
-                    // Normal subjects
-                    for (final subject in allSubjects.indexed) ...[
-                      if (!(usingRestrictedGroup && restrictedGroupCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
-                      if (subject.$1 != allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
-                    ],
+                      return filteredList.indexed.map(
+                        (subject) => Column(
+                          children: [
+                            if (subject.$2 is CompositeSubject)
+                              buildCompositeSubjectRow(subject.$2 as CompositeSubject)
+                            else
+                              buildSubjectRow(subject.$2 as Subject),
+                            if (subject.$1 != filteredList.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                          ],
+                        ),
+                      );
+                    }(),
 
                     // Restricted group subjects
                     if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
@@ -234,18 +244,21 @@ class _ReportCardPageState extends State<ReportCardPage> {
                         padding: EdgeInsets.only(top: 10, bottom: 2),
                         child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600)),
                       ),
+                      ...() {
+                        final restrictedList = [...restrictedGroupCompositeSubjects, ...restrictedGroupSubjects];
 
-                      for (final restrictedGroupSubject in restrictedGroupCompositeSubjects.indexed) ...[
-                        buildCompositeSubjectRow(restrictedGroupSubject.$2),
-                        if (restrictedGroupSubject.$1 != restrictedGroupCompositeSubjects.length - 1)
-                          Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
-                      ],
-
-                      for (final restrictedGroupSubject in restrictedGroupSubjects.indexed) ...[
-                        buildSubjectRow(restrictedGroupSubject.$2),
-                        if (restrictedGroupSubject.$1 != restrictedGroupSubjects.length - 1)
-                          Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
-                      ],
+                        return restrictedList.indexed.map(
+                          (subject) => Column(
+                            children: [
+                              if (subject.$2 is CompositeSubject)
+                                buildCompositeSubjectRow(subject.$2 as CompositeSubject)
+                              else
+                                buildSubjectRow(subject.$2 as Subject),
+                              if (subject.$1 != restrictedList.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                            ],
+                          ),
+                        );
+                      }(),
                     ],
                   ],
                 ),
