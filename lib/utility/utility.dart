@@ -240,13 +240,15 @@ double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {boo
   final allGrades = database.grades.getAll();
 
   final firstSubjectGrades = allGrades.where((g) => g.subject.value?.code == compositeSubject.firstSubject.value?.code).toList();
-  if (firstSubjectGrades.isEmpty) return null;
   final secondSubjectGrades = allGrades.where((g) => g.subject.value?.code == compositeSubject.secondSubject.value?.code).toList();
-  if (secondSubjectGrades.isEmpty) return null;
+
+  if (firstSubjectGrades.isEmpty || secondSubjectGrades.isEmpty) return null;
+
+  final firstAverage = calculateAverage(firstSubjectGrades);
+  final secondAverage = calculateAverage(secondSubjectGrades);
 
   final result =
-      (calculateAverage(firstSubjectGrades) * compositeSubject.firstSubjectPeriodsPerWeek +
-          calculateAverage(firstSubjectGrades) * compositeSubject.firstSubjectPeriodsPerWeek) /
+      (firstAverage * compositeSubject.firstSubjectPeriodsPerWeek + secondAverage * compositeSubject.secondSubjectPeriodsPerWeek) /
       compositeSubject.totalPeriodsPerWeek;
 
   return round ? result.roundToHalves() : result;

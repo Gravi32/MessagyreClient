@@ -24,22 +24,16 @@ class SubjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compositeSubjectMode = subject == null && compositeSubject != null;
+
     final database = DatabaseService();
 
-    final subjectGrades =
-        database.grades.getAll().where((grade) {
-          if (subject == null) {
-            return grade.subject.value?.code == compositeSubject?.firstSubject.value?.code ||
-                grade.subject.value?.code == compositeSubject?.secondSubject.value?.code;
-          } else {
-            return grade.subject.value?.code == subject?.code;
-          }
-        }).toList();
+    final subjectGrades = database.grades.getAll().where((grade) => grade.subject.value?.code == subject?.code).toList();
 
     final isSubjectLocked = subject?.isLocked ?? false;
     final isSubjectEmpty = subjectGrades.isEmpty;
 
-    final average = calculateAverage(subjectGrades, round: true);
+    final average = compositeSubjectMode ? calculateCompositeSubjectAverage(compositeSubject!, round: true) : calculateAverage(subjectGrades, round: true);
 
     return Container(
       decoration: BoxDecoration(
@@ -75,7 +69,7 @@ class SubjectCard extends StatelessWidget {
           }
 
           // If it's a composite subject
-          if (compositeSubject != null) {
+          if (compositeSubjectMode) {
             final firstSubject = compositeSubject?.firstSubject.value;
             final secondSubject = compositeSubject?.secondSubject.value;
 
@@ -153,7 +147,7 @@ class SubjectCard extends StatelessWidget {
                 if (compositeSubject != null) CompositeSubjectBadge(compositeSubject: compositeSubject!, size: 32),
 
                 // Average label
-                if (!isSubjectEmpty || isSubjectLocked)
+                if ((!isSubjectEmpty || isSubjectLocked) && average != null)
                   Text(
                     (subject?.lockedGrade ?? average).removeTrailingZero(),
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
@@ -183,7 +177,7 @@ class SubjectCard extends StatelessWidget {
                 ),
 
                 // Progress bar
-                if (!isSubjectEmpty && !isSubjectLocked)
+                if (!isSubjectEmpty && !isSubjectLocked && average != null)
                   ProgressBar(progress: average / 6, color: subject?.color ?? compositeSubject?.firstSubject.value?.color),
               ],
             ),
