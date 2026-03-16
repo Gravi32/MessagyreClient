@@ -10,40 +10,39 @@ class CompositeSubjectBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(size / 3.6);
+
     return SizedBox.square(
-      dimension: size + 1.5,
-      child: Stack(
-        children: [
-          ClipPath(
-            clipper: _LeftHalfClipper(),
-            child: Padding(padding: EdgeInsets.all(1.5), child: SubjectBadge(subject: compositeSubject.firstSubject.value, size: size)),
-          ),
-          ClipPath(
-            clipper: _RightHalfClipper(),
-            child: Padding(padding: EdgeInsets.all(1.5), child: SubjectBadge(subject: compositeSubject.secondSubject.value, size: size)),
-          ),
-        ],
+      dimension: size,
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ClipRect(clipper: _LeftHalfClipper(), child: SubjectBadge(subject: compositeSubject.firstSubject.value, size: size)),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ClipRect(clipper: _RightHalfClipper(), child: SubjectBadge(subject: compositeSubject.secondSubject.value, size: size)),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _LeftHalfClipper extends CustomClipper<Path> {
+class _LeftHalfClipper extends CustomClipper<Rect> {
   @override
-  Path getClip(Size size) {
-    return Path()..addRect(Rect.fromLTWH(0, 0, size.width / 2, size.height));
-  }
-
+  Rect getClip(Size size) => Rect.fromLTWH(0, 0, size.width / 2, size.height);
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
 }
 
-class _RightHalfClipper extends CustomClipper<Path> {
+class _RightHalfClipper extends CustomClipper<Rect> {
   @override
-  Path getClip(Size size) {
-    return Path()..addRect(Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height));
-  }
-
+  Rect getClip(Size size) => Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height);
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
 }

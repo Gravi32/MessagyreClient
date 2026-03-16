@@ -21,7 +21,7 @@ class SubjectBadge extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          border: Border.all(color: color.withAlpha(100), strokeAlign: BorderSide.strokeAlignOutside, width: 1.5),
+          border: Border.all(color: color.withAlpha(100), strokeAlign: BorderSide.strokeAlignInside, width: 1.5),
           borderRadius: BorderRadius.circular(size / 3.6),
         ),
         child: Center(child: Icon(icon, color: AppColors.white, size: size * (1 - size / 70))),
