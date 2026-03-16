@@ -243,64 +243,66 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
               const SizedBox(height: 20),
 
-              if(report.allSubjects.length > 3) CupertinoListSection.insetGrouped(
-                margin: EdgeInsets.zero,
-                backgroundColor: AppColors.transparent,
-                header: Text("Options de calcul"),
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    title: Text("Groupe restreint"),
-                    trailing: CupertinoSwitch(
-                      value: report.usingRestrictedGroup,
-                      onChanged: (newValue) {
-                        globals.persistent.setBool("UseRestrictedGroup", newValue);
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                ],
-              ),
-
-              if (report.usingRestrictedGroup) ...[
-                const SizedBox(height: 10),
+              if (report.allSubjects.length > 3) ...[
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
+                  header: Text("Options de calcul"),
                   children: [
-                    for (final subject in report.restrictedGroupSubjects)
-                      CupertinoListTile(
-                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                        leading: GestureDetector(
-                          onTap: () {
-                            final newList = report.restrictedGroupSubjectCodes;
-                            newList.remove(subject.code);
-                            globals.persistent.setStringList("RestrictedGroupSubjects", newList);
-                            setState(() {});
-                          },
-                          child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
-                        ),
-                        title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
+                    CupertinoListTile(
+                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                      title: Text("Groupe restreint"),
+                      trailing: CupertinoSwitch(
+                        value: report.usingRestrictedGroup,
+                        onChanged: (newValue) {
+                          globals.persistent.setBool("UseRestrictedGroup", newValue);
+                          setState(() {});
+                        },
                       ),
-
-                    if (report.allSubjects.length - report.restrictedGroupSubjects.length > 1)
-                      CupertinoListTile(
-                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
-                        title: SubjectAutocomplete(
-                          placeholder: "Entrez une branche du groupe restreint",
-                          onSubjectSelected: (selectedSubject) {
-                            final newList = report.restrictedGroupSubjectCodes;
-                            newList.add(selectedSubject.code);
-                            globals.persistent.setStringList("RestrictedGroupSubjects", newList);
-                            setState(() {});
-                          },
-                          useCompositeSubjects: true,
-                        ),
-                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
+
+                if (report.usingRestrictedGroup) ...[
+                  const SizedBox(height: 10),
+                  CupertinoListSection.insetGrouped(
+                    margin: EdgeInsets.zero,
+                    backgroundColor: AppColors.transparent,
+                    children: [
+                      for (final subject in report.restrictedGroupSubjects)
+                        CupertinoListTile(
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                          leading: GestureDetector(
+                            onTap: () {
+                              final newList = report.restrictedGroupSubjectCodes;
+                              newList.remove(subject.code);
+                              globals.persistent.setStringList("RestrictedGroupSubjects", newList);
+                              setState(() {});
+                            },
+                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
+                          ),
+                          title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
+                        ),
+
+                      if (report.allSubjects.length - report.restrictedGroupSubjects.length > 1)
+                        CupertinoListTile(
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                          leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
+                          title: SubjectAutocomplete(
+                            placeholder: "Entrez une branche du groupe restreint",
+                            onSubjectSelected: (selectedSubject) {
+                              final newList = report.restrictedGroupSubjectCodes;
+                              newList.add(selectedSubject.code);
+                              globals.persistent.setStringList("RestrictedGroupSubjects", newList);
+                              setState(() {});
+                            },
+                            useCompositeSubjects: true,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ],
 
               const SizedBox(height: 10),
