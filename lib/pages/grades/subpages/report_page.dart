@@ -47,7 +47,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
   }
 
   Widget buildCompositeSubjectRow(CompositeSubject compositeSubject) {
-    double? average = calculateCompositeSubjectAverage(compositeSubject);
+    double? average = calculateCompositeSubjectAverage(compositeSubject, round: true);
 
     if (average != null && average < 1) average = null;
 
