@@ -262,7 +262,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 ],
               ),
 
-              if (report.usingRestrictedGroup) ...[
+              if (report.usingRestrictedGroup && report.restrictedGroupSubjects.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
