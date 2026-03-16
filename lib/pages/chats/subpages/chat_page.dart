@@ -667,7 +667,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         return ListView.builder(
           controller: chatScrollController,
           padding: EdgeInsets.symmetric(horizontal: 10),
-          itemCount: chatData.messages.length,
+          itemCount: chatData.messages.length + 2,
           itemBuilder: (context, index) {
             if (index == 0) {
               return Container(
