@@ -16,7 +16,6 @@ class ReportService {
 
   List<Grade> get allGrades => database.grades.getAll();
 
-  // Ottimizzato: evitiamo di ricalcolare i codici usati ad ogni iterazione
   List<Subject> get allSubjects {
     final compositeCodes = allCompositeSubjects.expand((c) => [c.firstSubject.value?.code, c.secondSubject.value?.code]).whereType<String>().toSet();
 
@@ -37,6 +36,7 @@ class ReportService {
 
   double get totalPoints => allAverages.values.sum;
 
+  /// A list of the average of all subjects and composite subjects.
   Map<String, double> get allAverages {
     final averages = <String, double>{};
     final grades = allGrades;
@@ -54,6 +54,25 @@ class ReportService {
 
     for (final composite in allCompositeSubjects) {
       final avg = calculateCompositeSubjectAverage(composite, round: true);
+      if (avg != null) averages[composite.code] = avg;
+    }
+    return averages;
+  }
+
+  /// A list of the unrounded average of all subjects and composite subjects.
+  Map<String, double> get allAveragesRaw {
+    final averages = <String, double>{};
+    final grades = allGrades;
+
+    for (final subject in allSubjects) {
+      final subjectGrades = grades.where((g) => g.subject.value?.code == subject.code).toList();
+      if (subjectGrades.isNotEmpty) {
+        averages[subject.code] = calculateAverage(subjectGrades, round: false);
+      }
+    }
+
+    for (final composite in allCompositeSubjects) {
+      final avg = calculateCompositeSubjectAverage(composite, round: false);
       if (avg != null) averages[composite.code] = avg;
     }
     return averages;

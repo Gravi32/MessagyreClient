@@ -26,43 +26,56 @@ class _ReportCardPageState extends State<ReportCardPage> {
   final globals = GlobalsService();
   final report = ReportService();
 
-  Widget buildSubjectRow(Subject subject) {
-    double? average = subject.lockedGrade ?? report.allAverages[subject.code];
-
-    if (average != null && average < 1) average = null;
-
+  Widget buildRow(String subjectName, double? average, double? rawAverage, bool isLocked, {Subject? subject, CompositeSubject? compositeSubject}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         spacing: 4,
         children: [
-          SubjectBadge(subject: subject, size: 24),
+          if (subject != null) SubjectBadge(subject: subject, size: 24),
+          if (compositeSubject != null) CompositeSubjectBadge(compositeSubject: compositeSubject, size: 24),
+
           const SizedBox(width: 8),
-          Expanded(child: Text(subject.name, style: const TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
-          if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
-          Text((average ?? "-").toString(), style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
+          Expanded(child: Text(subjectName, style: const TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
+
+          if (isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                (average?.removeTrailingZero() ?? "-").toString(),
+                style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800),
+              ),
+
+              if (rawAverage != null)
+                Text(
+                  rawAverage.toStringAsFixed(2),
+                  style: TextStyle(fontSize: 10, color: AppColors.text.adaptTo(context).withAlpha(.5.toByte()), fontWeight: FontWeight.w400),
+                ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget buildCompositeSubjectRow(CompositeSubject compositeSubject) {
-    double? average = calculateCompositeSubjectAverage(compositeSubject, round: true);
+  Widget buildSubjectRow(Subject subject) {
+    double? average = subject.lockedGrade ?? report.allAverages[subject.code];
+    double? rawAverage = report.allAveragesRaw[subject.code];
 
     if (average != null && average < 1) average = null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        spacing: 4,
-        children: [
-          CompositeSubjectBadge(compositeSubject: compositeSubject, size: 24),
-          const SizedBox(width: 8),
-          Expanded(child: Text(compositeSubject.name, style: const TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
-          Text((average ?? "-").toString(), style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
-        ],
-      ),
-    );
+    return buildRow(subject.name, average, rawAverage, subject.isLocked, subject: subject);
+  }
+
+  Widget buildCompositeSubjectRow(CompositeSubject compositeSubject) {
+    double? average = calculateCompositeSubjectAverage(compositeSubject, round: true);
+    double? rawAverage = report.allAveragesRaw[compositeSubject.code];
+
+    if (average != null && average < 1) average = null;
+
+    return buildRow(compositeSubject.name, average, rawAverage, false, compositeSubject: compositeSubject);
   }
 
   Widget buildTotalPointsPart() {

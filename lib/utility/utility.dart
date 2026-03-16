@@ -129,6 +129,8 @@ extension DoubleExtension on double {
     }
     return toString();
   }
+
+  double roundToHalves() => (this * 2).roundToDouble() / 2;
 }
 
 // #endregion
@@ -230,7 +232,7 @@ double calculateAverage(List<Grade> grades, {bool round = false}) {
 
   final double result = totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
 
-  return round ? (result * 2).roundToDouble() / 2 : result;
+  return round ? result.roundToHalves() : result;
 }
 
 double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {bool round = false}) {
@@ -247,7 +249,7 @@ double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {boo
           calculateAverage(firstSubjectGrades) * compositeSubject.firstSubjectPeriodsPerWeek) /
       compositeSubject.totalPeriodsPerWeek;
 
-  return round ? (result * 2).roundToDouble() / 2 : result;
+  return round ? result.roundToHalves() : result;
 }
 
 Map<double, String> fractions = {0.0: "0", 0.25: "¼", 0.33: "⅓", 0.5: "½", 0.66: "⅔", 0.75: "¾", 1.0: "1"};
