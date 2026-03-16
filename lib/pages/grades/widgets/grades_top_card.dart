@@ -201,7 +201,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     List<Widget> buildRestrictedGroupIndicator() {
       final restrictedGroupAverages = <double>[];
-      for (final subjectCode in report.restrictedGroupSubjectCodes) {
+      for (final subjectCode in report.restrictedGroupCodes) {
         if (report.allAverages.containsKey(subjectCode) && report.allAverages[subjectCode] != null) {
           restrictedGroupAverages.add(report.allAverages[subjectCode]!);
         }

@@ -101,7 +101,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   Widget buildRestrictedGroupPointsPart() {
     final restrictedGroupAverages = <double>[];
-    for (final subjectCode in report.restrictedGroupSubjectCodes) {
+    for (final subjectCode in report.restrictedGroupCodes) {
       if (report.allAverages.containsKey(subjectCode) && report.allAverages[subjectCode] != null) restrictedGroupAverages.add(report.allAverages[subjectCode]!);
     }
 
@@ -178,6 +178,13 @@ class _ReportCardPageState extends State<ReportCardPage> {
     );
   }
 
+  void onSubjectSelected(String selectedSubjectCode) {
+    final newList = report.restrictedGroupCodes;
+    newList.add(selectedSubjectCode);
+    globals.persistent.setStringList("RestrictedGroupSubjects", newList);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -199,19 +206,27 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   children: [
                     // Composite subjects
                     for (final compositeSubject in report.allCompositeSubjects.indexed) ...[
-                      buildCompositeSubjectRow(compositeSubject.$2),
+                      if (!(report.usingRestrictedGroup && report.restrictedGroupCodes.contains(compositeSubject.$2.code)))
+                        buildCompositeSubjectRow(compositeSubject.$2),
                       if (compositeSubject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                     ],
 
                     // Normal subjects
                     for (final subject in report.allSubjects.indexed) ...[
-                      if (!(report.usingRestrictedGroup && report.restrictedGroupSubjectCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
+                      if (!(report.usingRestrictedGroup && report.restrictedGroupCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
                       if (subject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                     ],
 
                     // Restricted group subjects
-                    if (report.usingRestrictedGroup && report.restrictedGroupSubjects.isNotEmpty) ...[
+                    if (report.usingRestrictedGroup && (report.restrictedGroupSubjects.isNotEmpty || report.restrictedGroupCompositeSubjects.isNotEmpty)) ...[
                       Padding(padding: EdgeInsets.only(top: 10, bottom: 2), child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600))),
+
+                      for (final restrictedGroupSubject in report.restrictedGroupCompositeSubjects.indexed) ...[
+                        buildCompositeSubjectRow(restrictedGroupSubject.$2),
+                        if (restrictedGroupSubject.$1 != report.restrictedGroupCompositeSubjects.length - 1)
+                          Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                      ],
+
                       for (final restrictedGroupSubject in report.restrictedGroupSubjects.indexed) ...[
                         buildSubjectRow(restrictedGroupSubject.$2),
                         if (restrictedGroupSubject.$1 != report.restrictedGroupSubjects.length - 1)
@@ -232,7 +247,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   spacing: 6,
                   children: [
                     buildTotalPointsPart(),
-                    if (report.usingRestrictedGroup && report.restrictedGroupSubjectCodes.isNotEmpty) ...[
+                    if (report.usingRestrictedGroup && report.restrictedGroupCodes.isNotEmpty) ...[
                       Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
                       buildRestrictedGroupPointsPart(),
                     ],
@@ -269,12 +284,27 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     margin: EdgeInsets.zero,
                     backgroundColor: AppColors.transparent,
                     children: [
+                      for (final compositeSubject in report.restrictedGroupCompositeSubjects)
+                        CupertinoListTile(
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                          leading: GestureDetector(
+                            onTap: () {
+                              final newList = report.restrictedGroupCodes;
+                              newList.remove(compositeSubject.code);
+                              globals.persistent.setStringList("RestrictedGroupSubjects", newList);
+                              setState(() {});
+                            },
+                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
+                          ),
+                          title: Row(spacing: 10, children: [CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20), Text(compositeSubject.name)]),
+                        ),
+
                       for (final subject in report.restrictedGroupSubjects)
                         CupertinoListTile(
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: GestureDetector(
                             onTap: () {
-                              final newList = report.restrictedGroupSubjectCodes;
+                              final newList = report.restrictedGroupCodes;
                               newList.remove(subject.code);
                               globals.persistent.setStringList("RestrictedGroupSubjects", newList);
                               setState(() {});
@@ -284,18 +314,14 @@ class _ReportCardPageState extends State<ReportCardPage> {
                           title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
                         ),
 
-                      if (report.allSubjects.length - report.restrictedGroupSubjects.length > 1)
+                      if (report.allSubjects.length - report.restrictedGroupSubjects.length - report.restrictedGroupCompositeSubjects.length > 1)
                         CupertinoListTile(
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
                           title: SubjectAutocomplete(
                             placeholder: "Entrez une branche du groupe restreint",
-                            onSubjectSelected: (selectedSubject) {
-                              final newList = report.restrictedGroupSubjectCodes;
-                              newList.add(selectedSubject.code);
-                              globals.persistent.setStringList("RestrictedGroupSubjects", newList);
-                              setState(() {});
-                            },
+                            onSubjectSelected: (subject) => onSubjectSelected(subject.code),
+                            onCompositeSubjectSelected: (compositeSubject) => onSubjectSelected(compositeSubject.code),
                             useCompositeSubjects: true,
                           ),
                         ),

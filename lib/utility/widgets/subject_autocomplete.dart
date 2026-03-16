@@ -83,12 +83,12 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     final subjects = database.subjects.getAll();
     final compositeSubjects = database.compositeSubjects.getAll();
 
-    final subjectsInsideComposite = <Subject>{};
+    final subjectsInsideComposite = <String>{};
 
     for (final compositeSubject in compositeSubjects) {
       final firstSubject = compositeSubject.firstSubject.value;
       final secondSubject = compositeSubject.secondSubject.value;
-      subjectsInsideComposite.addAll([if (firstSubject != null) firstSubject, if (secondSubject != null) secondSubject]);
+      subjectsInsideComposite.addAll([if (firstSubject != null) firstSubject.code, if (secondSubject != null) secondSubject.code]);
     }
 
     normalizedOptions = [];
@@ -99,8 +99,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       }
 
       for (final subject in subjects) {
-        print("Adding $subject. Contained: ${subjectsInsideComposite.contains(subject)}. List: $subjectsInsideComposite");
-        if (!subjectsInsideComposite.contains(subject)) {
+        if (!subjectsInsideComposite.contains(subject.code)) {
           normalizedOptions.add(MapEntry(SubjectOption.subject(subject), _normalize(subject.name)));
         }
       }
@@ -265,7 +264,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
 
                             Text.rich(
                               TextSpan(
-                                children: highlightSearchMatch(option.name, this.controller.text, useCache: true),
+                                children: highlightSearchMatch(option.name, controller.text, useCache: true),
                                 style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
                               ),
                             ),
