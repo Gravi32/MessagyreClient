@@ -379,7 +379,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         padding: EdgeInsets.zero,
                         placeholder: "Entrez une branche *",
                         placeholderStyle: isMissingSubject ? TextStyle(color: AppColors.red) : null,
-                        onSelected: (selectedSubject) {
+                        onSubjectSelected: (selectedSubject) {
                           setState(() {
                             subject = selectedSubject;
                             isMissingSubject = false;

@@ -243,7 +243,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
               const SizedBox(height: 20),
 
-              CupertinoListSection.insetGrouped(
+              if(report.allSubjects.length > 3) CupertinoListSection.insetGrouped(
                 margin: EdgeInsets.zero,
                 backgroundColor: AppColors.transparent,
                 header: Text("Options de calcul"),
@@ -262,7 +262,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 ],
               ),
 
-              if (report.usingRestrictedGroup && report.restrictedGroupSubjects.isNotEmpty) ...[
+              if (report.usingRestrictedGroup) ...[
                 const SizedBox(height: 10),
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
@@ -289,7 +289,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                         leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
                         title: SubjectAutocomplete(
                           placeholder: "Entrez une branche du groupe restreint",
-                          onSelected: (selectedSubject) {
+                          onSubjectSelected: (selectedSubject) {
                             final newList = report.restrictedGroupSubjectCodes;
                             newList.add(selectedSubject.code);
                             globals.persistent.setStringList("RestrictedGroupSubjects", newList);

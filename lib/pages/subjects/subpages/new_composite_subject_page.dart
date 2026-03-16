@@ -31,7 +31,8 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   late final TextEditingController firstSubjectFieldController = TextEditingController(text: firstSubject?.name);
   late final TextEditingController secondSubjectFieldController = TextEditingController(text: secondSubject?.name);
 
-  final subjectFocusNode = FocusNode();
+  final firstSubjectFocusNode = FocusNode();
+  final secondSubjectFocusNode = FocusNode();
   final titleFocusNode = FocusNode();
 
   late Subject? firstSubject = widget.toEdit?.firstSubject.value;
@@ -64,7 +65,8 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   }
 
   void unfocusFields() {
-    subjectFocusNode.unfocus();
+    firstSubjectFocusNode.unfocus();
+    secondSubjectFocusNode.unfocus();
     titleFocusNode.unfocus();
   }
 
@@ -109,6 +111,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
     required Subject? subject,
     required double periodsPerWeek,
     required TextEditingController subjectFieldController,
+    required FocusNode subjectFieldFocusNode,
     required Function(Subject) onSubjectSelected,
     required Function(double) onPeriodsPerWeekChanged,
     required bool isMissingInfo,
@@ -152,7 +155,8 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                     child: SubjectAutocomplete(
                       placeholder: "Entrez une branche *",
                       controller: subjectFieldController,
-                      onSelected: onSubjectSelected,
+                      focusNode: subjectFieldFocusNode,
+                      onSubjectSelected: onSubjectSelected,
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                       placeholderStyle: TextStyle(color: isMissingInfo ? AppColors.red : null, fontWeight: FontWeight.w400),
                     ),
@@ -278,7 +282,8 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
     titleController.dispose();
     firstSubjectFieldController.dispose();
     secondSubjectFieldController.dispose();
-    subjectFocusNode.dispose();
+    firstSubjectFocusNode.dispose();
+    secondSubjectFocusNode.dispose();
     titleFocusNode.dispose();
     super.dispose();
   }
@@ -343,6 +348,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 subject: firstSubject,
                 periodsPerWeek: firstSubjectPeriodsPerWeek,
                 subjectFieldController: firstSubjectFieldController,
+                subjectFieldFocusNode: firstSubjectFocusNode,
                 onSubjectSelected:
                     (selectedSubject) => setState(() {
                       firstSubject = selectedSubject;
@@ -357,6 +363,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 subject: secondSubject,
                 periodsPerWeek: secondSubjectPeriodsPerWeek,
                 subjectFieldController: secondSubjectFieldController,
+                subjectFieldFocusNode: secondSubjectFocusNode,
                 onSubjectSelected:
                     (selectedSubject) => setState(() {
                       secondSubject = selectedSubject;

@@ -1,16 +1,31 @@
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
-import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
+/// wrapper per RawAutocomplete
+class SubjectOption {
+  final Subject? subject;
+  final CompositeSubject? compositeSubject;
+
+  SubjectOption.subject(this.subject) : compositeSubject = null;
+  SubjectOption.composite(this.compositeSubject) : subject = null;
+
+  String get name => subject?.name ?? compositeSubject!.name;
+
+  bool get isSubject => subject != null;
+}
+
 class SubjectAutocomplete extends StatefulWidget {
-  final void Function(Subject subject) onSelected;
+  final void Function(Subject subject)? onSubjectSelected;
+  final void Function(CompositeSubject compositeSubject)? onCompositeSubjectSelected;
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String? placeholder;
@@ -28,7 +43,8 @@ class SubjectAutocomplete extends StatefulWidget {
 
   const SubjectAutocomplete({
     super.key,
-    required this.onSelected,
+    this.onSubjectSelected,
+    this.onCompositeSubjectSelected,
     this.controller,
     this.focusNode,
     this.placeholder,
@@ -51,30 +67,60 @@ class SubjectAutocomplete extends StatefulWidget {
 
 class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
   final database = DatabaseService();
-  final report = ReportService();
 
-  late TextEditingController _controller;
-  late FocusNode _focusNode;
-  late final List<MapEntry<Subject, String>> _subjectsNormalized;
+  late TextEditingController controller;
+  late FocusNode focusNode;
+
+  late final List<MapEntry<SubjectOption, String>> normalizedOptions;
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? TextEditingController();
-    _focusNode = widget.focusNode ?? FocusNode();
-    _subjectsNormalized =
-        (widget.useCompositeSubjects ? report.allSubjects : database.subjects.getAll()).map((subject) => MapEntry(subject, _normalize(subject.name))).toList();
+
+    controller = widget.controller ?? TextEditingController();
+    focusNode = widget.focusNode ?? FocusNode();
+
+    final subjects = database.subjects.getAll();
+    final compositeSubjects = database.compositeSubjects.getAll();
+
+    final subjectsInsideComposite = <Subject>{};
+
+    for (final compositeSubject in compositeSubjects) {
+      final firstSubject = compositeSubject.firstSubject.value;
+      final secondSubject = compositeSubject.secondSubject.value;
+      subjectsInsideComposite.addAll([if (firstSubject != null) firstSubject, if (secondSubject != null) secondSubject]);
+    }
+
+    normalizedOptions = [];
+
+    if (widget.useCompositeSubjects) {
+      for (final composite in compositeSubjects) {
+        normalizedOptions.add(MapEntry(SubjectOption.composite(composite), _normalize(composite.name)));
+      }
+
+      for (final subject in subjects) {
+        print("Adding $subject. Contained: ${subjectsInsideComposite.contains(subject)}. List: $subjectsInsideComposite");
+        if (!subjectsInsideComposite.contains(subject)) {
+          normalizedOptions.add(MapEntry(SubjectOption.subject(subject), _normalize(subject.name)));
+        }
+      }
+    } else {
+      for (final subject in subjects) {
+        normalizedOptions.add(MapEntry(SubjectOption.subject(subject), _normalize(subject.name)));
+      }
+    }
+
     if (widget.forceValid) {
-      _focusNode.addListener(() {
-        if (!_focusNode.hasFocus) _validateAndFix();
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus) _validateAndFix();
       });
     }
   }
 
   @override
   void dispose() {
-    if (widget.controller == null) _controller.dispose();
-    if (widget.focusNode == null) _focusNode.dispose();
+    if (widget.controller == null) controller.dispose();
+    if (widget.focusNode == null) focusNode.dispose();
     super.dispose();
   }
 
@@ -87,30 +133,33 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       .replaceAll(RegExp(r'[ùûü]'), 'u')
       .replaceAll('ç', 'c');
 
-  Subject? _matchSubject(String input) {
-    final normalized = _normalize(input);
-    for (final e in _subjectsNormalized) {
-      if (e.value == normalized) return e.key;
-    }
-    return null;
-  }
-
   void _validateAndFix() {
-    final match = _matchSubject(_controller.text);
-    if (match != null) {
-      widget.onSelected(match);
-      _controller.text = match.name;
-    } else {
-      _controller.clear();
+    final normalizedInput = _normalize(controller.text);
+
+    for (final entry in normalizedOptions) {
+      if (entry.value == normalizedInput) {
+        final option = entry.key;
+
+        if (option.isSubject) {
+          widget.onSubjectSelected?.call(option.subject!);
+        } else {
+          widget.onCompositeSubjectSelected?.call(option.compositeSubject!);
+        }
+
+        controller.text = option.name;
+        return;
+      }
     }
+
+    controller.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     if (!widget.enabled) {
       return CupertinoTextField(
-        controller: _controller,
-        focusNode: _focusNode,
+        controller: controller,
+        focusNode: focusNode,
         placeholder: widget.placeholder ?? 'Branche',
         prefix: widget.prefix,
         suffix: widget.suffix,
@@ -123,16 +172,30 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       );
     }
 
-    return RawAutocomplete<Subject>(
-      textEditingController: _controller,
-      focusNode: _focusNode,
-      optionsBuilder: (value) {
-        if (value.text.isEmpty) return const Iterable<Subject>.empty();
-        final input = _normalize(value.text);
-        return _subjectsNormalized.where((e) => e.value.contains(input)).map((e) => e.key);
+    return RawAutocomplete<SubjectOption>(
+      textEditingController: controller,
+      focusNode: focusNode,
+
+      optionsBuilder: (query) {
+        if (query.text.isEmpty) {
+          return const Iterable<SubjectOption>.empty();
+        }
+
+        final input = _normalize(query.text);
+
+        return normalizedOptions.where((e) => e.value.contains(input)).map((e) => e.key);
       },
-      displayStringForOption: (Subject option) => option.name,
-      onSelected: widget.onSelected,
+
+      displayStringForOption: (option) => option.name,
+
+      onSelected: (option) {
+        if (option.isSubject) {
+          widget.onSubjectSelected?.call(option.subject!);
+        } else {
+          widget.onCompositeSubjectSelected?.call(option.compositeSubject!);
+        }
+      },
+
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
         return CupertinoTextField(
           controller: controller,
@@ -145,6 +208,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
+
           onSubmitted: (value) {
             if (widget.forceValid) {
               _validateAndFix();
@@ -152,12 +216,15 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
               onFieldSubmitted();
             }
           },
+
           onTapOutside: (event) {
-            // Close the keyboard unless user is scrolling
-            if (event.kind != PointerDeviceKind.touch) focusNode.unfocus();
+            if (event.kind != PointerDeviceKind.touch) {
+              focusNode.unfocus();
+            }
           },
         );
       },
+
       optionsViewBuilder: (context, onSelected, rawOptions) {
         final options = rawOptions.toList();
 
@@ -169,29 +236,36 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
           ),
+
           child: ListView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             itemCount: options.length,
+
             itemBuilder: (context, index) {
-              final option = options.elementAt(index);
+              final option = options[index];
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => onSelected(option),
+
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+
                       child: Align(
                         alignment: Alignment.centerLeft,
+
                         child: Row(
                           spacing: 15,
                           children: [
-                            SubjectBadge(subject: option),
+                            option.isSubject ? SubjectBadge(subject: option.subject!) : CompositeSubjectBadge(compositeSubject: option.compositeSubject!),
+
                             Text.rich(
                               TextSpan(
-                                children: highlightSearchMatch(option.name, _controller.text, useCache: true),
+                                children: highlightSearchMatch(option.name, this.controller.text, useCache: true),
                                 style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
                               ),
                             ),
@@ -200,6 +274,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                       ),
                     ),
                   ),
+
                   if (index < options.length - 1) Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte())),
                 ],
               );

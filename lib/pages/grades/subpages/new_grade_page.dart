@@ -538,7 +538,7 @@ class _NewGradePageState extends State<NewGradePage> {
                         padding: EdgeInsets.zero,
                         placeholder: "Entrez une branche *",
                         placeholderStyle: isMissingSubject ? TextStyle(color: AppColors.red) : null,
-                        onSelected: (selectedSubject) {
+                        onSubjectSelected: (selectedSubject) {
                           subjectFocusNode.unfocus();
                           setState(() {
                             subject = selectedSubject;
