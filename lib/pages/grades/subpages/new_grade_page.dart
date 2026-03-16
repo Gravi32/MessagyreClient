@@ -156,6 +156,7 @@ class _NewGradePageState extends State<NewGradePage> {
         .where(
           (assignment) =>
               assignment.referenceId != null &&
+              assignment.type == AssignmentType.test &&
               !allGrades.any((grade) => grade.referenceId == assignment.referenceId) &&
               assignment.dueDate.isBefore(DateTime.now()),
         )
