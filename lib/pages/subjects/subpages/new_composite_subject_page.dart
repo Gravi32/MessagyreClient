@@ -124,7 +124,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
       footer:
           showHint
               ? Padding(
-                padding: EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   "Merci de remplir les champs obligatoires *",
                   style: TextStyle(fontSize: 14, color: canBeConfirmed ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
@@ -134,58 +134,50 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
       children: [
         Container(
           color: AppColors.tertiaryBackground.adaptTo(context),
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
-              Text("Branche", style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text("Branche", style: TextStyle(fontWeight: FontWeight.w600)),
               Row(
                 spacing: 12,
                 children: [
-                  SizedBox.square(
-                    dimension: 32,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     child:
                         subject == null
-                            ? HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context))
+                            ? Opacity(opacity: .5, child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)))
                             : SubjectBadge(subject: subject),
                   ),
-
                   Expanded(
                     child: SubjectAutocomplete(
                       placeholder: "Entrez une branche *",
                       controller: subjectFieldController,
                       focusNode: subjectFieldFocusNode,
                       onSubjectSelected: onSubjectSelected,
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                      placeholderStyle: TextStyle(color: isMissingInfo ? AppColors.red : null, fontWeight: FontWeight.w400),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                      placeholderStyle: TextStyle(
+                        color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context),
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
-
-                  isMissingInfo
-                      ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                      : Opacity(
-                        opacity: .5,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                      ),
+                  if (isMissingInfo) const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18),
                 ],
               ),
-
-              Divider(color: AppColors.secondaryBackground.adaptTo(context)),
-
-              Text("Périodes par semaine", style: TextStyle(fontWeight: FontWeight.w600)),
-
+              Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
+              const Text("Périodes par semaine", style: TextStyle(fontWeight: FontWeight.w600)),
               Row(
                 spacing: 12,
                 children: [
-                  SizedBox.square(
-                    dimension: 32,
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 40),
+                    height: 32,
                     child: Center(
-                      child: Text(
-                        periodsPerWeek.removeTrailingZero(),
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-                        maxLines: 1,
-                        overflow: TextOverflow.clip,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(periodsPerWeek.removeTrailingZero(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ),
@@ -217,54 +209,54 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
         Container(
           width: double.infinity,
           color: AppColors.tertiaryBackground.adaptTo(context),
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Center(
-            child: IntrinsicWidth(
-              child: Column(
-                spacing: 4,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        firstSubjectPeriodsPerWeek.removeTrailingZero(),
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: firstSubject?.color),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        firstSubject?.name ?? "Sous-branche 1",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(width: 6),
-                      Text("+"),
-                      const SizedBox(width: 6),
-                      Text(
-                        secondSubjectPeriodsPerWeek.removeTrailingZero(),
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: secondSubject?.color),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        secondSubject?.name ?? "Sous-branche 2",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-
-                  Container(height: 1, width: double.infinity, color: AppColors.text.adaptTo(context)),
-
                   Text(
-                    (firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek).removeTrailingZero(),
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+                    firstSubjectPeriodsPerWeek.removeTrailingZero(),
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: firstSubject?.color),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      firstSubject?.name ?? "Sous-branche 1",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("+", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600))),
+                  Text(
+                    secondSubjectPeriodsPerWeek.removeTrailingZero(),
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: secondSubject?.color),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      secondSubject?.name ?? "Sous-branche 2",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 4),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return Container(height: 1, width: constraints.maxWidth * 0.8, color: AppColors.text.adaptTo(context));
+                },
+              ),
+              const SizedBox(height: 4),
+              Text(
+                (firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek).removeTrailingZero(),
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
         ),
       ],
