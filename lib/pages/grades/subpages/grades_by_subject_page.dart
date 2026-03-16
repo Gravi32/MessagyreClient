@@ -75,7 +75,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                         itemCount: allCompositeSubjects.length + allActiveSubjects.length,
                         itemBuilder: (context, index) {
                           final compositeSubject = allCompositeSubjects.elementAtOrNull(index);
-                          final subject = compositeSubject == null ? allSubjects.elementAt(index - allCompositeSubjects.length) : null;
+                          final subject = compositeSubject == null ? allActiveSubjects.elementAt(index - allCompositeSubjects.length) : null;
                           return SubjectCard(subject: subject, compositeSubject: compositeSubject);
                         },
                       ),
