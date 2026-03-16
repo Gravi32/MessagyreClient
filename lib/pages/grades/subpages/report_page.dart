@@ -38,7 +38,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
         children: [
           SubjectBadge(subject: subject, size: 24),
           const SizedBox(width: 8),
-          Expanded(child: Text(subject.name, style: TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(subject.name, style: const TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
           if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
           Text((average ?? "-").toString(), style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
         ],
@@ -58,7 +58,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
         children: [
           CompositeSubjectBadge(compositeSubject: compositeSubject, size: 24),
           const SizedBox(width: 8),
-          Expanded(child: Text(compositeSubject.name, style: TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(compositeSubject.name, style: const TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
           Text((average ?? "-").toString(), style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800)),
         ],
       ),
@@ -140,11 +140,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   Widget buildDoubleCompensationPart() {
     var deficit = .0;
+    var surplus = .0;
+
     for (final average in report.allAverages.values) {
       if (average < 4) deficit += average - 4;
-    }
-    var surplus = .0;
-    for (final average in report.allAverages.values) {
       if (average > 4) surplus += average - 4;
     }
     final result = surplus + deficit * 2;
@@ -179,24 +178,37 @@ class _ReportCardPageState extends State<ReportCardPage> {
   }
 
   void onSubjectSelected(String selectedSubjectCode) {
-    final newList = report.restrictedGroupCodes;
+    final newList = report.restrictedGroupCodes.toList();
     newList.add(selectedSubjectCode);
+    globals.persistent.setStringList("RestrictedGroupSubjects", newList);
+    setState(() {});
+  }
+
+  void onSubjectRemoved(String subjectCode) {
+    final newList = report.restrictedGroupCodes.toList();
+    newList.remove(subjectCode);
     globals.persistent.setStringList("RestrictedGroupSubjects", newList);
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    final allSubjects = report.allSubjects;
+    final allCompositeSubjects = report.allCompositeSubjects;
+    final usingRestrictedGroup = report.usingRestrictedGroup;
+    final restrictedGroupCodes = report.restrictedGroupCodes;
+    final restrictedGroupCompositeSubjects = report.restrictedGroupCompositeSubjects;
+    final restrictedGroupSubjects = report.restrictedGroupSubjects;
+
     return CupertinoPageScaffold(
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [CupertinoSliverNavigationBar(largeTitle: Text("Votre bulletin"), previousPageTitle: "Toutes les notes")];
+          return [const CupertinoSliverNavigationBar(largeTitle: Text("Votre bulletin"), previousPageTitle: "Toutes les notes")];
         },
         body: SafeArea(
           top: false,
-
           child: ListView(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             children: [
               // All subjects list
               Container(
@@ -205,31 +217,33 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 child: Column(
                   children: [
                     // Composite subjects
-                    for (final compositeSubject in report.allCompositeSubjects.indexed) ...[
-                      if (!(report.usingRestrictedGroup && report.restrictedGroupCodes.contains(compositeSubject.$2.code)))
-                        buildCompositeSubjectRow(compositeSubject.$2),
-                      if (compositeSubject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                    for (final compositeSubject in allCompositeSubjects.indexed) ...[
+                      if (!(usingRestrictedGroup && restrictedGroupCodes.contains(compositeSubject.$2.code))) buildCompositeSubjectRow(compositeSubject.$2),
+                      if (compositeSubject.$1 != allCompositeSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                     ],
 
                     // Normal subjects
-                    for (final subject in report.allSubjects.indexed) ...[
-                      if (!(report.usingRestrictedGroup && report.restrictedGroupCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
-                      if (subject.$1 != report.allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
+                    for (final subject in allSubjects.indexed) ...[
+                      if (!(usingRestrictedGroup && restrictedGroupCodes.contains(subject.$2.code))) buildSubjectRow(subject.$2),
+                      if (subject.$1 != allSubjects.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                     ],
 
                     // Restricted group subjects
-                    if (report.usingRestrictedGroup && (report.restrictedGroupSubjects.isNotEmpty || report.restrictedGroupCompositeSubjects.isNotEmpty)) ...[
-                      Padding(padding: EdgeInsets.only(top: 10, bottom: 2), child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600))),
+                    if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
+                      const Padding(
+                        padding: EdgeInsets.only(top: 10, bottom: 2),
+                        child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600)),
+                      ),
 
-                      for (final restrictedGroupSubject in report.restrictedGroupCompositeSubjects.indexed) ...[
+                      for (final restrictedGroupSubject in restrictedGroupCompositeSubjects.indexed) ...[
                         buildCompositeSubjectRow(restrictedGroupSubject.$2),
-                        if (restrictedGroupSubject.$1 != report.restrictedGroupCompositeSubjects.length - 1)
+                        if (restrictedGroupSubject.$1 != restrictedGroupCompositeSubjects.length - 1)
                           Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                       ],
 
-                      for (final restrictedGroupSubject in report.restrictedGroupSubjects.indexed) ...[
+                      for (final restrictedGroupSubject in restrictedGroupSubjects.indexed) ...[
                         buildSubjectRow(restrictedGroupSubject.$2),
-                        if (restrictedGroupSubject.$1 != report.restrictedGroupSubjects.length - 1)
+                        if (restrictedGroupSubject.$1 != restrictedGroupSubjects.length - 1)
                           Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
                       ],
                     ],
@@ -247,7 +261,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   spacing: 6,
                   children: [
                     buildTotalPointsPart(),
-                    if (report.usingRestrictedGroup && report.restrictedGroupCodes.isNotEmpty) ...[
+                    if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty) ...[
                       Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
                       buildRestrictedGroupPointsPart(),
                     ],
@@ -258,17 +272,17 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
               const SizedBox(height: 20),
 
-              if (report.allSubjects.length > 3) ...[
+              if (allSubjects.length > 3) ...[
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
-                  header: Text("Options de calcul"),
+                  header: const Text("Options de calcul"),
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: Text("Groupe restreint"),
+                      title: const Text("Groupe restreint"),
                       trailing: CupertinoSwitch(
-                        value: report.usingRestrictedGroup,
+                        value: usingRestrictedGroup,
                         onChanged: (newValue) {
                           globals.persistent.setBool("UseRestrictedGroup", newValue);
                           setState(() {});
@@ -278,43 +292,33 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   ],
                 ),
 
-                if (report.usingRestrictedGroup) ...[
+                if (usingRestrictedGroup) ...[
                   const SizedBox(height: 10),
                   CupertinoListSection.insetGrouped(
                     margin: EdgeInsets.zero,
                     backgroundColor: AppColors.transparent,
                     children: [
-                      for (final compositeSubject in report.restrictedGroupCompositeSubjects)
+                      for (final compositeSubject in restrictedGroupCompositeSubjects)
                         CupertinoListTile(
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: GestureDetector(
-                            onTap: () {
-                              final newList = report.restrictedGroupCodes;
-                              newList.remove(compositeSubject.code);
-                              globals.persistent.setStringList("RestrictedGroupSubjects", newList);
-                              setState(() {});
-                            },
+                            onTap: () => onSubjectRemoved(compositeSubject.code),
                             child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
                           ),
                           title: Row(spacing: 10, children: [CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20), Text(compositeSubject.name)]),
                         ),
 
-                      for (final subject in report.restrictedGroupSubjects)
+                      for (final subject in restrictedGroupSubjects)
                         CupertinoListTile(
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: GestureDetector(
-                            onTap: () {
-                              final newList = report.restrictedGroupCodes;
-                              newList.remove(subject.code);
-                              globals.persistent.setStringList("RestrictedGroupSubjects", newList);
-                              setState(() {});
-                            },
+                            onTap: () => onSubjectRemoved(subject.code),
                             child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
                           ),
                           title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
                         ),
 
-                      if (report.allSubjects.length - report.restrictedGroupSubjects.length - report.restrictedGroupCompositeSubjects.length > 1)
+                      if (allSubjects.length - restrictedGroupSubjects.length - restrictedGroupCompositeSubjects.length > 1)
                         CupertinoListTile(
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
@@ -339,7 +343,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    title: Text("Double compensation"),
+                    title: const Text("Double compensation"),
                     trailing: CupertinoSwitch(
                       value: report.usingDoubleCompensation,
                       onChanged: (newValue) {

@@ -15,73 +15,47 @@ class ReportService {
   final globals = GlobalsService();
 
   List<Grade> get allGrades => database.grades.getAll();
+
+  // Ottimizzato: evitiamo di ricalcolare i codici usati ad ogni iterazione
   List<Subject> get allSubjects {
-    final sortedSubjects = database.subjects.getAll().sorted(
-      (a, b) => (a.isLocked ? 1 : 0).compareTo(b.isLocked ? 1 : 0) == 0 ? a.name.toLowerCase().compareTo(b.name.toLowerCase()) : (a.isLocked ? 1 : -1),
-    );
-    final result = <Subject>[];
-    final subjectCodesUsedInCompositeSubjects = <String>[];
+    final compositeCodes = allCompositeSubjects.expand((c) => [c.firstSubject.value?.code, c.secondSubject.value?.code]).whereType<String>().toSet();
 
-    for (final compositeSubject in allCompositeSubjects) {
-      final firstSubject = compositeSubject.firstSubject.value;
-      final secondSubject = compositeSubject.secondSubject.value;
-      if (firstSubject == null || secondSubject == null) continue;
-
-      subjectCodesUsedInCompositeSubjects.add(firstSubject.code);
-      subjectCodesUsedInCompositeSubjects.add(secondSubject.code);
-    }
-
-    for (final subject in sortedSubjects) {
-      if (subjectCodesUsedInCompositeSubjects.contains(subject.code)) continue;
-      result.add(subject);
-    }
-
-    return result;
+    return database.subjects.getAll().where((s) => !compositeCodes.contains(s.code)).sorted((a, b) {
+      if (a.isLocked != b.isLocked) return a.isLocked ? 1 : -1;
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
   }
 
-  List<CompositeSubject> get allCompositeSubjects => database.compositeSubjects.getAll().sorted((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  List<CompositeSubject> get allCompositeSubjects => database.compositeSubjects.getAll().sortedBy((s) => s.name.toLowerCase());
 
   bool get usingDoubleCompensation => globals.persistent.getBool("UseDoubleCompensation") ?? false;
   bool get usingRestrictedGroup => globals.persistent.getBool("UseRestrictedGroup") ?? false;
 
-  List<String> get restrictedGroupCodes => globals.persistent.getStringList("RestrictedGroupSubjects")?.toList() ?? [];
-  List<Subject> get restrictedGroupSubjects => allSubjects.where((subject) => restrictedGroupCodes.contains(subject.code)).toList();
-  List<CompositeSubject> get restrictedGroupCompositeSubjects =>
-      allCompositeSubjects.where((compositeSubject) => restrictedGroupCodes.contains(compositeSubject.code)).toList();
+  List<String> get restrictedGroupCodes => globals.persistent.getStringList("RestrictedGroupSubjects") ?? [];
+  List<Subject> get restrictedGroupSubjects => allSubjects.where((s) => restrictedGroupCodes.contains(s.code)).toList();
+  List<CompositeSubject> get restrictedGroupCompositeSubjects => allCompositeSubjects.where((c) => restrictedGroupCodes.contains(c.code)).toList();
 
   double get totalPoints => allAverages.values.sum;
 
   Map<String, double> get allAverages {
     final averages = <String, double>{};
+    final grades = allGrades;
 
     for (final subject in allSubjects) {
       if (subject.isLocked && subject.lockedGrade != null) {
         averages[subject.code] = subject.lockedGrade!;
-        continue;
+      } else {
+        final subjectGrades = grades.where((g) => g.subject.value?.code == subject.code).toList();
+        if (subjectGrades.isNotEmpty) {
+          averages[subject.code] = calculateAverage(subjectGrades, round: true);
+        }
       }
-
-      final subjectGrades = allGrades.where((g) => g.subject.value?.code == subject.code).toList();
-
-      if (subjectGrades.isNotEmpty) averages[subject.code] = calculateAverage(subjectGrades, round: true);
     }
 
-    for (final compositeSubject in allCompositeSubjects) {
-      final average = calculateCompositeSubjectAverage(compositeSubject, round: true);
-      if (average != null) averages[compositeSubject.code] = average;
+    for (final composite in allCompositeSubjects) {
+      final avg = calculateCompositeSubjectAverage(composite, round: true);
+      if (avg != null) averages[composite.code] = avg;
     }
-
     return averages;
-  }
-
-  double doubleCompensation(Map<String, double> averages) {
-    double deficit = 0;
-    double surplus = 0;
-
-    for (final avg in averages.values) {
-      if (avg < 4) deficit += avg - 4;
-      if (avg > 4) surplus += avg - 4;
-    }
-
-    return surplus + deficit * 2;
   }
 }
