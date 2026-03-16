@@ -111,7 +111,7 @@ class App extends StatelessWidget {
 
   static List<AppPage> pages = [
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesListPage()),
-    AppPage(name: "Dévoirs", icon: HugeIcons.strokeRoundedWork, build: () => AssignmentsListPage(key: assignmentListPageKey)),
+    AppPage(name: "Devoirs", icon: HugeIcons.strokeRoundedWork, build: () => AssignmentsListPage(key: assignmentListPageKey)),
     AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsListPage()),
     AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsListPage()),
