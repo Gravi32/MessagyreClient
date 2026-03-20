@@ -13,7 +13,6 @@ import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:uuid/uuid.dart';
-import 'package:timezone/timezone.dart';
 
 class NewAssignmentPage extends StatefulWidget {
   final Assignment? toEdit;
