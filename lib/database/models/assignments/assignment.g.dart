@@ -37,18 +37,23 @@ const AssignmentSchema = CollectionSchema(
       name: r'isMarkedAsDone',
       type: IsarType.bool,
     ),
-    r'referenceId': PropertySchema(
+    r'notificationId': PropertySchema(
       id: 4,
+      name: r'notificationId',
+      type: IsarType.long,
+    ),
+    r'referenceId': PropertySchema(
+      id: 5,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'title',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AssignmenttypeEnumValueMap,
@@ -113,9 +118,10 @@ void _assignmentSerialize(
   writer.writeString(offsets[1], object.content);
   writer.writeDateTime(offsets[2], object.dueDate);
   writer.writeBool(offsets[3], object.isMarkedAsDone);
-  writer.writeString(offsets[4], object.referenceId);
-  writer.writeString(offsets[5], object.title);
-  writer.writeByte(offsets[6], object.type.index);
+  writer.writeLong(offsets[4], object.notificationId);
+  writer.writeString(offsets[5], object.referenceId);
+  writer.writeString(offsets[6], object.title);
+  writer.writeByte(offsets[7], object.type.index);
 }
 
 Assignment _assignmentDeserialize(
@@ -130,10 +136,11 @@ Assignment _assignmentDeserialize(
   object.dueDate = reader.readDateTime(offsets[2]);
   object.id = id;
   object.isMarkedAsDone = reader.readBool(offsets[3]);
-  object.referenceId = reader.readStringOrNull(offsets[4]);
-  object.title = reader.readStringOrNull(offsets[5]);
+  object.notificationId = reader.readLongOrNull(offsets[4]);
+  object.referenceId = reader.readStringOrNull(offsets[5]);
+  object.title = reader.readStringOrNull(offsets[6]);
   object.type =
-      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
           AssignmentType.assignment;
   return object;
 }
@@ -154,10 +161,12 @@ P _assignmentDeserializeProp<P>(
     case 3:
       return (reader.readBool(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
       return (_AssignmenttypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AssignmentType.assignment) as P;
     default:
@@ -672,6 +681,80 @@ extension AssignmentQueryFilter
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      notificationIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'notificationId',
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      notificationIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'notificationId',
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      notificationIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'notificationId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      notificationIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'notificationId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      notificationIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'notificationId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      notificationIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'notificationId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
       referenceIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1097,6 +1180,19 @@ extension AssignmentQuerySortBy
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByNotificationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'notificationId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy>
+      sortByNotificationIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'notificationId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByReferenceId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'referenceId', Sort.asc);
@@ -1198,6 +1294,19 @@ extension AssignmentQuerySortThenBy
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByNotificationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'notificationId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy>
+      thenByNotificationIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'notificationId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByReferenceId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'referenceId', Sort.asc);
@@ -1264,6 +1373,12 @@ extension AssignmentQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QDistinct> distinctByNotificationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'notificationId');
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QDistinct> distinctByReferenceId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1315,6 +1430,12 @@ extension AssignmentQueryProperty
   QueryBuilder<Assignment, bool, QQueryOperations> isMarkedAsDoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isMarkedAsDone');
+    });
+  }
+
+  QueryBuilder<Assignment, int?, QQueryOperations> notificationIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'notificationId');
     });
   }
 

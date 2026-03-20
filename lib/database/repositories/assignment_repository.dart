@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:isar/isar.dart';
 import '../models/assignments/assignment.dart';
 
@@ -7,11 +8,16 @@ class AssignmentRepository {
   AssignmentRepository(this.isar);
 
   List<Assignment> getAll() {
-    final allAssignments = isar.assignments.where().sortByDueDate().findAllSync();
-    for (final assignment in allAssignments) {
-      assignment.subject.loadSync();
+    try {
+      final allAssignments = isar.assignments.where().sortByDueDate().findAllSync();
+      for (final assignment in allAssignments) {
+        assignment.subject.loadSync();
+      }
+      return allAssignments;
+    } catch (e) {
+      debugPrint("[SEVERE] Assignments 'getAll' Failed ! $e");
+      return [];
     }
-    return allAssignments;
   }
 
   Future<void> save(Assignment assignment) async {

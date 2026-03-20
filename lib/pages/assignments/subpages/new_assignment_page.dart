@@ -6,12 +6,14 @@ import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:uuid/uuid.dart';
+import 'package:timezone/timezone.dart';
 
 class NewAssignmentPage extends StatefulWidget {
   final Assignment? toEdit;
@@ -27,6 +29,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final globals = GlobalsService();
   final database = DatabaseService();
   final calendar = DeviceCalendarPlugin();
+  final notifications = NotificationsService();
 
   late final editMode = widget.toEdit != null;
 
@@ -43,8 +46,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
+  late int? notificationId = widget.toEdit?.notificationId;
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
-  late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : true; // miscBox.get("EditsCalendar", defaultValue: true);
+  late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : globals.persistent.getBool("EditsCalendar") ?? false;
 
   bool isMissingTitle = false;
   bool isMissingContent = false;
@@ -55,14 +59,18 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   void confirmAssignment() async {
     final assignment = widget.toEdit ?? Assignment();
 
+    // Use a stable referenceId for notification hashing
+    final effectiveReferenceId = assignment.referenceId ?? const Uuid().v4();
+
     assignment
       ..subject.value = subject
       ..title = titleController.text.isEmpty ? null : titleController.text.trim()
       ..content = mode == AssignmentType.leave && contentController.text.trim().isEmpty ? "Congé sans titre" : contentController.text.trim()
       ..dueDate = dueDate
       ..type = mode
-      ..referenceId = addingToGradesPage ? assignment.referenceId ?? const Uuid().v4() : null
-      ..calendarEventId = editsCalendar ? assignment.calendarEventId : null;
+      ..referenceId = addingToGradesPage ? effectiveReferenceId : null
+      ..calendarEventId = editsCalendar ? assignment.calendarEventId : null
+      ..notificationId = notificationId;
 
     if (assignment.referenceId != null) {
       final assignedGrade = database.grades.getByReferenceId(assignment.referenceId!);
@@ -96,6 +104,24 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     }
 
     await database.assignments.save(assignment);
+
+    // Notification Handling using referenceId hash to avoid Isar ID issues
+    final stableId = effectiveReferenceId.hashCode.remainder(100000);
+
+    try {
+      if (notificationId != null && dueDate.copyWith(hour: 17).difference(DateTime.now()).inSeconds > 0) {
+        await notifications.scheduleAssignmentNotification(
+          notificationId: stableId,
+          title: assignment.title ?? "Devoir ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? 'sans titre'} per domani !",
+          body: assignment.content,
+          dueDate: assignment.dueDate.subtract(const Duration(days: 1)).copyWith(hour: 17),
+        );
+      } else {
+        await notifications.cancel(stableId);
+      }
+    } catch (e) {
+      debugPrint("Notification Error: $e");
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -133,8 +159,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     contentFocusNode.unfocus();
   }
 
-  //(subject != null && subject != Subject.NotSet) && ((isTest || isGraded) ? titleController.text.isNotEmpty : contentController.text.isNotEmpty);
-
   void showMissingInfoPopup() {
     showCupertinoDialog(
       context: context,
@@ -155,11 +179,11 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         }
 
         return CupertinoAlertDialog(
-          title: Text("Informations manquantes"),
+          title: const Text("Informations manquantes"),
           content: CustomText("Vous n'oubliez pas quelque chose ?\nPour créer ce devoir entrez ${missingInfos.join(" et ")} !", textAlign: TextAlign.center),
           actions: [
             CupertinoDialogAction(
-              child: Text("OK"),
+              child: const Text("OK"),
               onPressed: () {
                 Navigator.pop(dialogContext);
                 setState(() {});
@@ -247,21 +271,20 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         child: SafeArea(
           child: ListView(
             physics: const ClampingScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
                   "Nouveau ${mode == AssignmentType.assignment
                       ? "devoir"
                       : mode == AssignmentType.test
                       ? "test"
                       : "congé"}",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
                 ),
               ),
 
-              // Mode Switcher
               CupertinoSlidingSegmentedControl<AssignmentType>(
                 groupValue: mode,
                 backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -288,24 +311,23 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     mode == AssignmentType.leave
                         ? null
                         : Padding(
-                          padding: EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             "Merci de remplir les champs obligatoires *",
                             style: TextStyle(fontSize: 14, color: canSubmitNotifier.value ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
                           ),
                         ),
                 children: [
-                  // Title Tile
                   if (mode == AssignmentType.test)
                     CupertinoListTile.notched(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedSubtitle),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedSubtitle),
 
                       title: CupertinoTextField(
                         controller: titleController,
                         focusNode: titleFocusNode,
-                        decoration: BoxDecoration(),
+                        decoration: const BoxDecoration(),
                         placeholder: "Titre ${mode == AssignmentType.test ? "*" : ""}",
                         minLines: 1,
                         maxLines: 2,
@@ -319,22 +341,21 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       ),
                       trailing:
                           isMissingTitle
-                              ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                              ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                               : Opacity(
                                 opacity: .5,
                                 child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                               ),
                     ),
 
-                  // Description Tile
                   CupertinoListTile.notched(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
 
                     title: CupertinoTextField(
                       controller: contentController,
                       focusNode: contentFocusNode,
-                      decoration: BoxDecoration(),
+                      decoration: const BoxDecoration(),
                       placeholder: switch (mode) {
                         AssignmentType.assignment => "Ce que vous devez faire... *",
                         AssignmentType.test => "Si vous voulez, entrez une déscription du test...",
@@ -352,22 +373,21 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     ),
                     trailing:
                         isMissingContent
-                            ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                            ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                             : Opacity(
                               opacity: .5,
                               child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                             ),
                   ),
 
-                  // Subject Tile
                   if (mode != AssignmentType.leave)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
+                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
                       trailing:
                           isMissingSubject
-                              ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                              ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                               : Opacity(
                                 opacity: .5,
                                 child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
@@ -375,10 +395,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
-                        decoration: BoxDecoration(),
+                        decoration: const BoxDecoration(),
                         padding: EdgeInsets.zero,
                         placeholder: "Entrez une branche *",
-                        placeholderStyle: isMissingSubject ? TextStyle(color: AppColors.red) : null,
+                        placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
                         onSubjectSelected: (selectedSubject) {
                           setState(() {
                             subject = selectedSubject;
@@ -399,40 +419,61 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
+                    leading: const HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                     trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
-                    title: Text("Pour ${formatDate(dueDate, includeArticle: true)}", style: TextStyle(fontWeight: FontWeight.w600)),
+                    title: Text("Pour ${formatDate(dueDate, includeArticle: true)}", style: const TextStyle(fontWeight: FontWeight.w600)),
                     onTap: showDatePicker,
                   ),
                 ],
               ),
 
+              if (dueDate.difference(DateTime.now()).inDays >= 1)
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: AppColors.transparent,
+                  header: const Text("Notifications"),
+                  margin: EdgeInsets.zero,
+                  children: [
+                    CupertinoListTile(
+                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedNotification01),
+                      title: Text("Envoyer une notification", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                      trailing: CupertinoSwitch(
+                        value: notificationId != null,
+                        onChanged: (value) {
+                          setState(() {
+                            notificationId = value ? 1 : null;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
                 header: const Text("Autres"),
-
                 margin: EdgeInsets.zero,
                 children: [
                   if (mode == AssignmentType.test)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
-                      title: Text("Ajouter à la page des notes", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
+                      title: Text("Suggérer dans la page des notes", style: TextStyle(color: AppColors.text.adaptTo(context))),
                       trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
                     ),
+
                   ValueListenableBuilder(
                     valueListenable: targetCalendar,
                     builder:
                         (context, newTargetCalendar, _) => CupertinoListTile(
                           backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                          leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarAdd01),
+                          leading: const HugeIcon(icon: HugeIcons.strokeRoundedCalendarAdd01),
                           title: Text("${editMode ? "Syncroniser avec le" : "Ajouter au"} calendrier du téléphone"),
                           trailing: CupertinoSwitch(
                             value: editsCalendar,
                             onChanged:
                                 (value) => setState(() {
                                   editsCalendar = value;
-                                  // miscBox.put("EditsCalendar", value);
                                 }),
                           ),
                           subtitle: Text(
@@ -452,8 +493,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   if (widget.toEdit != null)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                      title: Text("Supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"}", style: TextStyle(color: AppColors.red)),
+                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                      title: Text("Supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"}", style: const TextStyle(color: AppColors.red)),
                       onTap: () {
                         showCupertinoDialog(
                           context: context,
@@ -462,11 +503,14 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                 title: Text("Supprimer ce ${mode == AssignmentType.test ? "test" : "note"}"),
                                 content: Text("Êtes-vous sûr de vouloir supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"} ?"),
                                 actions: [
-                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                                  CupertinoDialogAction(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
                                   CupertinoDialogAction(
                                     isDestructiveAction: true,
-                                    child: Text("Supprimer"),
+                                    child: const Text("Supprimer"),
                                     onPressed: () {
+                                      if (widget.toEdit?.referenceId != null) {
+                                        notifications.cancel(widget.toEdit!.referenceId!.hashCode.remainder(100000));
+                                      }
                                       database.assignments.delete(widget.toEdit!);
                                       Navigator.of(context).pop();
                                       Navigator.of(context).pop(widget.toEdit);

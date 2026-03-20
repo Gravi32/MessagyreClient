@@ -12,7 +12,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 
 // #region -> Strings
-extension StringCasingExtension on String {
+extension StringExtension on String {
   String capitalize({bool everyWord = false}) {
     if (everyWord) {
       return split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1).toLowerCase() : '').join(' ');
@@ -20,9 +20,7 @@ extension StringCasingExtension on String {
       return isEmpty ? "" : (this[0].toUpperCase() + substring(1));
     }
   }
-}
 
-extension StringNormalizeExtension on String {
   String normalize() {
     return toLowerCase()
         .replaceAll(RegExp(r'[àâä]'), 'a')

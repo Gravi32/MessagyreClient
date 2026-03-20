@@ -14,6 +14,8 @@ class Assignment {
 
   late DateTime dueDate;
 
+  int? notificationId;
+
   @enumerated
   AssignmentType type = AssignmentType.assignment;
 
