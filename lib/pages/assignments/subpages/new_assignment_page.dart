@@ -46,6 +46,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late int? notificationId = widget.toEdit?.notificationId;
+
+  int daysBefore = 1;
+  DateTime notificationTime = DateTime(2026, 1, 1, 17, 0);
+
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
   late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : globals.persistent.getBool("EditsCalendar") ?? false;
 
@@ -57,8 +61,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   void confirmAssignment() async {
     final assignment = widget.toEdit ?? Assignment();
-
-    // Use a stable referenceId for notification hashing
     final effectiveReferenceId = assignment.referenceId ?? const Uuid().v4();
 
     assignment
@@ -104,16 +106,19 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
     await database.assignments.save(assignment);
 
-    // Notification Handling using referenceId hash to avoid Isar ID issues
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
 
     try {
-      if (notificationId != null && dueDate.copyWith(hour: 17).difference(DateTime.now()).inSeconds > 0) {
+      if (notificationId != null) {
+        final scheduledDate = dueDate.subtract(Duration(days: daysBefore)).copyWith(hour: notificationTime.hour, minute: notificationTime.minute);
+
+        final targetForService = scheduledDate.add(const Duration(days: 1));
+
         await notifications.scheduleAssignmentNotification(
           notificationId: stableId,
-          title: assignment.title ?? "Devoir ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? 'sans titre'} per domani !",
+          title: assignment.title ?? "Devoir ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? 'sans titre'}",
           body: assignment.content,
-          dueDate: assignment.dueDate.subtract(const Duration(days: 1)).copyWith(hour: 17),
+          dueDate: targetForService,
         );
       } else {
         await notifications.cancel(stableId);
@@ -124,6 +129,67 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  void showNotificationOptionsPicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder:
+          (BuildContext context) => Container(
+            height: 300,
+            color: AppColors.tertiaryBackground.adaptTo(context),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 44,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      CupertinoButton(child: const Text("OK", style: TextStyle(fontWeight: FontWeight.w600)), onPressed: () => Navigator.of(context).pop()),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: CupertinoPicker(
+                          itemExtent: 32,
+                          scrollController: FixedExtentScrollController(initialItem: daysBefore),
+                          onSelectedItemChanged: (int index) => setState(() => daysBefore = index),
+                          children: List<Widget>.generate(8, (int index) {
+                            return Center(
+                              child: Text(
+                                index == 0
+                                    ? "Le jour même"
+                                    : index == 1
+                                    ? "1 jour avant"
+                                    : "$index jours avant",
+                                style: TextStyle(fontSize: 18, color: AppColors.text.adaptTo(context)),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.time,
+                          use24hFormat: true,
+                          initialDateTime: notificationTime,
+                          onDateTimeChanged: (DateTime newTime) {
+                            setState(() => notificationTime = newTime);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
   }
 
   void showSubjectPicker() {
@@ -426,10 +492,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 ],
               ),
 
-              if (dueDate.difference(DateTime.now()).inDays >= 1)
+              if (dueDate.difference(DateTime.now()).inDays >= 0)
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
-                  header: const Text("Notifications"),
+                  header: const Text("Rappels"),
                   margin: EdgeInsets.zero,
                   children: [
                     CupertinoListTile(
@@ -445,12 +511,33 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         },
                       ),
                     ),
+                    if (notificationId != null)
+                      CupertinoListTile(
+                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                        leading: const SizedBox(width: 24),
+                        title: Text("M'avertir", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "${daysBefore == 0
+                                  ? "Le jour même"
+                                  : daysBefore == 1
+                                  ? "1 jour avant"
+                                  : "$daysBefore jours avant"} à ${notificationTime.hour}:${notificationTime.minute.toString().padLeft(2, '0')}",
+                              style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                            ),
+                            const SizedBox(width: 6),
+                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context), size: 18),
+                          ],
+                        ),
+                        onTap: showNotificationOptionsPicker,
+                      ),
                   ],
                 ),
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
-                header: const Text("Autres"),
                 margin: EdgeInsets.zero,
                 children: [
                   if (mode == AssignmentType.test)
