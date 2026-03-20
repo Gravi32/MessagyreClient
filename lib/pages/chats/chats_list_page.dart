@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:hugeicons/hugeicons.dart';
@@ -30,15 +32,70 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
   final pageScrollController = ScrollController();
 
-  List<Chat> get allChats =>
-      database.chats.getAll()..sort((a, b) {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
+  bool showThumbnailChats = false;
 
-        final aDate = a.messages.isNotEmpty ? a.messages.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
-        final bDate = b.messages.isNotEmpty ? b.messages.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
-        return bDate.compareTo(aDate);
-      });
+  final Map<String, String?> _mockPhotos = {
+    'lucas_v7': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150', // Gatto
+    'enzo_drk': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=150', // Macchina
+    'mathis_99': 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=150', // Gatto
+    'nathan_off': null,
+    'hugo_m': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=150', // Macchina
+    'leo_paris': 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=150', // Cane/Gatto
+    'theo_j': 'https://images.unsplash.com/photo-1543906965-f9520aa2ed8b?w=150', // Gatto
+    'gabriel_l': null,
+    'maxime_r': 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=150', // Macchina
+    'yanis_b': 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=150', // Gatto
+  };
+
+  final Map<String, Message> _mockLastMessages = {};
+
+  List<Chat> get _mockedFrenchChats {
+    final now = DateTime.now();
+    final mocks = [
+      {'user': 'lucas_v7', 'display': 'Lucas 🇫🇷', 'msg': 'On se voit à quelle heure ?', 'own': true, 'status': MessageStatus.Read},
+      {'user': 'enzo_drk', 'display': 'Enzo', 'msg': 'T\'as fait l\'exo de maths ? 💀', 'own': false, 'status': MessageStatus.Delivered},
+      {'user': 'mathis_99', 'display': 'Mathis B.', 'msg': 'Je t\'envoie le lien tout de suite', 'own': true, 'status': MessageStatus.Read},
+      {'user': 'nathan_off', 'display': 'Nathan', 'msg': 'Vas-y chaud pour la console!', 'own': true, 'status': MessageStatus.Delivered},
+      {'user': 'hugo_m', 'display': 'Hugo', 'msg': 'Mdr t\'es sérieux ??', 'own': false, 'status': MessageStatus.Delivered},
+      {'user': 'leo_paris', 'display': 'Léo', 'msg': 'Je t\'ai laissé les clés.', 'own': true, 'status': MessageStatus.Read},
+      {'user': 'theo_j', 'display': 'Théo', 'msg': 'Je t\'attends au skatepark.', 'own': false, 'status': MessageStatus.Delivered},
+      {'user': 'gabriel_l', 'display': 'Gabriel', 'msg': 'Ok ça marche.', 'own': true, 'status': MessageStatus.Read},
+      {'user': 'maxime_r', 'display': 'Maxime', 'msg': 'C\'est incroyable mec!', 'own': true, 'status': MessageStatus.Read},
+      {'user': 'yanis_b', 'display': 'Yanis', 'msg': 'Je arrive dans 5 minutes.', 'own': false, 'status': MessageStatus.Delivered},
+    ];
+
+    return mocks.map((m) {
+      final username = m['user'] as String;
+      final chat = Chat.custom(
+        username: username,
+        displayUsername: m['display'] as String,
+        unreadMessages: (m['own'] as bool) == false ? Random().nextInt(3) : 0,
+      );
+
+      _mockLastMessages[username] = Message.custom(
+        content: m['msg'] as String,
+        sentAt: now.subtract(Duration(minutes: (mocks.indexOf(m) + 1) * 12)),
+        isOwned: m['own'] as bool,
+      )..status = m['status'] as MessageStatus;
+
+      return chat;
+    }).toList();
+  }
+
+  List<Chat> get allChats {
+    if (showThumbnailChats) {
+      return _mockedFrenchChats;
+    }
+
+    return database.chats.getAll()..sort((a, b) {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+
+      final aDate = a.messages.isNotEmpty ? a.messages.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
+      final bDate = b.messages.isNotEmpty ? b.messages.last.sentAt : DateTime.fromMillisecondsSinceEpoch(0);
+      return bDate.compareTo(aDate);
+    });
+  }
 
   // Widgets
 
@@ -46,7 +103,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
     final isBlocked = globals.blockedUsers.contains(chatData.username);
     var hasUnreadMessages = chatData.unreadMessages > 0;
 
-    final lastMessage = chatData.messages.isNotEmpty ? chatData.messages.last : null;
+    final lastMessage = showThumbnailChats ? _mockLastMessages[chatData.username] : (chatData.messages.isNotEmpty ? chatData.messages.last : null);
+
     final statusIconData = lastMessage != null ? getStatusIcon(lastMessage.status) : null;
 
     return Column(
@@ -58,7 +116,11 @@ class _ChatsListPageState extends State<ChatsListPage> {
               children: [
                 Container(
                   foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
-                  child: ProfilePictureDisplay(accountUsername: chatData.username, radius: 25),
+                  child: ProfilePictureDisplay(
+                    accountUsername: (showThumbnailChats && _mockPhotos[chatData.username] != null) ? null : chatData.username,
+                    pictureURL: showThumbnailChats ? _mockPhotos[chatData.username] : null,
+                    radius: 25,
+                  ),
                 ),
 
                 SizedBox(width: 12),
@@ -266,7 +328,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
             child: StreamBuilder(
               stream: database.chats.watchAll(),
               builder: (context, _) {
-                return allChats.isEmpty
+                final list = allChats;
+
+                return list.isEmpty
                     ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 2,
@@ -295,9 +359,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     )
                     : ListView.builder(
                       padding: EdgeInsets.only(top: 8),
-                      itemCount: allChats.length,
+                      itemCount: list.length,
                       itemBuilder: (context, index) {
-                        return buildChatBar(allChats[index]);
+                        return buildChatBar(list[index]);
                       },
                     );
               },

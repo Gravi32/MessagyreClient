@@ -57,8 +57,7 @@ La présente politique de confidentialité a pour objet d'informer les utilisate
 
 *2. Responsable du traitement*
 Le responsable du traitement des données personnelles est:
-Messagyre  
-Développé par Pietro Gravina
+Pietro Gravina
 
 *3. Données personnelles collectées*
 Messagyre traite des données personnelles selon trois catégories distinctes: données conservées exclusivement en local sur l'appareil de l'utilisateur, données transmises au backend sous forme chiffrée, et données transmises au backend en clair.
