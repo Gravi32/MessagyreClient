@@ -65,6 +65,14 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   bool get isNotificationPossible => dueDate.difference(DateTime.now()).inDays >= 0;
 
+  String formatAssignmentType(AssignmentType type) {
+    return switch (type) {
+      AssignmentType.assignment => "devoir",
+      AssignmentType.test => "test",
+      AssignmentType.leave => "congé",
+    };
+  }
+
   void confirmAssignment() async {
     final assignment = widget.toEdit ?? Assignment();
     final effectiveReferenceId = assignment.referenceId ?? const Uuid().v4();
@@ -91,18 +99,13 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
 
     if (notificationDate != null) {
-      final type = switch (assignment.type) {
-        AssignmentType.assignment => "Devoir",
-        AssignmentType.test => "Test",
-        AssignmentType.leave => "Congé",
-      };
-      final subtitle = assignment.title ?? "$type ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? "prévu !"}";
-
       await notifications.scheduleAssignmentNotification(
         notificationId: stableId,
-        title: "📅 Rappel !",
-        subtitle: subtitle,
-        body: assignment.type == AssignmentType.assignment ? assignment.content : formatDate(assignment.dueDate, includeArticle: true).capitalize(),
+        title: "📅 Rappel",
+        subtitle:
+            assignment.title ??
+            "${formatAssignmentType(assignment.type).capitalize()} ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? ""} à venir !",
+        body: (assignment.type == AssignmentType.assignment ? assignment.content : formatDate(assignment.dueDate, includeArticle: true)).capitalize(),
         dueDate: notificationDate!,
       );
     } else {
@@ -242,14 +245,11 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                   itemExtent: 32,
                                   onSelectedItemChanged: (index) {
                                     final daysBefore = notificationDayOptions.keys.toList()[index];
-                                    print("aa $index | $daysBefore");
 
                                     if (!isValid(dueDate.add(Duration(days: -daysBefore)), countTimeToo: false)) {
                                       scrollToFirstAvailableDaysBefore();
                                       return;
                                     }
-
-                                    print("bb $index | $daysBefore");
 
                                     setPopupState(() {
                                       chosenDateTime =
@@ -258,8 +258,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                               : (chosenDateTime ?? dueDate.add(Duration(days: -daysBefore))).copyWith(
                                                 day: dueDate.add(Duration(days: -daysBefore)).day,
                                               );
-
-                                      print(chosenDateTime);
 
                                       if (!isValid(chosenDateTime)) {
                                         scrollToFirstAvailableHour();
@@ -518,7 +516,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
-                  "Nouveau ${mode == AssignmentType.assignment
+                  "${editMode ? "Modifier le" : "Nouveau"} ${mode == AssignmentType.assignment
                       ? "devoir"
                       : mode == AssignmentType.test
                       ? "test"
@@ -728,21 +726,21 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
-                header: const SizedBox.shrink(),
+                header: const Text("Supprimer"),
                 margin: EdgeInsets.zero,
                 children: [
                   if (widget.toEdit != null)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: const HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                      title: Text("Supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"}", style: const TextStyle(color: AppColors.red)),
+                      title: Text("Supprimer ce ${formatAssignmentType(mode)}", style: const TextStyle(color: AppColors.red)),
                       onTap: () {
                         showCupertinoDialog(
                           context: context,
                           builder:
                               (_) => CupertinoAlertDialog(
-                                title: Text("Supprimer ce ${mode == AssignmentType.test ? "test" : "note"}"),
-                                content: Text("Êtes-vous sûr de vouloir supprimer ${mode == AssignmentType.test ? "ce test" : "cette note"} ?"),
+                                title: Text("Supprimer ce ${formatAssignmentType(mode)}"),
+                                content: Text("Êtes-vous sûr de vouloir supprimer ce ${formatAssignmentType(mode)} ?"),
                                 actions: [
                                   CupertinoDialogAction(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
                                   CupertinoDialogAction(
