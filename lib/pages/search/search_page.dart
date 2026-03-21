@@ -190,7 +190,15 @@ class SearchPageState extends State<SearchPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+                            Opacity(
+                              opacity: AppColors.tertiaryText.adaptTo(context).a,
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedSearch01,
+                                strokeWidth: 1.5,
+                                size: 48,
+                                color: AppColors.tertiaryText.adaptTo(context).withAlpha(255),
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             Text(
                               "Recherchez un utilisateur",
