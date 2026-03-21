@@ -14,11 +14,11 @@ class NotificationOverlaysService {
     _overlayState = Overlay.of(context);
   }
 
-  void spawn(String title, String sender, String message) {
+  void spawn(String title, String body, String sender) async {
     if ((GlobalsService().openChatUsername ?? "") == sender) return;
 
     _currentOverlay?.remove();
-    _currentOverlay = OverlayEntry(builder: (context) => NotificationOverlay(title: title, senderUsername: sender, messageContent: message));
+    _currentOverlay = OverlayEntry(builder: (context) => NotificationOverlay(title: title, senderUsername: sender, messageContent: body));
     _overlayState?.insert(_currentOverlay!);
   }
 

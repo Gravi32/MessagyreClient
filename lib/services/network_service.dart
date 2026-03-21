@@ -14,6 +14,7 @@ import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:pointycastle/export.dart';
@@ -33,6 +34,7 @@ class NetworkService {
   // Singletons
   final globals = GlobalsService();
   final database = DatabaseService();
+  final encryption = EncryptionService();
   final secureStorage = FlutterSecureStorage();
 
   // Streams
@@ -342,38 +344,7 @@ class NetworkService {
         final hasEncryptedKey = rawMessageData.containsKey("EncryptedKey") && rawMessageData["EncryptedKey"] != null;
 
         if (hasCipherText && hasIV && hasEncryptedKey) {
-          try {
-            final cipherText = base64.decode(rawMessageData["CipherText"]);
-            final iv = base64.decode(rawMessageData["IV"]);
-            final encryptedKeyString = rawMessageData["EncryptedKey"] as String;
-
-            final encryptedKeyBytes = base64.decode(encryptedKeyString);
-
-            final privateKey = await globals.privateKey;
-
-            if (privateKey.modulus == null || privateKey.privateExponent == null) {
-              throw Exception("Invalid private key: missing modulus or exponent");
-            }
-
-            final rsaDecryptor = OAEPEncoding(RSAEngine())..init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
-
-            final aesKeyBytes = rsaDecryptor.process(encryptedKeyBytes);
-
-            final cipher = GCMBlockCipher(AESEngine())..init(
-              false,
-              AEADParameters(
-                KeyParameter(aesKeyBytes),
-                128, // tag length in bits
-                iv,
-                Uint8List(0), // additional data
-              ),
-            );
-
-            final decryptedBytes = cipher.process(cipherText);
-            content = utf8.decode(decryptedBytes);
-          } catch (e) {
-            throw FormatException("Decryption failed: $e");
-          }
+          content = await encryption.decryptMessage(rawMessageData["CipherText"], rawMessageData["IV"], rawMessageData["EncryptedKey"] as String);
         } else {
           final plain = rawMessageData["Content"]?.toString();
           if (plain == null) throw FormatException("Missing Content");
@@ -572,7 +543,7 @@ class NetworkService {
   }
 
   Future<void> uploadPublicKey() async {
-    final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await globals.publicKey);
+    final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await encryption.publicKey);
     final response = await post("/accounts/me/upload-public-key", {"PublicKey": stringPublicKey});
 
     if (response.statusCode != 200) {

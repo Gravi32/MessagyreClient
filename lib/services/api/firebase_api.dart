@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -19,8 +20,10 @@ class FirebaseApi {
 
   final firebaseMessaging = FirebaseMessaging.instance;
   final localNotifications = FlutterLocalNotificationsPlugin();
+  final notificationOverlays = NotificationOverlaysService();
   final globals = GlobalsService();
   final network = NetworkService();
+  final encryption = EncryptionService();
 
   bool waitingForConnection = false;
   int badgeCount = 0;
@@ -71,12 +74,18 @@ class FirebaseApi {
     final body = data['Body'] ?? message.notification?.body ?? '';
     final imageUrl = data['ProfilePictureURL'];
     final sender = data['SenderUsername'];
+    final cipherText = data['CipherText'];
+    final iv = data['IV'];
+    final encryptedKey = data['EncryptedKey'];
+
+    final usingEncryption = cipherText != null && iv != null && encryptedKey != null;
+    final messageBody = usingEncryption ? encryption.decryptMessage(cipherText, iv, encryptedKey) : body;
 
     if (state == AppLifecycleState.resumed) {
-      NotificationOverlaysService().spawn(title, sender, body);
+      if (usingEncryption) notificationOverlays.spawn(title, messageBody, sender);
       resetBadge();
     } else {
-      await _showSystemNotification(title, body, imageUrl, sender);
+      await _showSystemNotification(title, messageBody, imageUrl, sender);
       incrementBadge();
     }
   }
