@@ -114,10 +114,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                                       margin: EdgeInsets.only(top: 4),
                                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(12)),
-                                      child: Text(
-                                        "+ ${unreadMessages - 1}",
-                                        style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                                      ),
+                                      child: Text("${unreadMessages - 1}", style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
                                     ),
                                 ],
                               ),

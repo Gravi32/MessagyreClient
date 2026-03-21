@@ -19,7 +19,7 @@ class EncryptionService {
   EncryptionService._internal();
 
   final secureStorage = FlutterSecureStorage();
-  final network = NetworkService();
+  // Do not instantiate NetworkService here: Stack overflow 
 
   AsymmetricKeyPair? _keyPairCache;
 
@@ -84,7 +84,7 @@ class EncryptionService {
     secureStorage.write(key: "RSAPrivateKey", value: privatePem);
 
     debugPrint("[RSA] New key pair generated and saved");
-    network.uploadPublicKey();
+    NetworkService().uploadPublicKey();
 
     return result;
   }
