@@ -123,7 +123,12 @@ class SearchPageState extends State<SearchPage> {
                     ),
                   ),
                   if (result.classOrRole != null)
-                    Text(result.classOrRole ?? "", style: TextStyle(color: AppColors.grey, fontSize: 14, fontWeight: FontWeight.w400)),
+                    Text.rich(
+                      TextSpan(
+                        children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text),
+                        style: TextStyle(color: AppColors.grey, fontSize: 14, fontWeight: FontWeight.w400),
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -136,7 +141,7 @@ class SearchPageState extends State<SearchPage> {
       ),
       leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 26),
       leadingSize: 50,
-      additionalInfo: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
+      additionalInfo: CupertinoListTileChevron(),
       onTap: () async {
         setState(() {
           usernameBeingLoaded = result.username;
@@ -209,20 +214,22 @@ class SearchPageState extends State<SearchPage> {
                               textAlign: TextAlign.center,
                               style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
                             ),
-                            const SizedBox(height: 43),
+                            SizedBox(height: showDecoration ? 100 : 0),
                           ],
                         ),
-                        AnimatedOpacity(
-                          opacity: showDecoration ? 1 : 0,
-                          duration: Duration(milliseconds: showDecoration ? 200 : 100),
-                          child: ClipRect(
-                            child: Align(
-                              alignment: Alignment.bottomCenter.add(AlignmentGeometry.xy(0, 4 - 2 * Curves.easeOutCubic.transform(alpha))),
-                              child: Image.asset(
-                                "assets/messagyreGuy.png",
-                                fit: BoxFit.fitWidth,
-                                width: MediaQuery.widthOf(context),
-                                errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png"),
+                        SafeArea(
+                          child: AnimatedOpacity(
+                            opacity: showDecoration ? 1 : 0,
+                            duration: Duration(milliseconds: showDecoration ? 200 : 100),
+                            child: ClipRect(
+                              child: Align(
+                                alignment: Alignment.bottomCenter.add(AlignmentGeometry.xy(0, 4 - 2 * Curves.easeOutCubic.transform(alpha))),
+                                child: Image.asset(
+                                  "assets/messagyreGuy.png",
+                                  fit: BoxFit.fitWidth,
+                                  width: MediaQuery.widthOf(context),
+                                  errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png"),
+                                ),
                               ),
                             ),
                           ),
@@ -237,7 +244,10 @@ class SearchPageState extends State<SearchPage> {
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
+                  Opacity(
+                    opacity: AppColors.secondaryText.adaptTo(context).a,
+                    child: HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context).withAlpha(255), size: 40),
+                  ),
                   SizedBox(height: 10),
                   Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                 ],
@@ -275,26 +285,26 @@ class SearchPageState extends State<SearchPage> {
       behavior: HitTestBehavior.translucent,
       child: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(middle: Text("Nouvelle conversation", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500))),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(height: 8),
-              buildSearchBar(),
-              SizedBox(height: 8),
-              Expanded(
-                child: AnimatedOpacity(
-                  opacity: backgroundFigureAnimation,
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeOutSine,
-                  child:
-                      searchResults.isNotEmpty
-                          ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))
-                          : buildDecoration(),
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            const SizedBox.shrink(),
+
+            buildSearchBar(),
+
+            Expanded(
+              child: AnimatedOpacity(
+                opacity: backgroundFigureAnimation,
+                duration: Duration(milliseconds: 200),
+                curve: Curves.easeOutSine,
+                child:
+                    searchResults.isNotEmpty
+                        ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))
+                        : buildDecoration(),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
