@@ -1,4 +1,4 @@
-import 'package:device_calendar/device_calendar.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -27,7 +27,6 @@ class NewAssignmentPage extends StatefulWidget {
 class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final globals = GlobalsService();
   final database = DatabaseService();
-  final calendar = DeviceCalendarPlugin();
   final notifications = NotificationsService();
 
   late final editMode = widget.toEdit != null;
@@ -37,17 +36,26 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late final contentController = TextEditingController(text: widget.toEdit?.content);
   late final ValueNotifier<bool> canSubmitNotifier;
 
+  final notificationDayOptions = {
+    30: "1 mois avant",
+    7: "1 semaine avant",
+    3: "3 jours avant",
+    2: "2 jours avant",
+    1: "1 jour avant",
+    0: "Le jour même",
+    -1: "Pas de notification",
+  };
+
   final subjectFocusNode = FocusNode();
   final titleFocusNode = FocusNode();
   final contentFocusNode = FocusNode();
 
   late AssignmentType mode = widget.toEdit?.type ?? AssignmentType.assignment;
-
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
   late int? notificationId = widget.toEdit?.notificationId;
 
-  int daysBefore = 1;
+  int notificationDaysBefore = 1;
   DateTime notificationTime = DateTime(2026, 1, 1, 17, 0);
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
@@ -56,8 +64,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   bool isMissingTitle = false;
   bool isMissingContent = false;
   bool isMissingSubject = false;
-
-  final targetCalendar = ValueNotifier<Calendar?>(null);
+  bool get isNotificationPossible => dueDate.difference(DateTime.now()).inDays >= 0;
 
   void confirmAssignment() async {
     final assignment = widget.toEdit ?? Assignment();
@@ -81,50 +88,28 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       }
     }
 
-    if (editsCalendar) {
-      final permissionResult = await calendar.hasPermissions();
-      if (!permissionResult.isSuccess || permissionResult.data != true) {
-        final requestResult = await calendar.requestPermissions();
-        if (!requestResult.isSuccess || requestResult.data != true) return;
-      }
-
-      final timeZone = getLocation("Europe/Zurich");
-
-      final event = Event(
-        targetCalendar.value!.id,
-        eventId: assignment.calendarEventId,
-        title: "Devoir ${assignment.subject.value?.name.withPreposition(lowercase: true)}",
-        start: TZDateTime.from(assignment.dueDate, timeZone),
-        end: TZDateTime.from(assignment.dueDate.add(const Duration(minutes: 45)), timeZone),
-        allDay: true,
-        description: assignment.content,
-      );
-
-      final result = await calendar.createOrUpdateEvent(event);
-      assignment.calendarEventId = result?.data ?? assignment.calendarEventId;
-    }
-
     await database.assignments.save(assignment);
 
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
 
-    try {
-      if (notificationId != null) {
-        final scheduledDate = dueDate.subtract(Duration(days: daysBefore)).copyWith(hour: notificationTime.hour, minute: notificationTime.minute);
+    if (notificationId != null) {
+      final scheduledDate = dueDate.subtract(Duration(days: notificationDaysBefore)).copyWith(hour: notificationTime.hour, minute: notificationTime.minute);
 
-        final targetForService = scheduledDate.add(const Duration(days: 1));
+      final type = switch (assignment.type) {
+        AssignmentType.assignment => "Devoir",
+        AssignmentType.test => "Test",
+        AssignmentType.leave => "Congé",
+      };
+      final title = assignment.title ?? "$type ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? "prévu !"}";
 
-        await notifications.scheduleAssignmentNotification(
-          notificationId: stableId,
-          title: assignment.title ?? "Devoir ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? 'sans titre'}",
-          body: assignment.content,
-          dueDate: targetForService,
-        );
-      } else {
-        await notifications.cancel(stableId);
-      }
-    } catch (e) {
-      debugPrint("Notification Error: $e");
+      await notifications.scheduleAssignmentNotification(
+        notificationId: stableId,
+        title: title,
+        body: assignment.type == AssignmentType.assignment ? assignment.content : "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}",
+        dueDate: scheduledDate,
+      );
+    } else {
+      await notifications.cancel(stableId);
     }
 
     if (!mounted) return;
@@ -132,62 +117,201 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   }
 
   void showNotificationOptionsPicker() {
+    final List<int> hours = List.generate(24, (i) => i);
+    final List<int> minutes = [0, 15, 30, 45];
+
+    int tempDaysBefore = notificationDaysBefore;
+    DateTime tempTime = notificationTime;
+    int? tempNotificationId = notificationId;
+
+    int initialIndex = notificationDayOptions.keys.toList().indexOf(tempNotificationId == null ? -1 : tempDaysBefore);
+    if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
+
+    final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
+    final hourPickerController = FixedExtentScrollController(initialItem: tempTime.hour);
+    final minutesPickerController = FixedExtentScrollController(initialItem: !minutes.contains(tempTime.minute) ? 0 : minutes.indexOf(tempTime.minute));
+
+    bool isValid(int days, DateTime time) {
+      if (days == -1) return true;
+
+      final scheduled = dueDate.subtract(Duration(days: days)).copyWith(hour: time.hour, minute: time.minute);
+      return scheduled.isAfter(DateTime.now());
+    }
+
+    void scrollToFirstAvailableDaysBefore() {
+      int firstValidIndex =
+          notificationDayOptions.keys.indexed.firstWhere((item) => isValid(item.$2, tempTime), orElse: () => (notificationDayOptions.keys.length - 1, -1)).$1;
+      daysBeforePickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
+    }
+
+    void scrollToFirstAvailableHour() {
+      int firstValidIndex = hours.indexWhere((hour) => isValid(tempDaysBefore, tempTime.copyWith(hour: hour)));
+      hourPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
+    }
+
+    void scrollToFirstAvailableMinutes() {
+      int firstValidIndex = minutes.indexWhere((minute) => isValid(tempDaysBefore, tempTime.copyWith(minute: minute)));
+      minutesPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
+    }
+
     showCupertinoModalPopup(
       context: context,
       builder:
-          (BuildContext context) => Container(
-            height: 300,
-            color: AppColors.tertiaryBackground.adaptTo(context),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 44,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+          (BuildContext context) => StatefulBuilder(
+            builder: (context, setPopupState) {
+              return Container(
+                height: 250,
+                decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+                child: SafeArea(
+                  top: false,
+                  child: Column(
                     children: [
-                      CupertinoButton(child: const Text("OK", style: TextStyle(fontWeight: FontWeight.w600)), onPressed: () => Navigator.of(context).pop()),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
+                      Container(
+                        color: AppColors.background.adaptTo(context),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CupertinoButton(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                            const Text("Me rappeler", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                            CupertinoButton(
+                              child: const Text("Terminé"),
+                              onPressed: () {
+                                setState(() {
+                                  notificationDaysBefore = tempDaysBefore;
+                                  notificationTime = tempTime;
+                                  notificationId = tempNotificationId;
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // "Days Before" Picker
                       Expanded(
-                        flex: 2,
-                        child: CupertinoPicker(
-                          itemExtent: 32,
-                          scrollController: FixedExtentScrollController(initialItem: daysBefore),
-                          onSelectedItemChanged: (int index) => setState(() => daysBefore = index),
-                          children: List<Widget>.generate(8, (int index) {
-                            return Center(
-                              child: Text(
-                                index == 0
-                                    ? "Le jour même"
-                                    : index == 1
-                                    ? "1 jour avant"
-                                    : "$index jours avant",
-                                style: TextStyle(fontSize: 18, color: AppColors.text.adaptTo(context)),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: CupertinoPicker(
+                                  scrollController: daysBeforePickerController,
+                                  itemExtent: 32,
+                                  onSelectedItemChanged: (index) {
+                                    final daysBefore = notificationDayOptions.keys.toList()[index];
+
+                                    if (!isValid(daysBefore, tempTime)) {
+                                      scrollToFirstAvailableDaysBefore();
+                                      return;
+                                    }
+
+                                    setPopupState(() {
+                                      if (daysBefore == -1) {
+                                        tempNotificationId = null;
+                                      } else {
+                                        tempNotificationId = 1;
+                                        tempDaysBefore = daysBefore;
+                                      }
+                                    });
+                                  },
+                                  squeeze: .9,
+                                  diameterRatio: 10,
+                                  children:
+                                      notificationDayOptions.values.mapIndexed((index, text) {
+                                        final daysBefore = notificationDayOptions.keys.toList()[index];
+
+                                        return Center(
+                                          child: Text(
+                                            text,
+                                            style: TextStyle(color: isValid(daysBefore, tempTime) ? null : AppColors.inactive.adaptTo(context)),
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
                               ),
-                            );
-                          }),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: CupertinoDatePicker(
-                          mode: CupertinoDatePickerMode.time,
-                          use24hFormat: true,
-                          initialDateTime: notificationTime,
-                          onDateTimeChanged: (DateTime newTime) {
-                            setState(() => notificationTime = newTime);
-                          },
+
+                              // Hour Picker
+                              Expanded(
+                                child: CupertinoPicker(
+                                  scrollController: hourPickerController,
+                                  itemExtent: 32,
+                                  onSelectedItemChanged: (index) {
+                                    final resultTime = tempTime.copyWith(hour: hours[index]);
+
+                                    if (!isValid(tempDaysBefore, resultTime)) {
+                                      scrollToFirstAvailableHour();
+                                      return;
+                                    }
+
+                                    setPopupState(() {
+                                      tempTime = resultTime;
+                                    });
+                                  },
+
+                                  squeeze: .9,
+                                  diameterRatio: 10,
+                                  children:
+                                      hours
+                                          .map(
+                                            (hour) => Center(
+                                              child: Text(
+                                                hour.toString().padLeft(2, '0'),
+                                                style: TextStyle(
+                                                  color: isValid(tempDaysBefore, tempTime.copyWith(hour: hour)) ? null : AppColors.inactive.adaptTo(context),
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                ),
+                              ),
+
+                              // Minutes Picker
+                              Expanded(
+                                child: CupertinoPicker(
+                                  scrollController: minutesPickerController,
+                                  itemExtent: 32,
+                                  onSelectedItemChanged: (index) {
+                                    final resultTime = tempTime.copyWith(minute: minutes[index]);
+
+                                    if (!isValid(tempDaysBefore, resultTime)) {
+                                      scrollToFirstAvailableMinutes();
+                                      return;
+                                    }
+
+                                    setPopupState(() {
+                                      tempTime = resultTime;
+                                    });
+                                  },
+                                  squeeze: .9,
+                                  diameterRatio: 10,
+                                  children:
+                                      minutes
+                                          .map(
+                                            (minute) => Center(
+                                              child: Text(
+                                                minute.toString().padLeft(2, '0'),
+                                                style: TextStyle(
+                                                  color:
+                                                      isValid(tempDaysBefore, tempTime.copyWith(minute: minute)) ? null : AppColors.inactive.adaptTo(context),
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
     );
   }
@@ -206,12 +330,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   void showDatePicker() {
     final pins = <DateTime, List<Color>>{};
-
     for (var assignment in database.assignments.getAll()) {
       final date = assignment.dueDate.dateOnly();
       (pins[date] ??= []).add(assignment.subject.value?.color ?? AppColors.grey);
     }
-
     showCupertinoModalPopup(
       context: context,
       builder: (_) => CustomDatePicker(initialDate: dueDate, onDateSelected: (newDate) => setState(() => dueDate = newDate), pins: pins),
@@ -229,7 +351,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       context: context,
       builder: (dialogContext) {
         final missingInfos = [];
-
         if (subject == null) {
           missingInfos.add("la *branche*");
           isMissingSubject = true;
@@ -289,8 +410,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     contentController.addListener(updateCanSubmit);
 
     updateMode(mode);
-
-    globals.getTargetCalendar().then((retreivedCalendar) => targetCalendar.value = retreivedCalendar);
   }
 
   @override
@@ -477,6 +596,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 ],
               ),
 
+              const SizedBox(height: 10),
+
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
                 header: Text("Date ${mode == AssignmentType.leave ? "" : "de remise"}"),
@@ -485,61 +606,51 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     leading: const HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
-                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context)),
+                    trailing: CupertinoListTileChevron(),
                     title: Text("Pour ${formatDate(dueDate, includeArticle: true)}", style: const TextStyle(fontWeight: FontWeight.w600)),
                     onTap: showDatePicker,
                   ),
                 ],
               ),
 
-              if (dueDate.difference(DateTime.now()).inDays >= 0)
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  header: const Text("Rappels"),
-                  margin: EdgeInsets.zero,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedNotification01),
-                      title: Text("Envoyer une notification", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                      trailing: CupertinoSwitch(
-                        value: notificationId != null,
-                        onChanged: (value) {
-                          setState(() {
-                            notificationId = value ? 1 : null;
-                          });
-                        },
-                      ),
-                    ),
-                    if (notificationId != null)
-                      CupertinoListTile(
-                        backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                        leading: const SizedBox(width: 24),
-                        title: Text("M'avertir", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "${daysBefore == 0
-                                  ? "Le jour même"
-                                  : daysBefore == 1
-                                  ? "1 jour avant"
-                                  : "$daysBefore jours avant"} à ${notificationTime.hour}:${notificationTime.minute.toString().padLeft(2, '0')}",
-                              style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                            ),
-                            const SizedBox(width: 6),
-                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.secondaryText.adaptTo(context), size: 18),
-                          ],
-                        ),
-                        onTap: showNotificationOptionsPicker,
-                      ),
-                  ],
-                ),
+              SizedBox(height: mode == AssignmentType.leave ? 10 : 20),
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
+                header: const Text("Me rappeler"),
                 margin: EdgeInsets.zero,
                 children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedNotification01, color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
+                    title: Text(
+                      notificationId == null ? "Planifier une alerte" : "Alerte",
+                      style: TextStyle(color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
+                    ),
+                    subtitle:
+                        isNotificationPossible ? null : Text("Ce devoir est situé dans le passé", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
+                    onTap: showNotificationOptionsPicker,
+                    trailing:
+                        isNotificationPossible
+                            ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  notificationId == null
+                                      ? "Non"
+                                      : "${notificationDaysBefore == 0
+                                          ? "Le jour même"
+                                          : notificationDaysBefore == 7
+                                          ? "1 semaine av."
+                                          : "$notificationDaysBefore j. avant"}, à ${notificationTime.hour}h${notificationTime.minute == 0 ? "" : notificationTime.minute}",
+                                  style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                                ),
+                                CupertinoListTileChevron(),
+                              ],
+                            )
+                            : null,
+                  ),
+
                   if (mode == AssignmentType.test)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -547,29 +658,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       title: Text("Suggérer dans la page des notes", style: TextStyle(color: AppColors.text.adaptTo(context))),
                       trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
                     ),
-
-                  ValueListenableBuilder(
-                    valueListenable: targetCalendar,
-                    builder:
-                        (context, newTargetCalendar, _) => CupertinoListTile(
-                          backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                          leading: const HugeIcon(icon: HugeIcons.strokeRoundedCalendarAdd01),
-                          title: Text("${editMode ? "Syncroniser avec le" : "Ajouter au"} calendrier du téléphone"),
-                          trailing: CupertinoSwitch(
-                            value: editsCalendar,
-                            onChanged:
-                                (value) => setState(() {
-                                  editsCalendar = value;
-                                }),
-                          ),
-                          subtitle: Text(
-                            newTargetCalendar == null ? "votre calendrier prédefini." : "Calendrier: ${newTargetCalendar.name}",
-                            style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
-                          ),
-                        ),
-                  ),
                 ],
               ),
+              const SizedBox(height: 10),
 
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
