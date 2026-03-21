@@ -568,7 +568,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   Widget messageBubble(Message data, bool? isPreviousOwned, bool? isNextOwned, bool isPreview) {
     final shouldAnimate = messagesIdToAnimate.contains(data.uuid);
-    final statusIconData = getStatusIcon(data.status);
+    var statusIconData = getStatusIcon(data.status);
 
     bubbleKeys.putIfAbsent("${data.id}-${data.isOwned}", () => GlobalKey());
 
@@ -638,7 +638,14 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                   style: TextStyle(color: data.isDeleted ? AppColors.white.withAlpha(150) : AppColors.white, fontSize: 12),
                 ),
                 if (data.isOwned && !data.isDeleted)
-                  Padding(padding: EdgeInsets.only(left: 2), child: HugeIcon(icon: statusIconData.icon, color: statusIconData.color, size: 13)),
+                  Padding(
+                    padding: EdgeInsets.only(left: 2),
+                    child: HugeIcon(
+                      icon: statusIconData.icon,
+                      color: data.status == MessageStatus.Read ? statusIconData.color.withBrightness(-.15) : statusIconData.color,
+                      size: 13,
+                    ),
+                  ),
               ],
             ),
           ),
