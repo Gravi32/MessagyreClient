@@ -105,7 +105,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         notificationId: stableId,
         title: "📅 Rappel !",
         subtitle: subtitle,
-        body: assignment.type == AssignmentType.assignment ? assignment.content : "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}",
+        body: assignment.type == AssignmentType.assignment ? assignment.content : formatDate(assignment.dueDate, includeArticle: true).capitalize(),
         dueDate: scheduledDate,
       );
     } else {
@@ -624,8 +624,18 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     leading: const HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
-                    trailing: CupertinoListTileChevron(),
-                    title: Text("Pour ${formatDate(dueDate, includeArticle: true)}", style: const TextStyle(fontWeight: FontWeight.w600)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(formatDate(dueDate, includeArticle: true), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                        CupertinoListTileChevron(),
+                      ],
+                    ),
+                    title: Text(switch (mode) {
+                      AssignmentType.assignment => "Délai du devoir",
+                      AssignmentType.test => "Date du test",
+                      AssignmentType.leave => "Date du congé",
+                    }),
                     onTap: showDatePicker,
                   ),
                 ],
