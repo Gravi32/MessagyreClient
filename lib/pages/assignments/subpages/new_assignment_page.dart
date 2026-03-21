@@ -52,14 +52,14 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   late AssignmentType mode = widget.toEdit?.type ?? AssignmentType.assignment;
   late Subject? subject = widget.toEdit?.subject.value;
-  late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 1)).dateOnly();
-  late int? notificationId = widget.toEdit?.notificationId;
+  late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 2)).dateOnly();
+  late int? notificationId =
+      widget.toEdit?.notificationId ?? (editMode ? null : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? 1 : 0));
 
   int notificationDaysBefore = 1;
   DateTime notificationTime = DateTime(2026, 1, 1, 17, 0);
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
-  late bool editsCalendar = editMode ? widget.toEdit!.calendarEventId != null : globals.persistent.getBool("EditsCalendar") ?? false;
 
   bool isMissingTitle = false;
   bool isMissingContent = false;
@@ -77,7 +77,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ..dueDate = dueDate
       ..type = mode
       ..referenceId = addingToGradesPage ? effectiveReferenceId : null
-      ..calendarEventId = editsCalendar ? assignment.calendarEventId : null
       ..notificationId = notificationId;
 
     if (assignment.referenceId != null) {
@@ -100,17 +99,20 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         AssignmentType.test => "Test",
         AssignmentType.leave => "Congé",
       };
-      final title = assignment.title ?? "$type ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? "prévu !"}";
+      final subtitle = assignment.title ?? "$type ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? "prévu !"}";
 
       await notifications.scheduleAssignmentNotification(
         notificationId: stableId,
-        title: title,
+        title: "📅 Rappel !",
+        subtitle: subtitle,
         body: assignment.type == AssignmentType.assignment ? assignment.content : "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}",
         dueDate: scheduledDate,
       );
     } else {
       await notifications.cancel(stableId);
     }
+
+    await globals.persistent.setBool("ScheduleAssignmentNotificationsByDefault", notificationId != null);
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -124,19 +126,35 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     DateTime tempTime = notificationTime;
     int? tempNotificationId = notificationId;
 
-    int initialIndex = notificationDayOptions.keys.toList().indexOf(tempNotificationId == null ? -1 : tempDaysBefore);
-    if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
-
-    final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
-    final hourPickerController = FixedExtentScrollController(initialItem: tempTime.hour);
-    final minutesPickerController = FixedExtentScrollController(initialItem: !minutes.contains(tempTime.minute) ? 0 : minutes.indexOf(tempTime.minute));
-
     bool isValid(int days, DateTime time) {
       if (days == -1) return true;
 
       final scheduled = dueDate.subtract(Duration(days: days)).copyWith(hour: time.hour, minute: time.minute);
       return scheduled.isAfter(DateTime.now());
     }
+
+    if (!isValid(tempDaysBefore, tempTime)) {
+      final availableDayKey = notificationDayOptions.keys.firstWhere(
+        (day) => hours.any((h) => minutes.any((m) => isValid(day, tempTime.copyWith(hour: h, minute: m)))),
+        orElse: () => notificationDayOptions.keys.last,
+      );
+
+      tempDaysBefore = availableDayKey;
+
+      tempTime = tempTime.copyWith(
+        hour: hours.firstWhere((h) => minutes.any((m) => isValid(tempDaysBefore, tempTime.copyWith(hour: h, minute: m))), orElse: () => 0),
+      );
+
+      // Using "copyWith" twice because it references the already changed instance the second time
+      tempTime = tempTime.copyWith(minute: minutes.firstWhere((m) => isValid(tempDaysBefore, tempTime.copyWith(minute: m)), orElse: () => 0));
+    }
+
+    int initialIndex = notificationDayOptions.keys.toList().indexOf(tempNotificationId == null ? -1 : tempDaysBefore);
+    if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
+
+    final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
+    final hourPickerController = FixedExtentScrollController(initialItem: tempTime.hour);
+    final minutesPickerController = FixedExtentScrollController(initialItem: !minutes.contains(tempTime.minute) ? 0 : minutes.indexOf(tempTime.minute));
 
     void scrollToFirstAvailableDaysBefore() {
       int firstValidIndex =
@@ -638,11 +656,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                 Text(
                                   notificationId == null
                                       ? "Non"
-                                      : "${notificationDaysBefore == 0
-                                          ? "Le jour même"
-                                          : notificationDaysBefore == 7
-                                          ? "1 semaine av."
-                                          : "$notificationDaysBefore j. avant"}, à ${notificationTime.hour}h${notificationTime.minute == 0 ? "" : notificationTime.minute}",
+                                      : "${notificationDayOptions[notificationDaysBefore]}, à ${notificationTime.hour}h${notificationTime.minute == 0 ? "" : notificationTime.minute}",
                                   style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 CupertinoListTileChevron(),

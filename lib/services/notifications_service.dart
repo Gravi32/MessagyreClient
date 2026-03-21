@@ -29,7 +29,7 @@ class NotificationsService {
     return file.path;
   }
 
-  Future<void> scheduleAssignmentNotification({required int notificationId, required String title, required String body, required DateTime dueDate}) async {
+  Future<void> scheduleAssignmentNotification({required int notificationId, required String title, required String subtitle, required String body, required DateTime dueDate}) async {
     try {
       final imagePath = await getImageFilePath('broadcast.png');
       final scheduled = TZDateTime.from(dueDate, local);
