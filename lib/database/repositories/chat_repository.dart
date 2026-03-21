@@ -22,6 +22,8 @@ class ChatRepository {
   Future<void> addMessage(Chat chat, Message message) async {
     await isar.writeTxn(() async {
       await isar.messages.put(message);
+      await isar.chats.put(chat);
+
       chat.messages.add(message);
       await chat.messages.save();
     });
