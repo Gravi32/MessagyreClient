@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 2.50.744+744
+version: 2.53.763+763
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -55,6 +55,9 @@ version: 2.50.744+744
 # 2.48  Introduced composite subjects
 # 2.49  Added a raw average display under the report card subjects average
 # 2.50  Added assignment notifications
+# 2.51  Search page now searches DisplayName and ClassOrRole as well
+# 2.52  Push and overlay notifications now show the decrypted message content
+# 2.53  Added a subject page shortcut in the grades page
 
 environment:
   sdk: ^3.7.2
