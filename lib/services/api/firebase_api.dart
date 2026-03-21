@@ -79,7 +79,7 @@ class FirebaseApi {
     final encryptedKey = data['EncryptedKey'];
 
     final usingEncryption = cipherText != null && iv != null && encryptedKey != null;
-    final messageBody = usingEncryption ? encryption.decryptMessage(cipherText, iv, encryptedKey) : body;
+    final messageBody = usingEncryption ? await encryption.decryptMessage(cipherText, iv, encryptedKey) : body;
 
     if (state == AppLifecycleState.resumed) {
       if (usingEncryption) notificationOverlays.spawn(title, messageBody, sender);
