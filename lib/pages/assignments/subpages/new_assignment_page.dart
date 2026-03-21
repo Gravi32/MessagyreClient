@@ -43,7 +43,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     2: "2 jours avant",
     1: "1 jour avant",
     0: "Le jour même",
-    -1: "Pas de notification",
+    -1: "Jamais",
   };
 
   final subjectFocusNode = FocusNode();
