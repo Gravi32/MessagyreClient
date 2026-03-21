@@ -403,16 +403,25 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 database.chats.deleteChat(chat);
 
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).push(
+                if (context.mounted) {
+                  Navigator.of(context).push(
                     CupertinoDialogRoute(
                       builder:
-                          (_) => CupertinoAlertDialog(
+                          (dialogContext) => CupertinoAlertDialog(
                             title: Text("Supprimée"),
                             content: Text(
                               "La conversation avec ${account.displayName ?? Account.getDefaultDisplayName(account.username)} a été supprimée du téléphone.",
                             ),
-                            actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(context))],
+                            actions: [
+                              CupertinoDialogAction(
+                                child: Text("OK"),
+                                onPressed: () {
+                                  Navigator.pop(dialogContext); // Closing the popup dialog
+                                  Navigator.pop(context); // Closing the profile page
+                                  if (widget.openedFromChat) Navigator.pop(context); // If open, close the chat as well
+                                },
+                              ),
+                            ],
                           ),
                       context: dialogContext,
                     ),
