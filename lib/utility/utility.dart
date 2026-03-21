@@ -252,7 +252,24 @@ double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {boo
   return round ? result.roundToHalves() : result;
 }
 
-Map<double, String> fractions = {0.0: "0", 0.25: "¼", 0.33: "⅓", 0.5: "½", 0.66: "⅔", 0.75: "¾", 1.0: "1"};
+Map<double, String> fractions = {
+  0.0: "0",
+  0.125: "⅛",
+  0.166: "⅙",
+  0.2: "⅕",
+  0.25: "¼",
+  0.33: "⅓",
+  0.375: "⅜",
+  0.4: "⅖",
+  0.5: "½",
+  0.6: "⅗",
+  0.625: "⅝",
+  0.66: "⅔",
+  0.75: "¾",
+  0.8: "⅘",
+  0.875: "⅞",
+  1.0: "1",
+};
 
 String? getFractionString(double value) {
   for (var fraction in fractions.keys) {
