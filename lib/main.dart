@@ -27,6 +27,7 @@ import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -89,6 +90,7 @@ class BootProcedure {
   /// Initializes date formatting and TZDateTime locals.
   static Future<void> setupDateTimeSystems() async {
     await initializeDateFormatting('fr_CH', null);
+    tz.initializeTimeZones();
   }
 
   /// Sets native system UI colors
@@ -105,7 +107,7 @@ class BootProcedure {
 }
 
 void main() async {
-  FlutterError.onError = (details) => FlutterError.dumpErrorToConsole(details);
+  // (Way too verbose) FlutterError.onError = (details) => FlutterError.dumpErrorToConsole(details);
   WidgetsFlutterBinding.ensureInitialized();
 
   BootProcedure.overridePrintFunction();
