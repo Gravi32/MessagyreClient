@@ -107,6 +107,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
     final statusIconData = lastMessage != null ? getStatusIcon(lastMessage.status) : null;
 
+    // Forcing keyboard closure, it happens that the keyboard stays open
+    FocusManager.instance.primaryFocus?.unfocus();
+
     return Column(
       children: [
         CupertinoButton(
