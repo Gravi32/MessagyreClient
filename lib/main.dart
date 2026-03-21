@@ -30,67 +30,100 @@ import 'package:firebase_core/firebase_core.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
-  //FlutterError.onError = (details) => FlutterError.dumpErrorToConsole(details);
+class BootProcedure {
+  /// Overrides "debugPrint" to send output to the app's debug page as well
+  static void overridePrintFunction() {
+    final originalDebugPrint = debugPrint;
+    debugPrint = (String? message, {int? wrapWidth}) {
+      GlobalsService().log(message);
+      originalDebugPrint(message, wrapWidth: wrapWidth);
+    };
+  }
 
+  /// Registers all the Hive adapters and opens its boxes [DEPRECATED]
+  @Deprecated("As of version 2.x.x the database is now handled by Isar")
+  static Future<void> setupHive() async {
+    await Hive.initFlutter();
+
+    Hive.registerAdapter(MessageAdapter());
+    Hive.registerAdapter(ChatAdapter());
+    Hive.registerAdapter(AssignmentAdapter());
+    Hive.registerAdapter(SubjectAdapter());
+    Hive.registerAdapter(GradeAdapter());
+    Hive.registerAdapter(SettingsAdapter());
+
+    await Hive.openBox<Chat>("Chats");
+    await Hive.openBox<Assignment>("Homework");
+    await Hive.openBox<Grade>("Grades");
+    await Hive.openBox<List>("SubjectOrder");
+    await Hive.openBox<Settings>("Settings");
+
+    return;
+  }
+
+  /// Calls the migration system [TO BE REMOVED]
+  static Future<void> handleHiveToIsarMigration() async {
+    await DatabaseService().init();
+    await migrateHiveToIsar();
+    return;
+  }
+
+  /// Instantiates Globals singleton. This has to be done after Hive initialization.
+  static void setupGlobals() {
+    final globals = GlobalsService();
+    globals.username = globals.persistent.getString("Username");
+    globals.appBrightnessNotifier.value = Brightness.dark;
+  }
+
+  /// Initializes Firebase services
+  static Future<void> setupFirebase() async {
+    try {
+      await Firebase.initializeApp();
+      await FirebaseApi().initialize();
+    } catch (e) {
+      debugPrint("Firebase could not be initialized: $e");
+    }
+    return;
+  }
+
+  /// Initializes date formatting and TZDateTime locals.
+  static Future<void> setupDateTimeSystems() async {
+    await initializeDateFormatting('fr_CH', null);
+  }
+
+  /// Sets native system UI colors
+  static void setupSystemUI() {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+  }
+}
+
+void main() async {
+  FlutterError.onError = (details) => FlutterError.dumpErrorToConsole(details);
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Print override
-  final originalDebugPrint = debugPrint;
-  debugPrint = (String? message, {int? wrapWidth}) {
-    GlobalsService().log(message);
-    originalDebugPrint(message, wrapWidth: wrapWidth);
-  };
+  BootProcedure.overridePrintFunction();
 
   await NetworkService().checkLocalhostAvailability();
 
   runZonedGuarded(
     () async {
       try {
-        // Hive setup
-        await Hive.initFlutter();
-        Hive.registerAdapter(MessageAdapter());
-        Hive.registerAdapter(ChatAdapter());
-        Hive.registerAdapter(AssignmentAdapter());
-        Hive.registerAdapter(SubjectAdapter());
-        Hive.registerAdapter(GradeAdapter());
-        Hive.registerAdapter(SettingsAdapter());
+        await BootProcedure.setupHive();
+        await BootProcedure.handleHiveToIsarMigration();
 
-        await Hive.openBox<Chat>("Chats");
-        await Hive.openBox<Assignment>("Homework");
-        await Hive.openBox<Grade>("Grades");
-        await Hive.openBox<List>("SubjectOrder");
-        await Hive.openBox<Settings>("Settings");
+        BootProcedure.setupGlobals();
 
-        // --- HIVE → ISAR MIGRATION ---
-        await DatabaseService().init();
-        await migrateHiveToIsar();
+        await BootProcedure.setupFirebase();
+        await BootProcedure.setupDateTimeSystems();
 
-        //initMessageNotifiers();
-        final globals = GlobalsService(); // DATA IS TO BE CALLED AFTER HIVE INITIALIZATION
-        globals.username = globals.persistent.getString("Username");
-        globals.appBrightnessNotifier.value = Brightness.dark;
-
-        // Firebase
-        try {
-          await Firebase.initializeApp();
-          await FirebaseApi().initialize();
-        } catch (e) {
-          debugPrint("Firebase could not be initialized: $e");
-        }
-
-        // Initialize date formatting
-        await initializeDateFormatting('fr_CH', null);
-
-        // System UI
-        SystemChrome.setSystemUIOverlayStyle(
-          const SystemUiOverlayStyle(
-            systemNavigationBarColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.light,
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-          ),
-        );
+        BootProcedure.setupSystemUI();
 
         runApp(Phoenix(child: LifecycleService(child: App())));
       } catch (e, stack) {
