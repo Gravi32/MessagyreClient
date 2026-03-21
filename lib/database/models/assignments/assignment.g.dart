@@ -17,48 +17,43 @@ const AssignmentSchema = CollectionSchema(
   name: r'Assignment',
   id: 6342734841231534375,
   properties: {
-    r'calendarEventId': PropertySchema(
-      id: 0,
-      name: r'calendarEventId',
-      type: IsarType.string,
-    ),
     r'content': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'content',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'getNotificationId': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'getNotificationId',
       type: IsarType.long,
     ),
     r'isMarkedAsDone': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'isMarkedAsDone',
       type: IsarType.bool,
     ),
     r'notificationDate': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'notificationDate',
       type: IsarType.dateTime,
     ),
     r'referenceId': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'title',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AssignmenttypeEnumValueMap,
@@ -91,12 +86,6 @@ int _assignmentEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.calendarEventId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   bytesCount += 3 + object.content.length * 3;
   {
     final value = object.referenceId;
@@ -119,15 +108,14 @@ void _assignmentSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.calendarEventId);
-  writer.writeString(offsets[1], object.content);
-  writer.writeDateTime(offsets[2], object.dueDate);
-  writer.writeLong(offsets[3], object.getNotificationId);
-  writer.writeBool(offsets[4], object.isMarkedAsDone);
-  writer.writeDateTime(offsets[5], object.notificationDate);
-  writer.writeString(offsets[6], object.referenceId);
-  writer.writeString(offsets[7], object.title);
-  writer.writeByte(offsets[8], object.type.index);
+  writer.writeString(offsets[0], object.content);
+  writer.writeDateTime(offsets[1], object.dueDate);
+  writer.writeLong(offsets[2], object.getNotificationId);
+  writer.writeBool(offsets[3], object.isMarkedAsDone);
+  writer.writeDateTime(offsets[4], object.notificationDate);
+  writer.writeString(offsets[5], object.referenceId);
+  writer.writeString(offsets[6], object.title);
+  writer.writeByte(offsets[7], object.type.index);
 }
 
 Assignment _assignmentDeserialize(
@@ -137,16 +125,15 @@ Assignment _assignmentDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Assignment();
-  object.calendarEventId = reader.readStringOrNull(offsets[0]);
-  object.content = reader.readString(offsets[1]);
-  object.dueDate = reader.readDateTime(offsets[2]);
+  object.content = reader.readString(offsets[0]);
+  object.dueDate = reader.readDateTime(offsets[1]);
   object.id = id;
-  object.isMarkedAsDone = reader.readBool(offsets[4]);
-  object.notificationDate = reader.readDateTimeOrNull(offsets[5]);
-  object.referenceId = reader.readStringOrNull(offsets[6]);
-  object.title = reader.readStringOrNull(offsets[7]);
+  object.isMarkedAsDone = reader.readBool(offsets[3]);
+  object.notificationDate = reader.readDateTimeOrNull(offsets[4]);
+  object.referenceId = reader.readStringOrNull(offsets[5]);
+  object.title = reader.readStringOrNull(offsets[6]);
   object.type =
-      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
           AssignmentType.assignment;
   return object;
 }
@@ -159,22 +146,20 @@ P _assignmentDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
-    case 1:
       return (reader.readString(offset)) as P;
-    case 2:
+    case 1:
       return (reader.readDateTime(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readLong(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readBool(offset)) as P;
-    case 5:
+    case 4:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (_AssignmenttypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AssignmentType.assignment) as P;
     default:
@@ -285,160 +270,6 @@ extension AssignmentQueryWhere
 
 extension AssignmentQueryFilter
     on QueryBuilder<Assignment, Assignment, QFilterCondition> {
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'calendarEventId',
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'calendarEventId',
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'calendarEventId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'calendarEventId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'calendarEventId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'calendarEventId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'calendarEventId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'calendarEventId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'calendarEventId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'calendarEventId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'calendarEventId',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      calendarEventIdIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'calendarEventId',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition> contentEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1194,19 +1025,6 @@ extension AssignmentQueryLinks
 
 extension AssignmentQuerySortBy
     on QueryBuilder<Assignment, Assignment, QSortBy> {
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByCalendarEventId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'calendarEventId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy>
-      sortByCalendarEventIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'calendarEventId', Sort.desc);
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -1309,19 +1127,6 @@ extension AssignmentQuerySortBy
 
 extension AssignmentQuerySortThenBy
     on QueryBuilder<Assignment, Assignment, QSortThenBy> {
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByCalendarEventId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'calendarEventId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Assignment, Assignment, QAfterSortBy>
-      thenByCalendarEventIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'calendarEventId', Sort.desc);
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -1436,14 +1241,6 @@ extension AssignmentQuerySortThenBy
 
 extension AssignmentQueryWhereDistinct
     on QueryBuilder<Assignment, Assignment, QDistinct> {
-  QueryBuilder<Assignment, Assignment, QDistinct> distinctByCalendarEventId(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'calendarEventId',
-          caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Assignment, Assignment, QDistinct> distinctByContent(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1502,13 +1299,6 @@ extension AssignmentQueryProperty
   QueryBuilder<Assignment, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
-    });
-  }
-
-  QueryBuilder<Assignment, String?, QQueryOperations>
-      calendarEventIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'calendarEventId');
     });
   }
 

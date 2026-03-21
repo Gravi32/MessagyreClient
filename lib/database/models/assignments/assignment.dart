@@ -20,9 +20,6 @@ class Assignment {
 
   int get getNotificationId => referenceId.hashCode.remainder(100000);
 
-  @Deprecated("Messagyre no longer interacts with the device's calendar.")
-  String? calendarEventId;
-
   @enumerated
   AssignmentType type = AssignmentType.assignment;
 

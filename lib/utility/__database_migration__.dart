@@ -79,8 +79,7 @@ Future<void> migrateHiveToIsar() async {
               ..dueDate = old.dueDate
               ..type = old.isTest ? isar_assignment.AssignmentType.test : isar_assignment.AssignmentType.assignment
               ..isMarkedAsDone = old.isMarkedAsDone
-              ..referenceId = old.referenceId
-              ..calendarEventId = old.calendarEventId;
+              ..referenceId = old.referenceId;
 
         a.subject.value = subjectMap[old.subject];
 
