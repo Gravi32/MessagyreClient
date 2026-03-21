@@ -725,23 +725,36 @@ class _ProfilePageState extends State<ProfilePage> {
                       spacing: 2,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+
                         Row(
                           spacing: 6,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedUserAccount, color: AppColors.secondaryText.adaptTo(context)),
-                            Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                            Opacity(
+                              opacity: AppColors.secondaryText.adaptTo(context).a,
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedUserAccount,
+                                size: 18,
+                                color: AppColors.secondaryText.adaptTo(context).withAlpha(255),
+                              ),
+                            ),
+                            Text(account.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                           ],
                         ),
-                        Text(account.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+
                         SizedBox(height: 0),
 
-                        if (account.classOrRole != null) Text(account.classOrRole!, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                        if ((account.classOrRole ?? "-") != "-") Text(account.classOrRole!, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       ],
                     ),
                   ],
                 ),
+                const SizedBox(height: 6),
 
-                if (profile["Bio"] != null) CustomText(profile["Bio"], style: TextStyle(fontSize: 16)),
+                CustomText(
+                  profile["Bio"] ?? "Pas de biographie",
+                  style: TextStyle(fontSize: 16, color: profile["Bio"] == null ? AppColors.secondaryText.adaptTo(context) : null),
+                ),
                 Text(
                   "Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}.",
                   style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
@@ -788,10 +801,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
 
                 if (account.username != globals.username) ...[
-                  if (!widget.openedFromChat) // Temporary
+                  if (!widget.openedFromChat)
                     CupertinoListSection.insetGrouped(
                       backgroundColor: AppColors.transparent,
                       margin: EdgeInsets.zero,
+
                       children: [
                         if (!widget.openedFromChat)
                           buildListTile(
@@ -815,6 +829,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
+
+                    header: Text("Conversation"),
+
                     children: [
                       buildListTile(
                         chat!.isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
@@ -836,6 +853,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
+
                     children: [
                       buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
                       buildListTile(HugeIcons.strokeRoundedUserCircle, "Changer de photo de profil", onTap: () => changeProfilePicture()),
@@ -854,6 +872,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
                     margin: EdgeInsets.zero,
+
+                    header: Text("Utilisateur"),
+
                     children: [
                       if (!isBlocked)
                         buildListTile(
