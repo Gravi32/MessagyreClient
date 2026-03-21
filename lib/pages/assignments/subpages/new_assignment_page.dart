@@ -53,17 +53,16 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late AssignmentType mode = widget.toEdit?.type ?? AssignmentType.assignment;
   late Subject? subject = widget.toEdit?.subject.value;
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 2)).dateOnly();
-  late int? notificationId =
-      widget.toEdit?.notificationId ?? (editMode ? null : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? 1 : 0));
-
-  int notificationDaysBefore = 1;
-  DateTime notificationTime = DateTime(2026, 1, 1, 17, 0);
+  late DateTime? notificationDate =
+      widget.toEdit?.notificationDate ??
+      (editMode ? null : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? dueDate.add(const Duration(days: -1)) : null));
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
 
   bool isMissingTitle = false;
   bool isMissingContent = false;
   bool isMissingSubject = false;
+
   bool get isNotificationPossible => dueDate.difference(DateTime.now()).inDays >= 0;
 
   void confirmAssignment() async {
@@ -77,7 +76,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ..dueDate = dueDate
       ..type = mode
       ..referenceId = addingToGradesPage ? effectiveReferenceId : null
-      ..notificationId = notificationId;
+      ..notificationDate = notificationDate;
 
     if (assignment.referenceId != null) {
       final assignedGrade = database.grades.getByReferenceId(assignment.referenceId!);
@@ -91,9 +90,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
 
-    if (notificationId != null) {
-      final scheduledDate = dueDate.subtract(Duration(days: notificationDaysBefore)).copyWith(hour: notificationTime.hour, minute: notificationTime.minute);
-
+    if (notificationDate != null) {
       final type = switch (assignment.type) {
         AssignmentType.assignment => "Devoir",
         AssignmentType.test => "Test",
@@ -106,13 +103,13 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         title: "📅 Rappel !",
         subtitle: subtitle,
         body: assignment.type == AssignmentType.assignment ? assignment.content : formatDate(assignment.dueDate, includeArticle: true).capitalize(),
-        dueDate: scheduledDate,
+        dueDate: notificationDate!,
       );
     } else {
       await notifications.cancel(stableId);
     }
 
-    await globals.persistent.setBool("ScheduleAssignmentNotificationsByDefault", notificationId != null);
+    await globals.persistent.setBool("ScheduleAssignmentNotificationsByDefault", notificationDate != null);
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -122,54 +119,82 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     final List<int> hours = List.generate(24, (i) => i);
     final List<int> minutes = [0, 15, 30, 45];
 
-    int tempDaysBefore = notificationDaysBefore;
-    DateTime tempTime = notificationTime;
-    int? tempNotificationId = notificationId;
+    DateTime? chosenDateTime = notificationDate ?? dueDate.add(Duration(days: -1));
 
-    bool isValid(int days, DateTime time) {
-      if (days == -1) return true;
+    bool isValid(DateTime? dateTime, {bool countTimeToo = true}) =>
+        dateTime == null ? true : (countTimeToo ? dateTime : dateTime.copyWith(hour: 23, minute: 59)).isAfter(DateTime.now());
+    int getDaysBefore() => chosenDateTime == null ? -1 : dueDate.difference(chosenDateTime!).inDays;
 
-      final scheduled = dueDate.subtract(Duration(days: days)).copyWith(hour: time.hour, minute: time.minute);
-      return scheduled.isAfter(DateTime.now());
-    }
-
-    if (!isValid(tempDaysBefore, tempTime)) {
-      final availableDayKey = notificationDayOptions.keys.firstWhere(
-        (day) => hours.any((h) => minutes.any((m) => isValid(day, tempTime.copyWith(hour: h, minute: m)))),
+    if (!isValid(chosenDateTime)) {
+      final firstValidDaysBefore = notificationDayOptions.keys.firstWhere(
+        (daysBefore) =>
+            hours.any((hour) => minutes.any((minute) => isValid(chosenDateTime?.add(Duration(days: -daysBefore)).copyWith(hour: hour, minute: minute)))),
         orElse: () => notificationDayOptions.keys.last,
       );
 
-      tempDaysBefore = availableDayKey;
+      // Setting first valid date
+      chosenDateTime = dueDate.add(Duration(days: -firstValidDaysBefore));
 
-      tempTime = tempTime.copyWith(
-        hour: hours.firstWhere((h) => minutes.any((m) => isValid(tempDaysBefore, tempTime.copyWith(hour: h, minute: m))), orElse: () => 0),
+      // Setting first valid hour
+      chosenDateTime = chosenDateTime.copyWith(
+        hour: hours.firstWhere((hour) => minutes.any((minute) => isValid(chosenDateTime?.copyWith(hour: hour, minute: minute))), orElse: () => 0),
       );
 
-      // Using "copyWith" twice because it references the already changed instance the second time
-      tempTime = tempTime.copyWith(minute: minutes.firstWhere((m) => isValid(tempDaysBefore, tempTime.copyWith(minute: m)), orElse: () => 0));
+      // Setting first valid minutes
+      chosenDateTime = chosenDateTime.copyWith(minute: minutes.firstWhere((hour) => isValid(chosenDateTime?.copyWith(minute: hour)), orElse: () => 0));
     }
 
-    int initialIndex = notificationDayOptions.keys.toList().indexOf(tempNotificationId == null ? -1 : tempDaysBefore);
+    int initialIndex = notificationDayOptions.keys.toList().indexOf(getDaysBefore());
     if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
 
     final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
-    final hourPickerController = FixedExtentScrollController(initialItem: tempTime.hour);
-    final minutesPickerController = FixedExtentScrollController(initialItem: !minutes.contains(tempTime.minute) ? 0 : minutes.indexOf(tempTime.minute));
+    final hourPickerController = FixedExtentScrollController(initialItem: chosenDateTime.hour);
+    final minutesPickerController = FixedExtentScrollController(
+      initialItem: !minutes.contains(chosenDateTime.minute) ? 0 : minutes.indexOf(chosenDateTime.minute),
+    );
 
     void scrollToFirstAvailableDaysBefore() {
+      DateTime? firstValidDate;
       int firstValidIndex =
-          notificationDayOptions.keys.indexed.firstWhere((item) => isValid(item.$2, tempTime), orElse: () => (notificationDayOptions.keys.length - 1, -1)).$1;
-      daysBeforePickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
+          notificationDayOptions.keys.indexed.firstWhere((item) {
+            if (isValid(dueDate.add(Duration(days: -item.$2)), countTimeToo: false)) {
+              firstValidDate = dueDate.add(Duration(days: -item.$2));
+              return true;
+            }
+            return false;
+          }, orElse: () => (notificationDayOptions.keys.length - 1, -1)).$1;
+
+      daysBeforePickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+
+      chosenDateTime = firstValidDate?.copyWith(hour: chosenDateTime?.hour, minute: chosenDateTime?.minute);
     }
 
     void scrollToFirstAvailableHour() {
-      int firstValidIndex = hours.indexWhere((hour) => isValid(tempDaysBefore, tempTime.copyWith(hour: hour)));
-      hourPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
+      int firstValidHour = 0;
+      int firstValidIndex = hours.indexWhere((hour) {
+        if (isValid(chosenDateTime?.copyWith(hour: hour, minute: 44))) {
+          firstValidHour = hour;
+          return true;
+        }
+        return false;
+      });
+
+      hourPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+      chosenDateTime = chosenDateTime?.copyWith(hour: firstValidHour);
     }
 
     void scrollToFirstAvailableMinutes() {
-      int firstValidIndex = minutes.indexWhere((minute) => isValid(tempDaysBefore, tempTime.copyWith(minute: minute)));
-      minutesPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 250), curve: Curves.easeInOut);
+      int firstValidMinutes = 0;
+      int firstValidIndex = minutes.indexWhere((minutes) {
+        if (isValid(chosenDateTime?.copyWith(minute: minutes))) {
+          firstValidMinutes = minutes;
+          return true;
+        }
+        return false;
+      });
+
+      minutesPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+      chosenDateTime = chosenDateTime?.copyWith(hour: firstValidMinutes);
     }
 
     showCupertinoModalPopup(
@@ -195,9 +220,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                               child: const Text("Terminé"),
                               onPressed: () {
                                 setState(() {
-                                  notificationDaysBefore = tempDaysBefore;
-                                  notificationTime = tempTime;
-                                  notificationId = tempNotificationId;
+                                  notificationDate = chosenDateTime;
                                 });
                                 Navigator.pop(context);
                               },
@@ -219,18 +242,28 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                   itemExtent: 32,
                                   onSelectedItemChanged: (index) {
                                     final daysBefore = notificationDayOptions.keys.toList()[index];
+                                    print("aa $index | $daysBefore");
 
-                                    if (!isValid(daysBefore, tempTime)) {
+                                    if (!isValid(dueDate.add(Duration(days: -daysBefore)), countTimeToo: false)) {
                                       scrollToFirstAvailableDaysBefore();
                                       return;
                                     }
 
+                                    print("bb $index | $daysBefore");
+
                                     setPopupState(() {
-                                      if (daysBefore == -1) {
-                                        tempNotificationId = null;
-                                      } else {
-                                        tempNotificationId = 1;
-                                        tempDaysBefore = daysBefore;
+                                      chosenDateTime =
+                                          daysBefore == -1
+                                              ? null
+                                              : (chosenDateTime ?? dueDate.add(Duration(days: -daysBefore))).copyWith(
+                                                day: dueDate.add(Duration(days: -daysBefore)).day,
+                                              );
+
+                                      print(chosenDateTime);
+
+                                      if (!isValid(chosenDateTime)) {
+                                        scrollToFirstAvailableHour();
+                                        scrollToFirstAvailableMinutes();
                                       }
                                     });
                                   },
@@ -243,7 +276,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                         return Center(
                                           child: Text(
                                             text,
-                                            style: TextStyle(color: isValid(daysBefore, tempTime) ? null : AppColors.inactive.adaptTo(context)),
+                                            style: TextStyle(
+                                              color:
+                                                  isValid(dueDate.add(Duration(days: -daysBefore)), countTimeToo: false)
+                                                      ? null
+                                                      : AppColors.inactive.adaptTo(context),
+                                            ),
                                           ),
                                         );
                                       }).toList(),
@@ -251,76 +289,78 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                               ),
 
                               // Hour Picker
-                              Expanded(
-                                child: CupertinoPicker(
-                                  scrollController: hourPickerController,
-                                  itemExtent: 32,
-                                  onSelectedItemChanged: (index) {
-                                    final resultTime = tempTime.copyWith(hour: hours[index]);
+                              if (chosenDateTime != null)
+                                Expanded(
+                                  child: CupertinoPicker(
+                                    scrollController: hourPickerController,
+                                    itemExtent: 32,
+                                    onSelectedItemChanged: (index) {
+                                      final resultDateTime = chosenDateTime?.copyWith(hour: hours[index]);
 
-                                    if (!isValid(tempDaysBefore, resultTime)) {
-                                      scrollToFirstAvailableHour();
-                                      return;
-                                    }
+                                      if (!isValid(resultDateTime)) {
+                                        scrollToFirstAvailableHour();
+                                        return;
+                                      }
 
-                                    setPopupState(() {
-                                      tempTime = resultTime;
-                                    });
-                                  },
+                                      setPopupState(() {
+                                        chosenDateTime = resultDateTime;
+                                      });
+                                    },
 
-                                  squeeze: .9,
-                                  diameterRatio: 10,
-                                  children:
-                                      hours
-                                          .map(
-                                            (hour) => Center(
-                                              child: Text(
-                                                hour.toString().padLeft(2, '0'),
-                                                style: TextStyle(
-                                                  color: isValid(tempDaysBefore, tempTime.copyWith(hour: hour)) ? null : AppColors.inactive.adaptTo(context),
+                                    squeeze: .9,
+                                    diameterRatio: 10,
+                                    children:
+                                        hours
+                                            .map(
+                                              (hour) => Center(
+                                                child: Text(
+                                                  hour.toString().padLeft(2, '0'),
+                                                  style: TextStyle(
+                                                    color:
+                                                        isValid(chosenDateTime?.copyWith(hour: hour, minute: 44)) ? null : AppColors.inactive.adaptTo(context),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          )
-                                          .toList(),
+                                            )
+                                            .toList(),
+                                  ),
                                 ),
-                              ),
 
                               // Minutes Picker
-                              Expanded(
-                                child: CupertinoPicker(
-                                  scrollController: minutesPickerController,
-                                  itemExtent: 32,
-                                  onSelectedItemChanged: (index) {
-                                    final resultTime = tempTime.copyWith(minute: minutes[index]);
+                              if (chosenDateTime != null)
+                                Expanded(
+                                  child: CupertinoPicker(
+                                    scrollController: minutesPickerController,
+                                    itemExtent: 32,
+                                    onSelectedItemChanged: (index) {
+                                      final resultTime = chosenDateTime?.copyWith(minute: minutes[index]);
 
-                                    if (!isValid(tempDaysBefore, resultTime)) {
-                                      scrollToFirstAvailableMinutes();
-                                      return;
-                                    }
+                                      if (!isValid(resultTime)) {
+                                        scrollToFirstAvailableMinutes();
+                                        return;
+                                      }
 
-                                    setPopupState(() {
-                                      tempTime = resultTime;
-                                    });
-                                  },
-                                  squeeze: .9,
-                                  diameterRatio: 10,
-                                  children:
-                                      minutes
-                                          .map(
-                                            (minute) => Center(
-                                              child: Text(
-                                                minute.toString().padLeft(2, '0'),
-                                                style: TextStyle(
-                                                  color:
-                                                      isValid(tempDaysBefore, tempTime.copyWith(minute: minute)) ? null : AppColors.inactive.adaptTo(context),
+                                      setPopupState(() {
+                                        chosenDateTime = resultTime;
+                                      });
+                                    },
+                                    squeeze: .9,
+                                    diameterRatio: 10,
+                                    children:
+                                        minutes
+                                            .map(
+                                              (minute) => Center(
+                                                child: Text(
+                                                  minute.toString().padLeft(2, '0'),
+                                                  style: TextStyle(
+                                                    color: isValid(chosenDateTime?.copyWith(minute: minute)) ? null : AppColors.inactive.adaptTo(context),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          )
-                                          .toList(),
+                                            )
+                                            .toList(),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -652,7 +692,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     leading: HugeIcon(icon: HugeIcons.strokeRoundedNotification01, color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
                     title: Text(
-                      notificationId == null ? "Planifier une alerte" : "Alerte",
+                      notificationDate == null ? "Planifier une alerte" : "Alerte",
                       style: TextStyle(color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
                     ),
                     subtitle:
@@ -664,9 +704,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  notificationId == null
+                                  notificationDate == null
                                       ? "Non"
-                                      : "${notificationDayOptions[notificationDaysBefore]}, à ${notificationTime.hour}h${notificationTime.minute == 0 ? "" : notificationTime.minute}",
+                                      : "${notificationDayOptions[dueDate.difference(notificationDate!).inDays]}, à ${notificationDate?.hour}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}",
                                   style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 CupertinoListTileChevron(),

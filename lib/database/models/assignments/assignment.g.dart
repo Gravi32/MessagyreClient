@@ -32,28 +32,33 @@ const AssignmentSchema = CollectionSchema(
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
-    r'isMarkedAsDone': PropertySchema(
+    r'getNotificationId': PropertySchema(
       id: 3,
+      name: r'getNotificationId',
+      type: IsarType.long,
+    ),
+    r'isMarkedAsDone': PropertySchema(
+      id: 4,
       name: r'isMarkedAsDone',
       type: IsarType.bool,
     ),
-    r'notificationId': PropertySchema(
-      id: 4,
-      name: r'notificationId',
-      type: IsarType.long,
+    r'notificationDate': PropertySchema(
+      id: 5,
+      name: r'notificationDate',
+      type: IsarType.dateTime,
     ),
     r'referenceId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'title',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AssignmenttypeEnumValueMap,
@@ -117,11 +122,12 @@ void _assignmentSerialize(
   writer.writeString(offsets[0], object.calendarEventId);
   writer.writeString(offsets[1], object.content);
   writer.writeDateTime(offsets[2], object.dueDate);
-  writer.writeBool(offsets[3], object.isMarkedAsDone);
-  writer.writeLong(offsets[4], object.notificationId);
-  writer.writeString(offsets[5], object.referenceId);
-  writer.writeString(offsets[6], object.title);
-  writer.writeByte(offsets[7], object.type.index);
+  writer.writeLong(offsets[3], object.getNotificationId);
+  writer.writeBool(offsets[4], object.isMarkedAsDone);
+  writer.writeDateTime(offsets[5], object.notificationDate);
+  writer.writeString(offsets[6], object.referenceId);
+  writer.writeString(offsets[7], object.title);
+  writer.writeByte(offsets[8], object.type.index);
 }
 
 Assignment _assignmentDeserialize(
@@ -135,12 +141,12 @@ Assignment _assignmentDeserialize(
   object.content = reader.readString(offsets[1]);
   object.dueDate = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.isMarkedAsDone = reader.readBool(offsets[3]);
-  object.notificationId = reader.readLongOrNull(offsets[4]);
-  object.referenceId = reader.readStringOrNull(offsets[5]);
-  object.title = reader.readStringOrNull(offsets[6]);
+  object.isMarkedAsDone = reader.readBool(offsets[4]);
+  object.notificationDate = reader.readDateTimeOrNull(offsets[5]);
+  object.referenceId = reader.readStringOrNull(offsets[6]);
+  object.title = reader.readStringOrNull(offsets[7]);
   object.type =
-      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
+      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
           AssignmentType.assignment;
   return object;
 }
@@ -159,14 +165,16 @@ P _assignmentDeserializeProp<P>(
     case 2:
       return (reader.readDateTime(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (_AssignmenttypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AssignmentType.assignment) as P;
     default:
@@ -617,6 +625,62 @@ extension AssignmentQueryFilter
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      getNotificationIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'getNotificationId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      getNotificationIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'getNotificationId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      getNotificationIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'getNotificationId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      getNotificationIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'getNotificationId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -681,71 +745,71 @@ extension AssignmentQueryFilter
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      notificationIdIsNull() {
+      notificationDateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'notificationId',
+        property: r'notificationDate',
       ));
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      notificationIdIsNotNull() {
+      notificationDateIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'notificationId',
+        property: r'notificationDate',
       ));
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      notificationIdEqualTo(int? value) {
+      notificationDateEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'notificationId',
+        property: r'notificationDate',
         value: value,
       ));
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      notificationIdGreaterThan(
-    int? value, {
+      notificationDateGreaterThan(
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'notificationId',
+        property: r'notificationDate',
         value: value,
       ));
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      notificationIdLessThan(
-    int? value, {
+      notificationDateLessThan(
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'notificationId',
+        property: r'notificationDate',
         value: value,
       ));
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
-      notificationIdBetween(
-    int? lower,
-    int? upper, {
+      notificationDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'notificationId',
+        property: r'notificationDate',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1167,6 +1231,19 @@ extension AssignmentQuerySortBy
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByGetNotificationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'getNotificationId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy>
+      sortByGetNotificationIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'getNotificationId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByIsMarkedAsDone() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isMarkedAsDone', Sort.asc);
@@ -1180,16 +1257,16 @@ extension AssignmentQuerySortBy
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByNotificationId() {
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByNotificationDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'notificationId', Sort.asc);
+      return query.addSortBy(r'notificationDate', Sort.asc);
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterSortBy>
-      sortByNotificationIdDesc() {
+      sortByNotificationDateDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'notificationId', Sort.desc);
+      return query.addSortBy(r'notificationDate', Sort.desc);
     });
   }
 
@@ -1269,6 +1346,19 @@ extension AssignmentQuerySortThenBy
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByGetNotificationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'getNotificationId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy>
+      thenByGetNotificationIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'getNotificationId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1294,16 +1384,16 @@ extension AssignmentQuerySortThenBy
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByNotificationId() {
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByNotificationDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'notificationId', Sort.asc);
+      return query.addSortBy(r'notificationDate', Sort.asc);
     });
   }
 
   QueryBuilder<Assignment, Assignment, QAfterSortBy>
-      thenByNotificationIdDesc() {
+      thenByNotificationDateDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'notificationId', Sort.desc);
+      return query.addSortBy(r'notificationDate', Sort.desc);
     });
   }
 
@@ -1367,15 +1457,22 @@ extension AssignmentQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Assignment, Assignment, QDistinct>
+      distinctByGetNotificationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'getNotificationId');
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QDistinct> distinctByIsMarkedAsDone() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isMarkedAsDone');
     });
   }
 
-  QueryBuilder<Assignment, Assignment, QDistinct> distinctByNotificationId() {
+  QueryBuilder<Assignment, Assignment, QDistinct> distinctByNotificationDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'notificationId');
+      return query.addDistinctBy(r'notificationDate');
     });
   }
 
@@ -1427,15 +1524,22 @@ extension AssignmentQueryProperty
     });
   }
 
+  QueryBuilder<Assignment, int, QQueryOperations> getNotificationIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'getNotificationId');
+    });
+  }
+
   QueryBuilder<Assignment, bool, QQueryOperations> isMarkedAsDoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isMarkedAsDone');
     });
   }
 
-  QueryBuilder<Assignment, int?, QQueryOperations> notificationIdProperty() {
+  QueryBuilder<Assignment, DateTime?, QQueryOperations>
+      notificationDateProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'notificationId');
+      return query.addPropertyName(r'notificationDate');
     });
   }
 

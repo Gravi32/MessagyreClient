@@ -11,18 +11,20 @@ class Assignment {
 
   String? title;
   String content = 'Exercices';
+  bool isMarkedAsDone = false;
 
   late DateTime dueDate;
+  late DateTime? notificationDate;
 
-  int? notificationId;
+  String? referenceId;
+
+  int get getNotificationId => referenceId.hashCode.remainder(100000);
+
+  @Deprecated("Messagyre no longer interacts with the device's calendar.")
+  String? calendarEventId;
 
   @enumerated
   AssignmentType type = AssignmentType.assignment;
-
-  bool isMarkedAsDone = false;
-
-  String? referenceId;
-  String? calendarEventId;
 
   @override
   String toString() => title ?? content;
