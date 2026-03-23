@@ -125,7 +125,10 @@ class _GradesListPageState extends State<GradesListPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("Par branche", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                              Text(
+                                "Par branche",
+                                style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                              ),
 
                               CupertinoButton(
                                 padding: EdgeInsets.zero,
@@ -152,7 +155,10 @@ class _GradesListPageState extends State<GradesListPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text("Récentes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                                Text(
+                                  "Récentes",
+                                  style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                                ),
 
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,

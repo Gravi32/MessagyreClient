@@ -99,7 +99,10 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                     return [
                       Padding(
                         padding: EdgeInsets.only(bottom: 6),
-                        child: Text(title, style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: titleColor ?? AppColors.text.adaptTo(context))),
+                        child: Text(
+                          title,
+                          style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: FontWeight.w600, color: titleColor ?? AppColors.text.adaptTo(context)),
+                        ),
                       ),
                       CupertinoListSection.insetGrouped(
                         margin: EdgeInsets.zero,
