@@ -123,6 +123,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     if (widget.textBelow != null)
                       Text(
                         widget.textBelow!,
+                        textScaler: TextScaler.noScaling,
                         style: TextStyle(fontSize: size / 6, fontWeight: FontWeight.w400, height: 1.0, color: AppColors.secondaryText.adaptTo(context)),
                       ),
                   ],
