@@ -2,56 +2,45 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 
 class GradeGroupPage extends StatefulWidget {
-  final List<Grade> grades;
+  final String groupName;
+  final Subject groupSubject;
 
-  const GradeGroupPage({super.key, required this.grades});
+  const GradeGroupPage({super.key, required this.groupName, required this.groupSubject});
 
   @override
   State<StatefulWidget> createState() => _GradeGroupPageState();
 }
 
 class _GradeGroupPageState extends State<GradeGroupPage> {
-  final database = DatabaseService().isar;
+  final database = DatabaseService();
 
-  Widget buildList() {
+  Widget buildList(List<Grade> thisGroupGrades) {
     // Sorting grades by date
-    widget.grades.sort((gradeA, gradeB) {
+    thisGroupGrades.sort((gradeA, gradeB) {
       return gradeB.date.compareTo(gradeA.date);
     });
 
     return ListView.separated(
       padding: EdgeInsets.only(top: 8),
-      itemCount: widget.grades.length,
+      itemCount: thisGroupGrades.length,
       itemBuilder:
-          (context, index) => GradeBar(gradeData: widget.grades.elementAt(index), onTap: () => showNewGradePopup(toEdit: widget.grades.elementAt(index))),
+          (context, index) => GradeBar(gradeData: thisGroupGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: thisGroupGrades.elementAt(index))),
       separatorBuilder: (context, index) => SizedBox(height: 8),
     );
   }
 
   void showNewGradePopup({Grade? toEdit}) async {
-    final newGrade = await showCupertinoSheet<Grade?>(
+    await showCupertinoSheet<Grade?>(
       context: context,
       enableDrag: false,
-      builder:
-          (context) => NewGradePage(
-            subject: widget.grades.isNotEmpty ? widget.grades.first.subject.value : null,
-            toEdit: toEdit,
-            groupName: widget.grades.isNotEmpty ? widget.grades.first.groupName : null,
-          ),
+      builder: (context) => NewGradePage(groupName: widget.groupName, subject: widget.groupSubject, toEdit: toEdit),
     );
-
-    setState(() {});
-
-    // Closing the page if empty
-    if (widget.grades.isEmpty && newGrade?.groupName == null) {
-      if (mounted) Navigator.of(context).pop();
-      return;
-    }
   }
 
   @override
@@ -65,16 +54,24 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
                 CupertinoSliverNavigationBar(
                   largeTitle: Row(
                     spacing: 10,
-                    children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.text.adaptTo(context), size: 28),
-                      Text(widget.grades.isNotEmpty ? (widget.grades.first.groupName ?? "Groupe") : "Groupe"),
-                    ],
+                    children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.text.adaptTo(context), size: 28), Text(widget.groupName)],
                   ),
                   previousPageTitle: "Retour",
                 ),
               ];
             },
-            body: SafeArea(top: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: buildList())),
+            body: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: StreamBuilder(
+                  stream: database.grades.watchAll(),
+                  builder: (context, snapshot) {
+                    return buildList((snapshot.data ?? database.grades.getAll()).where((grade) => grade.groupName == widget.groupName).toList());
+                  },
+                ),
+              ),
+            ),
           ),
 
           Positioned(

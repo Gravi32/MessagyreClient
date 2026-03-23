@@ -105,7 +105,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             Navigator.of(
               context,
               rootNavigator: true,
-            ).push(CupertinoPageRoute(builder: (context) => GradeGroupPage(grades: gradesInGroup))).then((_) => setState(() {}));
+            ).push(CupertinoPageRoute(builder: (context) => GradeGroupPage(groupName: groupName, groupSubject: widget.subject))).then((_) => setState(() {}));
           },
         ),
       ],
