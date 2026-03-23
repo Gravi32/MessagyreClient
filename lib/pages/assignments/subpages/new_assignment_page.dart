@@ -724,12 +724,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               ),
               const SizedBox(height: 10),
 
-              CupertinoListSection.insetGrouped(
-                backgroundColor: AppColors.transparent,
-                header: const Text("Supprimer"),
-                margin: EdgeInsets.zero,
-                children: [
-                  if (widget.toEdit != null)
+              if (widget.toEdit != null)
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: AppColors.transparent,
+                  header: const Text("Supprimer"),
+                  margin: EdgeInsets.zero,
+                  children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: const HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
@@ -760,8 +760,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         );
                       },
                     ),
-                ],
-              ),
+                  ],
+                ),
               const SizedBox(height: 10),
             ],
           ),
