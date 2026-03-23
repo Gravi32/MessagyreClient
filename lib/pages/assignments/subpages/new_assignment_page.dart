@@ -151,7 +151,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
 
     final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
-    final hourPickerController = FixedExtentScrollController(initialItem: chosenDateTime?.hour ?? 17);
+    final hourPickerController = FixedExtentScrollController(initialItem: chosenDateTime?.hour ?? 0);
     final minutesPickerController = FixedExtentScrollController(
       initialItem: !minutes.contains(chosenDateTime?.minute) ? 0 : minutes.indexOf(chosenDateTime?.minute ?? 0),
     );
@@ -252,12 +252,21 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                     }
 
                                     setPopupState(() {
-                                      chosenDateTime =
-                                          daysBefore == -1
-                                              ? null
-                                              : (chosenDateTime ?? dueDate.add(Duration(days: -daysBefore))).copyWith(
-                                                day: dueDate.add(Duration(days: -daysBefore)).day,
-                                              );
+                                      // If is enabling notifications
+                                      if (daysBefore == -1) {
+                                        chosenDateTime = null;
+                                      } else {
+                                        var result = (chosenDateTime ?? dueDate.add(Duration(days: -daysBefore))).copyWith(
+                                          day: dueDate.add(Duration(days: -daysBefore)).day,
+                                        );
+
+                                        if (chosenDateTime == null) {
+                                          result = result.copyWith(hour: 17);
+                                          hourPickerController.animateToItem(17, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+                                        }
+
+                                        chosenDateTime = result;
+                                      }
 
                                       if (!isValid(chosenDateTime)) {
                                         scrollToFirstAvailableHour();
@@ -704,7 +713,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                 Text(
                                   notificationDate == null
                                       ? "Non"
-                                      : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}",
+                                      : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}"} ",
                                   style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 CupertinoListTileChevron(),
