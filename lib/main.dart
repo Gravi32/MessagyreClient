@@ -170,6 +170,10 @@ class App extends StatelessWidget {
           supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
           locale: Locale('fr', 'CH'),
           home: const MainPage(),
+          builder: (context, child) {
+            final MediaQueryData data = MediaQuery.of(context);
+            return MediaQuery(data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.2)), child: child!);
+          },
         );
       },
     );
