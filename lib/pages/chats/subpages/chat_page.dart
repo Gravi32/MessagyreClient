@@ -609,11 +609,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
           padding: EdgeInsets.fromLTRB(9, 5, 8, 5),
-          decoration: BoxDecoration(
-            color: getBubbleColor(data.isOwned),
-            borderRadius: getBubbleShape(data.isOwned),
-            boxShadow: [BoxShadow(color: Colors.black.withAlpha(30), offset: Offset(3, 5), blurRadius: 10)],
-          ),
+          decoration: BoxDecoration(color: getBubbleColor(data.isOwned), borderRadius: getBubbleShape(data.isOwned)),
           child: TextChatBubbleWithTimeStamp(
             content: Text.rich(
               TextSpan(

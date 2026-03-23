@@ -20,7 +20,7 @@ class AppColors {
 
   // Chat bubbles
   static const sentBubble = AppColor(light: Color.fromRGBO(216, 161, 255, 1.0), dark: Color.fromRGBO(156, 0, 179, 1.0));
-  static const receivedBubble = AppColor(light: Color.fromRGBO(229, 229, 234, 1.0), dark: Color.fromRGBO(46, 46, 60, 1.0));
+  static const receivedBubble = AppColor(light: Color.fromRGBO(209, 209, 214, 1.0), dark: Color.fromRGBO(46, 46, 60, 1.0));
 
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);
