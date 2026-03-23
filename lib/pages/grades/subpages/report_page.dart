@@ -41,11 +41,15 @@ class _ReportCardPageState extends State<ReportCardPage> {
           if (isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
 
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                (average?.removeTrailingZero() ?? "-").toString(),
-                style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: rawAverage == null ? 6 : 0),
+                child: Text(
+                  (average?.removeTrailingZero() ?? "-").toString(),
+                  style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800),
+                ),
               ),
 
               if (rawAverage != null)
