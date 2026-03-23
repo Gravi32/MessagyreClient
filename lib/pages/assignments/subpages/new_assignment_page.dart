@@ -55,7 +55,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 2)).dateOnly();
   late DateTime? notificationDate =
       widget.toEdit?.notificationDate ??
-      (editMode ? null : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? dueDate.add(const Duration(days: -1)) : null));
+      (editMode
+          ? null
+          : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? dueDate.add(const Duration(days: -1)).copyWith(hour: 17) : null));
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
 
