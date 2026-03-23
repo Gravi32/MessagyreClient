@@ -61,13 +61,18 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                       children: [
                         Text(
                           DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
+                          textScaler: TextScaler.noScaling,
                           style:
                               isSelected
                                   ? TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)
                                   : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                         ),
-                        Text(thisDay.day.toString(), style: TextStyle(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 20)),
-                        const SizedBox(height: 8,)
+                        Text(
+                          thisDay.day.toString(),
+                          textScaler: TextScaler.noScaling,
+                          style: TextStyle(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 20),
+                        ),
+                        const SizedBox(height: 8),
                       ],
                     ),
                     Positioned(
