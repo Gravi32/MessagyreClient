@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
 class DebugSettingsPage extends StatefulWidget {
@@ -17,7 +17,7 @@ class DebugSettingsPage extends StatefulWidget {
 class _DebugSettingsPageState extends State<DebugSettingsPage> {
   final globals = GlobalsService();
   final network = NetworkService();
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = SecureStorageService();
 
   bool isRefreshTokenStored = false;
 

@@ -6,7 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -20,6 +19,7 @@ import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -36,7 +36,7 @@ class SettingsListPage extends StatefulWidget {
 class _SettingsListPageState extends State<SettingsListPage> {
   final globals = GlobalsService();
   final network = NetworkService();
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = SecureStorageService();
 
   late bool isDarkMode;
 

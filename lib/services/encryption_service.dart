@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:pointycastle/asymmetric/oaep.dart';
 import 'package:pointycastle/asymmetric/rsa.dart';
 import 'package:pointycastle/block/aes.dart';
@@ -18,7 +18,7 @@ class EncryptionService {
   factory EncryptionService() => _instance;
   EncryptionService._internal();
 
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = SecureStorageService();
   // Do not instantiate NetworkService here: Stack overflow 
 
   AsymmetricKeyPair? _keyPairCache;

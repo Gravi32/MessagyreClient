@@ -3,11 +3,11 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 
@@ -25,7 +25,7 @@ class RegistrationPage extends StatefulWidget {
 class _RegistrationPageState extends State<RegistrationPage> {
   final network = NetworkService();
   final globals = GlobalsService();
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = SecureStorageService();
 
   final pageController = PageController();
   final emailController = TextEditingController();

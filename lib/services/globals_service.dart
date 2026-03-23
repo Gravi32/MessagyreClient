@@ -1,8 +1,8 @@
 
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +18,7 @@ class GlobalsService {
   String? token;
   String? username;
 
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = SecureStorageService();
   late final network = NetworkService();
 
   // #region -> Settings

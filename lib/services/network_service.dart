@@ -7,7 +7,6 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/database/models/chats/chat.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
@@ -16,6 +15,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:pointycastle/export.dart';
 import 'package:uuid/uuid.dart';
@@ -35,7 +35,7 @@ class NetworkService {
   final globals = GlobalsService();
   final database = DatabaseService();
   final encryption = EncryptionService();
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = SecureStorageService();
 
   // Streams
   final messageStreamController = StreamController<(String sender, Message message)>.broadcast();
