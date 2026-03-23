@@ -116,6 +116,34 @@ class _ReportCardPageState extends State<ReportCardPage> {
     );
   }
 
+  Widget buildMaxFailingGradesPart() {
+    final numberOfFailingGrades = report.allAverages.values.where((grade) => grade < 3.75).length;
+    final maxFailingGrades = report.maxFailingGrades;
+
+    final progress = (numberOfFailingGrades / maxFailingGrades).clamp(0, 1).toDouble();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 0,
+      children: [
+        const Text("Moyennes insuffisantes", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+
+        NumberedProgressBar(
+          lowerBound: "0",
+          upperBound: maxFailingGrades.toString(),
+          progress: progress,
+          value: numberOfFailingGrades.toString(),
+          color: switch (numberOfFailingGrades) {
+            0 => AppColors.green,
+            1 => AppColors.yellow,
+            2 => AppColors.orange,
+            _ => AppColors.red,
+          },
+        ),
+      ],
+    );
+  }
+
   Widget buildRestrictedGroupPointsPart() {
     final restrictedGroupAverages = <double>[];
     for (final subjectCode in report.restrictedGroupCodes) {
@@ -291,22 +319,53 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   spacing: 6,
                   children: [
                     buildTotalPointsPart(),
+                    Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
+                    buildMaxFailingGradesPart(),
+
+                    if (report.usingDoubleCompensation) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildDoubleCompensationPart()],
+
                     if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty) ...[
                       Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
                       buildRestrictedGroupPointsPart(),
                     ],
-                    if (report.usingDoubleCompensation) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildDoubleCompensationPart()],
                   ],
                 ),
               ),
 
               const SizedBox(height: 20),
 
+              CupertinoListSection.insetGrouped(
+                margin: EdgeInsets.zero,
+                backgroundColor: AppColors.transparent,
+                header: const Text("Options de calcul"),
+                children: [
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    title: const Text("Max. de notes insuffisantes"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [Text("4", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))), CupertinoListTileChevron()],
+                    ),
+                  ),
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    title: const Text("Double compensation"),
+                    trailing: CupertinoSwitch(
+                      value: report.usingDoubleCompensation,
+                      onChanged: (newValue) {
+                        globals.persistent.setBool("UseDoubleCompensation", newValue);
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
               if (allSubjects.length > 3) ...[
+                const SizedBox(height: 10),
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
                   backgroundColor: AppColors.transparent,
-                  header: const Text("Options de calcul"),
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
@@ -364,26 +423,6 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   const SizedBox(height: 10),
                 ],
               ],
-
-              const SizedBox(height: 10),
-
-              CupertinoListSection.insetGrouped(
-                margin: EdgeInsets.zero,
-                backgroundColor: AppColors.transparent,
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    title: const Text("Double compensation"),
-                    trailing: CupertinoSwitch(
-                      value: report.usingDoubleCompensation,
-                      onChanged: (newValue) {
-                        globals.persistent.setBool("UseDoubleCompensation", newValue);
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),

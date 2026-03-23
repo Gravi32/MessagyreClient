@@ -27,6 +27,7 @@ class ReportService {
 
   List<CompositeSubject> get allCompositeSubjects => database.compositeSubjects.getAll().sortedBy((s) => s.name.toLowerCase());
 
+  int get maxFailingGrades => globals.persistent.getInt("MaxFailingGrades") ?? 4;
   bool get usingDoubleCompensation => globals.persistent.getBool("UseDoubleCompensation") ?? false;
   bool get usingRestrictedGroup => globals.persistent.getBool("UseRestrictedGroup") ?? false;
 
