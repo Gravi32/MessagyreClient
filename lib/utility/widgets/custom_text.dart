@@ -11,6 +11,7 @@ class CustomText extends StatelessWidget {
   final List<InlineSpan>? prefixSpans;
   final List<InlineSpan>? suffixSpans;
   final TextAlign textAlign;
+  final TextScaler? textScaler;
 
   const CustomText(
     this.text, {
@@ -23,6 +24,7 @@ class CustomText extends StatelessWidget {
     this.prefixSpans,
     this.suffixSpans,
     this.textAlign = TextAlign.start,
+    this.textScaler,
   });
 
   static List<InlineSpan> parseSpans(String text, {TextStyle? style, FontWeight? boldWeight}) {
@@ -63,8 +65,9 @@ class CustomText extends StatelessWidget {
     return RichText(
       text: TextSpan(
         children: spans,
-        style: (style ?? DefaultTextStyle.of(context).style).merge(TextStyle(color: style?.color ?? DefaultTextStyle.of(context).style.color)),
+        style: (style ?? DefaultTextStyle.of(context).style).copyWith(color: style?.color ?? DefaultTextStyle.of(context).style.color),
       ),
+      textScaler: textScaler ?? MediaQuery.of(context).textScaler,
       overflow: overflow,
       softWrap: softWrap,
       maxLines: maxLines,
