@@ -172,7 +172,7 @@ class App extends StatelessWidget {
           home: const MainPage(),
           builder: (context, child) {
             final MediaQueryData data = MediaQuery.of(context);
-            return MediaQuery(data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.2)), child: child!);
+            return MediaQuery(data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)), child: child!);
           },
         );
       },
