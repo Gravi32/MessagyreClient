@@ -54,11 +54,12 @@ class NotificationsService {
           android: AndroidNotificationDetails(
             'homework_channel',
             'Devoirs',
+            subText: subtitle,
             importance: Importance.high,
             priority: Priority.high,
             largeIcon: const DrawableResourceAndroidBitmap('broadcast'), // Android reads from the native drawables (android/app/src/main/res/drawable)
           ),
-          iOS: DarwinNotificationDetails(attachments: [DarwinNotificationAttachment(imagePath)]), // iOS reads the extracted file's path
+          iOS: DarwinNotificationDetails(subtitle: subtitle, attachments: [DarwinNotificationAttachment(imagePath)]), // iOS reads the extracted file's path
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
