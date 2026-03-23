@@ -122,11 +122,11 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     final List<int> hours = List.generate(24, (i) => i);
     final List<int> minutes = [0, 15, 30, 45];
 
-    DateTime? chosenDateTime = notificationDate ?? dueDate.add(Duration(days: -1));
+    DateTime? chosenDateTime = notificationDate; // ?? dueDate.add(Duration(days: -1));
 
     bool isValid(DateTime? dateTime, {bool countTimeToo = true}) =>
         dateTime == null ? true : (countTimeToo ? dateTime : dateTime.copyWith(hour: 23, minute: 59)).isAfter(DateTime.now());
-    int getDaysBefore() => chosenDateTime == null ? -1 : dueDate.difference(chosenDateTime!).inDays;
+    int getDaysBefore() => chosenDateTime == null ? -1 : dueDate.dateOnly().difference(chosenDateTime!.dateOnly()).inDays;
 
     if (!isValid(chosenDateTime)) {
       final firstValidDaysBefore = notificationDayOptions.keys.firstWhere(
@@ -151,9 +151,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
 
     final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
-    final hourPickerController = FixedExtentScrollController(initialItem: chosenDateTime.hour);
+    final hourPickerController = FixedExtentScrollController(initialItem: chosenDateTime?.hour ?? 17);
     final minutesPickerController = FixedExtentScrollController(
-      initialItem: !minutes.contains(chosenDateTime.minute) ? 0 : minutes.indexOf(chosenDateTime.minute),
+      initialItem: !minutes.contains(chosenDateTime?.minute) ? 0 : minutes.indexOf(chosenDateTime?.minute ?? 0),
     );
 
     void scrollToFirstAvailableDaysBefore() {
@@ -704,7 +704,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                 Text(
                                   notificationDate == null
                                       ? "Non"
-                                      : "${notificationDayOptions[dueDate.difference(notificationDate!).inDays]}, à ${notificationDate?.hour}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}",
+                                      : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}",
                                   style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 CupertinoListTileChevron(),
