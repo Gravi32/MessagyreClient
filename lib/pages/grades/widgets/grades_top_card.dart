@@ -283,9 +283,8 @@ class _GradesTopCardState extends State<GradesTopCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 12)),
+            Expanded(child: Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 12))),
           ],
         ),
       );
@@ -335,7 +334,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
             crossAxisCount: 3,
             childAspectRatio: 1.3,
             children: [
-              statBox("Total des notes", "$total"),
+              statBox("Notes", "$total"),
               statBox("≥ $threshold", "$aboveThreshold %"),
               statBox("Stabilité", stdDev.toStringAsFixed(2)),
               statBox("Moyenne", average.toStringAsFixed(2)),
