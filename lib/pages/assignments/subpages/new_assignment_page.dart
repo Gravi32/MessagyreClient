@@ -713,7 +713,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                 Text(
                                   notificationDate == null
                                       ? "Non"
-                                      : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}"} ",
+                                      : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour.toString().padLeft(2, "0")}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}"} ",
                                   style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 CupertinoListTileChevron(),
