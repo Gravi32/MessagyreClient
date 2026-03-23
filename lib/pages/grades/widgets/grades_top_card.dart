@@ -255,14 +255,17 @@ class _GradesTopCardState extends State<GradesTopCard> {
           ],
         ),
 
-        Spacer(),
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              ...buildTotalPointsIndicator(),
 
-        ...buildTotalPointsIndicator(),
-
-        Spacer(),
-
-        if (report.usingRestrictedGroup) ...buildRestrictedGroupIndicator(),
-        if (report.usingDoubleCompensation && !report.usingRestrictedGroup) ...buildDoubleCompensationIndicator(),
+              if (report.usingRestrictedGroup) ...[const SizedBox(height: 10), ...buildRestrictedGroupIndicator()],
+              if (report.usingDoubleCompensation && !report.usingRestrictedGroup) ...[const SizedBox(height: 10), ...buildDoubleCompensationIndicator()],
+            ],
+          ),
+        ),
       ],
     );
   }
