@@ -163,3 +163,52 @@ class FirebaseApi {
     AppBadgePlus.updateBadge(0);
   }
 }
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  final data = message.data;
+  final title = data['Title'] ?? message.notification?.title ?? 'Messagyre';
+  final body = data['Body'] ?? message.notification?.body ?? '';
+  final sender = data['SenderUsername'];
+  final cipherText = data['CipherText'];
+  final iv = data['IV'];
+  final encryptedKey = data['EncryptedKey'];
+  final imageUrl = data['ProfilePictureURL'];
+
+  String finalBody = body;
+
+  if (cipherText != null && iv != null && encryptedKey != null) {
+    final encryption = EncryptionService();
+    finalBody = await encryption.decryptMessage(cipherText, iv, encryptedKey);
+  }
+
+  final localNotifications = FlutterLocalNotificationsPlugin();
+
+  NotificationDetails details;
+
+  if (imageUrl != null && imageUrl.isNotEmpty) {
+    final response = await http.get(Uri.parse(imageUrl));
+    final dir = await getTemporaryDirectory();
+    final path = '${dir.path}/bg_notif_icon';
+    await File(path).writeAsBytes(response.bodyBytes);
+
+    final person = Person(name: title, icon: BitmapFilePathAndroidIcon(path));
+
+    details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'messagyre_channel',
+        'Messagyre',
+        importance: Importance.max,
+        priority: Priority.high,
+        styleInformation: MessagingStyleInformation(person, messages: [Message(finalBody, DateTime.now(), person)]),
+        largeIcon: FilePathAndroidBitmap(path),
+      ),
+    );
+  } else {
+    details = const NotificationDetails(
+      android: AndroidNotificationDetails('messagyre_channel', 'Messagyre', importance: Importance.max, priority: Priority.high),
+    );
+  }
+
+  await localNotifications.show(0, title, finalBody, details, payload: sender);
+}
