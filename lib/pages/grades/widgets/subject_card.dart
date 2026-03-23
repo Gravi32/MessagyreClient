@@ -147,9 +147,9 @@ class SubjectCard extends StatelessWidget {
                 if (compositeSubject != null) CompositeSubjectBadge(compositeSubject: compositeSubject!, size: 32),
 
                 // Average label
-                if ((!isSubjectEmpty || isSubjectLocked) && average != null)
+                if ((average ?? 0) != 0)
                   Text(
-                    (subject?.lockedGrade ?? average).removeTrailingZero(),
+                    (subject?.lockedGrade ?? average!).removeTrailingZero(),
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
                   ),
               ],
@@ -167,18 +167,23 @@ class SubjectCard extends StatelessWidget {
                   textBaseline: TextBaseline.alphabetic,
                   spacing: 6,
                   children: [
-                    Text(
-                      subject?.name ?? compositeSubject?.name ?? "-",
-                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
+                    Expanded(
+                      child: Text(
+                        subject?.name ?? compositeSubject?.name ?? "-",
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
-                    if (isSubjectLocked) Icon(CupertinoIcons.lock_fill, size: 18, color: AppColors.text.adaptTo(context)),
-                    if (compositeSubject != null) HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 18, color: AppColors.text.adaptTo(context)),
+
+                    if (isSubjectLocked) Icon(CupertinoIcons.lock_fill, size: 18, applyTextScaling: true, color: AppColors.text.adaptTo(context)),
+                    if (compositeSubject != null)
+                      HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: MediaQuery.textScalerOf(context).scale(18), color: AppColors.text.adaptTo(context)),
                   ],
                 ),
 
                 // Progress bar
-                if (!isSubjectEmpty && !isSubjectLocked && average != null)
-                  ProgressBar(progress: average / 6, color: subject?.color ?? compositeSubject?.firstSubject.value?.color),
+                if ((average ?? 0) != 0) ProgressBar(progress: average! / 6, color: subject?.color ?? compositeSubject?.firstSubject.value?.color),
               ],
             ),
 
