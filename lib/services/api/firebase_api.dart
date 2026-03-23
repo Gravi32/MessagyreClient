@@ -33,6 +33,8 @@ class FirebaseApi {
     const iosSettings = DarwinInitializationSettings();
     const initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
     await localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) {
