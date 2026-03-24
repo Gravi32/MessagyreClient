@@ -9,12 +9,14 @@ class NotificationService: UNNotificationServiceExtension {
     var bestAttemptContent: UNMutableNotificationContent?
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 
         guard let bestAttemptContent = bestAttemptContent else { return }
 
         let userInfo = bestAttemptContent.userInfo
+        print("DEBUG: UserInfo content: \(userInfo)")
 
         guard let cipherTextBase64 = userInfo["CipherText"] as? String,
               let ivBase64 = userInfo["IV"] as? String,
