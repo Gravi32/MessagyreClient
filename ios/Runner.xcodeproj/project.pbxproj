@@ -408,7 +408,6 @@
 			);
 			name = "Thin Binary";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/thin_binary_done.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
