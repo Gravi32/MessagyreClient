@@ -100,7 +100,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
 
-    if (notificationDate != null) {
+    if (notificationDate != null && notificationDate?.isAfter(DateTime.now()) == true) {
       await notifications.scheduleAssignmentNotification(
         notificationId: stableId,
         title: "📅 Rappel",
