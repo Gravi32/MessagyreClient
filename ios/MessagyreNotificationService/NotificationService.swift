@@ -13,10 +13,7 @@ class NotificationService: UNNotificationServiceExtension {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 
-        guard let bestAttemptContent = bestAttemptContent else { 
-            bestAttemptContent.title = "DEBUG: Extension partita!" 
-            return
-        }
+        guard let bestAttemptContent = bestAttemptContent else { return }
 
         let userInfo = bestAttemptContent.userInfo
 
@@ -66,7 +63,7 @@ class NotificationService: UNNotificationServiceExtension {
             }
 
         } catch {
-            bestAttemptContent.body = "Une erreur est survenue: \(error.localizedDescription)"
+            bestAttemptContent.body = "Nouveau message"
         }
 
         contentHandler(bestAttemptContent)
