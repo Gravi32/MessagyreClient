@@ -20,8 +20,9 @@ import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class GradesSubjectPage extends StatefulWidget {
   final Subject subject;
+  final bool wasPushedFromGradesBySubjectPage;
 
-  const GradesSubjectPage({super.key, required this.subject});
+  const GradesSubjectPage({super.key, required this.subject, this.wasPushedFromGradesBySubjectPage = false});
 
   @override
   State<StatefulWidget> createState() => _GradesSubjectPageState();
@@ -416,6 +417,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         ),
                       ...groups.keys.map((groupName) => buildGroupBar(groupName)),
 
+                      // Incoming grades
                       if (incomingGrades.isNotEmpty) ...[
                         Padding(
                           padding: EdgeInsets.only(top: 36),
@@ -438,6 +440,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                                 showNewGradePopup(toReference: assignment);
                                 return;
                               }
+                              if (widget.wasPushedFromGradesBySubjectPage) Navigator.pop(context);
                               Navigator.pop(context);
                               MainPage.pageIndex.value = 1;
                               //assignmentListPageKey.currentState?.showAssignment(assignment);

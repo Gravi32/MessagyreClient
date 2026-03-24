@@ -78,7 +78,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                         itemBuilder: (context, index) {
                           final compositeSubject = allCompositeSubjects.elementAtOrNull(index);
                           final subject = compositeSubject == null ? allActiveSubjects.elementAt(index - allCompositeSubjects.length) : null;
-                          return SubjectCard(subject: subject, compositeSubject: compositeSubject);
+                          return SubjectCard(subject: subject, compositeSubject: compositeSubject, wasPushedFromGradesBySubjectPage: true);
                         },
                       ),
 
@@ -98,7 +98,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                           itemCount: allLockedSubjects.length,
                           itemBuilder: (context, index) {
                             final subject = allLockedSubjects[index];
-                            return SubjectCard(subject: subject);
+                            return SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true);
                           },
                         ),
                       ],
@@ -119,7 +119,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                           itemCount: allInactiveSubjects.length,
                           itemBuilder: (context, index) {
                             final subject = allInactiveSubjects[index];
-                            return SubjectCard(subject: subject);
+                            return SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true);
                           },
                         ),
                       ],

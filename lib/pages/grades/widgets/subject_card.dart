@@ -14,12 +14,15 @@ import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 class SubjectCard extends StatelessWidget {
   final Subject? subject;
   final CompositeSubject? compositeSubject;
+  final bool wasPushedFromGradesBySubjectPage;
 
-  const SubjectCard({super.key, this.subject, this.compositeSubject});
+  const SubjectCard({super.key, this.subject, this.compositeSubject, this.wasPushedFromGradesBySubjectPage = false});
 
   void pushPage(BuildContext context, Subject pageSubject, {BuildContext? dialogContext}) {
     if (dialogContext != null && dialogContext.mounted) Navigator.pop(dialogContext);
-    Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: pageSubject)));
+    Navigator.of(context, rootNavigator: true).push(
+      CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: pageSubject, wasPushedFromGradesBySubjectPage: wasPushedFromGradesBySubjectPage)),
+    );
   }
 
   @override
