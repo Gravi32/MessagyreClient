@@ -13,10 +13,9 @@ class NotificationService: UNNotificationServiceExtension {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 
-        guard let bestAttemptContent = bestAttemptContent else { return }
+        guard let bestAttemptContent = bestAttemptContent else { bestAttemptContent.title = "DEBUG: Extension partita!" }
 
         let userInfo = bestAttemptContent.userInfo
-        print("DEBUG: UserInfo content: \(userInfo)")
 
         guard let cipherTextBase64 = userInfo["CipherText"] as? String,
               let ivBase64 = userInfo["IV"] as? String,
@@ -26,13 +25,9 @@ class NotificationService: UNNotificationServiceExtension {
         }
 
         do {
-            // 1. Leggi il PEM dal keychain
             let privateKeyPem = try getPrivateKeyFromKeychain(keyName: "RSAPrivateKey")
-
-            // 2. Converti PEM → SecKey usando Security framework nativo
             let privateKey = try pemToSecKey(pem: privateKeyPem)
 
-            // 3. Decrittazione RSA-OAEP con Security framework (supporta OAEP correttamente)
             guard let encryptedKeyData = Data(base64Encoded: encryptedKeyBase64) else {
                 throw NSError(domain: "DecryptError", code: 1)
             }
@@ -49,7 +44,6 @@ class NotificationService: UNNotificationServiceExtension {
 
             let aesKeyBytes = [UInt8](aesKeyData)
 
-            // 4. Decodifica IV e ciphertext
             guard let ivData = Data(base64Encoded: ivBase64) else {
                 throw NSError(domain: "DecryptError", code: 2)
             }
@@ -60,7 +54,6 @@ class NotificationService: UNNotificationServiceExtension {
             }
             let cipherBytes = [UInt8](cipherData)
 
-            // 5. AES-GCM decrypt con CryptoSwift
             let gcm = GCM(iv: ivBytes, mode: .combined)
             let aes = try AES(key: aesKeyBytes, blockMode: gcm, padding: .noPadding)
             let decryptedBytes = try aes.decrypt(cipherBytes)
@@ -70,7 +63,7 @@ class NotificationService: UNNotificationServiceExtension {
             }
 
         } catch {
-            bestAttemptContent.body = "Nuovo messaggio"
+            bestAttemptContent.body = "Une erreur est survenue: \(error.localizedDescription)"
         }
 
         contentHandler(bestAttemptContent)
@@ -82,9 +75,7 @@ class NotificationService: UNNotificationServiceExtension {
         }
     }
 
-    // Converte una stringa PEM in SecKey
     private func pemToSecKey(pem: String) throws -> SecKey {
-        // Rimuovi header/footer e newline del PEM
         let base64 = pem
             .replacingOccurrences(of: "-----BEGIN RSA PRIVATE KEY-----", with: "")
             .replacingOccurrences(of: "-----END RSA PRIVATE KEY-----", with: "")
@@ -98,7 +89,6 @@ class NotificationService: UNNotificationServiceExtension {
             throw NSError(domain: "KeyError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Impossibile decodificare il PEM in base64"])
         }
 
-        // Prova prima come PKCS#8 (BEGIN PRIVATE KEY), poi come PKCS#1 (BEGIN RSA PRIVATE KEY)
         let attributes: [String: Any] = [
             kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
             kSecAttrKeyClass as String: kSecAttrKeyClassPrivate,
