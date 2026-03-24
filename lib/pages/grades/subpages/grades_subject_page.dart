@@ -290,7 +290,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 Text("Objectifs", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
                 Spacer(),
                 Text(
-                  average.removeTrailingZero(),
+                  average.toStringAsFixed(2),
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: getGradeColor(average, greenOverride: widget.subject.color)),
                 ),
               ],
