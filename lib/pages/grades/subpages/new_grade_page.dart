@@ -58,6 +58,7 @@ class _NewGradePageState extends State<NewGradePage> {
   bool isMissingTitle = false;
   bool isMissingSubject = false;
   Assignment? referencedAssignment;
+  double? customWeight;
 
   void confirmGrade() async {
     if (titleController.text.isEmpty) {
@@ -449,26 +450,111 @@ class _NewGradePageState extends State<NewGradePage> {
                         curve: Curves.easeInOut,
                         child:
                             isValuePickerExpanded
-                                ? SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: EdgeInsets.only(top: 6),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    spacing: 6,
-                                    children: [
-                                      for (var value = 0.05; value < 1.0; value += 0.05)
-                                        if (!fractions.keys.contains(value))
-                                          WeightButton(
-                                            value: value,
-                                            selectedWeight: weight,
-                                            label: "${(value * 100).round()}%",
-                                            onTap: () {
-                                              setState(() => weight = value);
-                                              HapticFeedback.selectionClick();
+                                ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: EdgeInsets.symmetric(vertical: 6),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        spacing: 6,
+                                        children: [
+                                          for (var value = 0.05; value < 1.0; value += 0.05)
+                                            if (!fractions.keys.contains(value))
+                                              WeightButton(
+                                                value: value,
+                                                selectedWeight: weight,
+                                                label: "${(value * 100).round()}%",
+                                                onTap: () {
+                                                  setState(() => weight = value);
+                                                  HapticFeedback.selectionClick();
+                                                },
+                                              ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    GestureDetector(
+                                      onTap:
+                                          () => showCupertinoDialog(
+                                            context: context,
+                                            builder: (dialogContext) {
+                                              final controller = TextEditingController(text: customWeight?.removeTrailingZero());
+                                              return CupertinoAlertDialog(
+                                                title: Text("Valeur personnalisée"),
+                                                content: Column(
+                                                  children: [
+                                                    SizedBox(height: 10),
+                                                    DismissableTextField(
+                                                      keyboardType: TextInputType.number,
+                                                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.grey.withAlpha(.1.toByte()),
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                      style: TextStyle(fontSize: 22),
+                                                      textAlign: TextAlign.center,
+                                                      controller: controller,
+                                                      placeholder: "Valeur",
+                                                    ),
+                                                  ],
+                                                ),
+                                                actions: [
+                                                  CupertinoDialogAction(
+                                                    child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
+                                                    onPressed: () => Navigator.pop(dialogContext),
+                                                  ),
+                                                  CupertinoDialogAction(
+                                                    isDefaultAction: true,
+                                                    child: Text("Confirmer", style: TextStyle(color: AppColors.accent)),
+                                                    onPressed: () {
+                                                      final newValue = double.tryParse(controller.text.trim().replaceAll(',', '.'));
+
+                                                      setState(() {
+                                                        customWeight = newValue;
+                                                        weight = newValue ?? 1;
+                                                      });
+
+                                                      Navigator.pop(dialogContext);
+                                                    },
+                                                  ),
+                                                ],
+                                              );
                                             },
                                           ),
-                                    ],
-                                  ),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        padding: const EdgeInsets.only(left: 16, top: 12, bottom: 12, right: 6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.grey.withAlpha((weight == customWeight ? .1 : .05).toByte()),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          spacing: 10,
+                                          children: [
+                                            Text(
+                                              "Valeur personnalisée",
+                                              style: TextStyle(
+                                                color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
+                                              ),
+                                            ),
+                                            Spacer(),
+
+                                            Text(
+                                              customWeight == null ? "Ajouter" : "x${customWeight?.removeTrailingZero()}",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
+                                              ),
+                                            ),
+                                            CupertinoListTileChevron(),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 )
                                 : SizedBox.shrink(),
                       ),
