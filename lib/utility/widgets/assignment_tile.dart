@@ -76,87 +76,94 @@ class _AssignmentTileState extends State<AssignmentTile> {
                 ),
               ),
             ),
-          Opacity(
-            opacity: widget.dim ? .6 : 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 8,
-              children: [
-                // Title and tag
-                Row(
-                  spacing: 10,
-                  children: [
-                    if (assignment.type == AssignmentType.test)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.red.withBrightness(-.25),
-                          border: Border.all(color: AppColors.red),
-                          borderRadius: BorderRadius.circular(6),
+          Expanded(
+            child: Opacity(
+              opacity: widget.dim ? .6 : 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  // Title and tag
+                  Row(
+                    spacing: 10,
+                    children: [
+                      // Test tag
+                      if (assignment.type == AssignmentType.test)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.red.withBrightness(-.25),
+                            border: Border.all(color: AppColors.red),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          padding: EdgeInsets.all(2),
+                          child: Text("TEST", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
                         ),
-                        padding: EdgeInsets.all(2),
-                        child: Text("TEST", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
-                      ),
 
-                    if (assignment.type == AssignmentType.leave)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.orange.withBrightness(-.05),
-                          border: Border.all(color: AppColors.yellow, strokeAlign: BorderSide.strokeAlignOutside),
-                          borderRadius: BorderRadius.circular(6),
+                      // Leave tag
+                      if (assignment.type == AssignmentType.leave)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.orange.withBrightness(-.05),
+                            border: Border.all(color: AppColors.yellow, strokeAlign: BorderSide.strokeAlignOutside),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          padding: EdgeInsets.all(2),
+                          child: Text("CONGÉ", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
                         ),
-                        padding: EdgeInsets.all(2),
-                        child: Text("CONGÉ", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
-                      ),
 
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 120),
-                      child: AnimatedLineThrough(
-                        isCrossed: switch (assignment.type) {
-                          AssignmentType.assignment => isDone,
-                          AssignmentType.test => widget.dim,
-                          AssignmentType.leave => false,
-                        },
-                        duration: animationDuration,
-                        child: Text(
-                          switch (assignment.type) {
-                            AssignmentType.assignment => assignment.content,
-                            AssignmentType.test => assignment.title ?? "Test sans titre",
-                            AssignmentType.leave => assignment.content,
+                      // Title
+                      Expanded(
+                        child: AnimatedLineThrough(
+                          isCrossed: switch (assignment.type) {
+                            AssignmentType.assignment => isDone,
+                            AssignmentType.test => widget.dim,
+                            AssignmentType.leave => false,
                           },
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: assignment.type == AssignmentType.test ? AppColors.red : null),
-                          softWrap: true, maxLines: 2,
+                          duration: animationDuration,
+                          child: Text(
+                            switch (assignment.type) {
+                              AssignmentType.assignment => assignment.content,
+                              AssignmentType.test => assignment.title ?? "Test sans titre",
+                              AssignmentType.leave => assignment.content,
+                            },
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: assignment.type == AssignmentType.test ? AppColors.red : null),
+                            softWrap: true,
+                            maxLines: 2,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-
-                // Description
-                if (assignment.type == AssignmentType.test && assignment.content.isNotEmpty)
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 80),
-                    child: Text(
-                      assignment.content,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
-                      softWrap: true,
-                      maxLines: 5,
-                    ),
+                    ],
                   ),
 
-                // Subject and date
-                Row(
-                  spacing: 8,
-                  children: [
-                    if (assignment.subject.value != null) SubjectBadge(subject: assignment.subject.value!, size: 22),
-                    Text(
-                      assignment.type == AssignmentType.leave
-                          ? "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}"
-                          : "${assignment.subject.value?.name}${widget.showDate ? "  •  ${formatDate(assignment.dueDate)}" : ""}",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                  // Description
+                  if (assignment.type == AssignmentType.test && assignment.content.isNotEmpty)
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 80),
+                      child: Text(
+                        assignment.content,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                        softWrap: true,
+                        maxLines: 5,
+                      ),
                     ),
-                  ],
-                ),
-              ],
+
+                  // Subject and date
+                  Row(
+                    spacing: 8,
+                    children: [
+                      if (assignment.subject.value != null) SubjectBadge(subject: assignment.subject.value!, size: 22),
+                      Expanded(
+                        child: Text(
+                          assignment.type == AssignmentType.leave
+                              ? "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}"
+                              : "${assignment.subject.value?.name}${widget.showDate ? "  •  ${formatDate(assignment.dueDate)}" : ""}",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
