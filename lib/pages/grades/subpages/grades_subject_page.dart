@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
@@ -113,8 +112,53 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   }
 
   Widget buildTopCard() {
+    final average = calculateAverage(thisSubjectGrades);
+    final (toPass, toMaintain, toBoost) = calculateGoalGrades(thisSubjectGrades, 1); //TODO: let the user choose the weight
+
+    String formatGrade(double grade) {
+      return grade < 1
+          ? "< 1"
+          : grade > 6
+          ? "> 6"
+          : grade.removeTrailingZero();
+    }
+
+    Widget buildGoalBox({required IconData icon, required String title, required String neededGrade, String? goalGrade, Color? gradeColor, bool dim = false}) {
+      return Opacity(
+        opacity: dim ? .4 : 1,
+        child: Row(
+          spacing: 8,
+          children: [
+            Icon(icon, color: AppColors.tertiaryText.adaptTo(context)),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+              decoration: BoxDecoration(
+                color: AppColors.secondaryBackground.adaptTo(context),
+                border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                spacing: 8,
+                children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(neededGrade, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22))]),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: Row(
+                spacing: 8,
+                children: [Text(title), if (goalGrade != null) Text(goalGrade, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: gradeColor))],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return PagedCard(
-      height: 160,
+      height: 200,
       pages: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -125,10 +169,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 SubjectBadge(subject: widget.subject, size: 24),
                 Text("Moyenne", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
                 Spacer(),
-                Text(
-                  calculateAverage(thisSubjectGrades).toStringAsFixed(2),
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color),
-                ),
+                Text(average.toStringAsFixed(2), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color)),
               ],
             ),
             Expanded(
@@ -235,6 +276,71 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                   ),
                 ),
               ),
+            ),
+          ],
+        ),
+
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 6,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Text("Objectifs", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
+                Spacer(),
+                Text(
+                  average.removeTrailingZero(),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: getGradeColor(average, greenOverride: widget.subject.color)),
+                ),
+              ],
+            ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                physics: ClampingScrollPhysics(),
+                children: [
+                  if (average < 3.75)
+                    buildGoalBox(icon: CupertinoIcons.bandage, title: "pour avoir la moyenne", neededGrade: formatGrade(toPass), dim: toPass < 1 || toPass > 6),
+                  buildGoalBox(
+                    icon: CupertinoIcons.arrow_turn_right_up,
+                    title: "pour monter à",
+                    goalGrade: (average.roundToHalves() + .5).removeTrailingZero(),
+                    neededGrade: formatGrade(toBoost),
+                    gradeColor: getGradeColor(average + .5, greenOverride: widget.subject.color),
+                    dim: toBoost < 1 || toBoost > 6,
+                  ),
+                  buildGoalBox(
+                    icon: CupertinoIcons.minus,
+                    title: "pour maintenir",
+                    goalGrade: average.roundToHalves().removeTrailingZero(),
+                    neededGrade: formatGrade(toMaintain),
+                    gradeColor: getGradeColor(average, greenOverride: widget.subject.color),
+                    dim: toMaintain < 1 || toMaintain > 6,
+                  ),
+                  if (average >= 4.25)
+                    buildGoalBox(
+                      icon: CupertinoIcons.arrow_turn_right_down,
+                      title: "pour avoir la moyenne",
+                      neededGrade: formatGrade(toPass),
+                      dim: toPass < 1 || toPass > 6,
+                    ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondaryBackground.adaptTo(context),
+                    border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text("Note nécessaire", style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
+                ),
+                Text(" pour atteindre l'objectif", style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
+              ],
             ),
           ],
         ),

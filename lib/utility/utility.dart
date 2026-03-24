@@ -155,11 +155,11 @@ Color adaptiveColor(Color light, Color dark) {
   return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
-Color getGradeColor(double grade) {
+Color getGradeColor(double grade, {Color? greenOverride}) {
   Color result = AppColors.red;
 
   if (grade >= 4) {
-    result = AppColors.accent;
+    result = greenOverride ?? AppColors.accent;
   } else if (grade > 3.75) {
     result = AppColors.orange;
   }
@@ -231,6 +231,32 @@ double calculateAverage(List<Grade> grades, {bool round = false}) {
   final double result = totalWeight > 0 ? (total / totalWeight).toDouble() : 0;
 
   return round ? result.roundToHalves() : result;
+}
+
+(double toPass, double toMaintain, double toBoost) calculateGoalGrades(List<Grade> grades, double nextExamWeight) {
+  if (grades.isEmpty) return (3.75, 4.0, 4.5);
+
+  double currentTotalWeight = 0.0;
+  double currentWeightedSum = 0.0;
+
+  for (var g in grades) {
+    currentWeightedSum += g.grade * g.weight;
+    currentTotalWeight += g.weight;
+  }
+
+  double currentAverage = currentWeightedSum / currentTotalWeight;
+  double newTotalWeight = currentTotalWeight + nextExamWeight;
+
+  double solve(double target) {
+    double needed = (target * newTotalWeight - currentWeightedSum) / nextExamWeight;
+    return needed.roundToHalves();
+  }
+
+  return (
+    solve(3.75), // toPass
+    solve(currentAverage), // toMaintain
+    solve(currentAverage + 0.5), // toBoost
+  );
 }
 
 double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {bool round = false}) {
