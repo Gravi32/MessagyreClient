@@ -10,11 +10,8 @@
 		0365CE15C542EB6E22590E22 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0E246DAA1FF892B2A70676 /* Pods_RunnerTests.framework */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		2E4871742F71AD6D00BC6766 /* MessagyreNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2E48716D2F71AD6C00BC6766 /* MessagyreNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		2E48717E2F71B71D00BC6766 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 2E48717D2F71B71D00BC6766 /* CryptoSwift */; };
-		2E4871812F71B7BD00BC6766 /* SwiftyRSA in Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871802F71B7BD00BC6766 /* SwiftyRSA */; };
 		2E4871832F71B7D700BC6766 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871822F71B7D700BC6766 /* CryptoSwift */; };
 		2E4871852F71B7D700BC6766 /* SwiftyRSA in Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871842F71B7D700BC6766 /* SwiftyRSA */; };
-		2EBC8A392F72B24E00B5A1B1 /* SwiftyRSA in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871802F71B7BD00BC6766 /* SwiftyRSA */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
@@ -70,7 +67,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				2EBC8A392F72B24E00B5A1B1 /* SwiftyRSA in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -143,8 +139,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE7ACCC3D574E01F4F2DA83D /* Pods_Runner.framework in Frameworks */,
-				2E48717E2F71B71D00BC6766 /* CryptoSwift in Frameworks */,
-				2E4871812F71B7BD00BC6766 /* SwiftyRSA in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1046,16 +1040,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2E48717D2F71B71D00BC6766 /* CryptoSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2E48717C2F71B71D00BC6766 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
-			productName = CryptoSwift;
-		};
-		2E4871802F71B7BD00BC6766 /* SwiftyRSA */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2E48717F2F71B7BD00BC6766 /* XCRemoteSwiftPackageReference "SwiftyRSA" */;
-			productName = SwiftyRSA;
-		};
 		2E4871822F71B7D700BC6766 /* CryptoSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2E48717C2F71B71D00BC6766 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
