@@ -17,6 +17,7 @@ import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ChatsListPage extends StatefulWidget {
   const ChatsListPage({super.key});
@@ -135,7 +136,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       Row(
                         spacing: 6,
                         children: [
-                          if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                          if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
                           Text(
                             chatData.displayUsername ?? Account.getDefaultDisplayName(chatData.username),
@@ -155,7 +156,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 2),
-                                            child: HugeIcon(
+                                            child: CustomIcon(
                                               icon: statusIconData.icon,
                                               size: 20,
                                               color:
@@ -170,7 +171,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                           alignment: PlaceholderAlignment.middle,
                                           child: Padding(
                                             padding: const EdgeInsets.only(right: 3),
-                                            child: HugeIcon(
+                                            child: CustomIcon(
                                               icon: HugeIcons.strokeRoundedUnavailable,
                                               size: 14,
                                               strokeWidth: hasUnreadMessages ? 3 : 2,
@@ -209,7 +210,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       Row(
                         spacing: 4,
                         children: [
-                          if (chatData.isPinned) HugeIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                          if (chatData.isPinned) CustomIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
                           if (hasUnreadMessages)
                             Container(
@@ -313,13 +314,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                   style: TextStyle(color: network.isLocalhost ? AppColors.red : AppColors.secondaryText.adaptTo(context)),
                                 ),
                                 network.isLocalhost
-                                    ? HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.red, size: 20, strokeWidth: 1.5)
+                                    ? CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.red, size: 20, strokeWidth: 1.5)
                                     : LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
                               ],
                             )
                             : null,
                     largeTitle: Text("Conversations"),
-                    trailing: GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedBubbleChatAdd), onTap: () => MainPage.pageIndex.value = 3),
+                    trailing: GestureDetector(child: CustomIcon(icon: HugeIcons.strokeRoundedBubbleChatAdd), onTap: () => MainPage.pageIndex.value = 3),
                   ),
             ),
           ];
@@ -338,7 +339,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 2,
                       children: [
-                        HugeIcon(icon: HugeIcons.strokeRoundedSleeping, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+                        CustomIcon(icon: HugeIcons.strokeRoundedSleeping, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
 
                         const SizedBox(height: 8),
                         Text("Silence total...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
@@ -354,7 +355,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                             spacing: 6,
                             children: [
                               Text("Briser la glace", style: TextStyle(fontWeight: FontWeight.w400)),
-                              HugeIcon(icon: HugeIcons.strokeRoundedBubbleChatAdd, size: 18),
+                              CustomIcon(icon: HugeIcons.strokeRoundedBubbleChatAdd, size: 18),
                             ],
                           ),
                         ),

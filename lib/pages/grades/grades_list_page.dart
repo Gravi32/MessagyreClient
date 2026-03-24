@@ -16,6 +16,7 @@ import 'package:messagyre_client/pages/grades/widgets/grades_top_card.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesListPage extends StatefulWidget {
@@ -231,7 +232,7 @@ class _GradesListPageState extends State<GradesListPage> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                         ),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                        child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
                       ),
                     ),
                   ),

@@ -14,6 +14,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ProfilePage extends StatefulWidget {
   final Account account;
@@ -77,7 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
+                      child: CustomIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
                     ),
                     Text("Prendre une photo", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
                   ],
@@ -93,7 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedAlbum02, color: AppColors.text.adaptTo(context)),
+                      child: CustomIcon(icon: HugeIcons.strokeRoundedAlbum02, color: AppColors.text.adaptTo(context)),
                     ),
                     Text("Choisir une photo de la galérie", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
                   ],
@@ -112,7 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Row(
                   spacing: 8,
                   children: [
-                    Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red)),
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red)),
                     Text("Supprimer la photo", style: TextStyle(fontSize: 20)),
                   ],
                 ),
@@ -215,7 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.secondaryText.adaptTo(context), size: 16),
+                            CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.secondaryText.adaptTo(context), size: 16),
                             Expanded(
                               child: Text(
                                 "Votre bio sera visible par tout les utilisateurs de Messagyre.",
@@ -457,7 +458,7 @@ class _ProfilePageState extends State<ProfilePage> {
       controller ??= TextEditingController(text: value);
       return CupertinoListTile(
         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        leading: HugeIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
+        leading: CustomIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
         title: CupertinoTextField(
           controller: controller,
           decoration: BoxDecoration(),
@@ -470,7 +471,7 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       return CupertinoListTile(
         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        leading: HugeIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
+        leading: CustomIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
         title: Text(
           value ?? "Ajouter",
           overflow: TextOverflow.fade,
@@ -513,7 +514,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context).pop();
                 }
               },
-      child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isUploading ? AppColors.inactive.adaptTo(context) : null, size: 30),
+      child: CustomIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isUploading ? AppColors.inactive.adaptTo(context) : null, size: 30),
     );
   }
 
@@ -579,7 +580,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         title: Row(
                           spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [HugeIcon(icon: HugeIcons.strokeRoundedLockPassword, color: AppColors.accent), Text("Mot de passe requis")],
+                          children: [CustomIcon(icon: HugeIcons.strokeRoundedLockPassword, color: AppColors.accent), Text("Mot de passe requis")],
                         ),
                         content: Column(
                           children: [
@@ -675,7 +676,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return CupertinoListTile(
       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-      leading: HugeIcon(icon: icon, color: color),
+      leading: CustomIcon(icon: icon, color: color),
       title: Text(title, style: TextStyle(color: color)),
       onTap: onTap,
     );
@@ -694,7 +695,7 @@ class _ProfilePageState extends State<ProfilePage> {
           spacing: 4,
           children: [
             Text(editMode ? "Mon profil" : account.username),
-            if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+            if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
           ],
         ),
         trailing: buildTrailing(),
@@ -732,7 +733,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Opacity(
                               opacity: AppColors.secondaryText.adaptTo(context).a,
-                              child: HugeIcon(
+                              child: CustomIcon(
                                 icon: HugeIcons.strokeRoundedUserAccount,
                                 size: 18,
                                 color: AppColors.secondaryText.adaptTo(context).withAlpha(255),

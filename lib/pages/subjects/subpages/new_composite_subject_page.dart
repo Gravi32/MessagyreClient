@@ -12,6 +12,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NewCompositeSubjectPage extends StatefulWidget {
   final CompositeSubject? toEdit;
@@ -147,7 +148,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     child:
                         subject == null
-                            ? Opacity(opacity: .5, child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)))
+                            ? Opacity(opacity: .5, child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)))
                             : SubjectBadge(subject: subject),
                   ),
                   Expanded(
@@ -386,7 +387,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
                       title: Text("Supprimer cette branche", style: TextStyle(color: AppColors.red)),
 
                       onTap: () {

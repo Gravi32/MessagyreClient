@@ -9,6 +9,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NewSubjectPage extends StatefulWidget {
   final Subject? toEdit;
@@ -474,7 +475,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                 children: [
                   CupertinoListTile.notched(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: isLocked ? HugeIcons.strokeRoundedSquareLock02 : HugeIcons.strokeRoundedSquareUnlock02),
+                    leading: CustomIcon(icon: isLocked ? HugeIcons.strokeRoundedSquareLock02 : HugeIcons.strokeRoundedSquareUnlock02),
                     title: Text("Branche bloquée"),
                     trailing: CupertinoSwitch(value: isLocked, onChanged: (value) => setState(() => isLocked = value)),
                   ),
@@ -521,7 +522,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context)),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context)),
                       title: Text("Supprimer cette branche", style: TextStyle(color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context))),
 
                       onTap:

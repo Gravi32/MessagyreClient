@@ -6,6 +6,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradeGroupPage extends StatefulWidget {
   final String groupName;
@@ -54,7 +55,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
                 CupertinoSliverNavigationBar(
                   largeTitle: Row(
                     spacing: 10,
-                    children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.text.adaptTo(context), size: 28), Text(widget.groupName)],
+                    children: [CustomIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.text.adaptTo(context), size: 28), Text(widget.groupName)],
                   ),
                   previousPageTitle: "Retour",
                 ),
@@ -82,7 +83,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
               child: Container(
                 padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(20)),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
               ),
             ),
           ),

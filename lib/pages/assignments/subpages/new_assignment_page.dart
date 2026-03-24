@@ -12,6 +12,7 @@ import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:uuid/uuid.dart';
 
 class NewAssignmentPage extends StatefulWidget {
@@ -573,7 +574,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     CupertinoListTile.notched(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedSubtitle),
+                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedSubtitle),
 
                       title: CupertinoTextField(
                         controller: titleController,
@@ -595,7 +596,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                               ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                               : Opacity(
                                 opacity: .5,
-                                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                                child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                               ),
                     ),
 
@@ -627,7 +628,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                             ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                             : Opacity(
                               opacity: .5,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                              child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                             ),
                   ),
 
@@ -635,13 +636,13 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
-                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
+                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
                       trailing:
                           isMissingSubject
                               ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                               : Opacity(
                                 opacity: .5,
-                                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                                child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                               ),
                       title: SubjectAutocomplete(
                         controller: subjectController,
@@ -672,7 +673,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: const HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
+                    leading: const CustomIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -699,7 +700,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedNotification01, color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedNotification01, color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
                     title: Text(
                       notificationDate == null ? "Planifier une alerte" : "Alerte",
                       style: TextStyle(color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
@@ -727,7 +728,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   if (mode == AssignmentType.test)
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
+                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
                       title: Text("Suggérer dans la page des notes", style: TextStyle(color: AppColors.text.adaptTo(context))),
                       trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
                     ),
@@ -743,7 +744,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: const HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
                       title: Text("Supprimer ce ${formatAssignmentType(mode)}", style: const TextStyle(color: AppColors.red)),
                       onTap: () {
                         showCupertinoDialog(

@@ -10,6 +10,7 @@ import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class SubjectCard extends StatelessWidget {
   final Subject? subject;
@@ -92,10 +93,10 @@ class SubjectCard extends StatelessWidget {
                             Row(
                               spacing: 6,
                               children: [
-                                HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
+                                CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
                                 Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
                                 Spacer(),
-                                HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
+                                CustomIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
                               ],
                             ),
 
@@ -181,7 +182,7 @@ class SubjectCard extends StatelessWidget {
 
                     if (isSubjectLocked) Icon(CupertinoIcons.lock_fill, size: 18, applyTextScaling: true, color: AppColors.text.adaptTo(context)),
                     if (compositeSubject != null)
-                      HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: MediaQuery.textScalerOf(context).scale(18), color: AppColors.text.adaptTo(context)),
+                      CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: MediaQuery.textScalerOf(context).scale(18), color: AppColors.text.adaptTo(context)),
                   ],
                 ),
 

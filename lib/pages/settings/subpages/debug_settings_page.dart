@@ -6,6 +6,7 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class DebugSettingsPage extends StatefulWidget {
   const DebugSettingsPage({super.key});
@@ -121,7 +122,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 CupertinoListTile(
                   backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title: Text("Tout copier"),
-                  leading: HugeIcon(icon: HugeIcons.strokeRoundedCopy02, color: AppColors.text.adaptTo(context)),
+                  leading: CustomIcon(icon: HugeIcons.strokeRoundedCopy02, color: AppColors.text.adaptTo(context)),
                   onTap: () => copy(context, globals.appLogs.join("\n")),
                 ),
                 CupertinoListTile(
@@ -161,7 +162,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                               separatorBuilder: (context, index) => Divider(height: 0, color: AppColors.separator.adaptTo(context).withAlpha(10)),
                             ),
                           )
-                          : Row(spacing: 8, children: [HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")]),
+                          : Row(spacing: 8, children: [CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")]),
                 ),
               ],
             ),

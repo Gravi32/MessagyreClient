@@ -10,6 +10,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class RegistrationPage extends StatefulWidget {
   final String? registrationTokenOverride;
@@ -275,7 +276,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 6,
             children: [
-              Opacity(opacity: canResendCode ? 1 : .25, child: HugeIcon(icon: HugeIcons.strokeRoundedRefresh)),
+              Opacity(opacity: canResendCode ? 1 : .25, child: CustomIcon(icon: HugeIcons.strokeRoundedRefresh)),
               Text(canResendCode ? "Renvoyer le code" : "Renvoyer le code ${resendSecondsLeft}s"),
             ],
           ),
@@ -421,7 +422,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        leading: GestureDetector(child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01), onTap: () => askClosingConfirmation()),
+        leading: GestureDetector(child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01), onTap: () => askClosingConfirmation()),
         middle: Text(widget.passwordResetMode ? "Changer de mot de passe" : "Création de compte"),
       ),
       child: SafeArea(
@@ -433,11 +434,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
               spacing: 20,
               children: [
                 if (!widget.passwordResetMode)
-                  currentPage == 0 ? HugeIcon(icon: HugeIcons.strokeRoundedMailAdd01) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-                currentPage == 1 ? HugeIcon(icon: HugeIcons.strokeRoundedSmsCode) : HugeIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+                  currentPage == 0 ? CustomIcon(icon: HugeIcons.strokeRoundedMailAdd01) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+                currentPage == 1 ? CustomIcon(icon: HugeIcons.strokeRoundedSmsCode) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
                 currentPage == 2
-                    ? HugeIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
-                    : HugeIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+                    ? CustomIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
+                    : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
               ],
             ),
             Expanded(

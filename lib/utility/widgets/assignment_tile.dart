@@ -7,6 +7,7 @@ import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class AssignmentTile extends StatefulWidget {
   final Assignment assignment;
@@ -60,7 +61,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
       key: ValueKey(assignment.id),
       backgroundColor: Color.lerp(AppColors.secondaryBackground.adaptTo(context), AppColors.background.adaptTo(context), widget.dim ? .4 : 0),
       padding: const EdgeInsets.all(10),
-      trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.grey),
+      trailing: CustomIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.grey),
       title: Row(
         spacing: 16,
         children: [
@@ -69,7 +70,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
               height: 30,
               child: GestureDetector(
                 onTap: toggleDone,
-                child: HugeIcon(
+                child: CustomIcon(
                   icon: isDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
                   size: 30,
                   color: isDone ? AppColors.green : AppColors.secondaryText.adaptTo(context),

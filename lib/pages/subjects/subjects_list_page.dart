@@ -11,6 +11,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class SubjectsListPage extends StatefulWidget {
   final bool isBootstrap;
@@ -153,7 +154,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       leading: Opacity(
                         opacity: AppColors.secondaryText.adaptTo(context).a,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                        child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
                       ),
                       title: Text("Ajouter", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewSubjectPage())),
@@ -162,7 +163,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                       leading: Opacity(
                         opacity: AppColors.secondaryText.adaptTo(context).a,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedNodeAdd, color: AppColors.text.adaptTo(context)),
+                        child: CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, color: AppColors.text.adaptTo(context)),
                       ),
                       title: Text("Ajouter une branche composée", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewCompositeSubjectPage())),

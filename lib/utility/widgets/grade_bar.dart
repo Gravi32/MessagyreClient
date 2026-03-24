@@ -7,6 +7,7 @@ import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradeBar extends StatelessWidget {
   final Grade gradeData;
@@ -106,7 +107,7 @@ class GradeBar extends StatelessWidget {
               if (!showSubject)
                 Opacity(
                   opacity: AppColors.tertiaryText.adaptTo(context).a,
-                  child: HugeIcon(
+                  child: CustomIcon(
                     icon:
                         isGradeUnknown
                             ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)

@@ -3,6 +3,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class CustomTextField extends StatefulWidget {
   final String title;
@@ -75,7 +76,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                                 isPasswordHidden = !isPasswordHidden;
                               });
                             },
-                    child: HugeIcon(
+                    child: CustomIcon(
                       icon: isPasswordHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
                       color: widget.disabled ? AppColors.inactive.adaptTo(context) : null,
                     ),

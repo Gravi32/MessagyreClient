@@ -17,6 +17,7 @@ import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NewGradePage extends StatefulWidget {
   final Grade? toEdit;
@@ -247,7 +248,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                     ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                                     : Opacity(
                                       opacity: .5,
-                                      child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                                      child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                                     ),
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
@@ -335,9 +336,9 @@ class _NewGradePageState extends State<NewGradePage> {
                           child: Row(
                             spacing: 6,
                             children: [
-                              HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: AppColors.secondaryText.adaptTo(context)),
+                              CustomIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: AppColors.secondaryText.adaptTo(context)),
                               Expanded(child: Text("Cette note est associée à un devoir.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))),
-                              HugeIcon(
+                              CustomIcon(
                                 icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                                 color: AppColors.secondaryText.adaptTo(context),
                               ),
@@ -397,7 +398,7 @@ class _NewGradePageState extends State<NewGradePage> {
                               spacing: 6,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                HugeIcon(icon: HugeIcons.strokeRoundedUnlink04, color: AppColors.red),
+                                CustomIcon(icon: HugeIcons.strokeRoundedUnlink04, color: AppColors.red),
                                 Text("Dissocier", style: TextStyle(color: AppColors.red)),
                               ],
                             ),
@@ -572,7 +573,7 @@ class _NewGradePageState extends State<NewGradePage> {
                               ),
                               Opacity(
                                 opacity: .25,
-                                child: HugeIcon(
+                                child: CustomIcon(
                                   icon: isValuePickerExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                                   color: AppColors.tertiaryText.adaptTo(context),
                                 ),
@@ -609,13 +610,13 @@ class _NewGradePageState extends State<NewGradePage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
                       trailing:
                           isMissingSubject
                               ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
                               : Opacity(
                                 opacity: .5,
-                                child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                                child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                               ),
                       title: SubjectAutocomplete(
                         controller: subjectController,
@@ -656,7 +657,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     children: [
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedSelect01),
+                        leading: CustomIcon(icon: HugeIcons.strokeRoundedSelect01),
                         title: Text("Fait partie d'un groupe"),
                         trailing: CupertinoSwitch(
                           value: isInGroup,
@@ -681,7 +682,7 @@ class _NewGradePageState extends State<NewGradePage> {
                       ...getGroups().map((existingGroupName) {
                         return CupertinoListTile.notched(
                           backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                          leading: groupName == existingGroupName ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
+                          leading: groupName == existingGroupName ? CustomIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
                           title: Text(existingGroupName, style: TextStyle(fontWeight: FontWeight.w600)),
                           onTap:
                               () => setState(() {
@@ -691,7 +692,7 @@ class _NewGradePageState extends State<NewGradePage> {
                       }),
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                        leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
                         title: Text("Créer un nouveau groupe", style: TextStyle(color: AppColors.text.adaptTo(context))),
                         onTap: () {
                           showCupertinoDialog(
@@ -702,7 +703,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                 title: Row(
                                   spacing: 8,
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [HugeIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.accent), Text("Nouveau groupe")],
+                                  children: [CustomIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.accent), Text("Nouveau groupe")],
                                 ),
                                 content: Column(
                                   children: [
@@ -752,7 +753,7 @@ class _NewGradePageState extends State<NewGradePage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                       trailing: CupertinoListTileChevron(),
                       title: Text("Reçu ${formatDate(date, includeArticle: true)}", style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: showDatePicker,
@@ -767,10 +768,10 @@ class _NewGradePageState extends State<NewGradePage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedMoreHorizontal),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedMoreHorizontal),
                       trailing: Opacity(
                         opacity: .5,
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
+                        child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
                       ),
                       title: StatefulBuilder(
                         builder: (context, setInnerState) {
@@ -811,7 +812,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     ),
                     // TODO
                     // CupertinoListTile(backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    //   leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.inactive.adaptTo(context)),
+                    //   leading: CustomIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.inactive.adaptTo(context)),
                     //   title: Text("Ajouter des photos", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
                     // ),
                   ],
@@ -825,7 +826,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     children: [
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                        leading: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
                         title: Text("Supprimer la note", style: TextStyle(color: AppColors.red)),
                         onTap: () {
                           showCupertinoDialog(

@@ -3,6 +3,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class CalendarSettingsPage extends StatefulWidget {
   const CalendarSettingsPage({super.key});
@@ -30,7 +31,7 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: AppColors.text.adaptTo(context)),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: AppColors.text.adaptTo(context)),
                       title: Text("Inclure les week-ends"),
                       trailing: CupertinoSwitch(
                         value: globals.persistent.getBool("includeWeekends") ?? false,

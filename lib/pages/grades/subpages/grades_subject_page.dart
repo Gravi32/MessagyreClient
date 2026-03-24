@@ -17,6 +17,7 @@ import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradesSubjectPage extends StatefulWidget {
   final Subject subject;
@@ -474,7 +475,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
               child: Container(
                 padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(20)),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+                child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
               ),
             ),
           ),

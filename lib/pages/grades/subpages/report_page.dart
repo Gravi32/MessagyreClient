@@ -14,6 +14,7 @@ import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ReportCardPage extends StatefulWidget {
   const ReportCardPage({super.key});
@@ -392,7 +393,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: GestureDetector(
                             onTap: () => onSubjectRemoved(compositeSubject.code),
-                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
+                            child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
                           ),
                           title: Row(spacing: 10, children: [CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20), Text(compositeSubject.name)]),
                         ),
@@ -402,7 +403,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                           leading: GestureDetector(
                             onTap: () => onSubjectRemoved(subject.code),
-                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
+                            child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
                           ),
                           title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
                         ),
@@ -410,7 +411,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                       if (allSubjects.length - restrictedGroupSubjects.length - restrictedGroupCompositeSubjects.length > 1)
                         CupertinoListTile(
                           backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                          leading: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
+                          leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
                           title: SubjectAutocomplete(
                             placeholder: "Entrez une branche du groupe restreint",
                             onSubjectSelected: (subject) => onSubjectSelected(subject.code),

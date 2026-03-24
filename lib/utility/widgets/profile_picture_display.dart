@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ProfilePictureDisplay extends StatefulWidget {
   final String? accountUsername;
@@ -121,7 +122,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: HugeIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
+                      child: CustomIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
                     ),
                   ),
                 ],

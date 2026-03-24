@@ -23,6 +23,7 @@ import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:pointycastle/export.dart' show RSAPublicKey;
 
 class ChatPage extends StatefulWidget {
@@ -218,7 +219,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text("Copier"),
-                                        HugeIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: AppColors.text.adaptTo(context)),
+                                        CustomIcon(icon: HugeIcons.strokeRoundedCopy01, size: 20, color: AppColors.text.adaptTo(context)),
                                       ],
                                     ),
                                   ),
@@ -231,7 +232,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                   //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   //     children: [
                                   //       Text("Infos", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
-                                  //       HugeIcon(
+                                  //       CustomIcon(
                                   //         icon: HugeIcons.strokeRoundedInformationSquare,
                                   //         size: 20,
                                   //         color: AppColors.inactive.adaptTo(context),
@@ -267,7 +268,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
                                                     Text("Supprimer pour vous", style: TextStyle(color: AppColors.red, fontSize: 18)),
-                                                    HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: AppColors.red),
+                                                    CustomIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: AppColors.red),
                                                   ],
                                                 ),
                                               ),
@@ -293,7 +294,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                     children: [
                                                       Text("Supprimer pour tout le monde", style: TextStyle(color: AppColors.red, fontSize: 18)),
-                                                      HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: AppColors.red),
+                                                      CustomIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: AppColors.red),
                                                     ],
                                                   ),
                                                 ),
@@ -308,7 +309,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text("Supprimer", style: TextStyle(color: AppColors.red)),
-                                        HugeIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: AppColors.red),
+                                        CustomIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: AppColors.red),
                                       ],
                                     ),
                                   ),
@@ -338,7 +339,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
                                                     Text("Signaler", style: TextStyle(color: AppColors.red, fontSize: 18)),
-                                                    HugeIcon(icon: HugeIcons.strokeRoundedFlag02, size: 20, color: AppColors.red),
+                                                    CustomIcon(icon: HugeIcons.strokeRoundedFlag02, size: 20, color: AppColors.red),
                                                   ],
                                                 ),
                                               ),
@@ -353,7 +354,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                     children: [
                                                       Text("Signaler et bloquer ${chatData.username}", style: TextStyle(color: AppColors.red, fontSize: 18)),
-                                                      HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, size: 20, color: AppColors.red),
+                                                      CustomIcon(icon: HugeIcons.strokeRoundedUserBlock01, size: 20, color: AppColors.red),
                                                     ],
                                                   ),
                                                 ),
@@ -368,7 +369,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text("Signaler", style: TextStyle(color: AppColors.red)),
-                                        HugeIcon(icon: HugeIcons.strokeRoundedFlag02, size: 20, color: AppColors.red),
+                                        CustomIcon(icon: HugeIcons.strokeRoundedFlag02, size: 20, color: AppColors.red),
                                       ],
                                     ),
                                   ),
@@ -515,7 +516,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 30),
+                      CustomIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 30),
                       if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 20, color: AppColors.accent)),
                     ],
                   ),
@@ -535,7 +536,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         Row(
                           spacing: 6,
                           children: [
-                            if (isBlocked) HugeIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                            if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
                             Text(
                               chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
                               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
@@ -556,7 +557,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     },
                   ),
                 ),
-                //HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 22, color: AppColors.grey.adaptTo(context)),
+                //CustomIcon(icon: HugeIcons.strokeRoundedCall02, size: 22, color: AppColors.grey.adaptTo(context)),
                 SizedBox(width: 10),
               ],
             ),
@@ -636,7 +637,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                 if (data.isOwned && !data.isDeleted)
                   Padding(
                     padding: EdgeInsets.only(left: 2),
-                    child: HugeIcon(
+                    child: CustomIcon(
                       icon: statusIconData.icon,
                       color: data.status == MessageStatus.Read ? statusIconData.color.withBrightness(-.15) : statusIconData.color,
                       size: 13,
@@ -695,7 +696,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                               alignment: PlaceholderAlignment.middle,
                               child: Padding(
                                 padding: const EdgeInsets.only(right: 4),
-                                child: HugeIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
+                                child: CustomIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
                               ),
                             ),
                             ...CustomText.parseSpans(
@@ -726,7 +727,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         alignment: PlaceholderAlignment.middle,
                         child: Padding(
                           padding: const EdgeInsets.only(right: 4),
-                          child: HugeIcon(
+                          child: CustomIcon(
                             icon: isEncryptionAvailable ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedKnightShield,
                             size: 16,
                             color: color,
@@ -770,7 +771,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         mainAxisSize: MainAxisSize.min,
                         spacing: 8,
                         children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                          CustomIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
                           Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
                         ],
                       ),
@@ -801,7 +802,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     spacing: 8,
                     children: [
                       if (messageFieldFocusNode.hasFocus)
-                        GestureDetector(onTap: () => messageFieldFocusNode.unfocus(), child: HugeIcon(icon: HugeIcons.strokeRoundedArrowDown01)),
+                        GestureDetector(onTap: () => messageFieldFocusNode.unfocus(), child: CustomIcon(icon: HugeIcons.strokeRoundedArrowDown01)),
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 6),

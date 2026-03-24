@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NavigationBar extends StatefulWidget {
   const NavigationBar({super.key});
@@ -42,7 +42,7 @@ class _NavigationBarState extends State<NavigationBar> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Opacity(opacity: color.a, child: HugeIcon(icon: page.icon, color: color.withAlpha(255))),
+                              Opacity(opacity: color.a, child: CustomIcon(icon: page.icon, color: color.withAlpha(255))),
                               Text(page.name, overflow: TextOverflow.fade, softWrap: false, style: TextStyle(fontSize: 10, color: color)),
                             ],
                           ),

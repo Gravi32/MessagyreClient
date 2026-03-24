@@ -6,6 +6,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradesBySubjectPage extends StatefulWidget {
   const GradesBySubjectPage({super.key});
@@ -131,7 +132,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                         children: [
                           CupertinoListTile.notched(
                             backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                            leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
+                            leading: CustomIcon(icon: HugeIcons.strokeRoundedBooks02),
                             title: Text("Ajouter ou modifier des branches"),
                             subtitle: Text("Réglages > Branches", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
                             trailing: CupertinoListTileChevron(),

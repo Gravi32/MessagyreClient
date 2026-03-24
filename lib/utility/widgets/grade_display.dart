@@ -5,6 +5,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradeDisplay extends StatefulWidget {
   final double grade;
@@ -160,7 +161,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     padding: const EdgeInsets.only(left: 4, top: 5),
                     child: Opacity(
                       opacity: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context).a,
-                      child: HugeIcon(
+                      child: CustomIcon(
                         icon: badge,
                         size: 16,
                         strokeWidth: 2,

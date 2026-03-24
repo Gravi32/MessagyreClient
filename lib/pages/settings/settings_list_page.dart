@@ -24,6 +24,7 @@ import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SettingsListPage extends StatefulWidget {
@@ -159,7 +160,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                           network.logout();
                           restartApp(context);
                         }),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
                     title: Text("Se déconnecter"),
                   ),
                 ],
@@ -182,13 +183,13 @@ class _SettingsListPageState extends State<SettingsListPage> {
                         });
                       },
                     ),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedMoon02),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedMoon02),
                     title: Text('Mode sombre'),
                   ),
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedBackground),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Fond d'écran des conversations"),
                   ),
@@ -203,14 +204,14 @@ class _SettingsListPageState extends State<SettingsListPage> {
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedCalendar04),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedCalendar04),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Calendrier"),
                   ),
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsListPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBooks02),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedBooks02),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Branches"),
                   ),
@@ -298,7 +299,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             ),
                       );
                     },
-                    leading: isCreatingBackup ? null : HugeIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
+                    leading: isCreatingBackup ? null : CustomIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
                     title:
                         isCreatingBackup
                             ? Row(
@@ -387,7 +388,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                         );
                       }
                     },
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
                     title: Text("Importer des données"),
                   ),
                 ],
@@ -401,7 +402,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => TermsOfServicePage(readOnly: true))),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedAudit01),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedAudit01),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Conditions d'utilisation"),
                   ),
@@ -409,7 +410,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PrivacyPolicyPage(readOnly: true))),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedPolicy),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedPolicy),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Politique de confidentialité"),
                   ),
@@ -430,7 +431,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                         InAppReview.instance.openStoreListing(appStoreId: "6752887226");
                       }
                     },
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedStar),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedStar),
                     title: Text("Laisser un avis"),
                   ),
 
@@ -477,7 +478,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                         );
                       }
                     },
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedComment01),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedComment01),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Support"),
                   ),
@@ -485,7 +486,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedSourceCodeSquare),
                     trailing: CupertinoListTileChevron(),
                     title: Text("Débogage"),
                   ),

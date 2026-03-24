@@ -9,6 +9,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 final assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
 
@@ -28,7 +29,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       spacing: 2,
       children: [
         const SizedBox(height: 60),
-        HugeIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+        CustomIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
         const SizedBox(height: 8),
         Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
         Text("Vos devoirs s'afficheront ici", style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context))),
@@ -38,7 +39,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 6,
-            children: [Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w400)), HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
+            children: [Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w400)), CustomIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
           ),
         ),
       ],
@@ -57,7 +58,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
         ),
-        child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
+        child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class SearchResult {
   final String username;
@@ -197,7 +198,7 @@ class SearchPageState extends State<SearchPage> {
                           children: [
                             Opacity(
                               opacity: AppColors.tertiaryText.adaptTo(context).a,
-                              child: HugeIcon(
+                              child: CustomIcon(
                                 icon: HugeIcons.strokeRoundedSearch01,
                                 strokeWidth: 1.5,
                                 size: 48,
@@ -246,7 +247,7 @@ class SearchPageState extends State<SearchPage> {
                 children: [
                   Opacity(
                     opacity: AppColors.secondaryText.adaptTo(context).a,
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context).withAlpha(255), size: 40),
+                    child: CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context).withAlpha(255), size: 40),
                   ),
                   SizedBox(height: 10),
                   Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),

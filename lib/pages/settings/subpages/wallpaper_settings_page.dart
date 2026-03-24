@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -84,7 +85,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    leading: HugeIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
                     title: Text("Fond d'écran par défaut"),
                     trailing: CupertinoSwitch(
                       value: globals.persistent.getBool("useDefaultWallpaper") ?? true,
@@ -137,7 +138,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                         ),
                                         child: SizedBox(
                                           width: MediaQuery.of(context).size.aspectRatio * 180,
-                                          child: Center(child: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context))),
+                                          child: Center(child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context))),
                                         ),
                                       ),
                                     ),
@@ -187,7 +188,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                               color: AppColors.tertiaryBackground.adaptTo(context),
                                               boxShadow: [BoxShadow(blurRadius: 20, spreadRadius: 2)],
                                             ),
-                                            child: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: AppColors.white),
+                                            child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: AppColors.white),
                                           ),
                                         ),
                                       ),
@@ -200,7 +201,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                     if (isEditMode)
                       CupertinoListTile(
                         backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                        leading: HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.text.adaptTo(context)),
+                        leading: CustomIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.text.adaptTo(context)),
                         title: Text("Terminé"),
                         onTap: () => setState(() => isEditMode = false),
                       ),
@@ -213,13 +214,13 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.text.adaptTo(context)),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.text.adaptTo(context)),
                       title: Text("Ajoutez une photo depuis la galérie"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
                       title: Text("Prenez une photo"),
                       onTap: () => pickImage(ImageSource.gallery),
                     ),
