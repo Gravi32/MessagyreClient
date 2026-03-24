@@ -13,7 +13,10 @@ class NotificationService: UNNotificationServiceExtension {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 
-        guard let bestAttemptContent = bestAttemptContent else { bestAttemptContent.title = "DEBUG: Extension partita!" }
+        guard let bestAttemptContent = bestAttemptContent else { 
+            bestAttemptContent.title = "DEBUG: Extension partita!" 
+            return
+        }
 
         let userInfo = bestAttemptContent.userInfo
 
