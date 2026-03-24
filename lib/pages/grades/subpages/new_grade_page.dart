@@ -336,8 +336,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             spacing: 6,
                             children: [
                               HugeIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: AppColors.secondaryText.adaptTo(context)),
-                              Text("Cette note est associée à un devoir.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                              Spacer(),
+                              Expanded(child: Text("Cette note est associée à un devoir.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))),
                               HugeIcon(
                                 icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                                 color: AppColors.secondaryText.adaptTo(context),
