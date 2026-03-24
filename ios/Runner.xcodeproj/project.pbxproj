@@ -14,7 +14,7 @@
 		2E4871812F71B7BD00BC6766 /* SwiftyRSA in Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871802F71B7BD00BC6766 /* SwiftyRSA */; };
 		2E4871832F71B7D700BC6766 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871822F71B7D700BC6766 /* CryptoSwift */; };
 		2E4871852F71B7D700BC6766 /* SwiftyRSA in Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871842F71B7D700BC6766 /* SwiftyRSA */; };
-		2E4871862F71B7D700BC6766 /* SwiftyRSA in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871842F71B7D700BC6766 /* SwiftyRSA */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		2EBC8A392F72B24E00B5A1B1 /* SwiftyRSA in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 2E4871802F71B7BD00BC6766 /* SwiftyRSA */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
@@ -60,7 +60,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				2E4871862F71B7D700BC6766 /* SwiftyRSA in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +70,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				2EBC8A392F72B24E00B5A1B1 /* SwiftyRSA in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -637,6 +637,7 @@
 		2E4871762F71AD6D00BC6766 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -678,6 +679,7 @@
 		2E4871772F71AD6D00BC6766 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -716,6 +718,7 @@
 		2E4871782F71AD6D00BC6766 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
