@@ -254,8 +254,8 @@ double calculateAverage(List<Grade> grades, {bool round = false}) {
 
   return (
     solve(3.75), // toPass
-    solve(currentAverage), // toMaintain
-    solve(currentAverage + 0.5), // toBoost
+    solve(currentAverage.roundToHalves() - .25), // toMaintain
+    solve(currentAverage.roundToHalves() + .25), // toBoost
   );
 }
 
