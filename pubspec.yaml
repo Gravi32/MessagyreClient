@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 2.54.806+806
+version: 2.57.815+815
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -59,6 +59,9 @@ version: 2.54.806+806
 # 2.52  Push and overlay notifications now show the decrypted message content
 # 2.53  Added a subject page shortcut in the grades page
 # 2.54  Added maximum failing subjects in the report card page
+# 2.55  Users can now choose a custom weight value for grades
+# 2.56  Re-implemented incoming grades system
+# 2.57  Added goals in the subject grades page
 
 environment:
   sdk: ^3.7.2
