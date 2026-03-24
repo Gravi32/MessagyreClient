@@ -250,9 +250,6 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
     );
 
     setState(() {});
-
-    // Closing the page if empty
-    if (thisSubjectGrades.isEmpty && mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -275,7 +272,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         allAssignments
                             .where(
                               (assignment) =>
-                                  assignment.subject.value == widget.subject &&
+                                  assignment.subject.value?.code == widget.subject.code &&
                                   assignment.type == AssignmentType.test &&
                                   !thisSubjectGrades.any((grade) => grade.referenceId == assignment.referenceId),
                             )
@@ -290,6 +287,13 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
 
                     final listContent = [
                       buildTopCard(),
+
+                      // All grades
+                      if (thisSubjectGrades.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: 0),
+                          child: Text("Notes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                        ),
                       ...thisSubjectGrades
                           .where((grade) => grade.groupName == null)
                           .toList()
@@ -298,6 +302,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                           })
                           .map((grade) => GradeBar(gradeData: grade, onTap: () => showNewGradePopup(toEdit: grade))),
 
+                      // Groups
                       if (groups.isNotEmpty)
                         Padding(
                           padding: EdgeInsets.only(top: 12),
@@ -306,18 +311,16 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                       ...groups.keys.map((groupName) => buildGroupBar(groupName)),
 
                       if (incomingGrades.isNotEmpty) ...[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text("Notes prévues", style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                            Divider(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.4.toByte())),
-                          ],
+                        Padding(
+                          padding: EdgeInsets.only(top: 36),
+                          child: Text("Notes prévues", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
                         ),
 
                         ...incomingGrades.map((assignment) {
                           final grade =
                               Grade()
-                                ..title = assignment.content
+                                ..title = assignment.title ?? assignment.content
+                                ..grade = 0
                                 ..date = assignment.dueDate;
                           final isIncoming = assignment.dueDate.isBefore(DateTime.now());
                           final isPlanned = assignment.dueDate.isAfter(DateTime.now());
@@ -329,7 +332,6 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                                 showNewGradePopup(toReference: assignment);
                                 return;
                               }
-
                               Navigator.pop(context);
                               MainPage.pageIndex.value = 1;
                               //assignmentListPageKey.currentState?.showAssignment(assignment);

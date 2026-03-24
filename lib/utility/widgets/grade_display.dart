@@ -73,8 +73,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     isGradeHidden
                         ? DottedBorder(
                           options: RoundedRectDottedBorderOptions(
-                            color: AppColors.secondaryBackground.adaptTo(context),
-                            strokeWidth: widget.strokeWidth,
+                            color: AppColors.tertiaryText.adaptTo(context),
+                            strokeWidth: widget.strokeWidth - .5,
                             dashPattern: [4, 5],
                             radius: Radius.circular(200),
                             strokeCap: StrokeCap.round,
@@ -153,12 +153,20 @@ class _GradeDisplayState extends State<GradeDisplay> {
               // Badge
               if (badge != null)
                 Positioned(
-                  bottom: 0,
+                  bottom: 5,
                   right: 0,
                   child: Container(
                     decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.background.adaptTo(context)),
                     padding: const EdgeInsets.only(left: 4, top: 5),
-                    child: HugeIcon(icon: badge, size: 16, strokeWidth: 2, color: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context)),
+                    child: Opacity(
+                      opacity: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context).a,
+                      child: HugeIcon(
+                        icon: badge,
+                        size: 16,
+                        strokeWidth: 2,
+                        color: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context).withAlpha(255),
+                      ),
+                    ),
                   ),
                 ),
             ],

@@ -54,18 +54,17 @@ class GradeBar extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 4,
                         children: [
+                          // Title
                           Padding(
                             padding: EdgeInsets.only(right: 20),
                             child: CustomText(
                               gradeData.title,
-                              style: TextStyle(
-                                fontWeight: isGradeUnknown ? FontWeight.w400 : FontWeight.w500,
-                                fontSize: isGradeUnknown ? 16 : 18,
-                                color: isGradeUnknown ? AppColors.tertiaryText.adaptTo(context) : AppColors.text.adaptTo(context),
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+
+                          // Description
                           if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
                             Padding(
                               padding: EdgeInsetsGeometry.only(right: 20),
@@ -77,6 +76,7 @@ class GradeBar extends StatelessWidget {
                               ),
                             ),
 
+                          // Subject / Date
                           showSubject
                               ? Row(
                                 spacing: 6,
@@ -104,17 +104,20 @@ class GradeBar extends StatelessWidget {
                 ),
               ),
               if (!showSubject)
-                HugeIcon(
-                  icon:
-                      isGradeUnknown
-                          ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
-                          : HugeIcons.strokeRoundedPencilEdit02,
-                  color: AppColors.tertiaryText.adaptTo(context),
+                Opacity(
+                  opacity: AppColors.tertiaryText.adaptTo(context).a,
+                  child: HugeIcon(
+                    icon:
+                        isGradeUnknown
+                            ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
+                            : HugeIcons.strokeRoundedPencilEdit02,
+                            size: 20,
+                    color: AppColors.tertiaryText.adaptTo(context).withAlpha(255),
+                  ),
                 ),
             ],
           ),
         ),
-        //Divider(indent: 60, height: 10, color: AppColors.separator.adaptTo(context).withAlpha(30)),
       ],
     );
   }
