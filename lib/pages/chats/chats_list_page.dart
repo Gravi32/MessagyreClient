@@ -36,16 +36,16 @@ class _ChatsListPageState extends State<ChatsListPage> {
   bool showThumbnailChats = false;
 
   final Map<String, String?> _mockPhotos = {
-    'lucas_v7': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150', // Gatto
-    'enzo_drk': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=150', // Macchina
-    'mathis_99': 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=150', // Gatto
+    'lucas_v7': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
+    'enzo_drk': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=150',
+    'mathis_99': 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=150',
     'nathan_off': null,
-    'hugo_m': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=150', // Macchina
-    'leo_paris': 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=150', // Cane/Gatto
-    'theo_j': 'https://images.unsplash.com/photo-1543906965-f9520aa2ed8b?w=150', // Gatto
+    'hugo_m': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=150',
+    'leo_paris': 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=150',
+    'theo_j': 'https://images.unsplash.com/photo-1543906965-f9520aa2ed8b?w=150',
     'gabriel_l': null,
-    'maxime_r': 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=150', // Macchina
-    'yanis_b': 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=150', // Gatto
+    'maxime_r': 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=150',
+    'yanis_b': 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=150',
   };
 
   final Map<String, Message> _mockLastMessages = {};
@@ -291,8 +291,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
   Widget build(BuildContext context) {
     // Forces rebuild to draw the page title when starting the app
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted) await pageScrollController.animateTo(15, duration: Duration(milliseconds: 10), curve: Curves.linear);
-      if (mounted) await pageScrollController.animateTo(0, duration: Duration(milliseconds: 10), curve: Curves.linear);
+      if (mounted) await pageScrollController.animateTo(1, duration: Duration(milliseconds: 1), curve: Curves.easeInOut);
+      if (mounted) await pageScrollController.animateTo(0, duration: Duration(milliseconds: 1), curve: Curves.easeInOut);
     });
 
     return CupertinoPageScaffold(
