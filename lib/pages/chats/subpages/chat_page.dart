@@ -614,7 +614,11 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           margin: EdgeInsets.only(bottom: (isNextOwned ?? !data.isOwned) != data.isOwned ? 8 : 2),
           padding: EdgeInsets.fromLTRB(9, 5, 8, 5),
-          decoration: BoxDecoration(color: getBubbleColor(data.isOwned), borderRadius: getBubbleShape(data.isOwned)),
+          decoration: BoxDecoration(
+            color: getBubbleColor(data.isOwned),
+            borderRadius: getBubbleShape(data.isOwned),
+            border: BoxBorder.all(color: getBubbleColor(data.isOwned).withBrightness(globals.appBrightness == Brightness.light ? .1 : -.1), width: .5),
+          ),
           child: TextChatBubbleWithTimeStamp(
             content: Text.rich(
               TextSpan(
@@ -633,11 +637,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             timestamp: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(width: 6),
-                Text(
-                  DateFormat('HH:mm').format(data.sentAt),
-                  style: TextStyle(color: data.isDeleted ? AppColors.white.withAlpha(150) : AppColors.white, fontSize: 12),
-                ),
+                const SizedBox(width: 12),
+                Text(DateFormat('HH:mm').format(data.sentAt), style: TextStyle(color: AppColors.white.withAlpha(data.isDeleted ? 100 : 150), fontSize: 12)),
                 if (data.isOwned && !data.isDeleted)
                   Padding(
                     padding: EdgeInsets.only(left: 2),
