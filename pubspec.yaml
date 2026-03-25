@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 2.57.818+818
+version: 2.59.839+839
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -62,6 +62,8 @@ version: 2.57.818+818
 # 2.55  Users can now choose a custom weight value for grades
 # 2.56  Re-implemented incoming grades system
 # 2.57  Added goals in the subject grades page
+# 2.58  Added bottom navigation bar notification badges
+# 2.59  Added "open Hermes II" tile in the settings page
 
 environment:
   sdk: ^3.7.2
