@@ -1,4 +1,3 @@
-
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -10,10 +9,7 @@ class GlobalsService {
   static final GlobalsService _instance = GlobalsService._internal();
   factory GlobalsService() => _instance;
 
-  GlobalsService._internal() {
-    SharedPreferences.getInstance().then((instance) => persistent = instance);
-    PackageInfo.fromPlatform().then((appInfo) => appVersion = appInfo.version);
-  }
+  GlobalsService._internal();
 
   String? token;
   String? username;
@@ -21,10 +17,13 @@ class GlobalsService {
   final secureStorage = SecureStorageService();
   late final network = NetworkService();
 
-  // #region -> Settings
   late final SharedPreferences persistent;
 
-  // #endregion
+  Future<void> initialize() async {
+    persistent = await SharedPreferences.getInstance();
+    appVersion = (await PackageInfo.fromPlatform()).version;
+    return;
+  }
 
   // #region -> App brightness
 

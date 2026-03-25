@@ -14,6 +14,7 @@ import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
@@ -37,10 +38,18 @@ class BootProcedure {
   }
 
   /// Instantiates Globals singleton.
-  static void setupGlobals() {
+  static Future<void> setupGlobals() async {
+    await GlobalsService().initialize();
+
     final globals = GlobalsService();
     globals.username = globals.persistent.getString("Username");
     globals.appBrightnessNotifier.value = Brightness.dark;
+  }
+
+  /// Initializes the database and its repositories
+  static Future<void> setupDatabase() async {
+    await DatabaseService().initialize();
+    return;
   }
 
   /// Initializes Firebase and Notification services
@@ -87,6 +96,7 @@ void main() async {
     () async {
       try {
         BootProcedure.setupGlobals();
+        BootProcedure.setupDatabase();
 
         await BootProcedure.setupNotificationSystems();
         await BootProcedure.setupMiscellaneous();

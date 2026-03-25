@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,6 +16,7 @@ import 'package:messagyre_client/pages/settings/subpages/calendar_settings_page.
 import 'package:messagyre_client/pages/settings/subpages/debug_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
@@ -35,6 +35,7 @@ class SettingsListPage extends StatefulWidget {
 }
 
 class _SettingsListPageState extends State<SettingsListPage> {
+  final database = DatabaseService();
   final globals = GlobalsService();
   final network = NetworkService();
   final secureStorage = SecureStorageService();
@@ -251,56 +252,24 @@ class _SettingsListPageState extends State<SettingsListPage> {
                                     Navigator.pop(dialogContext);
                                     setState(() => isCreatingBackup = true);
 
-                                    try {
-                                      final appDir = await getApplicationDocumentsDirectory();
-                                      final hiveFiles =
-                                          Directory(appDir.path).listSync().where((f) => f.path.endsWith('.hive') || f.path.endsWith('.lock')).toList();
+                                    database.saveBackup();
+                                    await Future.delayed(Duration(seconds: 5));
 
-                                      final archive = Archive();
-                                      for (var file in hiveFiles) {
-                                        final bytes = await File(file.path).readAsBytes();
-                                        archive.addFile(ArchiveFile(file.uri.pathSegments.last, bytes.length, bytes));
-                                      }
+                                    setState(() => isCreatingBackup = false);
 
-                                      final zipData = ZipEncoder().encode(archive);
+                                    if (!context.mounted) return;
 
-                                      await Future.delayed(Duration(seconds: 5));
-                                      final path = await FilePicker.platform.saveFile(
-                                        dialogTitle: 'Choisir où enregistrer les données',
-                                        fileName: 'MessagyreBackup-${DateTime.now().toIso8601String()}.zip',
-                                        bytes: Uint8List.fromList(zipData),
-                                      );
-
-                                      setState(() => isCreatingBackup = false);
-
-                                      if (path != null || !context.mounted) return;
-
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder:
-                                            (ctx) => CupertinoAlertDialog(
-                                              title: Text("Exportation terminée"),
-                                              content: Text(
-                                                "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour passer vos donnés sur un autre dispositif.",
-                                              ),
-                                              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                                    showCupertinoDialog(
+                                      context: context,
+                                      builder:
+                                          (ctx) => CupertinoAlertDialog(
+                                            title: Text("Exportation terminée"),
+                                            content: Text(
+                                              "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour passer vos donnés sur un autre dispositif.",
                                             ),
-                                      );
-                                    } catch (e) {
-                                      debugPrint("Backup failed: $e");
-                                      setState(() => isCreatingBackup = false);
-
-                                      if (!context.mounted) return;
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder:
-                                            (ctx) => CupertinoAlertDialog(
-                                              title: Text("Erreur"),
-                                              content: Text("Impossible d'effectuer l'exporation :\n\n$e"),
-                                              actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
-                                            ),
-                                      );
-                                    }
+                                            actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
+                                          ),
+                                    );
                                   },
                                 ),
                               ],

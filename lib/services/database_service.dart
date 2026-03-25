@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:isar/isar.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
@@ -7,6 +10,7 @@ import 'package:messagyre_client/database/repositories/composite_subject_reposit
 import 'package:messagyre_client/database/repositories/grade_repository.dart';
 import 'package:messagyre_client/database/repositories/message_repository.dart';
 import 'package:messagyre_client/database/repositories/subject_repository.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
@@ -24,24 +28,71 @@ class DatabaseService {
 
   Isar get isar => _isar;
 
-  // #region Repositories
+  late MessageRepository messages;
+  late ChatRepository chats;
+  late AssignmentRepository assignments;
+  late GradeRepository grades;
+  late SubjectRepository subjects;
+  late CompositeSubjectRepository compositeSubjects;
 
-  late final messages = MessageRepository(_isar);
-  late final chats = ChatRepository(_isar);
-  late final assignments = AssignmentRepository(_isar);
-  late final grades = GradeRepository(_isar);
-  late final subjects = SubjectRepository(_isar);
-  late final compositeSubjects = CompositeSubjectRepository(_isar);
-
-  // #endregion
-
-  Future<void> init() async {
+  Future<void> initialize() async {
     try {
       final dir = await getApplicationDocumentsDirectory();
 
-      _isar = Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
+      _isar =
+          Isar.getInstance() ??
+          Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
+
+      messages = MessageRepository(_isar);
+      chats = ChatRepository(_isar);
+      assignments = AssignmentRepository(_isar);
+      grades = GradeRepository(_isar);
+      subjects = SubjectRepository(_isar);
+      compositeSubjects = CompositeSubjectRepository(_isar);
     } catch (e, s) {
-      debugPrint("[Database Failure] Could not open Isar. $e\n\n$s");
+      debugPrint("[Database Failure] $e\n$s");
+    }
+  }
+
+  Future<void> saveBackup() async {
+    final tempDir = await getTemporaryDirectory();
+    final tempPath = join(tempDir.path, 'MessagyreBackup.isar');
+    final tempFile = File(tempPath);
+
+    if (await tempFile.exists()) await tempFile.delete();
+
+    await _isar.copyToFile(tempPath);
+    final bytes = await tempFile.readAsBytes();
+
+    await FilePicker.platform.saveFile(
+      dialogTitle: 'Choisir où enregistrer les données',
+      fileName: 'MessagyreBackup-${DateTime.now().toIso8601String()}.zip',
+      bytes: bytes,
+    );
+
+    await tempFile.delete();
+  }
+
+  Future<void> loadBackup() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.any);
+
+      if (result == null || result.files.single.path == null) return;
+
+      final backupFilePath = result.files.single.path!;
+      final dir = await getApplicationDocumentsDirectory();
+      final dbPath = join(dir.path, 'default.isar');
+
+      await _isar.close();
+
+      final backupFile = File(backupFilePath);
+      await backupFile.copy(dbPath);
+
+      _isar = Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
+      initialize();
+    } catch (e) {
+      debugPrint("Restore Error: $e");
+      rethrow;
     }
   }
 }
