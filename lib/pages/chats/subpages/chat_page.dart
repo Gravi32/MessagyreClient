@@ -702,7 +702,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                               alignment: PlaceholderAlignment.middle,
                               child: Padding(
                                 padding: const EdgeInsets.only(right: 4),
-                                child: CustomIcon(icon: HugeIcons.strokeRoundedInformationSquare, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
+                                child: Icon(CupertinoIcons.info_circle, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
                               ),
                             ),
                             ...CustomText.parseSpans(
