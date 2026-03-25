@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/cutout_widget.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ProfilePictureDisplay extends StatefulWidget {
@@ -111,21 +112,10 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
       child:
           badge == null
               ? adequateChild
-              : Stack(
-                children: [
-                  ClipPath(clipper: _CutoutClipper(holeSize: cutoutSize, diameter: diameter), child: adequateChild),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    width: cutoutSize,
-                    height: cutoutSize,
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: CustomIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
-                    ),
-                  ),
-                ],
+              : CutoutWidget(
+                size: cutoutSize,
+                childToCutout: adequateChild,
+                childInCutout: CustomIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
               ),
     );
   }
@@ -137,21 +127,4 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
     if (username != null && username.contains("test.")) return HugeIcons.strokeRoundedTestTube01;
     return null;
   }
-}
-
-class _CutoutClipper extends CustomClipper<Path> {
-  final double holeSize;
-  final double diameter;
-
-  _CutoutClipper({required this.holeSize, required this.diameter});
-
-  @override
-  Path getClip(Size size) {
-    final path = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final hole = Path()..addOval(Rect.fromCircle(center: Offset(size.width - holeSize / 2, size.height - holeSize / 2), radius: holeSize / 2));
-    return Path.combine(PathOperation.difference, path, hole);
-  }
-
-  @override
-  bool shouldReclip(_) => true;
 }

@@ -42,7 +42,7 @@ class _NavigationBarState extends State<NavigationBar> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              CustomIcon(icon: page.icon, color: color),
+                              Stack(children: [CustomIcon(icon: page.icon, color: color)]),
                               Text(page.name, overflow: TextOverflow.fade, softWrap: false, style: TextStyle(fontSize: 10, color: color)),
                             ],
                           ),
