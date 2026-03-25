@@ -113,7 +113,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
           badge == null
               ? adequateChild
               : CutoutWidget(
-                size: cutoutSize,
+                cutoutSize: cutoutSize,
                 childToCutout: adequateChild,
                 childInCutout: CustomIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
               ),

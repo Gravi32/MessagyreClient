@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/utility/widgets/cutout_widget.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NavigationBar extends StatefulWidget {
@@ -33,6 +34,8 @@ class _NavigationBarState extends State<NavigationBar> {
                 children:
                     App.pages.mapIndexed((index, page) {
                       final color = (index == currentIndex ? AppColors.text : AppColors.secondaryText).adaptTo(context);
+                      final icon = CustomIcon(icon: page.icon, color: color);
+
                       return AspectRatio(
                         aspectRatio: 1,
                         child: GestureDetector(
@@ -42,7 +45,17 @@ class _NavigationBarState extends State<NavigationBar> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Stack(children: [CustomIcon(icon: page.icon, color: color)]),
+                              page.showNotification
+                                  ? CutoutWidget(
+                                    cutoutSize: 12,
+                                    childToCutout: icon,
+                                    childInCutout: Container(
+                                      margin: EdgeInsets.all(2.5),
+                                      decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                                    ),
+                                    cutoutAlignment: Alignment.topRight,
+                                  )
+                                  : icon,
                               Text(page.name, overflow: TextOverflow.fade, softWrap: false, style: TextStyle(fontSize: 10, color: color)),
                             ],
                           ),

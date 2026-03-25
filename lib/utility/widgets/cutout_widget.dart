@@ -1,43 +1,48 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class CutoutWidget extends StatelessWidget {
-  final double size;
+  final double cutoutSize;
   final Widget childToCutout;
   final Widget? childInCutout;
-  final Alignment alignment;
+  final Alignment cutoutAlignment;
 
-  const CutoutWidget({super.key, required this.size, required this.childToCutout, this.childInCutout, this.alignment = Alignment.bottomRight});
+  const CutoutWidget({super.key, required this.cutoutSize, required this.childToCutout, this.childInCutout, this.cutoutAlignment = Alignment.bottomRight});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
-        ClipPath(clipper: _CutoutClipper(size: size, alignment: alignment), child: childToCutout),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          width: size,
-          height: size,
-          child: Container(alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle), child: childInCutout),
-        ),
+        ClipPath(clipper: _CutoutClipper(cutoutSize: cutoutSize, alignment: cutoutAlignment), child: childToCutout),
+        Positioned.fill(child: Align(alignment: cutoutAlignment, child: SizedBox(width: cutoutSize, height: cutoutSize, child: Center(child: childInCutout)))),
       ],
     );
   }
 }
 
 class _CutoutClipper extends CustomClipper<Path> {
-  final double size;
+  final double cutoutSize;
   final Alignment alignment;
 
-  _CutoutClipper({required this.size, this.alignment = Alignment.bottomRight});
+  _CutoutClipper({required this.cutoutSize, required this.alignment});
 
   @override
   Path getClip(Size size) {
-    final path = Path()..addRect(Rect.fromLTWH(alignment.x, alignment.y, size.width, size.height));
-    final hole = Path()..addOval(Rect.fromCircle(center: Offset(size.width - this.size / 2, size.height - this.size / 2), radius: this.size / 2));
+    final path = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final double centerX = ((alignment.x + 1) / 2) * size.width;
+    final double centerY = ((alignment.y + 1) / 2) * size.height;
+
+    final Offset center = Offset(
+      centerX.clamp(0.0 + cutoutSize / 2, size.width - cutoutSize / 2),
+      centerY.clamp(0.0 + cutoutSize / 2, size.height - cutoutSize / 2),
+    );
+
+    final hole = Path()..addOval(Rect.fromCircle(center: center, radius: cutoutSize / 2));
+
     return Path.combine(PathOperation.difference, path, hole);
   }
 
   @override
-  bool shouldReclip(_) => true;
+  bool shouldReclip(_CutoutClipper oldClipper) => oldClipper.cutoutSize != cutoutSize || oldClipper.alignment != alignment;
 }

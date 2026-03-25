@@ -185,7 +185,9 @@ class AppPage {
   final List<List<dynamic>> icon;
   final Widget Function() build;
 
-  const AppPage({required this.name, required this.icon, required this.build});
+  bool showNotification = false;
+
+  AppPage({required this.name, required this.icon, required this.build});
 }
 
 class MainPage extends StatefulWidget {
