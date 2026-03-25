@@ -118,6 +118,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
           child: IntrinsicHeight(
             child: Row(
               children: [
+                // Profile Picture
                 Container(
                   foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
                   child: ProfilePictureDisplay(
@@ -128,6 +129,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
                 ),
 
                 SizedBox(width: 12),
+
+                // Username and last message
                 Flexible(
                   fit: FlexFit.tight,
                   child: Column(
@@ -136,8 +139,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       Row(
                         spacing: 6,
                         children: [
+                          // Blocked icon
                           if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
+                          // Username
                           Text(
                             chatData.displayUsername ?? Account.getDefaultDisplayName(chatData.username),
                             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white)),
@@ -197,6 +202,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     ],
                   ),
                 ),
+
+                // Date and unread messages badge
                 if (lastMessage != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,

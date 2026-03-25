@@ -460,7 +460,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     scrollDown();
 
-    network.getAccount(widget.username).then((account) => setState(() => chatData.displayUsername = account?.displayName));
+    network.getAccount(widget.username).then((account) {
+      setState(() => chatData.displayUsername = account?.displayName);
+      database.chats.save(chatData);
+    });
   }
 
   @override
