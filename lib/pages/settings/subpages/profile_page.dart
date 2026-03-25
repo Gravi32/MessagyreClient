@@ -731,14 +731,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Row(
                           spacing: 6,
                           children: [
-                            Opacity(
-                              opacity: AppColors.secondaryText.adaptTo(context).a,
-                              child: CustomIcon(
-                                icon: HugeIcons.strokeRoundedUserAccount,
-                                size: 18,
-                                color: AppColors.secondaryText.adaptTo(context).withAlpha(255),
-                              ),
-                            ),
+                            CustomIcon(icon: HugeIcons.strokeRoundedUserAccount, size: 18, color: AppColors.secondaryText.adaptTo(context)),
                             Text(account.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                           ],
                         ),

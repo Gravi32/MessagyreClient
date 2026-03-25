@@ -148,7 +148,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                     child:
                         subject == null
-                            ? Opacity(opacity: .5, child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)))
+                            ? CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context))
                             : SubjectBadge(subject: subject),
                   ),
                   Expanded(

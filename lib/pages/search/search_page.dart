@@ -196,15 +196,7 @@ class SearchPageState extends State<SearchPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 2,
                           children: [
-                            Opacity(
-                              opacity: AppColors.tertiaryText.adaptTo(context).a,
-                              child: CustomIcon(
-                                icon: HugeIcons.strokeRoundedSearch01,
-                                strokeWidth: 1.5,
-                                size: 48,
-                                color: AppColors.tertiaryText.adaptTo(context).withAlpha(255),
-                              ),
-                            ),
+                            CustomIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
                             const SizedBox(height: 8),
                             Text(
                               "Recherchez un utilisateur",
@@ -245,10 +237,7 @@ class SearchPageState extends State<SearchPage> {
               : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Opacity(
-                    opacity: AppColors.secondaryText.adaptTo(context).a,
-                    child: CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context).withAlpha(255), size: 40),
-                  ),
+                  CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
                   SizedBox(height: 10),
                   Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                 ],

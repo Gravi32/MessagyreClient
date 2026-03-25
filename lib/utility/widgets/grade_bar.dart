@@ -105,16 +105,13 @@ class GradeBar extends StatelessWidget {
                 ),
               ),
               if (!showSubject)
-                Opacity(
-                  opacity: AppColors.tertiaryText.adaptTo(context).a,
-                  child: CustomIcon(
-                    icon:
-                        isGradeUnknown
-                            ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
-                            : HugeIcons.strokeRoundedPencilEdit02,
-                            size: 20,
-                    color: AppColors.tertiaryText.adaptTo(context).withAlpha(255),
-                  ),
+                CustomIcon(
+                  icon:
+                      isGradeUnknown
+                          ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
+                          : HugeIcons.strokeRoundedPencilEdit02,
+                  size: 20,
+                  color: AppColors.tertiaryText.adaptTo(context),
                 ),
             ],
           ),

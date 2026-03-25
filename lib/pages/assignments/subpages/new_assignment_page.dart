@@ -594,10 +594,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       trailing:
                           isMissingTitle
                               ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                              : Opacity(
-                                opacity: .5,
-                                child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                              ),
+                              : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
                     ),
 
                   CupertinoListTile.notched(
@@ -626,10 +623,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     trailing:
                         isMissingContent
                             ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                            : Opacity(
-                              opacity: .5,
-                              child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                            ),
+                            : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
                   ),
 
                   if (mode != AssignmentType.leave)
@@ -640,10 +634,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       trailing:
                           isMissingSubject
                               ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                              : Opacity(
-                                opacity: .5,
-                                child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                              ),
+                              : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
+
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
@@ -700,7 +692,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: CustomIcon(icon: HugeIcons.strokeRoundedNotification01, color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
+                    leading: CustomIcon(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context),
+                    ),
                     title: Text(
                       notificationDate == null ? "Planifier une alerte" : "Alerte",
                       style: TextStyle(color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),

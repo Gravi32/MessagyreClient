@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 
 class CustomIcon extends StatelessWidget {
@@ -11,6 +12,6 @@ class CustomIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(opacity: color?.a ?? 1, child: CustomIcon(key: super.key, icon: icon, color: color?.withAlpha(255), size: size, strokeWidth: strokeWidth));
+    return Opacity(opacity: color?.a ?? 1, child: HugeIcon(key: super.key, icon: icon, color: color?.withAlpha(255), size: size, strokeWidth: strokeWidth));
   }
 }

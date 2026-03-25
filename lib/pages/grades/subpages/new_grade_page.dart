@@ -246,10 +246,8 @@ class _NewGradePageState extends State<NewGradePage> {
                             suffix:
                                 isMissingTitle
                                     ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                                    : Opacity(
-                                      opacity: .5,
-                                      child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                                    ),
+                                    : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
+
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
                             items: getPlannedGrades(),
@@ -571,12 +569,9 @@ class _NewGradePageState extends State<NewGradePage> {
                                 isValuePickerExpanded ? "Voir moins" : "Voir plus",
                                 style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 15),
                               ),
-                              Opacity(
-                                opacity: .25,
-                                child: CustomIcon(
-                                  icon: isValuePickerExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                                  color: AppColors.tertiaryText.adaptTo(context),
-                                ),
+                              CustomIcon(
+                                icon: isValuePickerExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                                color: AppColors.tertiaryText.adaptTo(context),
                               ),
                             ],
                           ),
@@ -614,10 +609,7 @@ class _NewGradePageState extends State<NewGradePage> {
                       trailing:
                           isMissingSubject
                               ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                              : Opacity(
-                                opacity: .5,
-                                child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                              ),
+                              : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
@@ -769,10 +761,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: CustomIcon(icon: HugeIcons.strokeRoundedMoreHorizontal),
-                      trailing: Opacity(
-                        opacity: .5,
-                        child: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.text.adaptTo(context), strokeWidth: 1),
-                      ),
+                      trailing: CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
                       title: StatefulBuilder(
                         builder: (context, setInnerState) {
                           final focusNode = FocusNode();

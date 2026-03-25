@@ -152,19 +152,13 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: Opacity(
-                        opacity: AppColors.secondaryText.adaptTo(context).a,
-                        child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
-                      ),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context)),
                       title: Text("Ajouter", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewSubjectPage())),
                     ),
                     CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: Opacity(
-                        opacity: AppColors.secondaryText.adaptTo(context).a,
-                        child: CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, color: AppColors.text.adaptTo(context)),
-                      ),
+                      leading: CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, color: AppColors.secondaryText.adaptTo(context)),
                       title: Text("Ajouter une branche composée", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewCompositeSubjectPage())),
                     ),

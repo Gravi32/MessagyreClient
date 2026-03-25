@@ -159,14 +159,11 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   child: Container(
                     decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.background.adaptTo(context)),
                     padding: const EdgeInsets.only(left: 4, top: 5),
-                    child: Opacity(
-                      opacity: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context).a,
-                      child: CustomIcon(
-                        icon: badge,
-                        size: 16,
-                        strokeWidth: 2,
-                        color: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context).withAlpha(255),
-                      ),
+                    child: CustomIcon(
+                      icon: badge,
+                      size: 16,
+                      strokeWidth: 2,
+                      color: (widget.isGroup ? AppColors.text : AppColors.tertiaryText).adaptTo(context),
                     ),
                   ),
                 ),
