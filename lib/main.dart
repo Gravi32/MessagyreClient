@@ -87,10 +87,12 @@ class BootProcedure {
     return;
   }
 
-  /// Initializes date formatting and TZDateTime locals.
-  static Future<void> setupDateTimeSystems() async {
+  /// Initializes miscellaneous stuff
+  static Future<void> setupMiscellaneous() async {
     await initializeDateFormatting('fr_CH', null);
     tz.initializeTimeZones();
+
+    FirebaseApi().resetBadge();
   }
 
   /// Sets native system UI colors
@@ -123,7 +125,7 @@ void main() async {
         BootProcedure.setupGlobals();
 
         await BootProcedure.setupFirebase();
-        await BootProcedure.setupDateTimeSystems();
+        await BootProcedure.setupMiscellaneous();
 
         BootProcedure.setupSystemUI();
 

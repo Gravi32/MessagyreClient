@@ -155,14 +155,14 @@ class FirebaseApi {
     await network.post("/accounts/me/upload-firebase-token", {"FirebaseToken": token});
   }
 
-  void incrementBadge() {
+  void incrementBadge() async {
     badgeCount++;
-    AppBadgePlus.updateBadge(badgeCount);
+    if (await AppBadgePlus.isSupported()) AppBadgePlus.updateBadge(badgeCount);
   }
 
-  void resetBadge() {
+  void resetBadge() async {
     badgeCount = 0;
-    AppBadgePlus.updateBadge(0);
+    if (await AppBadgePlus.isSupported()) AppBadgePlus.updateBadge(0);
   }
 }
 
