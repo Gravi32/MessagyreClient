@@ -74,8 +74,6 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       if (MainPage.pageIndex.value != 1) return;
       WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[1].showBadge.value = false);
       globals.persistent.setInt("LastSeenAssignmentDueDate", DateTime.now().dateOnly().add(Duration(days: 1)).millisecondsSinceEpoch);
-
-      print(globals.persistent.getInt("LastSeenAssignmentDueDate"));
     });
 
     final lastSeenDueDate = globals.persistent.getInt("LastSeenAssignmentDueDate") ?? 0;
