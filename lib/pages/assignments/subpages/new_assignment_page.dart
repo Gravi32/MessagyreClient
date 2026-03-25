@@ -9,7 +9,6 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
-import 'package:messagyre_client/utility/widgets/custom_subject_picker.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
@@ -379,18 +378,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   ),
                 ),
               );
-            },
-          ),
-    );
-  }
-
-  void showSubjectPicker() {
-    showCupertinoModalPopup(
-      context: context,
-      builder:
-          (_) => CustomSubjectPicker(
-            onSubjectSelected: (selectedSubject) {
-              setState(() => subject = selectedSubject as Subject);
             },
           ),
     );

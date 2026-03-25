@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/utility/classes.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class StorageSettingsPage extends StatefulWidget {
@@ -21,17 +20,17 @@ class _StorageSettingsPageState extends State<StorageSettingsPage> {
   }
 
   Future<void> _loadBoxSizes() async {
-    final chats = await getBoxSize<Chat>("Chats");
-    final assignment = await getBoxSize<Assignment>("Assignment");
-    final grades = await getBoxSize<Grade>("Grades");
+    // final chats = await getBoxSize<Chat>("Chats");
+    // final assignment = await getBoxSize<Assignment>("Assignment");
+    // final grades = await getBoxSize<Grade>("Grades");
 
-    if (mounted) {
-      setState(() {
-        chatsSize = chats;
-        assignmentSize = assignment;
-        gradesSize = grades;
-      });
-    }
+    // if (mounted) {
+    //   setState(() {
+    //     chatsSize = chats;
+    //     assignmentSize = assignment;
+    //     gradesSize = grades;
+    //   });
+    // }
   }
 
   Future<int> getBoxSize<T>(String boxName) async {

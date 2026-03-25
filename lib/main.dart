@@ -6,7 +6,6 @@ import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
@@ -15,15 +14,11 @@ import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
-import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/widgets/navigation_bar.dart';
-import 'package:messagyre_client/utility/__database_migration__.dart';
-import 'package:messagyre_client/utility/classes.dart';
-import 'package:messagyre_client/utility/subjects.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -41,35 +36,7 @@ class BootProcedure {
     };
   }
 
-  /// Registers all the Hive adapters and opens its boxes [DEPRECATED]
-  @Deprecated("As of version 2.x.x the database is now handled by Isar")
-  static Future<void> setupHive() async {
-    await Hive.initFlutter();
-
-    Hive.registerAdapter(MessageAdapter());
-    Hive.registerAdapter(ChatAdapter());
-    Hive.registerAdapter(AssignmentAdapter());
-    Hive.registerAdapter(SubjectAdapter());
-    Hive.registerAdapter(GradeAdapter());
-    Hive.registerAdapter(SettingsAdapter());
-
-    await Hive.openBox<Chat>("Chats");
-    await Hive.openBox<Assignment>("Homework");
-    await Hive.openBox<Grade>("Grades");
-    await Hive.openBox<List>("SubjectOrder");
-    await Hive.openBox<Settings>("Settings");
-
-    return;
-  }
-
-  /// Calls the migration system [TO BE REMOVED]
-  static Future<void> handleHiveToIsarMigration() async {
-    await DatabaseService().init();
-    await migrateHiveToIsar();
-    return;
-  }
-
-  /// Instantiates Globals singleton. This has to be done after Hive initialization.
+  /// Instantiates Globals singleton.
   static void setupGlobals() {
     final globals = GlobalsService();
     globals.username = globals.persistent.getString("Username");
@@ -119,9 +86,6 @@ void main() async {
   runZonedGuarded(
     () async {
       try {
-        await BootProcedure.setupHive();
-        await BootProcedure.handleHiveToIsarMigration();
-
         BootProcedure.setupGlobals();
 
         await BootProcedure.setupNotificationSystems();
