@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:ui' as ui;
+import 'dart:developer' as dev;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -10,6 +12,7 @@ import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // #region -> Strings
 extension StringExtension on String {
@@ -335,12 +338,34 @@ Size measureTextSize(String text, TextStyle style) {
 
 // #endregion
 
+// #region -> Json
+
+dynamic tryJsonDecode(String source) {
+  try {
+    return jsonDecode(source);
+  } catch (_) {
+    return null;
+  }
+}
+
+// #endregion
+
 // #region -> Miscellaneous
 
 void restartApp(BuildContext context) {
   if (!context.mounted) return;
   final mountedContext = context;
   Phoenix.rebirth(mountedContext);
+}
+
+Future<void> openUrl(String url) async {
+  final Uri uri = Uri.parse(url);
+  dev.log("bau");
+
+  if (!await launchUrl(uri, mode: LaunchMode.inAppWebView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true))) {
+    debugPrint("[Utility] Failed to open URL '$url'");
+    dev.log("[Utility] Failed to open URL '$url'", error: "Failed");
+  }
 }
 
 // #endregion

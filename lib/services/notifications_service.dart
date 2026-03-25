@@ -10,6 +10,7 @@ import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/api/firebase_api.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:path_provider/path_provider.dart';
 
 class NotificationsService {
@@ -34,10 +35,18 @@ class NotificationsService {
     await plugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) {
-        final username = response.payload;
-        if (username != null && username.isNotEmpty) {
-          navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
+        final String? payload = response.payload;
+
+        if (payload != null && payload.isNotEmpty) {
+          final Map<String, dynamic>? data = tryJsonDecode(payload);
+
+          final username = data?["Username"];
+          final url = data?["Url"];
+
+          if (username != null) navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
+          if (url != null) openUrl(url);
         }
+
         resetBadge();
       },
     );
