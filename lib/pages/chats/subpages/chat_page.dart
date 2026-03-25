@@ -18,6 +18,7 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/blurred_container.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -677,7 +678,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           itemCount: chatData.messages.length + 2,
           itemBuilder: (context, index) {
             if (index == 0) {
-              return Container(
+              return BlurredContainer(
+                blur: blurAmount,
                 margin: EdgeInsets.only(bottom: 12, top: 30),
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
@@ -719,7 +721,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             if (index == 1) {
               final color = isEncryptionAvailable ? AppColors.tertiaryText.adaptTo(context) : AppColors.yellow.withAlpha(.5.toByte());
 
-              return Container(
+              return BlurredContainer(
+                blur: blurAmount,
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
                 child: Text.rich(
@@ -766,7 +769,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     msgIndex == 0)
                 ? Column(
                   children: [
-                    Container(
+                    BlurredContainer(
+                      blur: blurAmount,
                       margin: EdgeInsets.only(bottom: 12, top: 30),
                       padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
                       decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(120), borderRadius: BorderRadius.circular(10)),
@@ -806,7 +810,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     children: [
                       if (messageFieldFocusNode.hasFocus)
                         GestureDetector(onTap: () => messageFieldFocusNode.unfocus(), child: CustomIcon(icon: HugeIcons.strokeRoundedArrowDown01)),
-                      
+
                       // Message field
                       Expanded(
                         child: Padding(
