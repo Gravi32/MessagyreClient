@@ -163,6 +163,14 @@ class _SettingsListPageState extends State<SettingsListPage> {
                     leading: CustomIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
                     title: Text("Se déconnecter"),
                   ),
+
+                  CupertinoListTile(
+                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => openUrl("https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedGlobe02),
+                    title: Text("Ouvrir Hermes II"),
+                    trailing: CupertinoListTileChevron(),
+                  ),
                 ],
               ),
 

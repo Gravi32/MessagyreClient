@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ui' as ui;
-import 'dart:developer' as dev;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -360,11 +359,13 @@ void restartApp(BuildContext context) {
 
 Future<void> openUrl(String url) async {
   final Uri uri = Uri.parse(url);
-  dev.log("bau");
 
-  if (!await launchUrl(uri, mode: LaunchMode.inAppWebView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true))) {
+  if (!await launchUrl(
+    uri,
+    mode: LaunchMode.inAppBrowserView,
+    webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true),
+  )) {
     debugPrint("[Utility] Failed to open URL '$url'");
-    dev.log("[Utility] Failed to open URL '$url'", error: "Failed");
   }
 }
 
