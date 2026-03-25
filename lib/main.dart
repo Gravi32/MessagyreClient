@@ -185,7 +185,7 @@ class AppPage {
   final List<List<dynamic>> icon;
   final Widget Function() build;
 
-  bool showNotification = false;
+  final showBadge = ValueNotifier<bool>(false);
 
   AppPage({required this.name, required this.icon, required this.build});
 }

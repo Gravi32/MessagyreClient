@@ -41,23 +41,28 @@ class _NavigationBarState extends State<NavigationBar> {
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => MainPage.pageIndex.value = index,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              page.showNotification
-                                  ? CutoutWidget(
-                                    cutoutSize: 12,
-                                    childToCutout: icon,
-                                    childInCutout: Container(
-                                      margin: EdgeInsets.all(2.5),
-                                      decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
-                                    ),
-                                    cutoutAlignment: Alignment.topRight,
-                                  )
-                                  : icon,
-                              Text(page.name, overflow: TextOverflow.fade, softWrap: false, style: TextStyle(fontSize: 10, color: color)),
-                            ],
+                          child: ValueListenableBuilder(
+                            valueListenable: page.showBadge,
+                            builder: (context, showNotification, _) {
+                              return Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  showNotification
+                                      ? CutoutWidget(
+                                        cutoutSize: 12,
+                                        childToCutout: icon,
+                                        childInCutout: Container(
+                                          margin: EdgeInsets.all(2.5),
+                                          decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                                        ),
+                                        cutoutAlignment: Alignment.topRight,
+                                      )
+                                      : icon,
+                                  Text(page.name, overflow: TextOverflow.fade, softWrap: false, style: TextStyle(fontSize: 10, color: color)),
+                                ],
+                              );
+                            },
                           ),
                         ),
                       );

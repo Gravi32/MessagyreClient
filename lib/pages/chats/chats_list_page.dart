@@ -331,8 +331,15 @@ class _ChatsListPageState extends State<ChatsListPage> {
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: StreamBuilder(
               stream: database.chats.watchAll(),
-              builder: (context, _) {
+              builder: (context, snapshot) {
                 final list = allChats;
+                final hasUnread = list.any((chat) => chat.unreadMessages > 0);
+
+                if (App.pages[2].showBadge.value != hasUnread) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    App.pages[2].showBadge.value = hasUnread;
+                  });
+                }
 
                 return list.isEmpty
                     ? Column(

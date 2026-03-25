@@ -3,9 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
 import 'package:messagyre_client/pages/assignments/widgets/assignments_top_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
@@ -22,6 +24,7 @@ class AssignmentsListPage extends StatefulWidget {
 
 class AssignmentsListPageState extends State<AssignmentsListPage> {
   final database = DatabaseService();
+  final globals = GlobalsService();
 
   Widget buildPlaceholder() {
     return Column(
@@ -64,6 +67,26 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    MainPage.pageIndex.addListener(() async {
+      if (MainPage.pageIndex.value != 1) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[1].showBadge.value = false);
+      globals.persistent.setInt("LastSeenAssignmentDueDate", DateTime.now().dateOnly().add(Duration(days: 1)).millisecondsSinceEpoch);
+
+      print(globals.persistent.getInt("LastSeenAssignmentDueDate"));
+    });
+
+    final lastSeenDueDate = globals.persistent.getInt("LastSeenAssignmentDueDate") ?? 0;
+    final tomorrowsAssignments = database.assignments.getAll().where((a) => a.dueDate.isSameDayAs(DateTime.now().dateOnly().add(const Duration(days: 1))));
+
+    if (tomorrowsAssignments.isNotEmpty && lastSeenDueDate < DateTime.now().dateOnly().add(Duration(days: 1)).millisecondsSinceEpoch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[1].showBadge.value = true);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: Stack(
@@ -78,7 +101,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   final allAssignments = snapshot.data ?? [];
 
                   final today = DateTime.now().dateOnly();
-                  final tomorrow = today.copyWith(day: today.day + 1);
+                  final tomorrow = today.add(const Duration(days: 1));
 
                   final pastAssignments = allAssignments.where((a) => a.dueDate.isBefore(today));
                   final todaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(today));
