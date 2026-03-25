@@ -802,17 +802,19 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
               return connectionState == ConnectionState.Connected
                   ? Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 8,
+                    spacing: 10,
                     children: [
                       if (messageFieldFocusNode.hasFocus)
                         GestureDetector(onTap: () => messageFieldFocusNode.unfocus(), child: CustomIcon(icon: HugeIcons.strokeRoundedArrowDown01)),
+                      
+                      // Message field
                       Expanded(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           child: CupertinoTextField(
                             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             minLines: 1,
-                            maxLines: 3,
+                            maxLines: 5,
                             style: TextStyle(fontSize: 18),
                             controller: messageFieldController,
                             focusNode: messageFieldFocusNode,
@@ -822,11 +824,13 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
+
+                      // Send button
                       GestureDetector(
                         onTap: () => sendMessage(messageFieldController.text),
                         child: Container(
-                          height: 30,
-                          width: 30,
+                          height: 31,
+                          width: 31,
                           decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.accent),
                           child: Padding(padding: EdgeInsets.only(left: 2), child: Icon(Icons.send_rounded, size: 18, color: AppColors.white)),
                         ),
