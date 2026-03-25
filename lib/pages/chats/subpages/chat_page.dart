@@ -733,16 +733,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         alignment: PlaceholderAlignment.middle,
                         child: Padding(
                           padding: const EdgeInsets.only(right: 4),
-                          child: CustomIcon(
-                            icon: isEncryptionAvailable ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedKnightShield,
-                            size: 16,
-                            color: color,
-                          ),
+                          child: Icon(isEncryptionAvailable ? CupertinoIcons.lock_fill : CupertinoIcons.lock_slash_fill, size: 16, color: color),
                         ),
                       ),
                       ...CustomText.parseSpans(
                         isEncryptionAvailable
-                            ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls toi et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
+                            ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls vous et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
                             : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
                         style: TextStyle(color: color, fontSize: 16),
                       ),
@@ -836,7 +832,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                           height: 31,
                           width: 31,
                           decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.accent),
-                          child: Padding(padding: EdgeInsets.only(left: 2), child: Icon(Icons.send_rounded, size: 18, color: AppColors.white)),
+                          child: Padding(padding: EdgeInsets.only(left: 2), child: Icon(Icons.send_rounded, size: 20, color: AppColors.white)),
                         ),
                       ),
                     ],
