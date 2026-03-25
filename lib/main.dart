@@ -15,11 +15,11 @@ import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
-import 'package:messagyre_client/services/api/firebase_api.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
+import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/widgets/navigation_bar.dart';
 import 'package:messagyre_client/utility/__database_migration__.dart';
 import 'package:messagyre_client/utility/classes.dart';
@@ -76,11 +76,11 @@ class BootProcedure {
     globals.appBrightnessNotifier.value = Brightness.dark;
   }
 
-  /// Initializes Firebase services
-  static Future<void> setupFirebase() async {
+  /// Initializes Firebase and Notification services
+  static Future<void> setupNotificationSystems() async {
     try {
       await Firebase.initializeApp();
-      await FirebaseApi().initialize();
+      await NotificationsService().initialize();
     } catch (e) {
       debugPrint("Firebase could not be initialized: $e");
     }
@@ -92,7 +92,7 @@ class BootProcedure {
     await initializeDateFormatting('fr_CH', null);
     tz.initializeTimeZones();
 
-    FirebaseApi().resetBadge();
+    NotificationsService().resetBadge();
   }
 
   /// Sets native system UI colors
@@ -124,7 +124,7 @@ void main() async {
 
         BootProcedure.setupGlobals();
 
-        await BootProcedure.setupFirebase();
+        await BootProcedure.setupNotificationSystems();
         await BootProcedure.setupMiscellaneous();
 
         BootProcedure.setupSystemUI();

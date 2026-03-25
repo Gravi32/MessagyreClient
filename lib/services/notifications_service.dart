@@ -1,9 +1,15 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/services/api/firebase_api.dart';
+import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/network_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 class NotificationsService {
@@ -12,15 +18,33 @@ class NotificationsService {
   NotificationsService._internal();
 
   final plugin = FlutterLocalNotificationsPlugin();
+  final network = NetworkService();
+  final globals = GlobalsService();
+
+  bool waitingForConnection = false;
 
   Future<List<PendingNotificationRequest>> get getScheduledNotifications async => await plugin.pendingNotificationRequests();
   Future<bool> isNotificationScheduled(int id) async => (await getScheduledNotifications).any((n) => n.id == id);
 
-  Future<void> init() async {
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const ios = DarwinInitializationSettings();
+  Future<void> initialize() async {
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
-    await plugin.initialize(const InitializationSettings(android: android, iOS: ios));
+    await plugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        final username = response.payload;
+        if (username != null && username.isNotEmpty) {
+          navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
+        }
+        resetBadge();
+      },
+    );
+
+    await FirebaseApi().initialize();
+
+    sendTokenToServer();
   }
 
   Future<String> getImageFilePath(String assetName) async {
@@ -75,5 +99,25 @@ class NotificationsService {
 
   Future<void> cancelAll() async {
     await plugin.cancelAll();
+  }
+
+  Future<void> resetBadge() async {
+    if (await AppBadgePlus.isSupported()) AppBadgePlus.updateBadge(0);
+  }
+
+  void sendTokenToServer() async {
+    if (waitingForConnection) return;
+    waitingForConnection = true;
+
+    while (!network.isConnected) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    waitingForConnection = false;
+
+    final token = globals.fcmToken;
+    if (token == null) return;
+
+    await network.post("/accounts/me/upload-firebase-token", {"FirebaseToken": token});
   }
 }
