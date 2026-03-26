@@ -10,7 +10,6 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
-/// wrapper per RawAutocomplete
 class SubjectOption {
   final Subject? subject;
   final CompositeSubject? compositeSubject;
@@ -72,6 +71,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
   late FocusNode focusNode;
 
   late final List<MapEntry<SubjectOption, String>> normalizedOptions;
+  String? currentOption; // If it's not empty, the subject has already been chosen and we're not showing other options
 
   @override
   void initState() {
@@ -99,12 +99,12 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       }
 
       for (final subject in subjects) {
-        if (!subjectsInsideComposite.contains(subject.code)) {
-          normalizedOptions.add(MapEntry(SubjectOption.subject(subject), _normalize(subject.name)));
-        }
+        if (subject.isLocked || subjectsInsideComposite.contains(subject.code)) continue;
+        normalizedOptions.add(MapEntry(SubjectOption.subject(subject), _normalize(subject.name)));
       }
     } else {
       for (final subject in subjects) {
+        if (subject.isLocked) continue;
         normalizedOptions.add(MapEntry(SubjectOption.subject(subject), _normalize(subject.name)));
       }
     }
@@ -146,6 +146,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         }
 
         controller.text = option.name;
+        currentOption = option.name;
         return;
       }
     }
@@ -176,7 +177,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       focusNode: focusNode,
 
       optionsBuilder: (query) {
-        if (query.text.isEmpty) {
+        if (query.text.isEmpty || currentOption != null) {
           return const Iterable<SubjectOption>.empty();
         }
 
@@ -215,6 +216,8 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
               onFieldSubmitted();
             }
           },
+
+          onChanged: (_) => currentOption = null,
 
           onTapOutside: (event) {
             if (event.kind != PointerDeviceKind.touch) {
