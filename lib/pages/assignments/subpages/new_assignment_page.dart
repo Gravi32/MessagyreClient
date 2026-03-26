@@ -233,12 +233,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         ),
                       ),
 
-                      // "Days Before" Picker
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           child: Row(
                             children: [
+                              // "Days Before" Picker
                               Expanded(
                                 flex: 2,
                                 child: CupertinoPicker(
