@@ -124,7 +124,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     final List<int> hours = List.generate(24, (i) => i);
     final List<int> minutes = [0, 15, 30, 45];
 
-    DateTime? chosenDateTime = notificationDate; // ?? dueDate.add(Duration(days: -1));
+    DateTime? chosenDateTime = notificationDate; // ?? dueDate.addDays( -1));
 
     bool isValid(DateTime? dateTime, {bool countTimeToo = true}) =>
         dateTime == null ? true : (countTimeToo ? dateTime : dateTime.copyWith(hour: 23, minute: 59)).isAfter(DateTime.now());
@@ -132,13 +132,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
     if (!isValid(chosenDateTime)) {
       final firstValidDaysBefore = notificationDayOptions.keys.firstWhere(
-        (daysBefore) =>
-            hours.any((hour) => minutes.any((minute) => isValid(chosenDateTime?.add(Duration(days: -daysBefore)).copyWith(hour: hour, minute: minute)))),
+        (daysBefore) => hours.any((hour) => minutes.any((minute) => isValid(chosenDateTime?.addDays(-daysBefore).copyWith(hour: hour, minute: minute)))),
         orElse: () => notificationDayOptions.keys.last,
       );
 
       // Setting first valid date
-      chosenDateTime = dueDate.add(Duration(days: -firstValidDaysBefore));
+      chosenDateTime = dueDate.addDays(-firstValidDaysBefore);
 
       // Setting first valid hour
       chosenDateTime = chosenDateTime.copyWith(
@@ -162,8 +161,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       DateTime? firstValidDate;
       int firstValidIndex =
           notificationDayOptions.keys.indexed.firstWhere((item) {
-            if (isValid(dueDate.add(Duration(days: -item.$2)), countTimeToo: false)) {
-              firstValidDate = dueDate.add(Duration(days: -item.$2));
+            if (isValid(dueDate.addDays(-item.$2), countTimeToo: false)) {
+              firstValidDate = dueDate.addDays(-item.$2);
               return true;
             }
             return false;
@@ -248,7 +247,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                   onSelectedItemChanged: (index) {
                                     final daysBefore = notificationDayOptions.keys.toList()[index];
 
-                                    if (!isValid(dueDate.add(Duration(days: -daysBefore)), countTimeToo: false)) {
+                                    if (!isValid(dueDate.addDays(-daysBefore), countTimeToo: false)) {
                                       scrollToFirstAvailableDaysBefore();
                                       return;
                                     }
@@ -258,13 +257,15 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                       if (daysBefore == -1) {
                                         chosenDateTime = null;
                                       } else {
-                                        var result = (chosenDateTime ?? dueDate.add(Duration(days: -daysBefore))).copyWith(
-                                          day: dueDate.add(Duration(days: -daysBefore)).day,
-                                        );
+                                        DateTime result = dueDate.addDays(-daysBefore).dateOnly();
 
                                         if (chosenDateTime == null) {
                                           result = result.copyWith(hour: 17);
-                                          hourPickerController.animateToItem(17, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+                                          WidgetsBinding.instance.addPostFrameCallback(
+                                            (_) => hourPickerController.animateToItem(17, duration: Duration(milliseconds: 200), curve: Curves.easeInOut),
+                                          );
+                                        } else {
+                                          result = result.withTheTimeOf(chosenDateTime!);
                                         }
 
                                         chosenDateTime = result;
@@ -286,10 +287,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                                           child: Text(
                                             text,
                                             style: TextStyle(
-                                              color:
-                                                  isValid(dueDate.add(Duration(days: -daysBefore)), countTimeToo: false)
-                                                      ? null
-                                                      : AppColors.inactive.adaptTo(context),
+                                              color: isValid(dueDate.addDays(-daysBefore), countTimeToo: false) ? null : AppColors.inactive.adaptTo(context),
                                             ),
                                           ),
                                         );

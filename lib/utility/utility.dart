@@ -178,6 +178,11 @@ extension DateTimeExtension on DateTime {
 
   /// Returns the DateTime with just the day, month and year values.
   DateTime dateOnly() => DateTime(year, month, day);
+
+  /// Returns a new DateTime with [amount] more days
+  DateTime addDays(int amount) => copyWith().dateOnly().add(Duration(days: amount)).copyWith(hour: hour, minute: minute, second: second);
+
+  DateTime withTheTimeOf(DateTime source) => copyWith(hour: source.hour, minute: source.minute, second: source.second);
 }
 
 String formatDate(DateTime targetDate, {bool includeTime = false, bool includeArticle = false}) {
