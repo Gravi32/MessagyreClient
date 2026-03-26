@@ -169,6 +169,21 @@ Color getGradeColor(double grade, {Color? greenOverride}) {
   return result;
 }
 
+Color getProgressColor(double ratio) {
+  final double t = ratio.clamp(0.0, 1.0);
+
+  const colors = [AppColors.green, AppColors.yellow, AppColors.orange, AppColors.red];
+
+  if (t <= 0) return colors.first;
+  if (t >= 1) return colors.last;
+
+  final double segment = t * (colors.length - 1);
+  final int index = segment.floor();
+  final double delta = segment - index;
+
+  return Color.lerp(colors[index], colors[index + 1], delta)!;
+}
+
 // #endregion
 
 // #region -> Dates

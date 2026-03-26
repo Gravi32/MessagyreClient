@@ -117,7 +117,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
     );
   }
 
-  Widget buildMaxFailingGradesPart() {
+  Widget buildMaxFailingSubjectsPart() {
     final numberOfFailingGrades = report.allAverages.values.where((grade) => grade < 3.75).length;
     final maxFailingGrades = report.maxFailingGrades;
 
@@ -134,12 +134,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
           upperBound: maxFailingGrades.toString(),
           progress: progress,
           value: numberOfFailingGrades.toString(),
-          color: switch (numberOfFailingGrades) {
-            0 => AppColors.green,
-            1 => AppColors.yellow,
-            2 => AppColors.orange,
-            _ => AppColors.red,
-          },
+          color: getProgressColor(numberOfFailingGrades / maxFailingGrades),
         ),
       ],
     );
@@ -238,6 +233,75 @@ class _ReportCardPageState extends State<ReportCardPage> {
     setState(() {});
   }
 
+  void chooseMaxFailingSubjects() {
+    int maxFailingSubjects = report.maxFailingGrades;
+    final pickerController = FixedExtentScrollController(initialItem: maxFailingSubjects);
+
+    showCupertinoModalPopup(
+      context: context,
+      builder:
+          (BuildContext context) => StatefulBuilder(
+            builder: (context, setPopupState) {
+              return Container(
+                height: 250,
+                decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        color: AppColors.background.adaptTo(context),
+                        child: Row(
+                          children: [
+                            CupertinoButton(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
+                            const Expanded(
+                              child: Text(
+                                "Max. branches insuffisantes",
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            CupertinoButton(
+                              child: const Text("Terminé"),
+                              onPressed: () {
+                                setState(() {
+                                  globals.persistent.setInt("MaxFailingSubjects", maxFailingSubjects);
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          child: CupertinoPicker(
+                            scrollController: pickerController,
+                            itemExtent: 32,
+                            onSelectedItemChanged: (index) {
+                              setPopupState(() {
+                                maxFailingSubjects = index;
+                              });
+                            },
+                            squeeze: .9,
+                            diameterRatio: 10,
+                            children: [for (int index = 0; index <= 10; index++) Center(child: Text(index.toString(), style: TextStyle()))],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final allSubjects = report.allSubjects;
@@ -320,8 +384,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   spacing: 6,
                   children: [
                     buildTotalPointsPart(),
-                    Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
-                    buildMaxFailingGradesPart(),
+                    if (report.maxFailingGrades > 0) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildMaxFailingSubjectsPart()],
 
                     if (report.usingDoubleCompensation) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildDoubleCompensationPart()],
 
@@ -345,8 +408,12 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     title: const Text("Max. de notes insuffisantes"),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [Text("4", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))), CupertinoListTileChevron()],
+                      children: [
+                        Text(report.maxFailingGrades.toString(), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                        CupertinoListTileChevron(),
+                      ],
                     ),
+                    onTap: () => chooseMaxFailingSubjects(),
                   ),
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
