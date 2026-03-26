@@ -1,5 +1,5 @@
+import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -31,92 +31,88 @@ class GradeBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final daysDistance = DateTime.now().difference(gradeData.date).inDays;
 
-    return Column(
-      children: [
-        CupertinoPressable(
-          padding: EdgeInsets.only(left: 1.5),
-          onTap: onTap,
-          child: Row(
-            children: [
-              GradeDisplay(
-                grade: isGradeUnknown ? 0 : gradeData.grade,
-                weight: isGradeUnknown ? 1 : gradeData.weight,
-                isIncoming: isIncoming,
-                isPlanned: isPlanned,
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4,
-                        children: [
-                          // Title
-                          Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: CustomText(
-                              gradeData.title,
-                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-
-                          // Description
-                          if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
-                            Padding(
-                              padding: EdgeInsetsGeometry.only(right: 20),
-                              child: CustomText(
-                                gradeData.details!,
-                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-
-                          // Subject / Date
-                          showSubject
-                              ? Row(
-                                spacing: 6,
-                                children: [
-                                  if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
-                                  Text(
-                                    "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
-                                  ),
-                                ],
-                              )
-                              : Text(
-                                isGradeUnknown
-                                    ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                                    : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
-                                maxLines: 2,
-                                overflow: TextOverflow.fade,
-                                softWrap: true,
-                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
-                              ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!showSubject)
-                CustomIcon(
-                  icon:
-                      isGradeUnknown
-                          ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01)
-                          : HugeIcons.strokeRoundedPencilEdit02,
-                  size: 20,
-                  color: AppColors.tertiaryText.adaptTo(context),
-                ),
-            ],
+    return CupertinoPressable(
+      padding: EdgeInsets.only(left: 1.5),
+      onTap: onTap,
+      child: Row(
+        children: [
+          // Grade Display
+          GradeDisplay(
+            grade: isGradeUnknown ? 0 : gradeData.grade,
+            weight: isGradeUnknown ? 1 : gradeData.weight,
+            isIncoming: isIncoming,
+            isPlanned: isPlanned,
           ),
-        ),
-      ],
+          SizedBox(width: 12),
+
+          // Content
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 4,
+              children: [
+                // Title
+                Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: CustomText(
+                    gradeData.title,
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+
+                // Description
+                if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsetsGeometry.only(right: 20),
+                    child: CustomText(
+                      gradeData.details!,
+                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                // Subject / Date
+                showSubject
+                    ? Row(
+                      spacing: 6,
+                      children: [
+                        if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
+                        Expanded(
+                          child: Text(
+                            "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    )
+                    : Text(
+                      isGradeUnknown
+                          ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
+                          : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
+                      maxLines: 2,
+                      overflow: TextOverflow.fade,
+                      softWrap: true,
+                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
+                    ),
+              ],
+            ),
+          ),
+
+          // Trailing
+          if (!showSubject)
+            CustomIcon(
+              icon:
+                  isGradeUnknown ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01) : HugeIcons.strokeRoundedPencilEdit02,
+              size: 20,
+              color: AppColors.tertiaryText.adaptTo(context),
+            ),
+          CupertinoListTileChevron(),
+        ],
+      ),
     );
   }
 }
