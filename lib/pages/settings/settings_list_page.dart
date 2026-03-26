@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:archive/archive.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
@@ -25,7 +21,6 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
-import 'package:path_provider/path_provider.dart';
 
 class SettingsListPage extends StatefulWidget {
   const SettingsListPage({super.key});
@@ -312,26 +307,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                       if (confirm != true) return;
 
                       try {
-                        final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['zip']);
-
-                        if (result == null || result.files.isEmpty) return;
-
-                        final filePath = result.files.single.path;
-                        if (filePath == null) return;
-
-                        final bytes = await File(filePath).readAsBytes();
-                        final archive = ZipDecoder().decodeBytes(bytes);
-
-                        final appDir = await getApplicationDocumentsDirectory();
-
-                        for (final file in archive) {
-                          if (file.isFile) {
-                            final data = file.content as List<int>;
-                            final outFile = File('${appDir.path}/${file.name}');
-                            await outFile.create(recursive: true);
-                            await outFile.writeAsBytes(data);
-                          }
-                        }
+                        database.loadBackup();
 
                         if (!context.mounted) return;
                         showCupertinoDialog(

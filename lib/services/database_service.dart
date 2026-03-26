@@ -56,7 +56,7 @@ class DatabaseService {
 
   Future<void> saveBackup() async {
     final tempDir = await getTemporaryDirectory();
-    final tempPath = join(tempDir.path, 'MessagyreBackup.isar');
+    final tempPath = join(tempDir.path, 'MessagyreTemporaryBackup.isar');
     final tempFile = File(tempPath);
 
     if (await tempFile.exists()) await tempFile.delete();
@@ -66,7 +66,7 @@ class DatabaseService {
 
     await FilePicker.platform.saveFile(
       dialogTitle: 'Choisir où enregistrer les données',
-      fileName: 'MessagyreBackup-${DateTime.now().toIso8601String()}.zip',
+      fileName: 'MessagyreBackup-${DateTime.now().toIso8601String()}.isar',
       bytes: bytes,
     );
 
@@ -75,7 +75,7 @@ class DatabaseService {
 
   Future<void> loadBackup() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.any);
+      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['isar']);
 
       if (result == null || result.files.single.path == null) return;
 
