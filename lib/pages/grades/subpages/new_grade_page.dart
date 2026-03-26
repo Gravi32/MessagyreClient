@@ -222,7 +222,10 @@ class _NewGradePageState extends State<NewGradePage> {
               spacing: 10,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(padding: EdgeInsets.only(bottom: 10), child: Text("Nouvelle note", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600))),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: Text("${editMode ? "Modifier la" : "Nouvelle"} note", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600)),
+                ),
                 Row(
                   spacing: 14,
                   children: [
