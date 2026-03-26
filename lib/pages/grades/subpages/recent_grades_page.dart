@@ -44,7 +44,7 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
                   entry.value.map((grade) {
                     return CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      padding: EdgeInsets.all(6),
+                      padding: EdgeInsets.symmetric(vertical: 6, horizontal:10),
                       title: GradeBar(gradeData: grade, onTap: () => showNewGradePopup(grade), showSubject: true),
                     );
                   }).toList(),
