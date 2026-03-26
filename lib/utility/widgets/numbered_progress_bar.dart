@@ -12,7 +12,7 @@ class NumberedProgressBar extends StatelessWidget {
   final String value;
   final Color color;
   final bool centered;
-  final double fontSize;
+  final double? fontSize;
   final double? barHeight;
 
   const NumberedProgressBar({
@@ -80,7 +80,7 @@ class NumberedProgressBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [shadowColor.withAlpha(0), shadowColor, shadowColor, shadowColor.withAlpha(0)], stops: [0, .25, .75, 1]),
                     ),
-                    child: Text(value, style: textStyle.copyWith(backgroundColor: AppColors.transparent)),
+                    child: Text(value, style: textStyle.copyWith(backgroundColor: AppColors.transparent, fontSize: fontSize)),
                   ),
                 ),
               ],

@@ -1,6 +1,3 @@
-import 'dart:math';
-
-import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -11,7 +8,6 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
-import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
@@ -81,142 +77,6 @@ class _ReportCardPageState extends State<ReportCardPage> {
     if (average != null && average < 1) average = null;
 
     return buildRow(compositeSubject.name, average, rawAverage, false, compositeSubject: compositeSubject);
-  }
-
-  Widget buildTotalPointsPart() {
-    var totalPoints = report.totalPoints;
-    final minPoints = report.allAverages.length * 4;
-    final maxPoints = report.allAverages.length * 6;
-
-    final isLowerThanMinimum = totalPoints < minPoints;
-
-    final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
-    final difference = (minPoints - totalPoints).abs().removeTrailingZero();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 0,
-      children: [
-        const Text("Points totaux", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-        Text(
-          isLowerThanMinimum
-              ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
-              : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
-          style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
-        ),
-        const SizedBox(height: 6),
-
-        NumberedProgressBar(
-          lowerBound: isLowerThanMinimum ? "0" : minPoints.toString(),
-          upperBound: (isLowerThanMinimum ? minPoints : maxPoints).toString(),
-          progress: progress,
-          value: totalPoints.removeTrailingZero(),
-          color: isLowerThanMinimum ? AppColors.red : AppColors.green,
-        ),
-      ],
-    );
-  }
-
-  Widget buildMaxFailingSubjectsPart() {
-    final numberOfFailingGrades = report.allAverages.values.where((grade) => grade < 3.75).length;
-    final maxFailingGrades = report.maxFailingGrades;
-
-    final progress = (numberOfFailingGrades / maxFailingGrades).clamp(0, 1).toDouble();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 0,
-      children: [
-        const Text("Moyennes insuffisantes", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-
-        NumberedProgressBar(
-          lowerBound: "0",
-          upperBound: maxFailingGrades.toString(),
-          progress: progress,
-          value: numberOfFailingGrades.toString(),
-          color: getProgressColor(numberOfFailingGrades / maxFailingGrades),
-        ),
-      ],
-    );
-  }
-
-  Widget buildRestrictedGroupPointsPart() {
-    final restrictedGroupAverages = <double>[];
-    for (final subjectCode in report.restrictedGroupCodes) {
-      if (report.allAverages.containsKey(subjectCode) && report.allAverages[subjectCode] != null) restrictedGroupAverages.add(report.allAverages[subjectCode]!);
-    }
-
-    final totalPoints = restrictedGroupAverages.sum;
-    final minPoints = restrictedGroupAverages.length * 4;
-    final maxPoints = restrictedGroupAverages.length * 6;
-
-    final isLowerThanMinimum = totalPoints < minPoints;
-
-    final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
-    final difference = (minPoints - totalPoints).abs().removeTrailingZero();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 0,
-      children: [
-        const Text("Points du groupe restreint", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-        Text(
-          isLowerThanMinimum
-              ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
-              : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
-          style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
-        ),
-        const SizedBox(height: 6),
-
-        NumberedProgressBar(
-          lowerBound: isLowerThanMinimum ? "0" : minPoints.toString(),
-          upperBound: (isLowerThanMinimum ? minPoints : maxPoints).toString(),
-          progress: progress,
-          value: totalPoints.removeTrailingZero(),
-          color: isLowerThanMinimum ? AppColors.red : AppColors.green,
-        ),
-      ],
-    );
-  }
-
-  Widget buildDoubleCompensationPart() {
-    var deficit = .0;
-    for (final average in report.allAverages.values) {
-      if (average < 4) deficit += average - 4;
-    }
-    var surplus = .0;
-    for (final average in report.allAverages.values) {
-      if (average > 4) surplus += average - 4;
-    }
-    final result = surplus + deficit * 2;
-
-    final isFailing = result < 0;
-
-    final progress = result / (deficit.abs() + surplus);
-    final difference = result.abs() * 2.0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 0,
-      children: [
-        const Text("Double compensation", style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-        if (isFailing)
-          Text(
-            "+${difference.removeTrailingZero()} point${difference == 1.0 ? "" : "s"} pour compenser, courage !",
-            style: TextStyle(fontSize: 14, color: AppColors.red),
-          ),
-        const SizedBox(height: 6),
-
-        NumberedProgressBar(
-          lowerBound: deficit.toDouble().removeTrailingZero(),
-          upperBound: "+${surplus.toDouble().removeTrailingZero()}",
-          progress: progress,
-          value: result.toDouble().removeTrailingZero(),
-          color: isFailing ? AppColors.red : AppColors.green,
-          centered: true,
-        ),
-      ],
-    );
   }
 
   void onSubjectSelected(String selectedSubjectCode) {
@@ -383,14 +243,21 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 child: Column(
                   spacing: 6,
                   children: [
-                    buildTotalPointsPart(),
-                    if (report.maxFailingGrades > 0) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildMaxFailingSubjectsPart()],
+                    report.buildTotalPointsIndicator(),
 
-                    if (report.usingDoubleCompensation) ...[Divider(color: AppColors.tertiaryBackground.adaptTo(context)), buildDoubleCompensationPart()],
+                    if (report.maxFailingGrades > 0) ...[
+                      Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
+                      report.buildMaxFailingSubjectsIndicator(),
+                    ],
+
+                    if (report.usingDoubleCompensation) ...[
+                      Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
+                      report.buildDoubleCompensationIndicator(),
+                    ],
 
                     if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty) ...[
                       Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
-                      buildRestrictedGroupPointsPart(),
+                      report.buildRestrictedGroupPointsIndicator(),
                     ],
                   ],
                 ),

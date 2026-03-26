@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/pages/grades/subpages/report_page.dart';
@@ -10,7 +11,6 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
 
 class GradesTopCard extends StatefulWidget {
@@ -148,87 +148,6 @@ class _GradesTopCardState extends State<GradesTopCard> {
   }
 
   Widget buildReportCardTab() {
-    List<Widget> buildTotalPointsIndicator() {
-      var totalPoints = report.totalPoints;
-      final minPoints = report.allAverages.length * 4;
-      final maxPoints = report.allAverages.length * 6;
-
-      final isLowerThanMinimum = totalPoints < minPoints;
-
-      final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
-      return [
-        Text("Points totaux", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.tertiaryText.adaptTo(context))),
-        NumberedProgressBar(
-          lowerBound: isLowerThanMinimum ? "0" : minPoints.toString(),
-          upperBound: (isLowerThanMinimum ? minPoints : maxPoints).toString(),
-          progress: progress,
-          value: totalPoints.removeTrailingZero(),
-          color: isLowerThanMinimum ? AppColors.red : AppColors.green,
-          fontSize: 26,
-          barHeight: 6,
-        ),
-      ];
-    }
-
-    List<Widget> buildDoubleCompensationIndicator() {
-      var deficit = .0;
-      for (final average in report.allAverages.values) {
-        if (average < 4) deficit += average - 4;
-      }
-      var surplus = .0;
-      for (final average in report.allAverages.values) {
-        if (average > 4) surplus += average - 4;
-      }
-      final result = surplus + deficit * 2;
-
-      final isFailing = result < 0;
-
-      final progress = result / (deficit.abs() + surplus);
-      return [
-        Text("Double compensation", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.tertiaryText.adaptTo(context))),
-        NumberedProgressBar(
-          lowerBound: deficit.toDouble().removeTrailingZero(),
-          upperBound: "+${surplus.toDouble().removeTrailingZero()}",
-          progress: progress,
-          value: result.toDouble().removeTrailingZero(),
-          color: isFailing ? AppColors.red : AppColors.green,
-          centered: true,
-          fontSize: 26,
-          barHeight: 6,
-        ),
-      ];
-    }
-
-    List<Widget> buildRestrictedGroupIndicator() {
-      final restrictedGroupAverages = <double>[];
-      for (final subjectCode in report.restrictedGroupCodes) {
-        if (report.allAverages.containsKey(subjectCode) && report.allAverages[subjectCode] != null) {
-          restrictedGroupAverages.add(report.allAverages[subjectCode]!);
-        }
-      }
-
-      final totalPoints = restrictedGroupAverages.sum;
-      final minPoints = restrictedGroupAverages.length * 4;
-      final maxPoints = restrictedGroupAverages.length * 6;
-
-      final isLowerThanMinimum = totalPoints < minPoints;
-
-      final progress = max(0, isLowerThanMinimum ? totalPoints / minPoints : (totalPoints - minPoints) / (maxPoints - minPoints)).toDouble();
-
-      return [
-        Text("Points du groupe restreint", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.tertiaryText.adaptTo(context))),
-        NumberedProgressBar(
-          lowerBound: isLowerThanMinimum ? "0" : minPoints.toString(),
-          upperBound: (isLowerThanMinimum ? minPoints : maxPoints).toString(),
-          progress: progress,
-          value: totalPoints.removeTrailingZero(),
-          color: isLowerThanMinimum ? AppColors.red : AppColors.green,
-          fontSize: 26,
-          barHeight: 6,
-        ),
-      ];
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -259,10 +178,19 @@ class _GradesTopCardState extends State<GradesTopCard> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              ...buildTotalPointsIndicator(),
-
-              if (report.usingRestrictedGroup) ...[const SizedBox(height: 10), ...buildRestrictedGroupIndicator()],
-              if (report.usingDoubleCompensation && !report.usingRestrictedGroup) ...[const SizedBox(height: 10), ...buildDoubleCompensationIndicator()],
+              report.buildTotalPointsIndicator(minimized: true),
+              if (report.maxFailingGrades > 0) ...[
+                Divider(height: 16, color: AppColors.tertiaryBackground.adaptTo(context)),
+                report.buildMaxFailingSubjectsIndicator(minimized: true),
+              ],
+              if (report.usingRestrictedGroup) ...[
+                Divider(height: 16, color: AppColors.tertiaryBackground.adaptTo(context)),
+                report.buildRestrictedGroupPointsIndicator(minimized: true),
+              ],
+              if (report.usingDoubleCompensation && !report.usingRestrictedGroup) ...[
+                Divider(height: 16, color: AppColors.tertiaryBackground.adaptTo(context)),
+                report.buildDoubleCompensationIndicator(minimized: true),
+              ],
             ],
           ),
         ),
@@ -327,7 +255,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Statistiques", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-        const SizedBox(height: 10),
+
         Expanded(
           child: GridView.count(
             padding: EdgeInsets.zero,
