@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     if (!context.mounted) return;
     Navigator.of(
       mountedContext,
-    ).push(CupertinoPageRoute(builder: (context) => RegistrationPage(passwordResetMode: true, registrationTokenOverride: registrationToken)));
+    ).push(CupertinoPageRoute(builder: (context) => RegistrationPage(isInPasswordResetMode: true, registrationTokenOverride: registrationToken)));
   }
 
   @override

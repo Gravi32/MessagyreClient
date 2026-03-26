@@ -14,10 +14,10 @@ import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class RegistrationPage extends StatefulWidget {
   final String? registrationTokenOverride;
-  final bool passwordResetMode;
+  final bool isInPasswordResetMode;
   final bool isResumingRegistration;
 
-  const RegistrationPage({super.key, this.passwordResetMode = false, this.isResumingRegistration = false, this.registrationTokenOverride});
+  const RegistrationPage({super.key, this.isInPasswordResetMode = false, this.isResumingRegistration = false, this.registrationTokenOverride});
 
   @override
   State<RegistrationPage> createState() => _RegistrationPageState();
@@ -281,7 +281,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ],
           ),
         ),
-        if (!widget.passwordResetMode)
+        if (!widget.isInPasswordResetMode)
           CupertinoButton(
             onPressed: isWaitingForResponse ? null : () => goToPage(0),
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -302,7 +302,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Text("Mot de passe", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent), textAlign: TextAlign.center),
         SizedBox(height: 12),
         CustomText(
-          "*Vérification réussite!*\n${widget.passwordResetMode ? "Entrez maintenant votre nouveau mot de passe. Ne l'oubliez pas cette fois !" : "Créez maintenant un mot de passe pour accéder à votre compte."}",
+          "*Vérification réussite!*\n${widget.isInPasswordResetMode ? "Entrez maintenant votre nouveau mot de passe. Ne l'oubliez pas cette fois !" : "Créez maintenant un mot de passe pour accéder à votre compte."}",
           style: TextStyle(fontSize: 16),
           textAlign: TextAlign.center,
         ),
@@ -360,7 +360,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
           onPressed: (isPasswordValid && isConfirmPasswordValid && !isWaitingForResponse) ? () => sendPassword() : null,
-          child: isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14) : Text("Créer le compte"),
+          child:
+              isWaitingForResponse
+                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+                  : Text(widget.isInPasswordResetMode ? "Accéder au compte" : "Créer le compte"),
         ),
 
         Spacer(flex: 3),
@@ -369,7 +372,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void askClosingConfirmation() {
-    if (currentPage == 0 || widget.passwordResetMode) {
+    if (currentPage == 0 || widget.isInPasswordResetMode) {
       // No need to ask if at page 1
       Navigator.pop(context);
       return;
@@ -403,7 +406,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void initState() {
     emailController.value = TextEditingValue(text: globals.persistent.getString("EmailAddress") ?? "");
 
-    if (widget.passwordResetMode || widget.isResumingRegistration) {
+    if (widget.isInPasswordResetMode || widget.isResumingRegistration) {
       setState(() => currentPage = globals.persistent.getInt("Page") ?? 1);
 
       startResendTimer();
@@ -423,7 +426,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: GestureDetector(child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01), onTap: () => askClosingConfirmation()),
-        middle: Text(widget.passwordResetMode ? "Changer de mot de passe" : "Création de compte"),
+        middle: Text(widget.isInPasswordResetMode ? "Changer de mot de passe" : "Création de compte"),
       ),
       child: SafeArea(
         minimum: EdgeInsets.all(10),
@@ -433,8 +436,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 20,
               children: [
-                if (!widget.passwordResetMode)
-                  currentPage == 0 ? CustomIcon(icon: HugeIcons.strokeRoundedMailAdd01) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+                if (!widget.isInPasswordResetMode)
+                  currentPage == 0
+                      ? CustomIcon(icon: HugeIcons.strokeRoundedMailAdd01)
+                      : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
                 currentPage == 1 ? CustomIcon(icon: HugeIcons.strokeRoundedSmsCode) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
                 currentPage == 2
                     ? CustomIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
@@ -447,7 +452,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 controller: pageController,
                 physics: NeverScrollableScrollPhysics(),
 
-                children: [if (!widget.passwordResetMode) emailPage(), codePage(), passwordPage()],
+                children: [if (!widget.isInPasswordResetMode) emailPage(), codePage(), passwordPage()],
               ),
             ),
           ],
