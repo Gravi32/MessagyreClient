@@ -304,14 +304,15 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 children: [
                   if (average < 3.75)
                     buildGoalBox(icon: CupertinoIcons.bandage, title: "pour avoir la moyenne", neededGrade: formatGrade(toPass), dim: toPass < 1 || toPass > 6),
-                  buildGoalBox(
-                    icon: CupertinoIcons.arrow_turn_right_up,
-                    title: "pour monter à",
-                    goalGrade: (average.roundToHalves() + .5).removeTrailingZero(),
-                    neededGrade: formatGrade(toBoost),
-                    gradeColor: getGradeColor(average + .5, greenOverride: widget.subject.color),
-                    dim: toBoost < 1 || toBoost > 6,
-                  ),
+                  if (average < 5.75)
+                    buildGoalBox(
+                      icon: CupertinoIcons.arrow_turn_right_up,
+                      title: "pour monter à",
+                      goalGrade: (average.roundToHalves() + .5).removeTrailingZero(),
+                      neededGrade: formatGrade(toBoost),
+                      gradeColor: getGradeColor(average + .5, greenOverride: widget.subject.color),
+                      dim: toBoost < 1 || toBoost > 6,
+                    ),
                   buildGoalBox(
                     icon: CupertinoIcons.minus,
                     title: "pour maintenir",
