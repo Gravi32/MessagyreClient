@@ -58,7 +58,7 @@ class _NewGradePageState extends State<NewGradePage> {
   bool isReferenceTileExpanded = false;
   bool isMissingTitle = false;
   bool isMissingSubject = false;
-  Assignment? referencedAssignment;
+  late Assignment? referencedAssignment = database.assignments.getAll().firstWhere((assignment) => assignment.referenceId == widget.toEdit?.referenceId);
   double? customWeight;
 
   void confirmGrade() async {
