@@ -45,9 +45,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   late var currentWallpaper = globals.persistent.getString("CurrentWallpaper");
 
   StreamSubscription? _keyboardVisibilitySub;
-  StreamSubscription? _messageReceivedSub;
-  StreamSubscription? _statusUpdateSub;
-  StreamSubscription? _messageDeletionSub;
 
   final chatScrollController = ScrollController();
   final messageFieldController = TextEditingController();
@@ -459,6 +456,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       }
     });
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      updateAllMessagesToRead();
+    });
+
     scrollDown();
 
     network.getAccount(widget.username).then((account) {
@@ -481,9 +482,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     chatScrollController.dispose();
 
     _keyboardVisibilitySub?.cancel();
-    _messageReceivedSub?.cancel();
-    _statusUpdateSub?.cancel();
-    _messageDeletionSub?.cancel();
 
     super.dispose();
   }
@@ -664,14 +662,11 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   Widget messageList() {
     return StreamBuilder(
-      stream: database.chats.watchAll(),
+      stream: database.chats.watchChat(widget.username),
       builder: (context, snapshot) {
         // Loading the new chat data
-        final latestChatData = database.chats.getByUsername(widget.username);
+        final latestChatData = snapshot.data;
         if (latestChatData != null) chatData = latestChatData;
-
-        // Clearing unread messages count if needed
-        updateAllMessagesToRead();
 
         return ListView.builder(
           controller: chatScrollController,

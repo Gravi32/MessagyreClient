@@ -49,6 +49,10 @@ class ChatRepository {
     return isar.chats.where().watch(fireImmediately: true);
   }
 
+  Stream<Chat?> watchChat(String username) {
+    return isar.chats.filter().usernameEqualTo(username).watch(fireImmediately: true).map((chats) => chats.isNotEmpty ? chats.first : null);
+  }
+
   Future<void> deleteChat(Chat? chat) async {
     if (chat == null) return;
     await isar.writeTxn(() async {
