@@ -66,11 +66,11 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     if (senderUsername != chatData.username) return;
 
     messagesIdToAnimate.add(newMessage.uuid);
-    network.sendMessageStatusUpdate([newMessage.uuid], chatData.username, MessageStatus.Read);
+    //TODO network.sendMessageAcknowledgement([newMessage.uuid], chatData.username, MessageStatus.Read);
     scrollDown();
   }
 
-  void messageStatusUpdateListener(String senderUsername, Message messageData) {
+  void messageAcknowledgementListener(String senderUsername, Message messageData) {
     if (senderUsername != chatData.username) return;
 
     final targetMessage = chatData.messages.firstWhere((message) => message.isOwned && message.uuid == messageData.uuid, orElse: () => Message.empty());
@@ -110,19 +110,22 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         content: input,
         sentAt: DateTime.now(),
         isOwned: true,
-        status: network.isConnected ? MessageStatus.Sent : MessageStatus.Failed,
+        status: network.isConnected ? MessageStatus.Sending : MessageStatus.Failed,
       );
 
       await database.chats.addMessage(chatData, message);
 
       messagesIdToAnimate.add(message.uuid);
 
-      network.send(message.uuid, widget.username, recipientPublicKey, input);
+      final sentSuccessfully = await network.send(message.uuid, widget.username, recipientPublicKey, input);
+      final messageInDatabase = database.messages.getByUuid(message.uuid);
+      if (messageInDatabase != null) {
+        messageInDatabase.status = sentSuccessfully ? MessageStatus.Sent : MessageStatus.Failed;
+        database.messages.save(messageInDatabase);
+      }
 
       if (!mounted) return;
-
       setState(() {});
-
       messageFieldController.clear();
       messageFieldFocusNode.requestFocus();
       scrollDown();
@@ -144,7 +147,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       }
     }
 
-    network.sendMessageStatusUpdate(justReadMessages, chatData.username, MessageStatus.Read);
+    //TODO network.sendMessageAcknowledgement(justReadMessages, chatData.username, MessageStatus.Read);
   }
 
   void showMessageContextMenu(BuildContext context, Message message) {
@@ -421,7 +424,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     }
 
     network.messageStreamController.stream.listen((record) => messagesListener(record.$1, record.$2));
-    network.messageStatusUpdateStreamController.stream.listen((record) => messagesListener(record.$1, record.$2));
+    //TODO network.messageAcknowledgementStreamController.stream.listen((record) => messagesListener(record.$1, record.$2));
     network.messageDeletionStreamController.stream.listen((record) => messagesListener(record.$1, record.$2));
 
     messageFieldController.addListener(() {

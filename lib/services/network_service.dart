@@ -39,8 +39,9 @@ class NetworkService {
 
   // Streams
   final messageStreamController = StreamController<(String sender, Message message)>.broadcast();
-  final messageStatusUpdateStreamController = StreamController<(String sender, Message message)>.broadcast();
   final messageDeletionStreamController = StreamController<(String sender, Message message)>.broadcast();
+
+  final _acknowledgementStreamController = StreamController<String>.broadcast();
 
   final connectionState = ValueNotifier(ConnectionState.NotConnected);
   int connectionAttempts = 0;
@@ -188,10 +189,10 @@ class NetworkService {
 
             if (receivedData is List) {
               for (var element in receivedData) {
-                _handleMessage(element);
+                _handleCommunication(element);
               }
             } else {
-              _handleMessage(receivedData);
+              _handleCommunication(receivedData);
             }
           } catch (e) {
             debugPrint("[WebSocket] An error occurred while decoding a message: $e. Message content: $message");
@@ -237,10 +238,19 @@ class NetworkService {
     }
   }
 
-  void send(String id, String recipientUsername, RSAPublicKey? recipientPublicKeyPem, String messageContent) {
-    if (!isConnected) return;
+  Future<bool> waitForServerAcknowledgement(String targetUuid) async {
+    try {
+      return await _acknowledgementStreamController.stream.any((uuid) => uuid == targetUuid).timeout(Duration(seconds: 10));
+    } catch (_) {
+      debugPrint("[WebSocket] Never received server acknowledgement for message UUID: $targetUuid");
+      return false;
+    }
+  }
 
-    Map<String, dynamic> payload = {"RequestType": "Message", "ID": id, "RecipientUsername": recipientUsername};
+  Future<bool> send(String messageUuid, String recipientUsername, RSAPublicKey? recipientPublicKeyPem, String messageContent) async {
+    if (!isConnected) return false;
+
+    Map<String, dynamic> payload = {"CommunicationType": "Message", "Uuid": messageUuid, "RecipientUsername": recipientUsername};
 
     if (recipientPublicKeyPem != null) {
       final aesKey = Key.fromSecureRandom(32); // 32 bytes = 256 bit
@@ -257,17 +267,23 @@ class NetworkService {
       final base64IV = base64.encode(iv.bytes);
       final base64EncryptedKey = base64.encode(encryptedKeyBytes);
 
-      payload.addAll({"CipherText": base64CipherText, "IV": base64IV, "EncryptedKey": base64EncryptedKey});
+      payload.addAll({"CipherText": base64CipherText, "Iv": base64IV, "EncryptedKey": base64EncryptedKey});
     } else {
       payload["Content"] = messageContent;
     }
 
     _channel?.sink.add(jsonEncode(payload));
+
+    final success = await waitForServerAcknowledgement(messageUuid);
+
+    return success;
   }
 
-  void _handleMessage(Map<String, dynamic> rawMessageData) async {
+  void _handleCommunication(Map<String, dynamic> jsonCommunicationData) async {
     // On message received
     void onMessageReceived(String senderUsername, Map<String, dynamic> messageData) {
+      _channel?.sink.add(jsonEncode({"CommunicationType:": "Acknowledgement", "Uuid": messageData["Uuid"]}));
+
       var receivedMessage = Message.fromMessageData(messageData);
       var targetChat = database.chats.getByUsername(senderUsername);
 
@@ -281,21 +297,6 @@ class NetworkService {
       database.chats.addMessage(targetChat, receivedMessage);
 
       messageStreamController.add((senderUsername, receivedMessage));
-    }
-
-    // On message status update received
-    void onMessageStatusUpdateReceived(String senderUsername, String uuid, MessageStatus status) {
-      final targetChat = database.chats.getByUsername(senderUsername);
-      if (targetChat == null) return;
-
-      final targetMessage = database.messages.getByUuid(uuid);
-      if (targetMessage == null) return;
-
-      targetMessage.status = status;
-
-      database.messages.save(targetMessage);
-
-      messageStatusUpdateStreamController.add((senderUsername, targetMessage));
     }
 
     // On message deletion received
@@ -314,64 +315,65 @@ class NetworkService {
     }
 
     try {
-      final sender = rawMessageData["SenderUsername"]?.toString();
-      final isMessageStatusUpdate = rawMessageData.containsKey("Status") && rawMessageData["Status"] != null;
-      final isMessageDeletion = rawMessageData.containsKey("Deletion") && rawMessageData["Deletion"] == true;
+      final String communicationType = jsonCommunicationData["CommunicationType"];
 
-      if (sender == null) throw FormatException("Missing SenderUsername");
-      if (globals.blockedUsers.contains(sender)) return;
+      switch (communicationType) {
+        case "Message":
+          final sender = jsonCommunicationData["SenderUsername"]?.toString();
+          final messageUuid = jsonCommunicationData["Uuid"]?.toString();
+          final rawSentAt = jsonCommunicationData["SentAt"]?.toString();
+          if (sender == null) throw FormatException("Missing SenderUsername");
+          if (rawSentAt == null) throw FormatException("Missing SentAt");
+          if (globals.blockedUsers.contains(sender)) return;
 
-      final messageId = rawMessageData["ID"]?.toString();
+          String content;
 
-      if (isMessageStatusUpdate) {
-        final status = MessageStatus.values.firstWhere((status) => status.name == rawMessageData["Status"]?.toString(), orElse: () => MessageStatus.Failed);
+          final hasCipherText = jsonCommunicationData.containsKey("CipherText") && jsonCommunicationData["CipherText"] != null;
+          final hasIV = jsonCommunicationData.containsKey("IV") && jsonCommunicationData["IV"] != null;
+          final hasEncryptedKey = jsonCommunicationData.containsKey("EncryptedKey") && jsonCommunicationData["EncryptedKey"] != null;
 
-        if (messageId == null) throw FormatException("Missing Message ID");
+          if (hasCipherText && hasIV && hasEncryptedKey) {
+            content = await encryption.decryptMessage(
+              jsonCommunicationData["CipherText"],
+              jsonCommunicationData["IV"],
+              jsonCommunicationData["EncryptedKey"] as String,
+            );
+          } else {
+            final plain = jsonCommunicationData["Content"]?.toString();
+            if (plain == null) throw FormatException("Missing Content");
+            content = plain;
+          }
 
-        onMessageStatusUpdateReceived(sender, messageId, status);
-      } else if (isMessageDeletion) {
-        if (messageId == null) throw FormatException("Missing Message ID");
+          final sentAt = DateTime.parse(rawSentAt).toLocal();
 
-        onMessageDeletionReceived(sender, messageId);
-      } else {
-        final rawSentAt = rawMessageData["SentAt"]?.toString();
-        if (rawSentAt == null) throw FormatException("Missing SentAt");
+          onMessageReceived(sender, {"ID": messageUuid ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt});
 
-        String content;
+          HapticFeedback.heavyImpact();
+          break;
 
-        final hasCipherText = rawMessageData.containsKey("CipherText") && rawMessageData["CipherText"] != null;
-        final hasIV = rawMessageData.containsKey("IV") && rawMessageData["IV"] != null;
-        final hasEncryptedKey = rawMessageData.containsKey("EncryptedKey") && rawMessageData["EncryptedKey"] != null;
+        case "Acknowledgement":
+          final messageUuid = jsonCommunicationData["Uuid"]?.toString();
+          if (messageUuid == null) throw FormatException("Missing Message Uuid");
+          _acknowledgementStreamController.add(messageUuid);
+          break;
 
-        if (hasCipherText && hasIV && hasEncryptedKey) {
-          content = await encryption.decryptMessage(rawMessageData["CipherText"], rawMessageData["IV"], rawMessageData["EncryptedKey"] as String);
-        } else {
-          final plain = rawMessageData["Content"]?.toString();
-          if (plain == null) throw FormatException("Missing Content");
-          content = plain;
-        }
-
-        final sentAt = DateTime.parse(rawSentAt).toLocal();
-
-        onMessageReceived(sender, {"ID": messageId ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt});
-
-        HapticFeedback.heavyImpact();
+        case "Deletion":
+          final sender = jsonCommunicationData["SenderUsername"]?.toString();
+          final messageUuids = jsonCommunicationData["Uuids"]?.toString();
+          if (sender == null) throw FormatException("Missing SenderUsername");
+          if (messageUuids == null) throw FormatException("Missing Message Uuids");
+          onMessageDeletionReceived(sender, messageUuids);
+          break;
       }
     } catch (e) {
       debugPrint("[WebSocket] Invalid message format: $e");
     }
   }
 
-  void sendMessageStatusUpdate(List<String> forMessageIds, String forUsername, MessageStatus status) {
+  void sendMessageDelete(List<String> forMessageUuids, String forUsername) {
     if (!isConnected) return;
 
-    _channel?.sink.add(jsonEncode({"RequestType": "StatusUpdate", "RecipientUsername": forUsername, "IDs": forMessageIds, "Status": status.name}));
-  }
-
-  void sendMessageDelete(List<String> forMessageIds, String forUsername) {
-    if (!isConnected) return;
-
-    _channel?.sink.add(jsonEncode({"RequestType": "Deletion", "RecipientUsername": forUsername, "IDs": forMessageIds}));
+    _channel?.sink.add(jsonEncode({"CommunicationType": "Deletion", "RecipientUsername": forUsername, "Uuids": forMessageUuids}));
   }
 
   void disconnect() {
