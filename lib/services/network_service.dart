@@ -17,6 +17,7 @@ import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
+import 'package:messagyre_client/utility/utility.dart';
 import 'package:pointycastle/export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -116,19 +117,7 @@ class NetworkService {
   }
 
   Future<void> connect() async {
-    if (isLoginPageOpen) {
-      debugPrint("[WebSocket] Tried to connect while on LoginPage.");
-      return;
-    }
-
-    if (isConnected) {
-      debugPrint("[WebSocket] Already connected, ignoring connect() call");
-      return;
-    }
-    if (_isConnecting) {
-      debugPrint("[WebSocket] Connection already in progress, ignoring connect() call");
-      return;
-    }
+    if (globals.token == null || isLoginPageOpen || isConnected || _isConnecting) return;
 
     if (!(connectionState.value == ConnectionState.NotConnected || connectionState.value == ConnectionState.WaitingToReconnect)) {
       debugPrint("[WebSocket] Invalid state for connection: ${connectionState.value}");
@@ -173,7 +162,7 @@ class NetworkService {
 
       final socket = await WebSocket.connect(
         getBackendUri(useWebsocket: true),
-        headers: {'Authorization': 'Bearer ${globals.token}'},
+        headers: {'Authorization': globals.token!},
       ).timeout(const Duration(seconds: 40));
 
       socket.done.catchError((e) {
@@ -228,8 +217,8 @@ class NetworkService {
       debugPrint("[WebSocket] Connected successfully!");
 
       uploadAppVersion();
-    } catch (e) {
-      debugPrint("[WebSocket] Connection FAILED: $e");
+    } catch (e, s) {
+      debugPrint("[WebSocket] Connection FAILED: $e, $s");
 
       connectionState.value = ConnectionState.NotConnected;
       _channel = null;
@@ -264,10 +253,10 @@ class NetworkService {
       final encryptedKeyBytes = rsaEncryptor.process(aesKey.bytes);
 
       final base64CipherText = encryptedMessage.base64;
-      final base64IV = base64.encode(iv.bytes);
+      final base64Iv = base64.encode(iv.bytes);
       final base64EncryptedKey = base64.encode(encryptedKeyBytes);
 
-      payload.addAll({"CipherText": base64CipherText, "Iv": base64IV, "EncryptedKey": base64EncryptedKey});
+      payload.addAll({"CipherText": base64CipherText, "Iv": base64Iv, "EncryptedKey": base64EncryptedKey});
     } else {
       payload["Content"] = messageContent;
     }
@@ -279,10 +268,10 @@ class NetworkService {
     return success;
   }
 
-  void _handleCommunication(Map<String, dynamic> jsonCommunicationData) async {
+  void _handleCommunication(Map<String, dynamic> communicationData) async {
     // On message received
     void onMessageReceived(String senderUsername, Map<String, dynamic> messageData) {
-      _channel?.sink.add(jsonEncode({"CommunicationType:": "Acknowledgement", "Uuid": messageData["Uuid"]}));
+      _channel?.sink.add(jsonEncode({"CommunicationType:": "Acknowledgement", "Uuid": messageData.tryGetValue("Uuid")}));
 
       var receivedMessage = Message.fromMessageData(messageData);
       var targetChat = database.chats.getByUsername(senderUsername);
@@ -315,31 +304,31 @@ class NetworkService {
     }
 
     try {
-      final String communicationType = jsonCommunicationData["CommunicationType"];
+      final String? communicationType = communicationData.tryGetValue("CommunicationType");
 
       switch (communicationType) {
         case "Message":
-          final sender = jsonCommunicationData["SenderUsername"]?.toString();
-          final messageUuid = jsonCommunicationData["Uuid"]?.toString();
-          final rawSentAt = jsonCommunicationData["SentAt"]?.toString();
+          final sender = communicationData.tryGetValue("SenderUsername")?.toString();
+          final messageUuid = communicationData.tryGetValue("Uuid")?.toString();
+          final rawSentAt = communicationData.tryGetValue("SentAt")?.toString();
           if (sender == null) throw FormatException("Missing SenderUsername");
           if (rawSentAt == null) throw FormatException("Missing SentAt");
           if (globals.blockedUsers.contains(sender)) return;
 
           String content;
 
-          final hasCipherText = jsonCommunicationData.containsKey("CipherText") && jsonCommunicationData["CipherText"] != null;
-          final hasIV = jsonCommunicationData.containsKey("IV") && jsonCommunicationData["IV"] != null;
-          final hasEncryptedKey = jsonCommunicationData.containsKey("EncryptedKey") && jsonCommunicationData["EncryptedKey"] != null;
+          final hasCipherText = communicationData.containsKey("CipherText") && communicationData.tryGetValue("CipherText") != null;
+          final hasIv = communicationData.containsKey("Iv") && communicationData.tryGetValue("Iv") != null;
+          final hasEncryptedKey = communicationData.containsKey("EncryptedKey") && communicationData.tryGetValue("EncryptedKey") != null;
 
-          if (hasCipherText && hasIV && hasEncryptedKey) {
+          if (hasCipherText && hasIv && hasEncryptedKey) {
             content = await encryption.decryptMessage(
-              jsonCommunicationData["CipherText"],
-              jsonCommunicationData["IV"],
-              jsonCommunicationData["EncryptedKey"] as String,
+              communicationData.tryGetValue("CipherText"),
+              communicationData.tryGetValue("Iv"),
+              communicationData.tryGetValue("EncryptedKey") as String,
             );
           } else {
-            final plain = jsonCommunicationData["Content"]?.toString();
+            final plain = communicationData.tryGetValue("Content")?.toString();
             if (plain == null) throw FormatException("Missing Content");
             content = plain;
           }
@@ -352,21 +341,21 @@ class NetworkService {
           break;
 
         case "Acknowledgement":
-          final messageUuid = jsonCommunicationData["Uuid"]?.toString();
+          final messageUuid = communicationData.tryGetValue("Uuid")?.toString();
           if (messageUuid == null) throw FormatException("Missing Message Uuid");
           _acknowledgementStreamController.add(messageUuid);
           break;
 
         case "Deletion":
-          final sender = jsonCommunicationData["SenderUsername"]?.toString();
-          final messageUuids = jsonCommunicationData["Uuids"]?.toString();
+          final sender = communicationData.tryGetValue("SenderUsername")?.toString();
+          final messageUuids = communicationData.tryGetValue("Uuids")?.toString();
           if (sender == null) throw FormatException("Missing SenderUsername");
           if (messageUuids == null) throw FormatException("Missing Message Uuids");
           onMessageDeletionReceived(sender, messageUuids);
           break;
       }
-    } catch (e) {
-      debugPrint("[WebSocket] Invalid message format: $e");
+    } catch (e, s) {
+      debugPrint("[WebSocket] Invalid message format: $e $s");
     }
   }
 
@@ -397,7 +386,7 @@ class NetworkService {
       final response = await http
           .post(
             getBackendUri(route: route),
-            headers: {"Content-Type": "application/json", if (globals.token != null) "Authorization": "Bearer ${globals.token!}"},
+            headers: {"Content-Type": "application/json", if (globals.token != null) "Authorization": globals.token!},
             body: jsonEncode(body),
           )
           .timeout(Duration(seconds: timeout));
@@ -417,7 +406,7 @@ class NetworkService {
       final response = await http
           .get(
             getBackendUri(route: route, forceLocalhost: forceLocalhost),
-            headers: {"Content-Type": "application/json", if (globals.token != null) "Authorization": "Bearer ${globals.token!}"},
+            headers: {"Content-Type": "application/json", if (globals.token != null) "Authorization": globals.token!},
           )
           .timeout(Duration(seconds: timeout));
 
@@ -434,10 +423,10 @@ class NetworkService {
   // HTTP Requests
 
   Future<bool> uploadProfile(String? displayName, Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
-    final uri = getBackendUri(route: "messagyre/Accounts/Me/UploadProfile");
+    final uri = getBackendUri(route: "/accounts/me/upload-profile");
     final request = http.MultipartRequest('POST', uri);
 
-    request.headers['Authorization'] = 'Bearer ${globals.token}';
+    request.headers['Authorization'] = globals.token!;
     request.fields['DisplayName'] = displayName ?? '';
     request.fields['Profile'] = jsonEncode(profileObject);
 
@@ -458,12 +447,14 @@ class NetworkService {
         return false;
       }
 
-      final responseJson = jsonDecode(responseBody);
-      final updatedPfpUrl = responseJson["ProfilePictureURL"];
+      // TODO Handle pfp uploading
 
-      if (updatedPfpUrl != null && updatedPfpUrl is String) {
-        globals.pfpNotifiersCache[globals.username]?.value = updatedPfpUrl;
-      }
+      // final responseJson = tryJsonDecode(responseBody) ?? [];
+      // final updatedPfpUrl = responseJson["ProfilePictureURL"];
+
+      // if (updatedPfpUrl != null && updatedPfpUrl is String) {
+      //   globals.pfpNotifiersCache[globals.username]?.value = updatedPfpUrl;
+      // }
 
       return true;
     } catch (e) {
@@ -535,7 +526,7 @@ class NetworkService {
   }
 
   Future<void> uploadAppVersion() async {
-    final response = await post("/accounts/me/upload-app-version", {"AppVersion": globals.appVersion});
+    final response = await post("/analytics/upload-app-version", {"AppVersion": globals.appVersion});
 
     if (response.statusCode != 200) {
       debugPrint("[Network] Uploading the app version failed. Server response: ${response.statusCode} ${response.body}");
@@ -556,16 +547,12 @@ class NetworkService {
   }
 
   Future<RSAPublicKey?> getPublicKey(String username) async {
-    final response = await get("/accounts/get-public-key?of=$username");
+    final response = await get("/accounts/get-public-key?username=$username");
 
     if (response.statusCode != 200 || response.body.isEmpty) return null;
 
-    try {
-      String pemKey = jsonDecode(response.body);
-      return CryptoUtils.rsaPublicKeyFromPem(pemKey);
-    } catch (e) {
-      return null;
-    }
+    String pemKey = jsonDecode(response.body);
+    return CryptoUtils.rsaPublicKeyFromPem(pemKey);
   }
 
   void logout() async {

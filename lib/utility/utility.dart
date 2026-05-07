@@ -369,6 +369,20 @@ dynamic tryJsonDecode(String source) {
 
 // #endregion
 
+// #region -> Map
+
+extension MapExtension on Map<String, dynamic> {
+  dynamic tryGetValue(String key) {
+    try {
+      return this[key];
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+// #endregion
+
 // #region -> Miscellaneous
 
 void restartApp(BuildContext context) {

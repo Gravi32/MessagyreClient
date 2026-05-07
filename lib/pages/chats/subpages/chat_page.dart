@@ -407,6 +407,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         .getPublicKey(widget.username)
         .then(
           (result) => setState(() {
+            print(result);
             recipientPublicKey = result;
             if (result == null) isEncryptionAvailable = false;
           }),
