@@ -10,6 +10,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -180,7 +181,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Spacer(),
-        Text("Adresse e-mail", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent), textAlign: TextAlign.center),
+        Text(
+          "Adresse e-mail",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent),
+          textAlign: TextAlign.center,
+        ),
         SizedBox(height: 12),
         Text("Veuillez entrer votre adresse e-mail officiel du gymnase.", textAlign: TextAlign.center),
         Spacer(),
@@ -216,10 +221,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
           onPressed: isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
-          child:
-              isWaitingForResponse
-                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-                  : Text("Envoyer le code de vérification"),
+          child: isWaitingForResponse
+              ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+              : Text("Envoyer le code de vérification"),
         ),
 
         Spacer(flex: 3),
@@ -233,7 +237,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Spacer(),
-        Text("Code de vérification", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent), textAlign: TextAlign.center),
+        Text(
+          "Code de vérification",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent),
+          textAlign: TextAlign.center,
+        ),
         SizedBox(height: 12),
         Text("Veuillez entrer le code envoyé à l'adresse '${emailController.text}@eduvaud.ch'", textAlign: TextAlign.center),
 
@@ -276,7 +284,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 6,
             children: [
-              Opacity(opacity: canResendCode ? 1 : .25, child: CustomIcon(icon: HugeIcons.strokeRoundedRefresh)),
+              Opacity(
+                opacity: canResendCode ? 1 : .25,
+                child: CustomIcon(icon: HugeIcons.strokeRoundedRefresh),
+              ),
               Text(canResendCode ? "Renvoyer le code" : "Renvoyer le code ${resendSecondsLeft}s"),
             ],
           ),
@@ -299,7 +310,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Spacer(),
-        Text("Mot de passe", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent), textAlign: TextAlign.center),
+        Text(
+          "Mot de passe",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent),
+          textAlign: TextAlign.center,
+        ),
         SizedBox(height: 12),
         CustomText(
           "*Vérification réussite!*\n${widget.isInPasswordResetMode ? "Entrez maintenant votre nouveau mot de passe. Ne l'oubliez pas cette fois !" : "Créez maintenant un mot de passe pour accéder à votre compte."}",
@@ -360,10 +375,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: EdgeInsets.symmetric(vertical: 12),
           minimumSize: Size.zero,
           onPressed: (isPasswordValid && isConfirmPasswordValid && !isWaitingForResponse) ? () => sendPassword() : null,
-          child:
-              isWaitingForResponse
-                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-                  : Text(widget.isInPasswordResetMode ? "Accéder au compte" : "Créer le compte"),
+          child: isWaitingForResponse
+              ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+              : Text(widget.isInPasswordResetMode ? "Accéder au compte" : "Créer le compte"),
         ),
 
         Spacer(flex: 3),
@@ -381,22 +395,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
     showCupertinoDialog(
       context: context,
       builder: (context) {
-        return CupertinoAlertDialog(
-          title: Text("Annuler la création du compte"),
-          content: Text("Voulez-vous vraiment annuler la création de votre compte? Cette action est irréversible."),
-          actions: [
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () {
-                Navigator.of(context)
-                  ..pop()
-                  ..pop();
-                clearRegistrationCache();
-              },
-              child: Text("Oui"),
-            ),
-            CupertinoDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text("Non")),
-          ],
+        return Dialog.confirm(
+          content: "Voulez-vous vraiment *annuler la création de votre compte*? Cette action est irréversible.",
+          isDestructive: true,
+          onConfirm: () {
+            clearRegistrationCache();
+            Navigator.pop(context);
+          },
         );
       },
     );
@@ -425,7 +430,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        leading: GestureDetector(child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01), onTap: () => askClosingConfirmation()),
+        leading: GestureDetector(
+          child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01),
+          onTap: () => askClosingConfirmation(),
+        ),
         middle: Text(widget.isInPasswordResetMode ? "Changer de mot de passe" : "Création de compte"),
       ),
       child: SafeArea(

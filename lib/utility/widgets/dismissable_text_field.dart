@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
+@Deprecated("Use 'Field' from 'utility/widgets/field.dart' instead.")
 class DismissableTextField extends StatefulWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;

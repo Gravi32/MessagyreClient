@@ -18,6 +18,9 @@ class AppColors {
   static const quaternaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.33), dark: Color.fromRGBO(255, 255, 255, 0.33));
   static const placeholderText = AppColor(light: Color.fromRGBO(60, 60, 67, .5), dark: Color.fromRGBO(142, 142, 147, 1.0));
 
+  // Buttons
+  static const secondaryButton = AppColor(light: Color.fromRGBO(192, 192, 197, 1.0), dark: Color.fromRGBO(54, 61, 78, 1.0));
+
   // Chat bubbles
   static const sentBubble = AppColor(light: Color.fromRGBO(216, 161, 255, 1.0), dark: Color.fromRGBO(156, 0, 179, 1.0));
   static const receivedBubble = AppColor(light: Color.fromRGBO(209, 209, 214, 1.0), dark: Color.fromRGBO(46, 46, 60, 1.0));

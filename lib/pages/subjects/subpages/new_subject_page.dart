@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Dialog;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -7,7 +7,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
-import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
@@ -306,13 +306,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   void showMissingInfoPopup() {
     showCupertinoDialog(
       context: context,
-      builder: (dialogContext) {
-        return CupertinoAlertDialog(
-          title: const Text("Nom manquant"),
-          content: const CustomText("Pour créer cette branche entrez un nom !", textAlign: TextAlign.center),
-          actions: [CupertinoDialogAction(child: const Text("OK"), onPressed: () => Navigator.pop(dialogContext))],
-        );
-      },
+      builder: (_) => Dialog(title: "Titre manquant", content: "*Entrez un titre* pour créer cette branche !"),
     );
   }
 
@@ -509,47 +503,36 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                   margin: const EdgeInsets.symmetric(horizontal: 10),
                   backgroundColor: AppColors.transparent,
                   header: const SizedBox.shrink(),
-                  footer:
-                      canBeDeleted
-                          ? null
-                          : Padding(
-                            padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
-                            child: Text(
-                              "Cette branche ne peut pas être supprimé car elle est utilisée par des notes ou des devoirs !",
-                              style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
-                            ),
+                  footer: canBeDeleted
+                      ? null
+                      : Padding(
+                          padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
+                          child: Text(
+                            "Cette branche ne peut pas être supprimé car elle est utilisée par des notes ou des devoirs !",
+                            style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
                           ),
+                        ),
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context)),
                       title: Text("Supprimer cette branche", style: TextStyle(color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context))),
 
-                      onTap:
-                          canBeDeleted
-                              ? () {
-                                showCupertinoDialog(
-                                  context: context,
-                                  builder:
-                                      (_) => CupertinoAlertDialog(
-                                        title: Text("Supprimer cette branche"),
-                                        content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
-                                        actions: [
-                                          CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                                          CupertinoDialogAction(
-                                            isDestructiveAction: true,
-                                            child: Text("Supprimer"),
-                                            onPressed: () {
-                                              database.subjects.delete(widget.toEdit!);
-                                              Navigator.of(context).pop();
-                                              Navigator.of(context).pop(widget.toEdit);
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                );
-                              }
-                              : null,
+                      onTap: canBeDeleted
+                          ? () {
+                              showCupertinoDialog(
+                                context: context,
+                                builder: (_) => Dialog.confirm(
+                                  content: "Êtes-vous sûr de vouloir *supprimer cette note* ?",
+                                  isDestructive: true,
+                                  onConfirm: () {
+                                    database.subjects.delete(widget.toEdit!);
+                                    Navigator.of(context).pop(widget.toEdit);
+                                  },
+                                ),
+                              );
+                            }
+                          : null,
                     ),
                   ],
                 ),

@@ -1,7 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' hide Dialog;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
@@ -12,6 +13,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/autocomplete_field.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
@@ -58,27 +60,15 @@ class _NewGradePageState extends State<NewGradePage> {
   bool isReferenceTileExpanded = false;
   bool isMissingTitle = false;
   bool isMissingSubject = false;
-  late Assignment? referencedAssignment = database.assignments.getAll().firstWhere((assignment) => assignment.referenceId == widget.toEdit?.referenceId);
+  late Assignment? referencedAssignment = database.assignments.getAll().firstWhereOrNull((assignment) => assignment.referenceId == widget.toEdit?.referenceId);
   double? customWeight;
 
   void confirmGrade() async {
     if (titleController.text.isEmpty) {
       showCupertinoDialog(
         context: context,
-        builder:
-            (dialogContext) => CupertinoAlertDialog(
-              title: Text("Titre requis"),
-              content: Text("Veuillez entrer un titre pour la note."),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("OK"),
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    setState(() => isMissingTitle = true);
-                  },
-                ),
-              ],
-            ),
+        builder: (_) =>
+            Dialog(title: "Titre requis", content: "Veuillez entrer un titre pour la note.", options: {"OK": () => setState(() => isMissingTitle = true)}),
       );
       return;
     }
@@ -86,20 +76,8 @@ class _NewGradePageState extends State<NewGradePage> {
     if (subject == null) {
       showCupertinoDialog(
         context: context,
-        builder:
-            (dialogContext) => CupertinoAlertDialog(
-              title: Text("Branche requise"),
-              content: Text("Veuillez entrer la branche de la note."),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("OK"),
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    setState(() => isMissingSubject = true);
-                  },
-                ),
-              ],
-            ),
+        builder: (_) =>
+            Dialog(title: "Branche requise", content: "Veuillez entrer la branche de la note.", options: {"OK": () => setState(() => isMissingSubject = true)}),
       );
       return;
     }
@@ -246,10 +224,9 @@ class _NewGradePageState extends State<NewGradePage> {
                               fontWeight: FontWeight.w500,
                             ),
                             forceValid: false,
-                            suffix:
-                                isMissingTitle
-                                    ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                                    : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
+                            suffix: isMissingTitle
+                                ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                                : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
 
                             suffixMode: OverlayVisibilityMode.notEditing,
                             style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
@@ -338,7 +315,9 @@ class _NewGradePageState extends State<NewGradePage> {
                             spacing: 6,
                             children: [
                               CustomIcon(icon: HugeIcons.strokeRoundedLink04, size: 18, color: AppColors.secondaryText.adaptTo(context)),
-                              Expanded(child: Text("Cette note est associée à un devoir.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))),
+                              Expanded(
+                                child: Text("Cette note est associée à un devoir.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                              ),
                               CustomIcon(
                                 icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                                 color: AppColors.secondaryText.adaptTo(context),
@@ -356,7 +335,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             child: CupertinoListSection.insetGrouped(
                               margin: EdgeInsets.zero,
                               backgroundColor: AppColors.transparent,
-                              children: [AssignmentTile(assignment: referencedAssignment!)],
+                              children: [AssignmentTile(assignment: referencedAssignment!, ignoreTouch: true)],
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -371,28 +350,17 @@ class _NewGradePageState extends State<NewGradePage> {
                             onTap: () {
                               showCupertinoDialog(
                                 context: context,
-                                builder:
-                                    (dialogContext) => CupertinoAlertDialog(
-                                      title: Text("Dissocier la note ?"),
-                                      content: Text(
-                                        "Vous pourrez la réassocier en changeant le titre à \"${referencedAssignment?.content}\" et en appuyant sur le résultat.",
-                                      ),
-                                      actions: [
-                                        CupertinoActionSheetAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Non")),
-                                        CupertinoActionSheetAction(
-                                          onPressed: () {
-                                            setState(() {
-                                              referenceId = null;
-                                              isReferenceTileExpanded = false;
-                                            });
-                                            referencedAssignment = null;
-                                            Navigator.pop(dialogContext);
-                                          },
-                                          isDestructiveAction: true,
-                                          child: Text("Oui"),
-                                        ),
-                                      ],
-                                    ),
+                                builder: (_) => Dialog.confirm(
+                                  content: "Dissocier la note du test ?\nVous pourrez la réassocier plus tard.",
+                                  onConfirm: () {
+                                    setState(() {
+                                      referenceId = null;
+                                      isReferenceTileExpanded = false;
+                                    });
+                                    referencedAssignment = null;
+                                  },
+                                  isDestructive: true,
+                                ),
                               );
                             },
                             child: Row(
@@ -449,115 +417,87 @@ class _NewGradePageState extends State<NewGradePage> {
                       AnimatedSize(
                         duration: Duration(milliseconds: 250),
                         curve: Curves.easeInOut,
-                        child:
-                            isValuePickerExpanded
-                                ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      padding: EdgeInsets.symmetric(vertical: 6),
+                        child: isValuePickerExpanded
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: EdgeInsets.symmetric(vertical: 6),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      spacing: 6,
+                                      children: [
+                                        for (var value = 0.05; value < 1.0; value += 0.05)
+                                          if (!fractions.keys.contains(value))
+                                            WeightButton(
+                                              value: value,
+                                              selectedWeight: weight,
+                                              label: "${(value * 100).round()}%",
+                                              onTap: () {
+                                                setState(() => weight = value);
+                                                HapticFeedback.selectionClick();
+                                              },
+                                            ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  GestureDetector(
+                                    onTap: () => showCupertinoDialog(
+                                      context: context,
+                                      builder: (_) {
+                                        final controller = TextEditingController(text: customWeight?.removeTrailingZero());
+                                        return Dialog.entry(
+                                          title: "Valeur personnalisée",
+                                          placeholder: "x${weight.toStringAsFixed(2)}",
+                                          controller: controller,
+                                          keyboardType: .number,
+                                          onConfirm: () {
+                                            final newValue = double.tryParse(controller.text.trim().replaceAll(',', '.'));
+
+                                            setState(() {
+                                              customWeight = newValue;
+                                              weight = newValue ?? 1;
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.only(left: 16, top: 12, bottom: 12, right: 6),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.grey.withAlpha((weight == customWeight ? .1 : .05).toByte()),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        spacing: 6,
+                                        spacing: 10,
                                         children: [
-                                          for (var value = 0.05; value < 1.0; value += 0.05)
-                                            if (!fractions.keys.contains(value))
-                                              WeightButton(
-                                                value: value,
-                                                selectedWeight: weight,
-                                                label: "${(value * 100).round()}%",
-                                                onTap: () {
-                                                  setState(() => weight = value);
-                                                  HapticFeedback.selectionClick();
-                                                },
-                                              ),
+                                          Text(
+                                            "Valeur personnalisée",
+                                            style: TextStyle(
+                                              color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
+                                            ),
+                                          ),
+                                          Spacer(),
+
+                                          Text(
+                                            customWeight == null ? "Ajouter" : "x${customWeight?.removeTrailingZero()}",
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
+                                            ),
+                                          ),
+                                          CupertinoListTileChevron(),
                                         ],
                                       ),
                                     ),
-
-                                    GestureDetector(
-                                      onTap:
-                                          () => showCupertinoDialog(
-                                            context: context,
-                                            builder: (dialogContext) {
-                                              final controller = TextEditingController(text: customWeight?.removeTrailingZero());
-                                              return CupertinoAlertDialog(
-                                                title: Text("Valeur personnalisée"),
-                                                content: Column(
-                                                  children: [
-                                                    SizedBox(height: 10),
-                                                    DismissableTextField(
-                                                      keyboardType: TextInputType.number,
-                                                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                                      decoration: BoxDecoration(
-                                                        color: AppColors.grey.withAlpha(.1.toByte()),
-                                                        borderRadius: BorderRadius.circular(12),
-                                                      ),
-                                                      style: TextStyle(fontSize: 22),
-                                                      textAlign: TextAlign.center,
-                                                      controller: controller,
-                                                      placeholder: "Valeur",
-                                                    ),
-                                                  ],
-                                                ),
-                                                actions: [
-                                                  CupertinoDialogAction(
-                                                    child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                                                    onPressed: () => Navigator.pop(dialogContext),
-                                                  ),
-                                                  CupertinoDialogAction(
-                                                    isDefaultAction: true,
-                                                    child: Text("Confirmer", style: TextStyle(color: AppColors.accent)),
-                                                    onPressed: () {
-                                                      final newValue = double.tryParse(controller.text.trim().replaceAll(',', '.'));
-
-                                                      setState(() {
-                                                        customWeight = newValue;
-                                                        weight = newValue ?? 1;
-                                                      });
-
-                                                      Navigator.pop(dialogContext);
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.only(left: 16, top: 12, bottom: 12, right: 6),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.grey.withAlpha((weight == customWeight ? .1 : .05).toByte()),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
-                                          spacing: 10,
-                                          children: [
-                                            Text(
-                                              "Valeur personnalisée",
-                                              style: TextStyle(
-                                                color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
-                                              ),
-                                            ),
-                                            Spacer(),
-
-                                            Text(
-                                              customWeight == null ? "Ajouter" : "x${customWeight?.removeTrailingZero()}",
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
-                                              ),
-                                            ),
-                                            CupertinoListTileChevron(),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                                : SizedBox.shrink(),
+                                  ),
+                                ],
+                              )
+                            : SizedBox.shrink(),
                       ),
 
                       GestureDetector(
@@ -589,19 +529,18 @@ class _NewGradePageState extends State<NewGradePage> {
                   header: Text("Branche", style: referenceId == null ? null : TextStyle(color: AppColors.inactive.adaptTo(context))),
                   footer: Padding(
                     padding: EdgeInsetsGeometry.only(top: 6),
-                    child:
-                        referenceId != null
-                            ? Text(
-                              "La branche ne peut pas etre changé parce que cette note est associé à un devoir.",
-                              style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                            )
-                            : Text(
-                              "Merci de remplir les champs obligatoires *",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: titleController.text.isNotEmpty && subject != null ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow,
-                              ),
+                    child: referenceId != null
+                        ? Text(
+                            "La branche ne peut pas etre changé parce que cette note est associé à un devoir.",
+                            style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                          )
+                        : Text(
+                            "Merci de remplir les champs obligatoires *",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: titleController.text.isNotEmpty && subject != null ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow,
                             ),
+                          ),
                   ),
                   margin: EdgeInsets.zero,
                   children: [
@@ -609,10 +548,9 @@ class _NewGradePageState extends State<NewGradePage> {
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       onTap: () => subjectFocusNode.requestFocus(),
                       leading: CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
-                      trailing:
-                          isMissingSubject
-                              ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                              : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
+                      trailing: isMissingSubject
+                          ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                          : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
                       title: SubjectAutocomplete(
                         controller: subjectController,
                         focusNode: subjectFocusNode,
@@ -639,16 +577,15 @@ class _NewGradePageState extends State<NewGradePage> {
                     backgroundColor: AppColors.transparent,
                     header: Text("Groupe"),
                     margin: EdgeInsets.zero,
-                    footer:
-                        isInGroup
-                            ? null
-                            : Padding(
-                              padding: EdgeInsetsGeometry.only(top: 6),
-                              child: Text(
-                                "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
-                                style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                              ),
+                    footer: isInGroup
+                        ? null
+                        : Padding(
+                            padding: EdgeInsetsGeometry.only(top: 6),
+                            child: Text(
+                              "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
+                              style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
                             ),
+                          ),
                     children: [
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -679,10 +616,9 @@ class _NewGradePageState extends State<NewGradePage> {
                           backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                           leading: groupName == existingGroupName ? CustomIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
                           title: Text(existingGroupName, style: TextStyle(fontWeight: FontWeight.w600)),
-                          onTap:
-                              () => setState(() {
-                                groupName = existingGroupName;
-                              }),
+                          onTap: () => setState(() {
+                            groupName = existingGroupName;
+                          }),
                         );
                       }),
                       CupertinoListTile(
@@ -692,47 +628,22 @@ class _NewGradePageState extends State<NewGradePage> {
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
-                            builder: (dialogContext) {
+                            builder: (_) {
                               final controller = TextEditingController();
-                              return CupertinoAlertDialog(
-                                title: Row(
-                                  spacing: 8,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [CustomIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.accent), Text("Nouveau groupe")],
-                                ),
-                                content: Column(
-                                  children: [
-                                    SizedBox(height: 10),
-                                    SizedBox(
-                                      height: 40,
-                                      child: DismissableTextField(
-                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                        decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
-                                        controller: controller,
-                                        placeholder: "Nom du groupe",
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  CupertinoDialogAction(
-                                    child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                                    onPressed: () => Navigator.pop(dialogContext),
-                                  ),
-                                  CupertinoDialogAction(
-                                    isDefaultAction: true,
-                                    child: Text("Ajouter", style: TextStyle(color: AppColors.accent)),
-                                    onPressed: () {
-                                      final newName = controller.text.trim();
-                                      try {
-                                        if (newName.isNotEmpty) setState(() => groupName = newName);
-                                      } catch (e) {
-                                        debugPrint("Error adding group: $e");
-                                      }
-                                      Navigator.pop(dialogContext);
-                                    },
-                                  ),
-                                ],
+
+                              return Dialog.entry(
+                                title: "Nouveau groupe",
+                                placeholder: "Nom du groupe (TP, Vocs, ...)",
+                                controller: controller,
+                                maxLines: 1,
+                                onConfirm: () {
+                                  final newName = controller.text.trim();
+                                  try {
+                                    if (newName.isNotEmpty) setState(() => groupName = newName);
+                                  } catch (e) {
+                                    debugPrint("Error adding group: $e");
+                                  }
+                                },
                               );
                             },
                           );
@@ -823,24 +734,15 @@ class _NewGradePageState extends State<NewGradePage> {
                         onTap: () {
                           showCupertinoDialog(
                             context: context,
-                            builder:
-                                (_) => CupertinoAlertDialog(
-                                  title: Text("Supprimer la note"),
-                                  content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
-                                  actions: [
-                                    CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                                    CupertinoDialogAction(
-                                      isDestructiveAction: true,
-                                      child: Text("Supprimer"),
-                                      onPressed: () {
-                                        allGrades.remove(widget.toEdit);
-                                        database.grades.delete(widget.toEdit!);
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop(widget.toEdit);
-                                      },
-                                    ),
-                                  ],
-                                ),
+                            builder: (_) => Dialog.confirm(
+                              content: "Êtes-vous sûr de vouloir supprimer cette note ?",
+                              onConfirm: () {
+                                allGrades.remove(widget.toEdit);
+                                database.grades.delete(widget.toEdit!);
+                                Navigator.of(context).pop(widget.toEdit);
+                              },
+                              isDestructive: true,
+                            ),
                           );
                         },
                       ),

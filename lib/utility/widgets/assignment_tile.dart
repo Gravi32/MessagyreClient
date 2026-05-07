@@ -13,8 +13,9 @@ class AssignmentTile extends StatefulWidget {
   final Assignment assignment;
   final bool showDate;
   final bool dim;
+  final bool ignoreTouch;
 
-  const AssignmentTile({super.key, required this.assignment, this.showDate = true, this.dim = false});
+  const AssignmentTile({super.key, required this.assignment, this.showDate = true, this.dim = false, this.ignoreTouch = false});
 
   @override
   State<AssignmentTile> createState() => _AssignmentTileState();
@@ -61,7 +62,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
       key: ValueKey(assignment.id),
       backgroundColor: Color.lerp(AppColors.secondaryBackground.adaptTo(context), AppColors.background.adaptTo(context), widget.dim ? .4 : 0),
       padding: const EdgeInsets.all(10),
-      trailing: CustomIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.grey),
+      trailing: widget.ignoreTouch ? null : CustomIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.grey),
       title: Row(
         spacing: 16,
         children: [
@@ -69,7 +70,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
             SizedBox(
               height: 30,
               child: GestureDetector(
-                onTap: toggleDone,
+                onTap: widget.ignoreTouch ? null : toggleDone,
                 child: CustomIcon(
                   icon: isDone ? HugeIcons.strokeRoundedCheckmarkSquare04 : HugeIcons.strokeRoundedSquare,
                   size: 30,
@@ -97,7 +98,10 @@ class _AssignmentTileState extends State<AssignmentTile> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           padding: EdgeInsets.all(2),
-                          child: Text("TEST", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
+                          child: Text(
+                            "TEST",
+                            style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white),
+                          ),
                         ),
 
                       // Leave tag
@@ -109,7 +113,10 @@ class _AssignmentTileState extends State<AssignmentTile> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           padding: EdgeInsets.all(2),
-                          child: Text("CONGÉ", style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white)),
+                          child: Text(
+                            "CONGÉ",
+                            style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white),
+                          ),
                         ),
 
                       // Title
@@ -169,7 +176,9 @@ class _AssignmentTileState extends State<AssignmentTile> {
           ),
         ],
       ),
-      onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false)),
+      onTap: widget.ignoreTouch
+          ? null
+          : () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false)),
     );
   }
 }

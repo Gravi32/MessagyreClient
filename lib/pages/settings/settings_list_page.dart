@@ -18,7 +18,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
@@ -55,22 +55,10 @@ class _SettingsListPageState extends State<SettingsListPage> {
   void showLogoutDialog(BuildContext context, VoidCallback onLogoutConfirmed) {
     showCupertinoDialog(
       context: context,
-      builder:
-          (context) => CupertinoAlertDialog(
-            title: Text("Déconnexion"),
-            content: Text("Voulez-vous vraiment vous déconnecter ?\n\nVous serez redirigé vers la page de connexion."),
-            actions: [
-              CupertinoDialogAction(child: Text("Annuler", style: TextStyle(color: AppColors.accent)), onPressed: () => Navigator.of(context).pop()),
-              CupertinoDialogAction(
-                isDestructiveAction: true,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  onLogoutConfirmed();
-                },
-                child: Text("Oui"),
-              ),
-            ],
-          ),
+      builder: (context) => Dialog.confirm(
+        content: "Voulez-vous vraiment *vous déconnecter* ?\nVous serez redirigé vers la page de connexion.",
+        onConfirm: onLogoutConfirmed,
+      ),
     );
   }
 
@@ -104,58 +92,57 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 children: [
                   (account == null || globals.username == null)
                       ? CupertinoListTile(
-                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                        title: SizedBox(
-                          height: 39,
-                          child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
-                        ),
-                      )
-                      : CupertinoListTile(
-                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                        onTap: () async {
-                          if (account!.username != globals.username) await getAccount();
-
-                          if (!context.mounted) return;
-
-                          Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
-                            if (updated) getAccount();
-                          });
-                        },
-                        title: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 80),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      account!.displayName ?? account!.defaultDisplayName,
-                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(globals.username!, style: TextStyle(color: CupertinoColors.systemGrey.resolveFrom(context), fontSize: 16)),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                          title: SizedBox(
+                            height: 39,
+                            child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
                           ),
+                        )
+                      : CupertinoListTile(
+                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
+                          onTap: () async {
+                            if (account!.username != globals.username) await getAccount();
+
+                            if (!context.mounted) return;
+
+                            Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
+                              if (updated) getAccount();
+                            });
+                          },
+                          title: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 80),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        account!.displayName ?? account!.defaultDisplayName,
+                                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(globals.username!, style: TextStyle(color: CupertinoColors.systemGrey.resolveFrom(context), fontSize: 16)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          trailing: CupertinoListTileChevron(),
                         ),
-                        trailing: CupertinoListTileChevron(),
-                      ),
 
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    onTap:
-                        () => showLogoutDialog(context, () {
-                          account = null;
-                          network.logout();
-                          restartApp(context);
-                        }),
+                    onTap: () => showLogoutDialog(context, () {
+                      account = null;
+                      network.logout();
+                      restartApp(context);
+                    }),
                     leading: CustomIcon(icon: HugeIcons.strokeRoundedLogoutSquare02),
                     title: Text("Se déconnecter"),
                   ),
@@ -232,114 +219,70 @@ class _SettingsListPageState extends State<SettingsListPage> {
                     onTap: () async {
                       showCupertinoDialog(
                         context: context,
-                        builder:
-                            (dialogContext) => CupertinoAlertDialog(
-                              title: Text("Exporter en local ?"),
-                              content: Text(
-                                "Messagyre copiera vos notes et vos devoirs dans un nouveau fichier que vous pourrez utiliser pour passer les données sur un autre dispositif.",
+                        builder: (_) => Dialog.confirm(
+                          content: "Messagyre copiera vos données dans un fichier externe que vous pourrez exporter.",
+                          onConfirm: () async {
+                            setState(() => isCreatingBackup = true);
+
+                            await database.saveBackup();
+                            await Future.delayed(Duration(seconds: 5));
+
+                            setState(() => isCreatingBackup = false);
+
+                            if (!context.mounted) return;
+
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (_) => Dialog(
+                                title: "Exportation terminée",
+                                content:
+                                    "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour transférer vos donnés sur un autre dispositif.",
                               ),
-                              actions: [
-                                CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(dialogContext)),
-                                CupertinoDialogAction(
-                                  isDefaultAction: true,
-                                  child: Text("Continuer"),
-                                  onPressed: () async {
-                                    Navigator.pop(dialogContext);
-                                    setState(() => isCreatingBackup = true);
-
-                                    database.saveBackup();
-                                    await Future.delayed(Duration(seconds: 5));
-
-                                    setState(() => isCreatingBackup = false);
-
-                                    if (!context.mounted) return;
-
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder:
-                                          (ctx) => CupertinoAlertDialog(
-                                            title: Text("Exportation terminée"),
-                                            content: Text(
-                                              "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour passer vos donnés sur un autre dispositif.",
-                                            ),
-                                            actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
-                                          ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
+                            );
+                          },
+                        ),
                       );
                     },
                     leading: isCreatingBackup ? null : CustomIcon(icon: HugeIcons.strokeRoundedUploadSquare02),
-                    title:
-                        isCreatingBackup
-                            ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              spacing: 6,
-                              children: [
-                                LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
-                                Text("Exportation en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                              ],
-                            )
-                            : Text("Exporter les données"),
+                    title: isCreatingBackup
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 6,
+                            children: [
+                              LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+                              Text("Exportation en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                            ],
+                          )
+                        : Text("Exporter les données"),
                   ),
 
                   CupertinoListTile(
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     onTap: () async {
-                      final confirm = await showCupertinoDialog<bool>(
+                      showCupertinoDialog(
                         context: context,
-                        builder:
-                            (ctx) => CupertinoAlertDialog(
-                              title: Text("Confirmer l'importation"),
-                              content: Text(
-                                "L'importation de nouvelles données va remplacer vos données actuelles. "
-                                "Voulez-vous continuer ?",
-                              ),
-                              actions: [
-                                CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(ctx, false)),
-                                CupertinoDialogAction(isDestructiveAction: true, child: Text("Continuer"), onPressed: () => Navigator.pop(ctx, true)),
-                              ],
-                            ),
-                      );
+                        builder: (_) => Dialog.confirm(
+                          content: "L'importation de nouvelles données va *remplacer* vos données actuelles.",
+                          onConfirm: () async {
+                            try {
+                              await database.loadBackup();
 
-                      if (confirm != true) return;
-
-                      try {
-                        await database.loadBackup();
-
-                        if (!context.mounted) return;
-                        showCupertinoDialog(
-                          context: context,
-                          builder:
-                              (ctx) => CupertinoAlertDialog(
-                                title: Text("Importation terminée"),
-                                content: Text(
-                                  "Les données ont été importées avec succès.\n\nPour qu'elles s'appliquent il est nécessaire de redémarrer Messagyre !",
+                              if (!context.mounted) return;
+                              showCupertinoDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  title: "Importation terminée",
+                                  content:
+                                      "Les données ont été *importées avec succès*.\n\nPour qu'elles s'appliquent il est nécessaire de *redémarrer Messagyre* !",
                                 ),
-                                actions: [
-                                  CupertinoDialogAction(
-                                    child: Text("Ok"),
-                                    onPressed: () {
-                                      Navigator.pop(ctx);
-                                    },
-                                  ),
-                                ],
-                              ),
-                        );
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        showCupertinoDialog(
-                          context: context,
-                          builder:
-                              (ctx) => CupertinoAlertDialog(
-                                title: Text("Erreur"),
-                                content: Text("Impossible d'importer les données :\n$e"),
-                                actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.pop(ctx))],
-                              ),
-                        );
-                      }
+                              );
+                            } catch (e) {
+                              showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
+                            }
+                          },
+                          isDestructive: true,
+                        ),
+                      );
                     },
                     leading: CustomIcon(icon: HugeIcons.strokeRoundedDownloadSquare02),
                     title: Text("Importer des données"),
@@ -394,41 +337,14 @@ class _SettingsListPageState extends State<SettingsListPage> {
                       try {
                         showCupertinoDialog(
                           context: context,
-                          builder:
-                              (dialogContext) => CupertinoAlertDialog(
-                                title: Text("Contacter le support"),
-                                content: CustomText(
-                                  "Si vous avez la moindre question concernant Messagyre, vous pouvez écrire à *Support Messagyre*.\n\nVous recevrez une réponse sous *48 heures*.",
-                                ),
-                                actions: [
-                                  CupertinoDialogAction(onPressed: () => Navigator.pop(dialogContext), child: Text("Annuler")),
-                                  CupertinoDialogAction(
-                                    onPressed: () {
-                                      Navigator.pop(dialogContext);
-                                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(username: "support.messagyre")));
-                                    },
-                                    isDefaultAction: true,
-                                    child: Text("Continuer"),
-                                  ),
-                                ],
-                              ),
+                          builder: (_) => Dialog.confirm(
+                            content:
+                                "Si vous avez la moindre question concernant Messagyre, vous pouvez écrire à *Support Messagyre*.\n\nVous recevrez une réponse sous *48 heures*.",
+                            onConfirm: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(username: "support.messagyre"))),
+                          ),
                         );
-                      } catch (e, s) {
-                        debugPrint("[ERROR] Support page opening failed: $e. Stacktrace: $s");
-
-                        showCupertinoDialog(
-                          context: context,
-                          builder:
-                              (dialogContext) => CupertinoAlertDialog(
-                                title: Text("Erreur !"),
-                                content: Text(
-                                  "Une erreur est survenue pendant l'ouverture de la conversation avec le support. Vous trouverez ce qui s'est passé dans la page de débogage.",
-                                ),
-                                actions: [
-                                  CupertinoDialogAction(onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst), child: Text("Fermer")),
-                                ],
-                              ),
-                        );
+                      } catch (e) {
+                        showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
                       }
                     },
                     leading: CustomIcon(icon: HugeIcons.strokeRoundedComment01),

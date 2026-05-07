@@ -8,6 +8,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
@@ -22,7 +23,9 @@ class SubjectCard extends StatelessWidget {
   void pushPage(BuildContext context, Subject pageSubject, {BuildContext? dialogContext}) {
     if (dialogContext != null && dialogContext.mounted) Navigator.pop(dialogContext);
     Navigator.of(context, rootNavigator: true).push(
-      CupertinoPageRoute(builder: (builder) => GradesSubjectPage(subject: pageSubject, wasPushedFromGradesBySubjectPage: wasPushedFromGradesBySubjectPage)),
+      CupertinoPageRoute(
+        builder: (builder) => GradesSubjectPage(subject: pageSubject, wasPushedFromGradesBySubjectPage: wasPushedFromGradesBySubjectPage),
+      ),
     );
   }
 
@@ -53,15 +56,11 @@ class SubjectCard extends StatelessWidget {
           if (isSubjectLocked) {
             showCupertinoDialog(
               context: context,
-              builder:
-                  (context) => CupertinoAlertDialog(
-                    title: Text("Branche bloquée"),
-                    content: CustomText(
-                      "Cette branche est *bloquée à ${subject!.lockedGrade?.removeTrailingZero() ?? 4}*,\npour la débloquer ou changer la note: *Réglages > Branches*.",
-                      textAlign: TextAlign.center,
-                    ),
-                    actions: [CupertinoDialogAction(child: Text("Fermer"), onPressed: () => Navigator.pop(context))],
-                  ),
+              builder: (_) => Dialog(
+                title: "Branche bloquée",
+                content:
+                    "Cette branche est *bloquée à ${subject!.lockedGrade?.removeTrailingZero() ?? 4}*,\npour la débloquer ou changer la note: *Réglages > Branches*.",
+              ),
             );
             return;
           }
@@ -81,59 +80,64 @@ class SubjectCard extends StatelessWidget {
 
             showCupertinoModalPopup(
               context: context,
-              builder:
-                  (dialogContext) => CupertinoActionSheet(
-                    actions: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 10,
+              builder: (dialogContext) => CupertinoActionSheet(
+                actions: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 10,
+                      children: [
+                        Row(
+                          spacing: 6,
                           children: [
-                            Row(
-                              spacing: 6,
-                              children: [
-                                CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
-                                Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
-                                Spacer(),
-                                CustomIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
-                              ],
-                            ),
+                            CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
+                            Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
+                            Spacer(),
+                            CustomIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
+                          ],
+                        ),
 
-                            CustomText(
-                              "\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.",
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            Text("Appuyez pour voir les notes de :", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                          ],
+                        CustomText(
+                          "\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.",
+                          style: TextStyle(fontSize: 16),
                         ),
-                      ),
-                      CupertinoActionSheetAction(
-                        onPressed: () => pushPage(context, firstSubject, dialogContext: dialogContext),
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SubjectBadge(subject: firstSubject)),
-                            Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-                            Spacer(),
-                            CupertinoListTileChevron(),
-                          ],
-                        ),
-                      ),
-                      CupertinoActionSheetAction(
-                        onPressed: () => pushPage(context, secondSubject, dialogContext: dialogContext),
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SubjectBadge(subject: secondSubject)),
-                            Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-                            Spacer(),
-                            CupertinoListTileChevron(),
-                          ],
-                        ),
-                      ),
-                    ],
+                        Text("Appuyez pour voir les notes de :", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                      ],
+                    ),
                   ),
+                  CupertinoActionSheetAction(
+                    onPressed: () => pushPage(context, firstSubject, dialogContext: dialogContext),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: SubjectBadge(subject: firstSubject),
+                        ),
+                        Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
+                        Spacer(),
+                        CupertinoListTileChevron(),
+                      ],
+                    ),
+                  ),
+                  CupertinoActionSheetAction(
+                    onPressed: () => pushPage(context, secondSubject, dialogContext: dialogContext),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: SubjectBadge(subject: secondSubject),
+                        ),
+                        Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
+                        Spacer(),
+                        CupertinoListTileChevron(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           }
         },
@@ -182,7 +186,11 @@ class SubjectCard extends StatelessWidget {
 
                     if (isSubjectLocked) Icon(CupertinoIcons.lock_fill, size: 18, applyTextScaling: true, color: AppColors.text.adaptTo(context)),
                     if (compositeSubject != null)
-                      CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: MediaQuery.textScalerOf(context).scale(18), color: AppColors.text.adaptTo(context)),
+                      CustomIcon(
+                        icon: HugeIcons.strokeRoundedNodeAdd,
+                        size: MediaQuery.textScalerOf(context).scale(18),
+                        color: AppColors.text.adaptTo(context),
+                      ),
                   ],
                 ),
 

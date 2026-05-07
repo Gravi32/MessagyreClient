@@ -11,6 +11,7 @@ import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // #region -> Strings
@@ -51,12 +52,7 @@ void copy(BuildContext context, String content) async {
   if (!context.mounted) return;
   showCupertinoDialog(
     context: context,
-    builder:
-        (dialogContext) => CupertinoAlertDialog(
-          title: Text("Copié"),
-          content: Text("Copié dans le presse-papiers."),
-          actions: [CupertinoDialogAction(child: Text("OK"), onPressed: () => Navigator.of(dialogContext).pop())],
-        ),
+    builder: (_) => Dialog(title: "Copié", content: "Copié dans le presse-papiers."),
   );
 }
 
@@ -104,7 +100,12 @@ List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCach
     if (m.start > lastIndex) {
       spans.add(TextSpan(text: fullText.substring(lastIndex, m.start)));
     }
-    spans.add(TextSpan(text: fullText.substring(m.start, m.end), style: const TextStyle(fontWeight: FontWeight.bold)));
+    spans.add(
+      TextSpan(
+        text: fullText.substring(m.start, m.end),
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+    );
     lastIndex = m.end;
   }
 
@@ -141,6 +142,11 @@ extension ColorExtension on Color {
     final hsl = HSLColor.fromColor(this);
     final adjustedHsl = hsl.withLightness((hsl.lightness + brightness).clamp(0.0, 1.0));
     return adjustedHsl.toColor();
+  }
+
+  /// Returns the given color with the alpha channel set as [transparency]. (double)
+  Color withTransparency(double transparency) {
+    return withValues(alpha: transparency);
   }
 
   int toInt() {
@@ -350,7 +356,11 @@ String? getFractionString(double value) {
 // #region -> Text
 
 Size measureTextSize(String text, TextStyle style) {
-  final painter = TextPainter(text: TextSpan(text: text, style: style), textDirection: ui.TextDirection.ltr, maxLines: 1)..layout();
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: ui.TextDirection.ltr,
+    maxLines: 1,
+  )..layout();
 
   return painter.size;
 }

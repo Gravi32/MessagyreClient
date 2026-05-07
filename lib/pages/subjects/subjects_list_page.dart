@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Dialog;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -10,6 +10,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
@@ -28,29 +29,10 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
   void onSkipButtonPressed() {
     showCupertinoDialog(
       context: context,
-      builder: (dialogContext) {
-        return CupertinoAlertDialog(
-          title: const Text("Êtes-vous sûr de vouloir passer ?"),
-          content: const Text("Vous ne pourrez pas ajouter de notes et de devoirs pour les branches qui ne sont pas dans la liste."),
-          actions: [
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text("Annuler"),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.of(context).pop();
-              },
-              child: const Text("Passer"),
-            ),
-          ],
-        );
-      },
+      builder: (_) => Dialog.confirm(
+        content: "Êtes-vous sûr de vouloir *passer* ?\n*Vous ne pourrez pas ajouter de notes et de devoirs* pour les branches qui ne sont pas dans la liste.",
+        onConfirm: () => Navigator.pop(context),
+      ),
     );
   }
 
@@ -60,14 +42,13 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
       navigationBar: CupertinoNavigationBar(
         leading: widget.isBootstrap ? CupertinoButton(padding: EdgeInsets.zero, onPressed: onSkipButtonPressed, child: Text("Passer")) : null,
         middle: Text("Branches"),
-        trailing:
-            widget.isBootstrap && database.subjects.getAll().length >= 5
-                ? CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text("Terminé", style: TextStyle(fontWeight: FontWeight.w800)),
-                )
-                : null,
+        trailing: widget.isBootstrap && database.subjects.getAll().length >= 5
+            ? CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text("Terminé", style: TextStyle(fontWeight: FontWeight.w800)),
+              )
+            : null,
       ),
       child: SafeArea(
         child: StreamBuilder(

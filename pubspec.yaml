@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 2.60.859+859
+version: 3.61.860+860
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -65,9 +65,10 @@ version: 2.60.859+859
 # 2.58  Added bottom navigation bar notification badges
 # 2.59  Added "open Hermes II" tile in the settings page
 # 2.60  Users can now choose the max number of failing subjects in the report
+# 3.61  Started transitioning to a more rounded looks style (dialogs)
 
 environment:
-  sdk: ^3.7.2
+  sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
   flutter:

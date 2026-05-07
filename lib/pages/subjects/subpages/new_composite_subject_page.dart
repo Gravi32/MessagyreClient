@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Dialog;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
@@ -9,7 +9,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/dialog.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
@@ -74,7 +74,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   void showMissingInfoPopup() {
     showCupertinoDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (_) {
         final missingInfos = [];
 
         if (titleController.text.isEmpty) {
@@ -90,18 +90,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
           isMissingSecondSubject = true;
         }
 
-        return CupertinoAlertDialog(
-          title: Text("Informations manquantes"),
-          content: CustomText("Pour créer ce devoir entrez ${missingInfos.join(" et ")} !", textAlign: TextAlign.center),
-          actions: [
-            CupertinoDialogAction(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                setState(() {});
-              },
-            ),
-          ],
+        return Dialog(
+          title: "Informations manquantes",
+          content: "Pour créer ce devoir entrez ${missingInfos.join(" et ")} !",
+          options: {"OK": () => setState(() {})},
         );
       },
     );
@@ -122,16 +114,15 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
       margin: const EdgeInsets.symmetric(horizontal: 10),
       backgroundColor: AppColors.transparent,
       header: Text(title),
-      footer:
-          showHint
-              ? Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  "Merci de remplir les champs obligatoires *",
-                  style: TextStyle(fontSize: 14, color: canBeConfirmed ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
-                ),
-              )
-              : null,
+      footer: showHint
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                "Merci de remplir les champs obligatoires *",
+                style: TextStyle(fontSize: 14, color: canBeConfirmed ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
+              ),
+            )
+          : null,
       children: [
         Container(
           color: AppColors.tertiaryBackground.adaptTo(context),
@@ -146,10 +137,9 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 children: [
                   ConstrainedBox(
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    child:
-                        subject == null
-                            ? CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context))
-                            : SubjectBadge(subject: subject),
+                    child: subject == null
+                        ? CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context))
+                        : SubjectBadge(subject: subject),
                   ),
                   Expanded(
                     child: SubjectAutocomplete(
@@ -230,7 +220,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                     ),
                   ),
-                  const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("+", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600))),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text("+", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                  ),
                   Text(
                     secondSubjectPeriodsPerWeek.removeTrailingZero(),
                     style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: secondSubject?.color),
@@ -342,11 +335,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 periodsPerWeek: firstSubjectPeriodsPerWeek,
                 subjectFieldController: firstSubjectFieldController,
                 subjectFieldFocusNode: firstSubjectFocusNode,
-                onSubjectSelected:
-                    (selectedSubject) => setState(() {
-                      firstSubject = selectedSubject;
-                      isMissingFirstSubject = false;
-                    }),
+                onSubjectSelected: (selectedSubject) => setState(() {
+                  firstSubject = selectedSubject;
+                  isMissingFirstSubject = false;
+                }),
                 onPeriodsPerWeekChanged: (newAmount) => setState(() => firstSubjectPeriodsPerWeek = newAmount),
                 isMissingInfo: isMissingFirstSubject,
               ),
@@ -357,11 +349,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 periodsPerWeek: secondSubjectPeriodsPerWeek,
                 subjectFieldController: secondSubjectFieldController,
                 subjectFieldFocusNode: secondSubjectFocusNode,
-                onSubjectSelected:
-                    (selectedSubject) => setState(() {
-                      secondSubject = selectedSubject;
-                      isMissingSecondSubject = false;
-                    }),
+                onSubjectSelected: (selectedSubject) => setState(() {
+                  secondSubject = selectedSubject;
+                  isMissingSecondSubject = false;
+                }),
                 onPeriodsPerWeekChanged: (newAmount) => setState(() => secondSubjectPeriodsPerWeek = newAmount),
                 isMissingInfo: isMissingSecondSubject,
                 showHint: true,
@@ -393,23 +384,14 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                       onTap: () {
                         showCupertinoDialog(
                           context: context,
-                          builder:
-                              (_) => CupertinoAlertDialog(
-                                title: Text("Supprimer cette branche"),
-                                content: Text("Êtes-vous sûr de vouloir supprimer cette note ?"),
-                                actions: [
-                                  CupertinoDialogAction(child: Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                                  CupertinoDialogAction(
-                                    isDestructiveAction: true,
-                                    child: Text("Supprimer"),
-                                    onPressed: () {
-                                      database.compositeSubjects.delete(widget.toEdit!);
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop(widget.toEdit);
-                                    },
-                                  ),
-                                ],
-                              ),
+                          builder: (_) => Dialog.confirm(
+                            content: "Êtes-vous sûr de vouloir *supprimer la branche composée \"${widget.toEdit?.name}\"* ?",
+                            isDestructive: true,
+                            onConfirm: () {
+                              database.compositeSubjects.delete(widget.toEdit!);
+                              Navigator.of(context).pop(widget.toEdit);
+                            },
+                          ),
                         );
                       },
                     ),

@@ -17,8 +17,8 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
+import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/blurred_container.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -187,7 +187,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     Positioned.fill(
                       child: Opacity(
                         opacity: animationController.value,
-                        child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), child: Container(color: Colors.white.withAlpha(5))),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                          child: Container(color: Colors.white.withAlpha(5)),
+                        ),
                       ),
                     ),
 
@@ -682,38 +685,41 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                 blur: blurAmount,
                 margin: EdgeInsets.only(bottom: 12, top: 30),
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  children: [
-                    ProfilePictureDisplay(accountUsername: widget.username, radius: 30),
-                    SizedBox(height: 6),
-                    Text(
-                      chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-                    ),
-                    Text(widget.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                    if (widget.username != "support.messagyre") ...[
+
+                child: Container(
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
+                  child: Column(
+                    children: [
+                      ProfilePictureDisplay(accountUsername: widget.username, radius: 30),
                       SizedBox(height: 6),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Icon(CupertinoIcons.info_circle, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
-                              ),
-                            ),
-                            ...CustomText.parseSpans(
-                              "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
-                              style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
-                            ),
-                          ],
-                        ),
-                        softWrap: true,
+                      Text(
+                        chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                       ),
+                      Text(widget.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                      if (widget.username != "support.messagyre") ...[
+                        SizedBox(height: 6),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Icon(CupertinoIcons.info_circle, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
+                                ),
+                              ),
+                              ...CustomText.parseSpans(
+                                "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
+                                style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          softWrap: true,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               );
             }
@@ -724,27 +730,30 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
               return BlurredContainer(
                 blur: blurAmount,
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
-                child: Text.rich(
-                  textAlign: TextAlign.center,
-                  TextSpan(
-                    children: [
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Icon(isEncryptionAvailable ? CupertinoIcons.lock_fill : CupertinoIcons.lock_slash_fill, size: 16, color: color),
+
+                child: Container(
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
+                  child: Text.rich(
+                    textAlign: TextAlign.center,
+                    TextSpan(
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Icon(isEncryptionAvailable ? CupertinoIcons.lock_fill : CupertinoIcons.lock_slash_fill, size: 16, color: color),
+                          ),
                         ),
-                      ),
-                      ...CustomText.parseSpans(
-                        isEncryptionAvailable
-                            ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls vous et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
-                            : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
-                        style: TextStyle(color: color, fontSize: 16),
-                      ),
-                    ],
+                        ...CustomText.parseSpans(
+                          isEncryptionAvailable
+                              ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls vous et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
+                              : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
+                          style: TextStyle(color: color, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                    softWrap: true,
                   ),
-                  softWrap: true,
                 ),
               );
             }
@@ -764,25 +773,34 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     currentMessage.sentAt.year != previousMessage.sentAt.year ||
                     msgIndex == 0)
                 ? Column(
-                  children: [
-                    BlurredContainer(
-                      blur: blurAmount,
-                      margin: EdgeInsets.only(bottom: 12, top: 30),
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-                      decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(120), borderRadius: BorderRadius.circular(10)),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 8,
-                        children: [
-                          CustomIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                          Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
-                        ],
+                    children: [
+                      BlurredContainer(
+                        blur: blurAmount,
+                        margin: EdgeInsets.only(bottom: 12, top: 30),
+                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryBackground.adaptTo(context).withAlpha(120),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 8,
+                            children: [
+                              CustomIcon(icon: HugeIcons.strokeRoundedCalendar04, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+                              Text(formatDate(currentMessage.sentAt), style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context))),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    bubble,
-                  ],
-                )
-                : Container(margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == allMessagesList.length - 1) ? 12 : 0), child: bubble);
+                      bubble,
+                    ],
+                  )
+                : Container(
+                    margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == allMessagesList.length - 1) ? 12 : 0),
+                    child: bubble,
+                  );
           },
         );
       },
@@ -801,53 +819,59 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             builder: (context, connectionState, _) {
               return connectionState == ConnectionState.Connected
                   ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 10,
-                    children: [
-                      if (messageFieldFocusNode.hasFocus)
-                        GestureDetector(onTap: () => messageFieldFocusNode.unfocus(), child: CustomIcon(icon: HugeIcons.strokeRoundedArrowDown01)),
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      spacing: 10,
+                      children: [
+                        if (messageFieldFocusNode.hasFocus)
+                          GestureDetector(
+                            onTap: () => messageFieldFocusNode.unfocus(),
+                            child: CustomIcon(icon: HugeIcons.strokeRoundedArrowDown01),
+                          ),
 
-                      // Message field
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: CupertinoTextField(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            minLines: 1,
-                            maxLines: 5,
-                            style: TextStyle(fontSize: 18),
-                            controller: messageFieldController,
-                            focusNode: messageFieldFocusNode,
-                            scrollPhysics: BouncingScrollPhysics(),
-                            decoration: BoxDecoration(color: Theme.of(context).hoverColor, borderRadius: BorderRadius.circular(20)),
-                            onSubmitted: sendMessage,
+                        // Message field
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: CupertinoTextField(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              minLines: 1,
+                              maxLines: 5,
+                              style: TextStyle(fontSize: 18),
+                              controller: messageFieldController,
+                              focusNode: messageFieldFocusNode,
+                              scrollPhysics: BouncingScrollPhysics(),
+                              decoration: BoxDecoration(color: Theme.of(context).hoverColor, borderRadius: BorderRadius.circular(20)),
+                              onSubmitted: sendMessage,
+                            ),
                           ),
                         ),
-                      ),
 
-                      // Send button
-                      GestureDetector(
-                        onTap: () => sendMessage(messageFieldController.text),
-                        child: Container(
-                          height: 31,
-                          width: 31,
-                          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.accent),
-                          child: Padding(padding: EdgeInsets.only(left: 2), child: Icon(Icons.send_rounded, size: 20, color: AppColors.white)),
+                        // Send button
+                        GestureDetector(
+                          onTap: () => sendMessage(messageFieldController.text),
+                          child: Container(
+                            height: 31,
+                            width: 31,
+                            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.accent),
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 2),
+                              child: Icon(Icons.send_rounded, size: 20, color: AppColors.white),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                  : SizedBox(
-                    height: 50,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 8,
-                      children: [
-                        Text("Connexion en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 16)),
-                        LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
                       ],
-                    ),
-                  );
+                    )
+                  : SizedBox(
+                      height: 50,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 8,
+                        children: [
+                          Text("Connexion en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 16)),
+                          LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+                        ],
+                      ),
+                    );
             },
           ),
         ),
@@ -863,16 +887,15 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                image:
-                    (globals.persistent.getBool("useDefaultWallpaper") ?? true) || currentWallpaper == null
-                        ? DecorationImage(
-                          image: AssetImage("assets/wallpaper.png"),
-                          repeat: ImageRepeat.repeat,
-                          fit: BoxFit.fitWidth,
-                          opacity: .12,
-                          colorFilter: globals.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
-                        )
-                        : DecorationImage(image: Image.file(File(currentWallpaper!)).image, fit: BoxFit.cover),
+                image: (globals.persistent.getBool("useDefaultWallpaper") ?? true) || currentWallpaper == null
+                    ? DecorationImage(
+                        image: AssetImage("assets/wallpaper.png"),
+                        repeat: ImageRepeat.repeat,
+                        fit: BoxFit.fitWidth,
+                        opacity: .12,
+                        colorFilter: globals.appBrightness == Brightness.dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
+                      )
+                    : DecorationImage(image: Image.file(File(currentWallpaper!)).image, fit: BoxFit.cover),
               ),
             ),
           ),
@@ -959,7 +982,10 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble> with Sing
       animation: _animation,
       builder: (_, child) {
         final value = _animation.value;
-        return Transform.translate(offset: Offset(widget.isOwned ? -1 : 1, 50 * (1 - value)), child: Opacity(opacity: value.clamp(0, 1), child: child));
+        return Transform.translate(
+          offset: Offset(widget.isOwned ? -1 : 1, 50 * (1 - value)),
+          child: Opacity(opacity: value.clamp(0, 1), child: child),
+        );
       },
       child: widget.child,
     );
