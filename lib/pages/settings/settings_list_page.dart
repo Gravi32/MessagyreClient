@@ -307,7 +307,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                       if (confirm != true) return;
 
                       try {
-                        database.loadBackup();
+                        await database.loadBackup();
 
                         if (!context.mounted) return;
                         showCupertinoDialog(
