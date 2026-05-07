@@ -24,9 +24,9 @@ class DatabaseService {
   factory DatabaseService() => _instance;
   DatabaseService._internal();
 
-  late final Isar _isar;
+  Isar? _isar;
 
-  Isar get isar => _isar;
+  Isar get isar => _isar!;
 
   late MessageRepository messages;
   late ChatRepository chats;
@@ -43,12 +43,12 @@ class DatabaseService {
           Isar.getInstance() ??
           Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
 
-      messages = MessageRepository(_isar);
-      chats = ChatRepository(_isar);
-      assignments = AssignmentRepository(_isar);
-      grades = GradeRepository(_isar);
-      subjects = SubjectRepository(_isar);
-      compositeSubjects = CompositeSubjectRepository(_isar);
+      messages = MessageRepository(_isar!);
+      chats = ChatRepository(_isar!);
+      assignments = AssignmentRepository(_isar!);
+      grades = GradeRepository(_isar!);
+      subjects = SubjectRepository(_isar!);
+      compositeSubjects = CompositeSubjectRepository(_isar!);
     } catch (e, s) {
       debugPrint("[Database Failure] $e\n$s");
     }
@@ -61,7 +61,7 @@ class DatabaseService {
 
     if (await tempFile.exists()) await tempFile.delete();
 
-    await _isar.copyToFile(tempPath);
+    await _isar!.copyToFile(tempPath);
     final bytes = await tempFile.readAsBytes();
 
     await FilePicker.platform.saveFile(
@@ -74,24 +74,33 @@ class DatabaseService {
   }
 
   Future<void> loadBackup() async {
+    final dir = await getApplicationDocumentsDirectory();
+
     try {
       final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['isar']);
 
       if (result == null || result.files.single.path == null) return;
 
       final backupFilePath = result.files.single.path!;
-      final dir = await getApplicationDocumentsDirectory();
       final dbPath = join(dir.path, 'default.isar');
 
-      await _isar.close();
+      if (_isar != null && _isar!.isOpen) {
+        await _isar!.close();
+      }
 
-      final backupFile = File(backupFilePath);
-      await backupFile.copy(dbPath);
+      await File(backupFilePath).copy(dbPath);
 
-      _isar = Isar.openSync([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
-      initialize();
+      _isar = await Isar.open([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
+
+      await initialize();
     } catch (e) {
       debugPrint("Restore Error: $e");
+
+      if (Isar.getInstance() == null) {
+        _isar = await Isar.open([SubjectSchema, AssignmentSchema, GradeSchema, ChatSchema, MessageSchema, CompositeSubjectSchema], directory: dir.path);
+        await initialize();
+      }
+
       rethrow;
     }
   }
