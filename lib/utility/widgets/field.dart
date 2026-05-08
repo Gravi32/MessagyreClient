@@ -16,7 +16,10 @@ class Field extends StatefulWidget {
   final TextEditingController? controller;
   final TextInputType? keyboardType;
   final TextStyle? textStyle;
+  final FocusNode? focusNode;
+  final ScrollPhysics? scrollPhysics;
   final int? maxLines;
+  final bool thin;
   final bool isPassword;
   final bool alwaysHidePassword;
   final bool enabled;
@@ -32,7 +35,10 @@ class Field extends StatefulWidget {
     this.controller,
     this.keyboardType,
     this.textStyle,
+    this.focusNode,
+    this.scrollPhysics,
     this.maxLines = 1,
+    this.thin = false,
     this.isPassword = false,
     this.alwaysHidePassword = false,
     this.enabled = true,
@@ -94,11 +100,12 @@ class _FieldState extends State<Field> {
                 children: [
                   Expanded(
                     child: CupertinoTextField(
-                      padding: .only(left: 16, top: 16, bottom: 16),
+                      padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
                       placeholder: widget.placeholder,
                       placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
                         widget.textStyle,
                       ),
+                      minLines: 1,
                       maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
                       scrollPadding: const EdgeInsets.only(bottom: 60), // Distance from the keyboard
                       decoration: const BoxDecoration(),
@@ -107,9 +114,11 @@ class _FieldState extends State<Field> {
                       onSubmitted: widget.onSubmitted,
                       onChanged: widget.onChanged,
                       obscureText: _obscureText,
+                      focusNode: widget.focusNode,
+                      scrollPhysics: widget.scrollPhysics,
                       textAlign: isNumeric ? .center : .start,
                       style: widget.textStyle,
-                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                      onTapOutside: widget.focusNode == null ? (_) => FocusScope.of(context).unfocus() : null,
                     ),
                   ),
                   if (widget.suffix != null) Text(widget.suffix!),
@@ -123,12 +132,10 @@ class _FieldState extends State<Field> {
                 top: 6,
                 bottom: 6,
                 child: Button.icon(
+                  context,
                   onTap: () => setState(() => _obscureText = !_obscureText),
                   icon: _obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
                   enabled: widget.enabled,
-                  transparent: true,
-                  color: AppColors.secondaryButton.adaptTo(context),
-                  iconColor: AppColors.text.adaptTo(context),
                 ),
               ),
           ],

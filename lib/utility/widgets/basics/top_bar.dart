@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -16,10 +15,8 @@ class TopBar extends StatefulWidget {
   factory TopBar.form(BuildContext context, {String? title, void Function()? onPop, void Function()? onCloseConfirmed}) {
     return TopBar(
       leading: Button.icon(
+        context,
         icon: HugeIcons.strokeRoundedCancel01,
-        transparent: true,
-        color: AppColors.secondaryButton.adaptTo(context),
-        iconColor: AppColors.text.adaptTo(context),
         onTap: () {
           if (onCloseConfirmed == null) {
             onPop?.call();

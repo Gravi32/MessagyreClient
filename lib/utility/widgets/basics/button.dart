@@ -12,6 +12,7 @@ class Button extends StatelessWidget {
   final bool enabled;
   final bool isLoading;
   final List<List>? icon;
+  final IconData? legacyIcon;
   final double spacing;
   final FontWeight textWeight;
   final Color? color;
@@ -31,6 +32,7 @@ class Button extends StatelessWidget {
     this.enabled = true,
     this.isLoading = false,
     this.icon,
+    this.legacyIcon,
     this.spacing = 4,
     this.textWeight = .w600,
     this.color,
@@ -40,8 +42,26 @@ class Button extends StatelessWidget {
     this.padding,
   });
 
-  factory Button.icon({required List<List> icon, Function()? onTap, Color? color, Color? iconColor, bool transparent = false, bool enabled = true}) {
-    return Button(icon: icon, onTap: onTap, transparent: transparent, enabled: enabled, color: color, iconColor: iconColor, padding: .all(8));
+  factory Button.icon(
+    BuildContext context, {
+    List<List>? icon,
+    IconData? legacyIcon,
+    Function()? onTap,
+    Color? color,
+    Color? iconColor,
+    bool transparent = true,
+    bool enabled = true,
+  }) {
+    return Button(
+      icon: icon,
+      legacyIcon: legacyIcon,
+      onTap: onTap,
+      transparent: transparent,
+      enabled: enabled,
+      color: color ?? AppColors.secondaryBackground.adaptTo(context),
+      iconColor: iconColor ?? AppColors.text.adaptTo(context),
+      padding: .all(8),
+    );
   }
 
   factory Button.destructive(BuildContext context, {required String text, Function()? onTap}) {
@@ -57,7 +77,10 @@ class Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIconOnly = text == null && icon != null;
+    final finalIcon = icon ?? legacyIcon;
+    final finalIconColor = iconColor ?? (transparent ? (textColor ?? color ?? AppColors.accent) : AppColors.white);
+    final usingLegacyIcon = icon == null && legacyIcon != null;
+    final isIconOnly = text == null && finalIcon != null;
     final finalButtonColor = enabled ? (color ?? AppColors.accent) : AppColors.inactive.adaptTo(context);
     final finalTextColor = textColor ?? (transparent ? AppColors.text.adaptTo(context) : AppColors.white);
 
@@ -83,10 +106,10 @@ class Button extends StatelessWidget {
               mainAxisAlignment: .center,
               spacing: spacing,
               children: [
-                if (icon != null)
+                if (finalIcon != null)
                   AspectRatio(
                     aspectRatio: 1,
-                    child: HugeIcon(icon: icon!, color: iconColor ?? (transparent ? (textColor ?? color ?? AppColors.accent) : AppColors.white)),
+                    child: usingLegacyIcon ? Icon(legacyIcon, color: finalIconColor) : HugeIcon(icon: icon!, color: finalIconColor),
                   ),
 
                 if (!isIconOnly)
@@ -104,7 +127,7 @@ class Button extends StatelessWidget {
                           ),
                         ),
 
-                if (icon != null && text != null) const AspectRatio(aspectRatio: 1),
+                if (finalIcon != null && text != null) const AspectRatio(aspectRatio: 1),
               ],
             ),
           ).withAspectRatio(1, enabled: isIconOnly),

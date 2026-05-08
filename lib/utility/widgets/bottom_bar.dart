@@ -39,10 +39,9 @@ class _BottomBarState extends State<BottomBar> {
               final isSelected = index == currentIndex;
               final color = (isSelected ? AppColors.text : AppColors.secondaryText).adaptTo(context);
               final icon = Button.icon(
+                context,
                 icon: page.icon,
-                transparent: true,
-                color: AppColors.secondaryButton.adaptTo(context),
-                iconColor: isSelected ? AppColors.text.adaptTo(context) : null,
+                iconColor: isSelected ? null : AppColors.secondaryButton.adaptTo(context),
                 onTap: () => MainPage.pageIndex.value = index,
               );
 

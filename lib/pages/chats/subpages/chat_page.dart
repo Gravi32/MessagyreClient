@@ -19,8 +19,10 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';
@@ -98,6 +100,16 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       final max = chatScrollController.position.maxScrollExtent;
       chatScrollController.animateTo(max, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
     });
+  }
+
+  void pushProfilePage() async {
+    setState(() => isLoading = true);
+    var recipientAccount = widget.username == lastAccountCache?.username ? lastAccountCache : await network.getAccount(widget.username);
+    setState(() => isLoading = false);
+
+    if (recipientAccount == null) return;
+    lastAccountCache = recipientAccount;
+    if (mounted) Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfilePage(recipientAccount, openedFromChat: true)));
   }
 
   void sendMessage(String input) async {
@@ -493,85 +505,69 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  int getUnreadChats() {
-    int count = 0;
-    for (var chat in database.chats.getAll()) {
-      count += chat.unreadMessages;
-    }
-    return count;
-  }
-
   Widget topBar(BuildContext context) {
-    final unreadChats = getUnreadChats();
+    final topPadding = MediaQuery.of(context).padding.top;
     final isBlocked = globals.blockedUsers.contains(widget.username);
 
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
-        child: Container(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-          //color: adaptiveColor(barLightColor, barDarkColor),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                CupertinoButton(
-                  onPressed: () {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    Navigator.of(context).pop();
-                  },
-                  padding: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+    return Container(
+      height: topPadding + 60,
+      padding: .symmetric(horizontal: 10, vertical: 8).add(.only(top: topPadding)),
+
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: .bottomCenter,
+          end: .topCenter,
+          colors: [AppColors.background.adaptTo(context).withTransparency(0), AppColors.background.adaptTo(context)],
+          stops: [0, .4],
+        ),
+      ),
+
+      child: Row(
+        mainAxisSize: .max,
+        spacing: 12,
+        children: [
+          Button.icon(
+            context,
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              Navigator.of(context).pop();
+            },
+          ),
+
+          const SizedBox(),
+
+          ProfilePictureDisplay(accountUsername: widget.username, isBlocked: isBlocked),
+
+          Expanded(
+            child: GestureDetector(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    spacing: 6,
                     children: [
-                      CustomIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 30),
-                      if (unreadChats > 0) Text(unreadChats.toString(), style: TextStyle(fontSize: 20, color: AppColors.accent)),
+                      if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                      Text(
+                        chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
+                      ),
                     ],
                   ),
-                ),
-                SizedBox(width: 16),
-                Container(
-                  foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
-                  child: ProfilePictureDisplay(accountUsername: widget.username),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          spacing: 6,
-                          children: [
-                            if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
-                            Text(
-                              chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
-                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20),
-                            ),
-                            if (isLoading) LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
-                          ],
-                        ),
-                        Text(widget.username, style: TextStyle(color: AppColors.grey, fontSize: 14)),
-                      ],
-                    ),
-                    onTap: () async {
-                      isLoading = true;
-                      var recipientAccount = widget.username == lastAccountCache?.username ? lastAccountCache : await network.getAccount(widget.username);
-                      isLoading = false;
-                      if (recipientAccount == null || !context.mounted) return;
-                      lastAccountCache = recipientAccount;
-                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfilePage(recipientAccount, openedFromChat: true)));
-                    },
-                  ),
-                ),
-                //CustomIcon(icon: HugeIcons.strokeRoundedCall02, size: 22, color: AppColors.grey.adaptTo(context)),
-                SizedBox(width: 10),
-              ],
+                  Text(widget.username, style: TextStyle(color: AppColors.grey, fontSize: 14)),
+                ],
+              ),
+              onTap: () => pushProfilePage(),
             ),
           ),
-        ),
+
+          if (isLoading) LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+
+          const SizedBox(),
+
+          Button.icon(context, icon: HugeIcons.strokeRoundedUser, onTap: () => pushProfilePage()),
+        ],
       ),
     );
   }
@@ -678,100 +674,98 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         return ListView.builder(
           controller: chatScrollController,
           padding: EdgeInsets.symmetric(horizontal: 10),
-          itemCount: chatData.messages.length + 2,
+          itemCount: chatData.messages.length + 4,
           itemBuilder: (context, index) {
-            if (index == 0) {
+            if (index == 0) return const SizedBox(height: 60);
+
+            if (index == 1) {
               return BlurredContainer(
                 blur: blurAmount,
-                margin: EdgeInsets.only(bottom: 12, top: 30),
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                margin: .only(bottom: 12, top: 30),
+                padding: .all(16),
 
-                child: Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                    children: [
-                      ProfilePictureDisplay(accountUsername: widget.username, radius: 30),
+                child: Column(
+                  children: [
+                    SizedBox(height: 100, child: ProfilePictureDisplay(accountUsername: widget.username)),
+                    SizedBox(height: 6),
+                    Text(
+                      chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                    ),
+                    Text(widget.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                    if (widget.username != "support.messagyre") ...[
                       SizedBox(height: 6),
-                      Text(
-                        chatData.displayUsername ?? Account.getDefaultDisplayName(widget.username),
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-                      ),
-                      Text(widget.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                      if (widget.username != "support.messagyre") ...[
-                        SizedBox(height: 6),
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 4),
-                                  child: Icon(CupertinoIcons.info_circle, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
-                                ),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Icon(CupertinoIcons.info_circle, size: 16, color: AppColors.tertiaryText.adaptTo(context)),
                               ),
-                              ...CustomText.parseSpans(
-                                "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
-                                style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
-                              ),
-                            ],
-                          ),
-                          softWrap: true,
+                            ),
+                            ...CustomText.parseSpans(
+                              "Pour bloquer un utilisateur, allez sur son profil → Bloquer cet utilisateur.",
+                              style: TextStyle(color: AppColors.tertiaryText.adaptTo(context), fontSize: 16),
+                            ),
+                          ],
                         ),
-                      ],
+                        softWrap: true,
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               );
             }
 
-            if (index == 1) {
+            if (index == 2) {
               final color = isEncryptionAvailable ? AppColors.tertiaryText.adaptTo(context) : AppColors.yellow.withAlpha(.5.toByte());
 
               return BlurredContainer(
                 blur: blurAmount,
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
 
-                child: Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(150), borderRadius: BorderRadius.circular(12)),
-                  child: Text.rich(
-                    textAlign: TextAlign.center,
-                    TextSpan(
-                      children: [
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Icon(isEncryptionAvailable ? CupertinoIcons.lock_fill : CupertinoIcons.lock_slash_fill, size: 16, color: color),
-                          ),
+                child: Text.rich(
+                  textAlign: TextAlign.center,
+                  TextSpan(
+                    children: [
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Icon(isEncryptionAvailable ? CupertinoIcons.lock_fill : CupertinoIcons.lock_slash_fill, size: 16, color: color),
                         ),
-                        ...CustomText.parseSpans(
-                          isEncryptionAvailable
-                              ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls vous et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
-                              : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
-                          style: TextStyle(color: color, fontSize: 16),
-                        ),
-                      ],
-                    ),
-                    softWrap: true,
+                      ),
+                      ...CustomText.parseSpans(
+                        isEncryptionAvailable
+                            ? "Les messages dans cette conversation sont chiffrés de bout en bout : seuls vous et ${chatData.displayUsername ?? chatData.username} pouvez les lire."
+                            : "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout.",
+                        style: TextStyle(color: color, fontSize: 16),
+                      ),
+                    ],
                   ),
+                  softWrap: true,
                 ),
               );
             }
 
-            final msgIndex = index - 2;
+            final messageIndex = index - 3;
+
+            if (messageIndex == chatData.messages.length) return const SizedBox(height: 60);
 
             var allMessagesList = chatData.messages.toList();
 
-            var currentMessage = allMessagesList[msgIndex];
-            var previousMessage = msgIndex > 0 ? allMessagesList[msgIndex - 1] : currentMessage;
-            var nextMessage = msgIndex < allMessagesList.length - 1 ? allMessagesList[msgIndex + 1] : currentMessage;
+            var currentMessage = allMessagesList[messageIndex];
+            var previousMessage = messageIndex > 0 ? allMessagesList[messageIndex - 1] : currentMessage;
+            var nextMessage = messageIndex < allMessagesList.length - 1 ? allMessagesList[messageIndex + 1] : currentMessage;
 
             final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
 
             return (currentMessage.sentAt.day != previousMessage.sentAt.day ||
                     currentMessage.sentAt.month != previousMessage.sentAt.month ||
                     currentMessage.sentAt.year != previousMessage.sentAt.year ||
-                    msgIndex == 0)
+                    messageIndex == 0)
                 ? Column(
                     children: [
                       BlurredContainer(
@@ -798,7 +792,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     ],
                   )
                 : Container(
-                    margin: EdgeInsets.only(top: (msgIndex == 0) ? 12 : 0, bottom: (msgIndex == allMessagesList.length - 1) ? 12 : 0),
+                    margin: EdgeInsets.only(top: (messageIndex == 0) ? 12 : 0, bottom: (messageIndex == allMessagesList.length - 1) ? 12 : 0),
                     child: bubble,
                   );
           },
@@ -808,73 +802,66 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
 
   Widget bottomBar() {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
-        child: Container(
-          //color: adaptiveColor(barLightColor, barDarkColor),
-          padding: EdgeInsets.only(right: 12, left: 12, bottom: MediaQuery.of(context).padding.bottom),
-          child: ValueListenableBuilder(
-            valueListenable: network.connectionState,
-            builder: (context, connectionState, _) {
-              return connectionState == ConnectionState.Connected
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 10,
-                      children: [
-                        if (messageFieldFocusNode.hasFocus)
-                          GestureDetector(
-                            onTap: () => messageFieldFocusNode.unfocus(),
-                            child: CustomIcon(icon: HugeIcons.strokeRoundedArrowDown01),
-                          ),
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-                        // Message field
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: CupertinoTextField(
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                              minLines: 1,
-                              maxLines: 5,
-                              style: TextStyle(fontSize: 18),
-                              controller: messageFieldController,
-                              focusNode: messageFieldFocusNode,
-                              scrollPhysics: BouncingScrollPhysics(),
-                              decoration: BoxDecoration(color: Theme.of(context).hoverColor, borderRadius: BorderRadius.circular(20)),
-                              onSubmitted: sendMessage,
-                            ),
-                          ),
-                        ),
+    return Container(
+      height: bottomPadding + 60,
+      padding: .symmetric(horizontal: 10, vertical: 8).add(.only(bottom: bottomPadding)),
 
-                        // Send button
-                        GestureDetector(
-                          onTap: () => sendMessage(messageFieldController.text),
-                          child: Container(
-                            height: 31,
-                            width: 31,
-                            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.accent),
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 2),
-                              child: Icon(Icons.send_rounded, size: 20, color: AppColors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : SizedBox(
-                      height: 50,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 8,
-                        children: [
-                          Text("Connexion en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 16)),
-                          LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
-                        ],
-                      ),
-                    );
-            },
-          ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: .topCenter,
+          end: .bottomCenter,
+          colors: [AppColors.background.adaptTo(context).withTransparency(0), AppColors.background.adaptTo(context)],
+          stops: [0, .4],
         ),
+      ),
+
+      child: ValueListenableBuilder(
+        valueListenable: network.connectionState,
+        builder: (context, connectionState, _) {
+          return connectionState == ConnectionState.Connected
+              ? Row(
+                  crossAxisAlignment: .center,
+                  spacing: 10,
+                  children: [
+                    if (messageFieldFocusNode.hasFocus)
+                      Button.icon(context, icon: HugeIcons.strokeRoundedArrowDown01, onTap: () => messageFieldFocusNode.unfocus()),
+
+                    // Message field
+                    Expanded(
+                      child: Field(
+                        placeholder: "",
+                        maxLines: 5,
+                        controller: messageFieldController,
+                        focusNode: messageFieldFocusNode,
+                        thin: true,
+                        scrollPhysics: BouncingScrollPhysics(),
+                        onSubmitted: (message) => sendMessage(message),
+                      ),
+                    ),
+
+                    // Send button
+                    Button.icon(
+                      context,
+                      legacyIcon: Icons.send_rounded,
+                      color: messageFieldController.text.isNotEmpty ? AppColors.accent : null,
+                      onTap: () => sendMessage(messageFieldController.text),
+                    ),
+                  ],
+                )
+              : SizedBox(
+                  height: 50,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8,
+                    children: [
+                      Text("Connexion en cours", style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 16)),
+                      LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+                    ],
+                  ),
+                );
+        },
       ),
     );
   }
@@ -884,6 +871,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     return CupertinoPageScaffold(
       child: Stack(
         children: [
+          // Wallpaper
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -899,40 +887,32 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-          Column(
-            children: [
-              topBar(context),
-              Expanded(
-                child: Stack(
-                  children: [
-                    messageList(),
-                    Positioned(
-                      bottom: 8,
-                      right: 12,
-                      child: AnimatedSlide(
-                        offset: showScrollDownButton ? Offset(0, 0) : Offset(0, 1),
-                        duration: Duration(milliseconds: 300),
-                        child: AnimatedOpacity(
-                          opacity: showScrollDownButton ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 300),
-                          child: GestureDetector(
-                            onTap: scrollDown,
-                            child: Container(
-                              height: 40,
-                              width: 40,
-                              decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(200), shape: BoxShape.circle),
-                              child: Icon(CupertinoIcons.down_arrow, color: AppColors.text.adaptTo(context)),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+
+          Positioned.fill(child: messageList()),
+
+          // Top bar
+          Positioned(top: 0, right: 0, left: 0, child: topBar(context)),
+
+          // Scroll down button
+          Positioned(
+            bottom: 60,
+            right: 10,
+            child: AnimatedSlide(
+              offset: showScrollDownButton ? Offset(0, 0) : Offset(0, 1),
+              duration: Duration(milliseconds: 300),
+              child: AnimatedOpacity(
+                opacity: showScrollDownButton ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 300),
+                child: SizedBox(
+                  height: 44,
+                  child: Button.icon(context, legacyIcon: CupertinoIcons.down_arrow, onTap: () => scrollDown()),
                 ),
               ),
-              bottomBar(),
-            ],
+            ),
           ),
+
+          // Bottom bar
+          Positioned(bottom: 0, right: 0, left: 0, child: bottomBar()),
         ],
       ),
     );

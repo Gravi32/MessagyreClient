@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide ConnectionState, Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/chats/chat.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/main.dart';
@@ -114,142 +115,141 @@ class _ChatsListPageState extends State<ChatsListPage> {
     // Forcing keyboard closure, it happens that the keyboard stays open
     FocusManager.instance.primaryFocus?.unfocus();
 
-    return Column(
-      children: [
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: IntrinsicHeight(
-            child: Row(
-              children: [
-                // Profile Picture
-                Container(
-                  foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
-                  child: ProfilePictureDisplay(
-                    accountUsername: (showThumbnailChats && _mockPhotos[chatData.username] != null) ? null : chatData.username,
-                    pictureURL: showThumbnailChats ? _mockPhotos[chatData.username] : null,
-                    radius: 25,
-                  ),
-                ),
-
-                SizedBox(width: 12),
-
-                // Username and last message
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        spacing: 6,
-                        children: [
-                          // Blocked icon
-                          if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
-
-                          // Username
-                          Text(
-                            chatData.displayUsername ?? Account.getDefaultDisplayName(chatData.username),
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: adaptiveColor(AppColors.black, AppColors.white)),
-                          ),
-                        ],
-                      ),
-
-                      Expanded(
-                        child: lastMessage != null
-                            ? Text.rich(
-                                TextSpan(
-                                  children: [
-                                    if (lastMessage.isOwned && statusIconData != null)
-                                      WidgetSpan(
-                                        alignment: PlaceholderAlignment.middle,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(right: 2),
-                                          child: CustomIcon(
-                                            icon: statusIconData.icon,
-                                            size: 20,
-                                            color: statusIconData.color == AppColors.white && Theme.of(context).brightness == Brightness.light
-                                                ? AppColors.grey
-                                                : statusIconData.color.withAlpha(.6.toByte()),
-                                          ),
-                                        ),
-                                      ),
-                                    if (lastMessage.isDeleted)
-                                      WidgetSpan(
-                                        alignment: PlaceholderAlignment.middle,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(right: 3),
-                                          child: CustomIcon(
-                                            icon: HugeIcons.strokeRoundedUnavailable,
-                                            size: 14,
-                                            strokeWidth: hasUnreadMessages ? 3 : 2,
-                                            color: AppColors.secondaryText.adaptTo(context),
-                                          ),
-                                        ),
-                                      ),
-                                    ...CustomText.parseSpans(
-                                      lastMessage.isDeleted ? "Message supprimé" : lastMessage.content.trim(),
-                                      style: TextStyle(
-                                        fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
-                                        color: AppColors.secondaryText.adaptTo(context),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 2,
-                                softWrap: true,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            : Text(
-                                "Envoyez un message...",
-                                style: TextStyle(fontStyle: FontStyle.italic, color: AppColors.tertiaryText.adaptTo(context)),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Date and unread messages badge
-                if (lastMessage != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      SizedBox(height: 4),
-                      Text(
-                        lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
-                        style: TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
-                      ),
-
-                      Row(
-                        spacing: 4,
-                        children: [
-                          if (chatData.isPinned) CustomIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: AppColors.secondaryText.adaptTo(context)),
-
-                          if (hasUnreadMessages)
-                            Container(
-                              margin: EdgeInsets.only(top: 4),
-                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(12)),
-                              child: Text(
-                                chatData.unreadMessages.toString(),
-                                style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-              ],
+    return AspectRatio(
+      aspectRatio: 6.5,
+      child: CupertinoButton(
+        padding: .symmetric(horizontal: 6),
+        child: Row(
+          crossAxisAlignment: .stretch,
+          children: [
+            // Profile Picture
+            ProfilePictureDisplay(
+              accountUsername: (showThumbnailChats && _mockPhotos[chatData.username] != null) ? null : chatData.username,
+              pictureURL: showThumbnailChats ? _mockPhotos[chatData.username] : null,
+              isBlocked: isBlocked,
             ),
-          ),
-          onPressed: () {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).push(CupertinoPageRoute(builder: (builder) => ChatPage(username: chatData.username))).then((_) => setState(() {}));
-          },
+
+            const SizedBox(width: 16),
+
+            // Username and last message
+            Expanded(
+              child: Column(
+                mainAxisSize: .min,
+                crossAxisAlignment: .start,
+                children: [
+                  Spacer(flex: 1),
+                  Row(
+                    spacing: 6,
+                    children: [
+                      // Blocked icon
+                      if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+
+                      // Username
+                      Flexible(
+                        child: Text(
+                          chatData.displayUsername ?? Account.getDefaultDisplayName(chatData.username),
+                          style: AppStyles.secondaryHeader(context),
+                          overflow: .ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  lastMessage != null
+                      ? Text.rich(
+                          TextSpan(
+                            children: [
+                              if (lastMessage.isOwned && statusIconData != null)
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 2),
+                                    child: CustomIcon(
+                                      icon: statusIconData.icon,
+                                      size: 20,
+                                      color: statusIconData.color == AppColors.white && Theme.of(context).brightness == Brightness.light
+                                          ? AppColors.grey
+                                          : statusIconData.color.withAlpha(.6.toByte()),
+                                    ),
+                                  ),
+                                ),
+                              if (lastMessage.isDeleted)
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 3),
+                                    child: CustomIcon(
+                                      icon: HugeIcons.strokeRoundedUnavailable,
+                                      size: 14,
+                                      strokeWidth: hasUnreadMessages ? 3 : 2,
+                                      color: AppColors.secondaryText.adaptTo(context),
+                                    ),
+                                  ),
+                                ),
+                              ...CustomText.parseSpans(
+                                lastMessage.isDeleted ? "Message supprimé" : lastMessage.content.trim(),
+                                style: TextStyle(
+                                  fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
+                                  color: AppColors.secondaryText.adaptTo(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                          maxLines: 2,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : Text(
+                          "Envoyez un message...",
+                          style: TextStyle(fontStyle: FontStyle.italic, color: AppColors.tertiaryText.adaptTo(context)),
+                        ),
+                  Spacer(flex: 2),
+                ],
+              ),
+            ),
+
+            // Date and unread messages badge
+            if (lastMessage != null)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(
+                    lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
+                    style: TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
+                  ),
+
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: [
+                      if (chatData.isPinned) CustomIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+
+                      if (hasUnreadMessages)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(12)),
+                          child: Text(
+                            chatData.unreadMessages.toString(),
+                            style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+          ],
         ),
 
-        Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
-      ],
+        onPressed: () {
+          Navigator.of(
+            context,
+            rootNavigator: true,
+          ).push(CupertinoPageRoute(builder: (builder) => ChatPage(username: chatData.username))).then((_) => setState(() {}));
+        },
+      ),
     );
   }
 
@@ -305,13 +305,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
       topBar: TopBar.sliver(
         title: "Conversations",
         leading: ConnectionStatus(),
-        trailing: Button.icon(
-          icon: HugeIcons.strokeRoundedBubbleChatAdd,
-          transparent: true,
-          color: AppColors.secondaryButton.adaptTo(context),
-          iconColor: AppColors.text.adaptTo(context),
-          onTap: () => MainPage.pageIndex.value = 3,
-        ),
+        trailing: Button.icon(context, icon: HugeIcons.strokeRoundedBubbleChatAdd, onTap: () => MainPage.pageIndex.value = 3),
       ),
       body: StreamBuilder(
         stream: database.chats.watchAll(),
@@ -355,12 +349,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     ),
                   ],
                 )
-              : ListView.builder(
+              : ListView.separated(
                   padding: EdgeInsets.only(top: 8),
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     return buildChatBar(list[index]);
                   },
+                  separatorBuilder: (context, _) => Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
                 );
         },
       ),
