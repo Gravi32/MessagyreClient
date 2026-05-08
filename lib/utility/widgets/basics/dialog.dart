@@ -61,7 +61,7 @@ class Dialog extends StatelessWidget {
   }) {
     return Dialog(
       title: title,
-      field: Field(keyboardType: keyboardType, controller: controller, placeholder: placeholder, maxLines: maxLines, obscureText: obscureText),
+      field: Field(keyboardType: keyboardType, controller: controller, placeholder: placeholder, maxLines: maxLines, isPassword: obscureText),
       options: {"Annuler": () {}, "Confirmer": () => onConfirm?.call()},
       optionsDirection: .horizontal,
       isDestructive: isDestructive,

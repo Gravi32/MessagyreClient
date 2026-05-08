@@ -635,7 +635,6 @@ class _NewGradePageState extends State<NewGradePage> {
                                 title: "Nouveau groupe",
                                 placeholder: "Nom du groupe (TP, Vocs, ...)",
                                 controller: controller,
-                                maxLines: 1,
                                 onConfirm: () {
                                   final newName = controller.text.trim();
                                   try {

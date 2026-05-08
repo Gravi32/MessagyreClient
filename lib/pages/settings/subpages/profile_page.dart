@@ -491,7 +491,6 @@ class _ProfilePageState extends State<ProfilePage> {
               return Dialog.entry(
                 title: "Mot de passe requis",
                 controller: controller,
-                maxLines: 1,
                 isDestructive: true,
                 obscureText: true,
                 placeholder: "Votre mot de passe",
