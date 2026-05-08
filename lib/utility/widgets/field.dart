@@ -69,7 +69,6 @@ class _FieldState extends State<Field> {
         Stack(
           children: [
             Container(
-              padding: .all(16),
               decoration: BoxDecoration(
                 color: color.withTransparency(widget.enabled ? 0.25 : 0.75),
                 border: .all(color: color, width: 2),
@@ -79,7 +78,7 @@ class _FieldState extends State<Field> {
                 children: [
                   Expanded(
                     child: CupertinoTextField(
-                      padding: .zero,
+                      padding: .all(16),
                       placeholder: widget.placeholder,
                       placeholderStyle: isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context),
                       maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
