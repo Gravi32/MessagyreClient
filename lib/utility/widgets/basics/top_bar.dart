@@ -8,8 +8,10 @@ import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 class TopBar extends StatefulWidget {
   final Widget? leading;
   final Widget? middle;
+  final Widget? trailing;
+  final bool isSliver;
 
-  const TopBar({super.key, this.leading, this.middle});
+  const TopBar({super.key, this.leading, this.middle, this.trailing, this.isSliver = false});
 
   factory TopBar.form(BuildContext context, {String? title, void Function()? onPop, void Function()? onCloseConfirmed}) {
     return TopBar(
@@ -40,6 +42,10 @@ class TopBar extends StatefulWidget {
     );
   }
 
+  factory TopBar.sliver({String? title, Widget? leading, Widget? trailing}) {
+    return TopBar(middle: title != null ? Text(title) : null, leading: leading, trailing: trailing, isSliver: true);
+  }
+
   @override
   State<TopBar> createState() => _TopBarState();
 }
@@ -47,6 +53,10 @@ class TopBar extends StatefulWidget {
 class _TopBarState extends State<TopBar> {
   @override
   Widget build(BuildContext context) {
+    if (widget.isSliver) {
+      return CupertinoSliverNavigationBar(leading: widget.leading, largeTitle: widget.middle, trailing: widget.trailing);
+    }
+
     return Container(
       padding: .symmetric(horizontal: 10, vertical: 8),
       height: 60,

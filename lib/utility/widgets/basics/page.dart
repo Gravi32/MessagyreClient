@@ -7,38 +7,72 @@ class Page extends StatelessWidget {
   final bool canPop;
   final Color? backgroundColor;
   final TopBar? navigationBar;
+  final bool isSliver;
+  final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
+  final ScrollController? scrollController;
 
-  const Page({super.key, required this.child, this.canPop = true, this.backgroundColor, this.navigationBar});
+  const Page({
+    super.key,
+    required this.child,
+    this.canPop = true,
+    this.backgroundColor,
+    this.navigationBar,
+    this.isSliver = false,
+    this.sliverHeaderBuilder,
+    this.scrollController,
+  });
 
   factory Page.scrollable(BuildContext context, {required List<Widget> children, bool canPop = true, Color? backgroundColor}) {
     return Page(
+      backgroundColor: backgroundColor,
+      canPop: canPop,
       child: SingleChildScrollView(
-        padding: .symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(mainAxisSize: .min, crossAxisAlignment: .stretch, children: children),
       ),
     );
   }
 
+  factory Page.sliver({required Widget body, required TopBar topBar, ScrollController? controller, bool canPop = true, Color? backgroundColor}) {
+    return Page(
+      isSliver: true,
+      sliverHeaderBuilder: (_, _) => [topBar],
+      scrollController: controller,
+      canPop: canPop,
+      backgroundColor: backgroundColor,
+      child: body,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bgColor = backgroundColor ?? AppColors.background.adaptTo(context);
+
     return PopScope(
       canPop: canPop,
       child: CupertinoPageScaffold(
-        backgroundColor: backgroundColor ?? AppColors.background.adaptTo(context),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: .stretch,
-            children: [
-              if (navigationBar != null) navigationBar!,
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(color: backgroundColor ?? AppColors.background.adaptTo(context)),
-                  child: SafeArea(minimum: const .symmetric(horizontal: 10), child: child),
+        backgroundColor: bgColor,
+        child: isSliver
+            ? NestedScrollView(
+                controller: scrollController,
+                headerSliverBuilder: sliverHeaderBuilder!,
+                body: SafeArea(top: false, minimum: .symmetric(horizontal: 10), child: child),
+              )
+            : SafeArea(
+                minimum: const .symmetric(horizontal: 10),
+                child: Column(
+                  crossAxisAlignment: .stretch,
+                  children: [
+                    if (navigationBar != null) navigationBar!,
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(color: bgColor),
+                        child: child,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
       ),
     );
   }
