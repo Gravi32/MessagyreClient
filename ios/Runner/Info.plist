@@ -63,5 +63,25 @@
             <string>https</string>
             <string>http</string>
         </array>
+        <key>UTExportedTypeDeclarations</key>
+        <array>
+            <dict>
+                <key>UTTypeConformsTo</key>
+                <array>
+                    <string>public.data</string>
+                </array>
+                <key>UTTypeDescription</key>
+                <string>Isar Database File</string>
+                <key>UTTypeIdentifier</key>
+                <string>com.isar.db</string>
+                <key>UTTypeTagSpecification</key>
+                <dict>
+                    <key>public.filename-extension</key>
+                    <array>
+                        <string>isar</string>
+                    </array>
+                </dict>
+            </dict>
+        </array>
     </dict>
 </plist>
