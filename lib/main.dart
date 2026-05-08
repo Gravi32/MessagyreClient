@@ -19,7 +19,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
-import 'package:messagyre_client/utility/widgets/navigation_bar.dart';
+import 'package:messagyre_client/utility/widgets/bottom_bar.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -122,7 +122,11 @@ class App extends StatelessWidget {
 
   static List<AppPage> pages = [
     AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesListPage()),
-    AppPage(name: "Devoirs", icon: HugeIcons.strokeRoundedWork, build: () => AssignmentsListPage(key: assignmentListPageKey)),
+    AppPage(
+      name: "Devoirs",
+      icon: HugeIcons.strokeRoundedWork,
+      build: () => AssignmentsListPage(key: assignmentListPageKey),
+    ),
     AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsListPage()),
     AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
     AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsListPage()),
@@ -138,7 +142,10 @@ class App extends StatelessWidget {
           theme: CupertinoThemeData(
             brightness: brightness,
             primaryColor: AppColors.accent,
-            textTheme: CupertinoTextThemeData(primaryColor: AppColors.accent, textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17)),
+            textTheme: CupertinoTextThemeData(
+              primaryColor: AppColors.accent,
+              textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17),
+            ),
             scaffoldBackgroundColor: AppColors.background.adaptTo(context),
             barBackgroundColor: AppColors.background.adaptTo(context),
           ),
@@ -148,7 +155,10 @@ class App extends StatelessWidget {
           home: const MainPage(),
           builder: (context, child) {
             final MediaQueryData data = MediaQuery.of(context);
-            return MediaQuery(data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)), child: child!);
+            return MediaQuery(
+              data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)),
+              child: child!,
+            );
           },
         );
       },
@@ -203,16 +213,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     pageController = PageController(initialPage: MainPage.pageIndex.value);
 
     // Wrap every page build in try/catch to avoid crashing the whole PageView
-    builtPages =
-        App.pages.map((p) {
-          try {
-            return KeepAliveWrapper(child: p.build());
-          } catch (e, stack) {
-            debugPrint("Error building page ${p.name}: $e");
-            debugPrint(stack.toString());
-            return Container(color: AppColors.red);
-          }
-        }).toList();
+    builtPages = App.pages.map((p) {
+      try {
+        return KeepAliveWrapper(child: p.build());
+      } catch (e, stack) {
+        debugPrint("Error building page ${p.name}: $e");
+        debugPrint(stack.toString());
+        return Container(color: AppColors.red);
+      }
+    }).toList();
 
     MainPage.pageIndex.addListener(swipeToPage);
 
@@ -241,17 +250,21 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       backgroundColor: AppColors.background.adaptTo(context),
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      body: PageView(
-        controller: pageController,
-        allowImplicitScrolling: true,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (index) {
-          FocusManager.instance.primaryFocus?.unfocus();
-          if (!isAnimating) MainPage.pageIndex.value = index;
-        },
-        children: builtPages,
+      body: Stack(
+        children: [
+          PageView(
+            controller: pageController,
+            allowImplicitScrolling: true,
+            physics: const BouncingScrollPhysics(),
+            onPageChanged: (index) {
+              FocusManager.instance.primaryFocus?.unfocus();
+              if (!isAnimating) MainPage.pageIndex.value = index;
+            },
+            children: builtPages,
+          ),
+          Positioned(right: 0, bottom: 0, left: 0, child: BottomBar()),
+        ],
       ),
-      bottomNavigationBar: NavigationBar(),
     );
   }
 }
