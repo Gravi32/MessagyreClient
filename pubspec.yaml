@@ -126,6 +126,7 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
   text_gradiate: ^1.0.1
   timezone: ^0.9.4
+  path_drawing: ^1.0.1
 
 dev_dependencies:
   flutter_test:

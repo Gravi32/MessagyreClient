@@ -8,6 +8,7 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
+import 'package:messagyre_client/utility/graphics/messagyre_logo.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/field.dart';
@@ -140,8 +141,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       context,
       canPop: false,
       children: [
-        Image.asset("assets/icons/purple.png", height: 100),
-        const SizedBox(height: 10),
+        MessagyreLogo(size: 60, padding: .all(20),),
+
+        const SizedBox(height: 20),
         Text("Bienvenue sur Messagyre", textAlign: TextAlign.center, style: AppStyles.header(context)),
         const SizedBox(height: 6),
         Text("connectez-vous pour continuer", textAlign: TextAlign.center, style: AppStyles.secondaryText(context)),
