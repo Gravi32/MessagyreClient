@@ -186,13 +186,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                       error: usernameError,
                       controller: usernameController,
                       disabled: isWaitingForResponse,
-                      onChanged: (_) {
-                        final selection = usernameController.selection;
-                        final newText = usernameController.text.toLowerCase().replaceAll(' ', '');
-
-                        if (newText != usernameController.text) {
-                          usernameController.value = TextEditingValue(text: newText, selection: selection);
-                        }
+                      onSubmitted: (newText) {
+                        usernameController.value = TextEditingValue(
+                          text: newText.toLowerCase().replaceAll(' ', '').split('@')[0],
+                          selection: usernameController.selection,
+                        );
                       },
                     ),
                     const SizedBox(height: 20),
@@ -250,12 +248,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     const SizedBox(height: 30),
                     CupertinoButton.filled(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      onPressed:
-                          isWaitingForResponse
-                              ? null
-                              : () async {
-                                Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage()));
-                              },
+                      onPressed: isWaitingForResponse
+                          ? null
+                          : () async {
+                              Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage()));
+                            },
                       child: const Text("Créer un compte", style: TextStyle(color: AppColors.white)),
                     ),
                     const SizedBox(height: 50),
