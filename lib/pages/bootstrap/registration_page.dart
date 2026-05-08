@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -428,43 +430,44 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        leading: GestureDetector(
-          child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01),
-          onTap: () => askClosingConfirmation(),
-        ),
-        middle: Text(widget.isInPasswordResetMode ? "Changer de mot de passe" : "Création de compte"),
+    return Page(
+      navigationBar: TopBar.form(
+        context,
+        title: widget.isInPasswordResetMode ? "Changer de mot de passe" : "Création d'un compte",
+        onPop: () => Navigator.pop(context),
+        onCloseConfirmed: currentPage != 0
+            ? () {
+                clearRegistrationCache();
+                Navigator.pop(context);
+              }
+            : null,
       ),
-      child: SafeArea(
-        minimum: EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 20,
-              children: [
-                if (!widget.isInPasswordResetMode)
-                  currentPage == 0
-                      ? CustomIcon(icon: HugeIcons.strokeRoundedMailAdd01)
-                      : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-                currentPage == 1 ? CustomIcon(icon: HugeIcons.strokeRoundedSmsCode) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-                currentPage == 2
-                    ? CustomIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 20,
+            children: [
+              if (!widget.isInPasswordResetMode)
+                currentPage == 0
+                    ? CustomIcon(icon: HugeIcons.strokeRoundedMailAdd01)
                     : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-              ],
-            ),
-            Expanded(
-              child: PageView(
-                clipBehavior: Clip.none,
-                controller: pageController,
-                physics: NeverScrollableScrollPhysics(),
+              currentPage == 1 ? CustomIcon(icon: HugeIcons.strokeRoundedSmsCode) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+              currentPage == 2
+                  ? CustomIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
+                  : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
+            ],
+          ),
+          Expanded(
+            child: PageView(
+              clipBehavior: Clip.none,
+              controller: pageController,
+              physics: NeverScrollableScrollPhysics(),
 
-                children: [if (!widget.isInPasswordResetMode) emailPage(), codePage(), passwordPage()],
-              ),
+              children: [if (!widget.isInPasswordResetMode) emailPage(), codePage(), passwordPage()],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

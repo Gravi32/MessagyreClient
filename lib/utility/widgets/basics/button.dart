@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
@@ -83,12 +84,9 @@ class Button extends StatelessWidget {
               spacing: spacing,
               children: [
                 if (icon != null)
-                  SizedBox(
-                    width: 30,
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: HugeIcon(icon: icon!, color: iconColor ?? (transparent ? (textColor ?? color ?? AppColors.accent) : AppColors.white)),
-                    ),
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: HugeIcon(icon: icon!, color: iconColor ?? (transparent ? (textColor ?? color ?? AppColors.accent) : AppColors.white)),
                   ),
 
                 if (!isIconOnly)
@@ -106,10 +104,10 @@ class Button extends StatelessWidget {
                           ),
                         ),
 
-                if (icon != null && text != null) const SizedBox(width: 30),
+                if (icon != null && text != null) const AspectRatio(aspectRatio: 1),
               ],
             ),
-          ),
+          ).withAspectRatio(1, enabled: isIconOnly),
         ),
       ),
     );
