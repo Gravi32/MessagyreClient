@@ -11,7 +11,7 @@ import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/widgets/dialog.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // #region -> Strings

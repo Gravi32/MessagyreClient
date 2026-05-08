@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -8,6 +9,7 @@ class Button extends StatelessWidget {
   final Color? color;
   final bool transparent;
   final bool enabled;
+  final bool isLoading;
   final IconData? icon;
   final String? emojiIcon;
   final double spacing;
@@ -25,6 +27,7 @@ class Button extends StatelessWidget {
     this.color,
     this.transparent = false,
     this.enabled = true,
+    this.isLoading = false,
     this.icon,
     this.emojiIcon,
     this.spacing = 4,
@@ -90,17 +93,19 @@ class Button extends StatelessWidget {
                     ),
                   ),
 
-                Expanded(
-                  child: Text(
-                    text,
-                    textAlign: .center,
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: textWeight,
-                      color: enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
-                    ),
-                  ),
-                ),
+                isLoading
+                    ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+                    : Expanded(
+                        child: Text(
+                          text,
+                          textAlign: .center,
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: textWeight,
+                            color: enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
+                          ),
+                        ),
+                      ),
 
                 if (hasIcons) const SizedBox(width: 30),
               ],
