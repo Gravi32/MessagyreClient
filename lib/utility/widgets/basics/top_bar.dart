@@ -48,7 +48,7 @@ class _TopBarState extends State<TopBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: .symmetric(horizontal: 10, vertical: 4),
+      padding: .symmetric(horizontal: 10, vertical: 8),
       height: 60,
       child: Row(
         children: [

@@ -4,17 +4,21 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
 class Field extends StatefulWidget {
   final String placeholder;
   final IconData? icon;
   final Function(String content)? onSubmitted;
   final Function(String content)? onChanged;
+  final String? suffix;
   final String? error;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
+  final TextStyle? textStyle;
   final int? maxLines;
   final bool isPassword;
+  final bool alwaysHidePassword;
   final bool enabled;
 
   const Field({
@@ -23,22 +27,33 @@ class Field extends StatefulWidget {
     this.icon,
     this.onSubmitted,
     this.onChanged,
+    this.suffix,
     this.error,
     this.controller,
     this.keyboardType,
+    this.textStyle,
     this.maxLines = 1,
     this.isPassword = false,
+    this.alwaysHidePassword = false,
     this.enabled = true,
   });
 
-  factory Field.password({Function(String content)? onChanged, String? error, TextEditingController? controller, bool enabled = true}) {
+  factory Field.password({
+    Function(String content)? onChanged,
+    String? error,
+    TextEditingController? controller,
+    bool enabled = true,
+    bool isConfirmPassword = false,
+    bool alwaysHidePassword = false,
+  }) {
     return Field(
-      placeholder: "Mot de passe",
+      placeholder: isConfirmPassword ? "Confirmer le mot de passe" : "Mot de passe",
       onChanged: onChanged,
       error: error,
       controller: controller,
       keyboardType: .visiblePassword,
       isPassword: true,
+      alwaysHidePassword: alwaysHidePassword,
       enabled: enabled,
     );
   }
@@ -69,6 +84,7 @@ class _FieldState extends State<Field> {
         Stack(
           children: [
             Container(
+              padding: .only(right: 16),
               decoration: BoxDecoration(
                 color: color.withTransparency(widget.enabled ? 0.25 : 0.75),
                 border: .all(color: color, width: 2),
@@ -78,9 +94,11 @@ class _FieldState extends State<Field> {
                 children: [
                   Expanded(
                     child: CupertinoTextField(
-                      padding: .all(16),
+                      padding: .only(left: 16, top: 16, bottom: 16),
                       placeholder: widget.placeholder,
-                      placeholderStyle: isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context),
+                      placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
+                        widget.textStyle,
+                      ),
                       maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
                       scrollPadding: const EdgeInsets.only(bottom: 60), // Distance from the keyboard
                       decoration: const BoxDecoration(),
@@ -90,14 +108,16 @@ class _FieldState extends State<Field> {
                       onChanged: widget.onChanged,
                       obscureText: _obscureText,
                       textAlign: isNumeric ? .center : .start,
+                      style: widget.textStyle,
                       onTapOutside: (_) => FocusScope.of(context).unfocus(),
                     ),
                   ),
+                  if (widget.suffix != null) Text(widget.suffix!),
                   if (widget.icon != null) Icon(widget.icon),
                 ],
               ),
             ),
-            if (widget.isPassword)
+            if (widget.isPassword && !widget.alwaysHidePassword)
               Positioned(
                 right: 6,
                 top: 6,
@@ -116,7 +136,7 @@ class _FieldState extends State<Field> {
         if (showingError)
           Padding(
             padding: const .only(top: 4, left: 16, right: 16),
-            child: Text(widget.error!, style: AppStyles.error(context)),
+            child: CustomText(widget.error!, style: AppStyles.error(context)),
           ),
       ],
     );

@@ -75,7 +75,7 @@ class Button extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: borderRadius,
               color: transparent ? finalButtonColor.withTransparency(.5) : finalButtonColor,
-              border: transparent ? .all(width: 2, color: finalButtonColor) : null,
+              border: .all(width: 2, color: finalButtonColor),
             ),
             child: Flex(
               direction: direction,

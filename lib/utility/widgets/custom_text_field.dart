@@ -17,6 +17,7 @@ class CustomTextField extends StatefulWidget {
   final void Function(String)? onChanged;
   final void Function(String)? onSubmitted;
 
+  @Deprecated("Use 'Field' from 'utility/widgets/basics/field.dart' instead.")
   const CustomTextField({
     super.key,
     required this.title,
@@ -66,21 +67,20 @@ class _CustomTextFieldState extends State<CustomTextField> {
               widget.suffix ??
               ((isPasswordField && !widget.alwaysHidePassword)
                   ? CupertinoButton(
-                    padding: EdgeInsets.zero,
+                      padding: EdgeInsets.zero,
 
-                    onPressed:
-                        widget.disabled
-                            ? null
-                            : () {
+                      onPressed: widget.disabled
+                          ? null
+                          : () {
                               setState(() {
                                 isPasswordHidden = !isPasswordHidden;
                               });
                             },
-                    child: CustomIcon(
-                      icon: isPasswordHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
-                      color: widget.disabled ? AppColors.inactive.adaptTo(context) : null,
-                    ),
-                  )
+                      child: CustomIcon(
+                        icon: isPasswordHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
+                        color: widget.disabled ? AppColors.inactive.adaptTo(context) : null,
+                      ),
+                    )
                   : null),
 
           onChanged: widget.disabled ? null : widget.onChanged,

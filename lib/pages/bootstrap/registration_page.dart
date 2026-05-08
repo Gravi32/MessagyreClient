@@ -4,15 +4,16 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -67,18 +68,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   void sendEmail() async {
     startResendTimer();
-    isWaitingForResponse = true;
+
+    setState(() => isWaitingForResponse = true);
 
     final response = await network.post("/auth/registration", {"EmailAddress": "${emailController.text.trim()}@eduvaud.ch"});
 
-    isWaitingForResponse = false;
+    setState(() => isWaitingForResponse = false);
 
     final responseData = jsonDecode(response.body);
     final solutions = {
-      "WrongFormat": "L'adresse e-mail doit respecter le format suivant : 'prénom.nom' !",
-      "WrongDomain": "L'adresse doit terminer en '@eduvaud.ch' !",
-      "WrongAddress": "Utilisez votre adresse nom.prénom@eduvaud.ch, pas pXNNXXX@eduvaud.ch",
-      "AlreadyExists": "Cet adresse a déjà été utilisé !",
+      "WrongFormat": "L'adresse e-mail doit respecter le format suivant : '*prénom*.*nom*' !",
+      "WrongDomain": "L'adresse doit terminer en '@*eduvaud.ch*' !",
+      "WrongAddress": "Utilisez votre adresse '*prénom*.*nom*@eduvaud.ch'",
+      "AlreadyExists": "Cette adresse a déjà été utilisée !",
       "AlreadySent": "Veuillez patienter, le code a déjà été envoyé récemment !",
     };
 
@@ -97,11 +99,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void sendCode() async {
-    isWaitingForResponse = true;
+    setState(() => isWaitingForResponse = true);
 
     final response = await network.post("/auth/registration", {"RegistrationToken": registrationToken, "VerificationCode": codeController.text.trim()});
+    await Future.delayed(.new(seconds: 2));
 
-    isWaitingForResponse = false;
+    setState(() => isWaitingForResponse = false);
 
     var responseData = "";
     final solutions = {"WrongLength": "Le code doit contenir 6 chiffres.", "WrongCode": "Le code est incorrect !"};
@@ -121,11 +124,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void sendPassword() async {
-    isWaitingForResponse = true;
+    setState(() => isWaitingForResponse = true);
 
     final response = await network.post("/auth/registration", {"RegistrationToken": registrationToken, "Password": passwordController.text.trim()});
 
-    isWaitingForResponse = false;
+    setState(() => isWaitingForResponse = false);
 
     final responseData = jsonDecode(response.body);
     final solutions = {"TooShort": "Le mot de passe doit contenir au moins 8 caractères."};
@@ -179,27 +182,26 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Widget emailPage() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: .center,
+      crossAxisAlignment: .stretch,
       children: [
-        Spacer(),
+        Spacer(flex: 3),
         Text(
           "Adresse e-mail",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent),
-          textAlign: TextAlign.center,
+          style: AppStyles.header(context).copyWith(color: AppColors.accent),
+          textAlign: .center,
         ),
         SizedBox(height: 12),
-        Text("Veuillez entrer votre adresse e-mail officiel du gymnase.", textAlign: TextAlign.center),
+        CustomText("Veuillez entrer *votre adresse e-mail officiel*.", textAlign: .center, padding: .symmetric(horizontal: 20)),
         Spacer(),
 
-        CustomTextField(
-          title: "Adresse e-mail",
+        Field(
           placeholder: "prénom.nom",
+          suffix: "@eduvaud.ch",
           error: emailError,
           controller: emailController,
-          suffix: Padding(padding: EdgeInsets.only(right: 16), child: Text("@eduvaud.ch")),
-          keyboardType: TextInputType.emailAddress,
-          disabled: isWaitingForResponse,
+          keyboardType: .emailAddress,
+          enabled: !isWaitingForResponse,
           onChanged: (input) {
             final selection = emailController.selection;
             final newText = input.trim().toLowerCase();
@@ -216,46 +218,55 @@ class _RegistrationPageState extends State<RegistrationPage> {
             });
           },
         ),
+        Spacer(),
 
-        SizedBox(height: 6),
-
-        CupertinoButton.filled(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          minimumSize: Size.zero,
-          onPressed: isEmailValid && !isWaitingForResponse ? () => sendEmail() : null,
-          child: isWaitingForResponse
-              ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-              : Text("Envoyer le code de vérification"),
+        CustomText(
+          "Messagyre *vous envoyera un code de vérification* par e-mail pour confirmer votre identité.",
+          textAlign: .center,
+          padding: .symmetric(horizontal: 20),
+          style: AppStyles.tertiaryText(context),
         ),
 
-        Spacer(flex: 3),
+        Spacer(flex: 4),
+
+        Button(
+          enabled: isEmailValid && !isWaitingForResponse,
+          onTap: () => sendEmail(),
+          isLoading: isWaitingForResponse,
+          text: "Envoyer le code de vérification",
+        ),
       ],
     );
   }
 
   Widget codePage() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: .center,
+      crossAxisAlignment: .stretch,
       children: [
-        Spacer(),
+        Spacer(flex: 3),
         Text(
           "Code de vérification",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent),
-          textAlign: TextAlign.center,
+          style: AppStyles.header(context).copyWith(color: AppColors.accent),
+          textAlign: .center,
         ),
         SizedBox(height: 12),
-        Text("Veuillez entrer le code envoyé à l'adresse '${emailController.text}@eduvaud.ch'", textAlign: TextAlign.center),
+
+        CustomText(
+          "Veuillez entrer le *code envoyé* à l'adresse '*${emailController.text}@eduvaud.ch*'",
+          textAlign: .center,
+          padding: .symmetric(horizontal: 20),
+        ),
 
         Spacer(),
 
-        CustomTextField(
-          title: "Code de vérification",
-          placeholder: "- - - - - -",
+        Field(
+          placeholder: "------",
           controller: codeController,
           error: codeError,
-          keyboardType: TextInputType.number,
-          disabled: isWaitingForResponse,
+          keyboardType: .number,
+          enabled: !isWaitingForResponse,
+          textStyle: .new(letterSpacing: 4, fontSize: 24),
           onChanged: (input) {
             final selection = codeController.selection;
             final newText = input.trim();
@@ -271,69 +282,59 @@ class _RegistrationPageState extends State<RegistrationPage> {
           },
         ),
 
-        SizedBox(height: 6),
+        Spacer(flex: 5),
 
-        CupertinoButton.filled(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          onPressed: isCodeValid && !isWaitingForResponse ? () => sendCode() : null,
-          child: isWaitingForResponse ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14) : Text("Vérifier"),
-        ),
-        SizedBox(height: 10),
-        CupertinoButton(
-          onPressed: canResendCode && !isWaitingForResponse ? () => sendEmail() : null,
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 6,
-            children: [
-              Opacity(
-                opacity: canResendCode ? 1 : .25,
-                child: CustomIcon(icon: HugeIcons.strokeRoundedRefresh),
+        Column(
+          spacing: 10,
+          children: [
+            Button(enabled: isCodeValid && !isWaitingForResponse, onTap: () => sendCode(), isLoading: isWaitingForResponse, text: "Vérifier"),
+
+            Button(
+              enabled: canResendCode && !isWaitingForResponse,
+              onTap: () => sendEmail(),
+              transparent: true,
+              text: canResendCode ? "Renvoyer le code" : "Renvoyer le code ${resendSecondsLeft}s",
+            ),
+
+            if (!widget.isInPasswordResetMode)
+              Button(
+                enabled: !isWaitingForResponse,
+                onTap: () => goToPage(0),
+                transparent: true,
+                color: AppColors.secondaryButton.adaptTo(context),
+                text: "Changer d'adresse e-mail",
               ),
-              Text(canResendCode ? "Renvoyer le code" : "Renvoyer le code ${resendSecondsLeft}s"),
-            ],
-          ),
+          ],
         ),
-        if (!widget.isInPasswordResetMode)
-          CupertinoButton(
-            onPressed: isWaitingForResponse ? null : () => goToPage(0),
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text("Changer d'adresse e-mail"),
-          ),
-
-        Spacer(flex: 3),
       ],
     );
   }
 
   Widget passwordPage() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: .center,
+      crossAxisAlignment: .stretch,
       children: [
         Spacer(),
         Text(
           "Mot de passe",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent),
-          textAlign: TextAlign.center,
+          style: AppStyles.header(context).copyWith(color: AppColors.accent),
+          textAlign: .center,
         ),
         SizedBox(height: 12),
         CustomText(
-          "*Vérification réussite!*\n${widget.isInPasswordResetMode ? "Entrez maintenant votre nouveau mot de passe. Ne l'oubliez pas cette fois !" : "Créez maintenant un mot de passe pour accéder à votre compte."}",
-          style: TextStyle(fontSize: 16),
-          textAlign: TextAlign.center,
+          "*Vérification réussie!*\n${widget.isInPasswordResetMode ? "Entrez votre *nouveau mot de passe*. *Ne l'oubliez pas cette fois* !" : "*Créez un nouveau mot de passe* pour accéder à votre compte. Ne l'oubliez pas !"}",
+          textAlign: .center,
+          padding: .symmetric(horizontal: 20),
         ),
 
         Spacer(),
 
-        CustomTextField(
-          title: "Mot de passe",
-          placeholder: "••••••••••••••••",
+        Field.password(
           error: passwordError,
           controller: passwordController,
-          keyboardType: TextInputType.visiblePassword,
           alwaysHidePassword: true,
-          disabled: isWaitingForResponse,
+          enabled: !isWaitingForResponse,
           onChanged: (input) {
             final selection = passwordController.selection;
             final newText = input.trim();
@@ -348,15 +349,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
             });
           },
         ),
+
         SizedBox(height: 20),
 
-        CustomTextField(
-          title: "Confirmer le mot de passe",
-          placeholder: "••••••••••••••••",
+        Field.password(
           error: confirmPasswordError,
           controller: confirmPasswordController,
-          keyboardType: TextInputType.visiblePassword,
-          disabled: isWaitingForResponse,
+          enabled: !isWaitingForResponse,
+          isConfirmPassword: true,
           onChanged: (input) {
             final selection = confirmPasswordController.selection;
             final newText = input.trim();
@@ -372,17 +372,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
           },
         ),
 
-        SizedBox(height: 36),
-        CupertinoButton.filled(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          minimumSize: Size.zero,
-          onPressed: (isPasswordValid && isConfirmPasswordValid && !isWaitingForResponse) ? () => sendPassword() : null,
-          child: isWaitingForResponse
-              ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-              : Text(widget.isInPasswordResetMode ? "Accéder au compte" : "Créer le compte"),
-        ),
+        Spacer(flex: 4),
 
-        Spacer(flex: 3),
+        Button(
+          enabled: !isWaitingForResponse,
+          onTap: () => sendPassword(),
+          isLoading: isWaitingForResponse,
+          text: widget.isInPasswordResetMode ? "Accéder au compte" : "Créer le compte",
+        ),
       ],
     );
   }
@@ -445,7 +442,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: .center,
             spacing: 20,
             children: [
               if (!widget.isInPasswordResetMode)
@@ -460,13 +457,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
           Expanded(
             child: PageView(
-              clipBehavior: Clip.none,
+              clipBehavior: .none,
               controller: pageController,
               physics: NeverScrollableScrollPhysics(),
-
               children: [if (!widget.isInPasswordResetMode) emailPage(), codePage(), passwordPage()],
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );

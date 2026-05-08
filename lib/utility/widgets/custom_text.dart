@@ -10,6 +10,7 @@ class CustomText extends StatelessWidget {
   final int? maxLines;
   final List<InlineSpan>? prefixSpans;
   final List<InlineSpan>? suffixSpans;
+  final EdgeInsetsGeometry? padding;
   final TextAlign textAlign;
   final TextScaler? textScaler;
 
@@ -23,6 +24,7 @@ class CustomText extends StatelessWidget {
     this.maxLines,
     this.prefixSpans,
     this.suffixSpans,
+    this.padding,
     this.textAlign = TextAlign.start,
     this.textScaler,
   });
@@ -62,16 +64,19 @@ class CustomText extends StatelessWidget {
       if (suffixSpans != null) ...suffixSpans!,
     ];
 
-    return RichText(
-      text: TextSpan(
-        children: spans,
-        style: (style ?? DefaultTextStyle.of(context).style).copyWith(color: style?.color ?? DefaultTextStyle.of(context).style.color),
+    return Padding(
+      padding: padding ?? .zero,
+      child: RichText(
+        text: TextSpan(
+          children: spans,
+          style: (style ?? DefaultTextStyle.of(context).style).copyWith(color: style?.color ?? DefaultTextStyle.of(context).style.color),
+        ),
+        textScaler: textScaler ?? MediaQuery.of(context).textScaler,
+        overflow: overflow,
+        softWrap: softWrap,
+        maxLines: maxLines,
+        textAlign: textAlign,
       ),
-      textScaler: textScaler ?? MediaQuery.of(context).textScaler,
-      overflow: overflow,
-      softWrap: softWrap,
-      maxLines: maxLines,
-      textAlign: textAlign,
     );
   }
 }
