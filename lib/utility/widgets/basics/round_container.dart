@@ -6,11 +6,12 @@ import 'package:messagyre_client/utility/utility.dart';
 class RoundContainer extends StatelessWidget {
   final bool transparent;
   final bool enabled;
+  final bool blurOnly;
   final Color? color;
   final EdgeInsets? padding;
   final Widget? child;
 
-  const RoundContainer({super.key, this.transparent = true, this.enabled = true, this.color, this.padding, this.child});
+  const RoundContainer({super.key, this.transparent = true, this.enabled = true, this.blurOnly = false, this.color, this.padding, this.child});
 
   static final borderRadius = BorderRadius.circular(34);
 
@@ -27,7 +28,7 @@ class RoundContainer extends StatelessWidget {
           padding: padding ?? .all(16),
           decoration: BoxDecoration(
             borderRadius: borderRadius,
-            color: transparent && finalButtonColor.a > 0 ? finalButtonColor.withTransparency(.5) : finalButtonColor,
+            color: blurOnly ? AppColors.transparent : (transparent && finalButtonColor.a > 0 ? finalButtonColor.withTransparency(.5) : finalButtonColor),
             border: .all(width: 2, color: finalButtonColor),
           ),
           child: child,

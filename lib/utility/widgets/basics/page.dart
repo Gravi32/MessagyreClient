@@ -57,6 +57,7 @@ class Page extends StatelessWidget {
             ? NestedScrollView(
                 controller: scrollController,
                 headerSliverBuilder: sliverHeaderBuilder!,
+                physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 body: SafeArea(top: false, minimum: .symmetric(horizontal: 10), child: child),
               )
             : SafeArea(
