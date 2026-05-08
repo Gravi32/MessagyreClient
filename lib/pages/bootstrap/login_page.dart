@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart' hide Page;
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
-import 'package:messagyre_client/utility/widgets/custom_text_field.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -38,17 +38,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     final password = passwordController.text;
 
     setState(() {
-      if (!username.contains('.')) {
-        usernameError = "Le nom d'utilisateur doit contenir un point '.'";
-        return;
-      }
-
-      if (password.length < 8) {
-        passwordError = "Le mot de passe doit contenir au moins 8 caractères.";
-        return;
-      }
-
-      usernameError = passwordError = null;
+      usernameError = !username.contains('.') ? "Le nom d'utilisateur doit contenir un point '.'" : null;
+      passwordError = password.length < 8 ? "Le mot de passe doit contenir au moins 8 caractères." : null;
       wasPasswordWrong = false;
     });
     if (usernameError != null || passwordError != null) return;
@@ -151,64 +142,42 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       children: [
         Image.asset("assets/icons/purple.png", height: 100),
         const SizedBox(height: 10),
-        Text(
-          "Bienvenue sur Messagyre",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
-        ),
+        Text("Bienvenue sur Messagyre", textAlign: TextAlign.center, style: AppStyles.header(context)),
         const SizedBox(height: 6),
-        Text(
-          "connectez-vous pour continuer",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: AppColors.secondaryText.adaptTo(context)),
-        ),
+        Text("connectez-vous pour continuer", textAlign: TextAlign.center, style: AppStyles.secondaryText(context)),
         const SizedBox(height: 6),
 
         Text(
-          "Attention: Les comptes de Messagyre ne sont pas liés au gymnase ! Vous devez créer un compte à part si vous ne l'avez pas déjà fait !",
+          "Les comptes de Messagyre ne sont pas liés au gymnase ! Vous devez créer un compte à part si vous ne l'avez pas déjà fait !",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: AppColors.tertiaryText.adaptTo(context)),
+          style: AppStyles.tertiaryText(context),
         ),
 
         const SizedBox(height: 40),
-        CustomTextField(
-          title: "Nom d'utilisateur",
-          placeholder: "prénom.nom",
+        Field(
+          placeholder: "Nom d'utilisateur",
           error: usernameError,
           controller: usernameController,
-          disabled: isWaitingForResponse,
+          enabled: !isWaitingForResponse,
           onSubmitted: (newText) {
             usernameController.value = TextEditingValue(text: newText.toLowerCase().replaceAll(' ', '').split('@')[0], selection: usernameController.selection);
           },
         ),
+
         const SizedBox(height: 20),
-        CustomTextField(
-          title: "Mot de passe",
-          placeholder: "••••••••••••••••",
-          error: passwordError,
-          controller: passwordController,
-          disabled: isWaitingForResponse,
-          keyboardType: TextInputType.visiblePassword,
-          onChanged: (_) => setState(() {}),
-        ),
+        Field.password(error: passwordError, controller: passwordController, enabled: !isWaitingForResponse, onChanged: (_) => setState(() {})),
+
         const SizedBox(height: 36),
         Button(text: "Connexion", enabled: !fieldsAreEmpty && !isWaitingForResponse, isLoading: isWaitingForResponse, onTap: tryToLogin),
 
-        if (wasPasswordWrong) ...[
+        if (wasPasswordWrong && usernameController.text.isNotEmpty) ...[
           const SizedBox(height: 10),
-          CupertinoButton(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            minimumSize: Size.zero,
-            onPressed: (!isWaitingForResponse) ? tryToResetPassword : null,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                isWaitingForResponse
-                    ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-                    : const Text("J'ai oublié mon mot de passe..."),
-              ],
-            ),
+          Button(
+            onTap: (!isWaitingForResponse) ? tryToResetPassword : null,
+            text: "J'ai oublié mon mot de passe...",
+            isLoading: isWaitingForResponse,
+            transparent: true,
+            color: AppColors.secondaryButton.adaptTo(context),
           ),
         ],
 
