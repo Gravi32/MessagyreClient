@@ -1,16 +1,19 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart' hide Dialog;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
@@ -216,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         SizedBox(height: 6),
                         Row(
                           spacing: 8,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: .start,
                           children: [
                             CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.secondaryText.adaptTo(context), size: 16),
                             Expanded(
@@ -427,36 +430,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Widget buildLeading() {
-    return GestureDetector(
-      onTap: isUploading
-          ? null
-          : () {
-              if (changesMade) {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (_) => Dialog.confirm(
-                    content: "Tout changement sera annulé. Cette action est irréversible !",
-                    onConfirm: () => Navigator.of(context).pop(),
-                    isDestructive: true,
-                  ),
-                );
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-      child: CustomIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isUploading ? AppColors.inactive.adaptTo(context) : null, size: 30),
-    );
-  }
-
   Widget? buildTrailing() {
     return changesMade
-        ? CupertinoButton(
-            padding: EdgeInsets.zero,
-            child: isUploading
-                ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-                : Text("Appliquer", style: TextStyle(fontWeight: FontWeight.w600)),
-            onPressed: () async {
+        ? Button.icon(
+            context,
+            isLoading: isUploading,
+            icon: HugeIcons.strokeRoundedTick02,
+            color: AppColors.accent,
+            onTap: () async {
               setState(() => isUploading = true);
               bool success = await network.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
               setState(() => isUploading = false);
@@ -468,8 +449,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 context: mountedContext,
                 builder: (_) => Dialog(
                   title: success ? "Profil actualisé!" : "Erreur",
-                  content: success ? "Le profil a été mis a jour avec succès!" : "Une erreur s'est produite, veuillez reéssayer.",
-                  options: {"OK": () => Navigator.pop(context)},
+                  content: success ? "Le profil a été mis a jour avec succès!" : "Une erreur s'est produite, veuillez reéssayer.\n\n(POST Multipart)",
+                  options: success ? {"OK": () => Navigator.pop(context)} : null,
                 ),
               );
             },
@@ -561,214 +542,195 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     isBlocked = globals.blockedUsers.contains(account.username);
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        leading: buildLeading(),
-        middle: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          spacing: 4,
-          children: [
-            Text(editMode ? "Mon profil" : account.username),
-            if (isBlocked) CustomIcon(icon: HugeIcons.strokeRoundedUnavailable, size: 16, color: AppColors.secondaryText.adaptTo(context)),
-          ],
+    return Page.scrollable(
+      context,
+      topBar: editMode
+          ? TopBar.form(context, title: "Votre profil", onCloseConfirmed: changesMade ? () => Navigator.pop(context) : null, trailing: buildTrailing())
+          : TopBar.tab(context, title: account.username),
+
+      children: [
+        RoundContainer(
+          child: Column(
+            spacing: 10,
+            children: [
+              Row(
+                spacing: 16,
+                children: [
+                  SizedBox(
+                    height: 60,
+                    child: ProfilePictureDisplay(
+                      accountUsername: chosenPicturePath != null ? null : account.username,
+                      picturePath: chosenPicturePath,
+                      isBlocked: isBlocked,
+                    ),
+                  ),
+                  Column(
+                    spacing: 2,
+                    crossAxisAlignment: .start,
+                    children: [
+                      Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+
+                      Row(
+                        spacing: 6,
+                        children: [
+                          CustomIcon(icon: HugeIcons.strokeRoundedUserAccount, size: 18, color: AppColors.secondaryText.adaptTo(context)),
+                          CustomText("${account.username} - ${account.classOrRole ?? "*Nouveau compte*"}", style: AppStyles.secondaryText(context)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(),
+
+              CustomText(
+                profile["Bio"] ?? "Pas de biographie",
+                style: TextStyle(fontSize: 16, color: profile["Bio"] == null ? AppColors.secondaryText.adaptTo(context) : null),
+              ),
+              Text(
+                "Membre depuis :  ${formatDate(account.creationDate ?? DateTime.now())}.",
+                style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
+              ),
+            ],
+          ),
         ),
-        trailing: buildTrailing(),
-      ),
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.all(10),
-          children: [
-            Column(
-              spacing: 10,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+
+        SizedBox(height: 6),
+
+        if (isBlocked)
+          CupertinoListSection.insetGrouped(
+            backgroundColor: AppColors.transparent,
+            margin: EdgeInsets.zero,
+            children: [
+              buildListTile(
+                HugeIcons.strokeRoundedUserUnlock01,
+                "Débloquer cet utilisateur",
+                onTap: () => showCupertinoDialog(
+                  context: context,
+                  builder: (dialogContext) => Dialog.confirm(
+                    content:
+                        "Débloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous pourrez à nouveau recevoir de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
+                    onConfirm: () {
+                      globals.unblockUser(account.username);
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+        if (account.username != globals.username) ...[
+          if (!widget.openedFromChat)
+            CupertinoListSection.insetGrouped(
+              backgroundColor: AppColors.transparent,
+              margin: EdgeInsets.zero,
+
               children: [
-                Row(
-                  spacing: 10,
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      foregroundDecoration: isBlocked ? BoxDecoration(color: Colors.grey, backgroundBlendMode: BlendMode.saturation) : null,
-                      child: ProfilePictureDisplay(
-                        accountUsername: chosenPicturePath != null ? null : account.username,
-                        picturePath: chosenPicturePath,
-                        radius: 40,
-                      ),
-                    ),
-                    Column(
-                      spacing: 2,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
-
-                        Row(
-                          spacing: 6,
-                          children: [
-                            CustomIcon(icon: HugeIcons.strokeRoundedUserAccount, size: 18, color: AppColors.secondaryText.adaptTo(context)),
-                            Text(account.username, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                          ],
-                        ),
-
-                        SizedBox(height: 0),
-
-                        if ((account.classOrRole ?? "-") != "-") Text(account.classOrRole!, style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-
-                CustomText(
-                  profile["Bio"] ?? "Pas de biographie",
-                  style: TextStyle(fontSize: 16, color: profile["Bio"] == null ? AppColors.secondaryText.adaptTo(context) : null),
-                ),
-                Text(
-                  "Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}.",
-                  style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
-                ),
-
-                SizedBox(height: 6),
-
-                if (isBlocked)
-                  CupertinoListSection.insetGrouped(
-                    backgroundColor: AppColors.transparent,
-                    margin: EdgeInsets.zero,
-                    children: [
-                      buildListTile(
-                        HugeIcons.strokeRoundedUserUnlock01,
-                        "Débloquer cet utilisateur",
-                        onTap: () => showCupertinoDialog(
-                          context: context,
-                          builder: (dialogContext) => Dialog.confirm(
-                            content:
-                                "Débloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous pourrez à nouveau recevoir de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
-                            onConfirm: () {
-                              globals.unblockUser(account.username);
-                              setState(() {});
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                if (!widget.openedFromChat)
+                  buildListTile(
+                    HugeIcons.strokeRoundedSent,
+                    "Envoyer un message",
+                    onTap: isBlocked
+                        ? null
+                        : () => Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatPage(username: account.username))),
                   ),
 
-                if (account.username != globals.username) ...[
-                  if (!widget.openedFromChat)
-                    CupertinoListSection.insetGrouped(
-                      backgroundColor: AppColors.transparent,
-                      margin: EdgeInsets.zero,
-
-                      children: [
-                        if (!widget.openedFromChat)
-                          buildListTile(
-                            HugeIcons.strokeRoundedSent,
-                            "Envoyer un message",
-                            onTap: isBlocked
-                                ? null
-                                : () => Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatPage(username: account.username))),
-                          ),
-
-                        // TODO
-                        // buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
-                        // buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
-                        // buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
-                      ],
-                    ),
-                ],
-
-                if (chat != null)
-                  CupertinoListSection.insetGrouped(
-                    backgroundColor: AppColors.transparent,
-                    margin: EdgeInsets.zero,
-
-                    header: Text("Conversation"),
-
-                    children: [
-                      buildListTile(
-                        chat!.isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
-                        chat!.isPinned ? "Désépingler" : "Épingler",
-                        onTap: () {
-                          if (chat == null) return;
-
-                          chat!.isPinned = !chat!.isPinned;
-                          database.chats.save(chat!);
-                          setState(() {});
-                        },
-                      ),
-                      buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages", onTap: deleteMessages),
-                      buildListTile(HugeIcons.strokeRoundedDelete04, "Supprimer la conversation", isDestructive: true, onTap: deleteChat),
-                    ],
-                  ),
-
-                if (account.username == globals.username) ...[
-                  CupertinoListSection.insetGrouped(
-                    backgroundColor: AppColors.transparent,
-                    margin: EdgeInsets.zero,
-
-                    children: [
-                      buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
-                      buildListTile(HugeIcons.strokeRoundedUserCircle, "Changer de photo de profil", onTap: () => changeProfilePicture()),
-                      //TODO
-                      //buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
-                    ],
-                  ),
-                  CupertinoListSection.insetGrouped(
-                    backgroundColor: AppColors.transparent,
-                    margin: EdgeInsets.zero,
-                    children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
-                  ),
-                ],
-
-                if (account.username != globals.username) ...[
-                  CupertinoListSection.insetGrouped(
-                    backgroundColor: AppColors.transparent,
-                    margin: EdgeInsets.zero,
-
-                    header: Text("Utilisateur"),
-
-                    children: [
-                      if (!isBlocked)
-                        buildListTile(
-                          HugeIcons.strokeRoundedUserBlock01,
-                          "Bloquer",
-                          isDestructive: true,
-                          onTap: () => showCupertinoDialog(
-                            context: context,
-                            builder: (_) => Dialog.confirm(
-                              content:
-                                  "Bloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
-                              onConfirm: () {
-                                globals.blockUser(account.username);
-                                setState(() {});
-                              },
-                              isDestructive: true,
-                            ),
-                          ),
-                        ),
-                      buildListTile(
-                        HugeIcons.strokeRoundedFlag02,
-                        "Signaler",
-                        isDestructive: true,
-                        onTap: () => showCupertinoDialog(
-                          context: context,
-                          builder: (dialogContext) => Dialog.confirm(
-                            content:
-                                "Signaler *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nCe profil sera envoyé aux développeurs de Messagyre. Si le profil est jugé inapproprié, des mesures pourront être prises.",
-                            onConfirm: () => setState(() {}),
-                            isDestructive: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                // TODO
+                // buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
+                // buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
+                // buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
               ],
             ),
-          ],
-        ),
-      ),
+        ],
+
+        if (chat != null)
+          CupertinoListSection.insetGrouped(
+            backgroundColor: AppColors.transparent,
+            margin: EdgeInsets.zero,
+
+            header: Text("Conversation"),
+
+            children: [
+              buildListTile(
+                chat!.isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
+                chat!.isPinned ? "Désépingler" : "Épingler",
+                onTap: () {
+                  if (chat == null) return;
+
+                  chat!.isPinned = !chat!.isPinned;
+                  database.chats.save(chat!);
+                  setState(() {});
+                },
+              ),
+              buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages", onTap: deleteMessages),
+              buildListTile(HugeIcons.strokeRoundedDelete04, "Supprimer la conversation", isDestructive: true, onTap: deleteChat),
+            ],
+          ),
+
+        if (account.username == globals.username) ...[
+          CupertinoListSection.insetGrouped(
+            backgroundColor: AppColors.transparent,
+            margin: EdgeInsets.zero,
+
+            children: [
+              buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
+              buildListTile(HugeIcons.strokeRoundedUserCircle, "Changer de photo de profil", onTap: () => changeProfilePicture()),
+              //TODO
+              //buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
+            ],
+          ),
+          CupertinoListSection.insetGrouped(
+            backgroundColor: AppColors.transparent,
+            margin: EdgeInsets.zero,
+            children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
+          ),
+        ],
+
+        if (account.username != globals.username) ...[
+          CupertinoListSection.insetGrouped(
+            backgroundColor: AppColors.transparent,
+            margin: EdgeInsets.zero,
+
+            header: Text("Utilisateur"),
+
+            children: [
+              if (!isBlocked)
+                buildListTile(
+                  HugeIcons.strokeRoundedUserBlock01,
+                  "Bloquer",
+                  isDestructive: true,
+                  onTap: () => showCupertinoDialog(
+                    context: context,
+                    builder: (_) => Dialog.confirm(
+                      content:
+                          "Bloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
+                      onConfirm: () {
+                        globals.blockUser(account.username);
+                        setState(() {});
+                      },
+                      isDestructive: true,
+                    ),
+                  ),
+                ),
+              buildListTile(
+                HugeIcons.strokeRoundedFlag02,
+                "Signaler",
+                isDestructive: true,
+                onTap: () => showCupertinoDialog(
+                  context: context,
+                  builder: (dialogContext) => Dialog.confirm(
+                    content:
+                        "Signaler *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nCe profil sera envoyé aux développeurs de Messagyre. Si le profil est jugé inapproprié, des mesures pourront être prises.",
+                    onConfirm: () => setState(() {}),
+                    isDestructive: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

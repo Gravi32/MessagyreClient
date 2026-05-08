@@ -12,14 +12,14 @@ class TopBar extends StatefulWidget {
 
   const TopBar({super.key, this.leading, this.middle, this.trailing, this.isSliver = false});
 
-  factory TopBar.form(BuildContext context, {String? title, void Function()? onPop, void Function()? onCloseConfirmed}) {
+  factory TopBar.form(BuildContext context, {String? title, void Function()? onPop, void Function()? onCloseConfirmed, Widget? trailing}) {
     return TopBar(
       leading: Button.icon(
         context,
         icon: HugeIcons.strokeRoundedCancel01,
         onTap: () {
           if (onCloseConfirmed == null) {
-            onPop?.call();
+            (onPop ?? () => Navigator.pop(context)).call();
             return;
           }
 
@@ -27,7 +27,7 @@ class TopBar extends StatefulWidget {
             context: context,
             builder: (context) {
               return Dialog.confirm(
-                content: "Voulez-vous vraiment *annuler la procédure*? Cette action est irréversible.",
+                content: "Voulez-vous vraiment *annuler*? Cette action est irréversible.",
                 isDestructive: true,
                 onConfirm: () => onCloseConfirmed.call(),
               );
@@ -35,6 +35,14 @@ class TopBar extends StatefulWidget {
           );
         },
       ),
+      middle: title != null ? Text(title, style: AppStyles.header(context), textAlign: .center) : null,
+      trailing: trailing,
+    );
+  }
+
+  factory TopBar.tab(BuildContext context, {String? title}) {
+    return TopBar(
+      leading: Button.icon(context, icon: HugeIcons.strokeRoundedArrowLeft01, onTap: () => Navigator.pop(context)),
       middle: title != null ? Text(title, style: AppStyles.header(context), textAlign: .center) : null,
     );
   }
@@ -59,9 +67,9 @@ class _TopBarState extends State<TopBar> {
       height: 60,
       child: Row(
         children: [
-          if (widget.leading != null) widget.leading!,
-          if (widget.middle != null) Expanded(child: widget.middle!),
-          if (widget.leading != null) AspectRatio(aspectRatio: 1),
+          if ((widget.leading ?? widget.trailing) != null) widget.leading ?? AspectRatio(aspectRatio: 1),
+          Expanded(child: widget.middle ?? SizedBox()),
+          if ((widget.leading ?? widget.trailing) != null) widget.trailing ?? AspectRatio(aspectRatio: 1),
         ],
       ),
     );

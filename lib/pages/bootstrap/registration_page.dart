@@ -428,7 +428,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     return Page(
-      navigationBar: TopBar.form(
+      topBar: TopBar.form(
         context,
         title: widget.isInPasswordResetMode ? "Changer de mot de passe" : "Création d'un compte",
         onPop: () => Navigator.pop(context),

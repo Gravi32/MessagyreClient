@@ -3,8 +3,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
-import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class Button extends StatelessWidget {
   final Axis direction;
@@ -21,8 +21,6 @@ class Button extends StatelessWidget {
   final Function()? onTap;
   final String? text;
   final EdgeInsets? padding;
-
-  static final borderRadius = BorderRadius.circular(34);
 
   const Button({
     super.key,
@@ -51,6 +49,7 @@ class Button extends StatelessWidget {
     Color? iconColor,
     bool transparent = true,
     bool enabled = true,
+    bool isLoading = false,
   }) {
     return Button(
       icon: icon,
@@ -58,6 +57,7 @@ class Button extends StatelessWidget {
       onTap: onTap,
       transparent: transparent,
       enabled: enabled,
+      isLoading: isLoading,
       color: color ?? AppColors.secondaryBackground.adaptTo(context),
       iconColor: iconColor ?? AppColors.text.adaptTo(context),
       padding: .all(8),
@@ -81,58 +81,48 @@ class Button extends StatelessWidget {
     final finalIconColor = iconColor ?? (transparent ? (textColor ?? color ?? AppColors.accent) : AppColors.white);
     final usingLegacyIcon = icon == null && legacyIcon != null;
     final isIconOnly = text == null && finalIcon != null;
-    final finalButtonColor = enabled ? (color ?? AppColors.accent) : AppColors.inactive.adaptTo(context);
     final finalTextColor = textColor ?? (transparent ? AppColors.text.adaptTo(context) : AppColors.white);
 
     return CupertinoButton(
       padding: .zero,
       minimumSize: .zero,
       onPressed: enabled ? onTap : null,
-      child: BlurredContainer(
-        borderRadius: borderRadius,
-        enabled: transparent,
-        child: Opacity(
-          opacity: enabled ? 1 : .5,
-          child: Container(
-            padding: padding ?? .all(16),
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              color: transparent && finalButtonColor.a > 0 ? finalButtonColor.withTransparency(.5) : finalButtonColor,
-              border: .all(width: 2, color: finalButtonColor),
-            ),
-            child: Flex(
-              direction: direction,
-              crossAxisAlignment: .center,
-              mainAxisAlignment: .center,
-              spacing: spacing,
-              children: [
-                if (finalIcon != null)
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: usingLegacyIcon ? Icon(legacyIcon, color: finalIconColor) : HugeIcon(icon: icon!, color: finalIconColor),
-                  ),
+      child: RoundContainer(
+        transparent: transparent,
+        enabled: enabled,
+        padding: padding,
+        color: enabled ? (color ?? AppColors.accent) : AppColors.inactive.adaptTo(context),
+        child: Flex(
+          direction: direction,
+          crossAxisAlignment: .center,
+          mainAxisAlignment: .center,
+          spacing: spacing,
+          children: [
+            if (finalIcon != null)
+              AspectRatio(
+                aspectRatio: 1,
+                child: usingLegacyIcon ? Icon(legacyIcon, color: finalIconColor) : HugeIcon(icon: icon!, color: finalIconColor),
+              ),
 
-                if (!isIconOnly)
-                  isLoading
-                      ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-                      : Expanded(
-                          child: Text(
-                            text ?? "Tap",
-                            textAlign: .center,
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: textWeight,
-                              color: enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
-                            ),
-                          ),
+            if (!isIconOnly)
+              isLoading
+                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+                  : Expanded(
+                      child: Text(
+                        text ?? "Tap",
+                        textAlign: .center,
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: textWeight,
+                          color: enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
                         ),
+                      ),
+                    ),
 
-                if (finalIcon != null && text != null) const AspectRatio(aspectRatio: 1),
-              ],
-            ),
-          ).withAspectRatio(1, enabled: isIconOnly),
+            if (finalIcon != null && text != null) const AspectRatio(aspectRatio: 1),
+          ],
         ),
-      ),
+      ).withAspectRatio(1, enabled: isIconOnly),
     );
   }
 }

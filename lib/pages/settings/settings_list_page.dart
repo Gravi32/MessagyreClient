@@ -108,11 +108,15 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             });
                           },
                           title: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 80),
+                            constraints: const BoxConstraints(minHeight: 80, maxHeight: 100),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                ProfilePictureDisplay(accountUsername: globals.username!, radius: 28),
+                                Padding(
+                                  padding: .symmetric(vertical: 16),
+                                  child: ProfilePictureDisplay(accountUsername: globals.username!),
+                                ),
+
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(

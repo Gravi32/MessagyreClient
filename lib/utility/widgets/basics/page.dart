@@ -6,7 +6,7 @@ class Page extends StatelessWidget {
   final Widget child;
   final bool canPop;
   final Color? backgroundColor;
-  final TopBar? navigationBar;
+  final TopBar? topBar;
   final bool isSliver;
   final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
   final ScrollController? scrollController;
@@ -16,16 +16,17 @@ class Page extends StatelessWidget {
     required this.child,
     this.canPop = true,
     this.backgroundColor,
-    this.navigationBar,
+    this.topBar,
     this.isSliver = false,
     this.sliverHeaderBuilder,
     this.scrollController,
   });
 
-  factory Page.scrollable(BuildContext context, {required List<Widget> children, bool canPop = true, Color? backgroundColor}) {
+  factory Page.scrollable(BuildContext context, {required List<Widget> children, TopBar? topBar, bool canPop = true, Color? backgroundColor}) {
     return Page(
       backgroundColor: backgroundColor,
       canPop: canPop,
+      topBar: topBar,
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(mainAxisSize: .min, crossAxisAlignment: .stretch, children: children),
@@ -63,7 +64,7 @@ class Page extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: .stretch,
                   children: [
-                    if (navigationBar != null) navigationBar!,
+                    if (topBar != null) topBar!,
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(color: bgColor),
