@@ -16,12 +16,14 @@ class BottomBar extends StatefulWidget {
 class _BottomBarState extends State<BottomBar> {
   @override
   Widget build(BuildContext context) {
+    double bottomPadding = MediaQuery.paddingOf(context).bottom;
+
     return ValueListenableBuilder<int>(
       valueListenable: MainPage.pageIndex,
       builder: (context, currentIndex, _) => Container(
-        height: 100,
+        height: bottomPadding + 100,
         alignment: .bottomCenter,
-        padding: .only(bottom: 10, top: 2, left: 2, right: 2),
+        padding: .only(bottom: bottomPadding + 10, top: 2, left: 2, right: 2),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: .topCenter,

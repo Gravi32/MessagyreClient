@@ -664,6 +664,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
 
   Widget messageList() {
+    final padding = MediaQuery.paddingOf(context);
+
     return StreamBuilder(
       stream: database.chats.watchChat(widget.username),
       builder: (context, snapshot) {
@@ -676,7 +678,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           padding: EdgeInsets.symmetric(horizontal: 10),
           itemCount: chatData.messages.length + 4,
           itemBuilder: (context, index) {
-            if (index == 0) return const SizedBox(height: 60);
+            if (index == 0) return SizedBox(height: padding.top + 60);
 
             if (index == 1) {
               return BlurredContainer(
@@ -752,7 +754,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
             final messageIndex = index - 3;
 
-            if (messageIndex == chatData.messages.length) return const SizedBox(height: 60);
+            if (messageIndex == chatData.messages.length) return SizedBox(height: padding.bottom + 60);
 
             var allMessagesList = chatData.messages.toList();
 
@@ -802,7 +804,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
 
   Widget bottomBar() {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Container(
       height: bottomPadding + 60,
@@ -868,6 +870,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+
     return CupertinoPageScaffold(
       child: Stack(
         children: [
@@ -895,7 +899,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
           // Scroll down button
           Positioned(
-            bottom: 60,
+            bottom: bottomPadding + 60,
             right: 10,
             child: AnimatedSlide(
               offset: showScrollDownButton ? Offset(0, 0) : Offset(0, 1),

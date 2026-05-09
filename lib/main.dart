@@ -199,7 +199,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     }
 
     isAnimating = true;
-    await pageController.animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 100), curve: Curves.fastEaseInToSlowEaseOut);
+    await pageController.animateToPage(MainPage.pageIndex.value, duration: const Duration(milliseconds: 200), curve: Curves.easeOutQuart);
     isAnimating = false;
   }
 
@@ -239,7 +239,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     pageController.dispose();
-    MainPage.pageIndex.dispose();
     network.disconnect();
     super.dispose();
   }
