@@ -679,11 +679,13 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
             if (index == 1) {
               return BlurredContainer(
+                width: .infinity,
                 blur: blurAmount,
                 margin: .only(bottom: 12, top: 30),
                 padding: .all(16),
 
                 child: Column(
+                  crossAxisAlignment: .center,
                   children: [
                     SizedBox(height: 100, child: ProfilePictureDisplay(accountUsername: widget.username)),
                     SizedBox(height: 6),
