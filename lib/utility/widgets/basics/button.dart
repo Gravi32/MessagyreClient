@@ -11,6 +11,7 @@ class Button extends StatelessWidget {
   final bool transparent;
   final bool enabled;
   final bool isLoading;
+  final double? height;
   final List<List>? icon;
   final IconData? legacyIcon;
   final double spacing;
@@ -29,6 +30,7 @@ class Button extends StatelessWidget {
     this.transparent = false,
     this.enabled = true,
     this.isLoading = false,
+    this.height,
     this.icon,
     this.legacyIcon,
     this.spacing = 4,
@@ -90,7 +92,8 @@ class Button extends StatelessWidget {
       child: RoundContainer(
         transparent: transparent,
         enabled: enabled,
-        padding: padding,
+        padding: padding ?? .all(12),
+        height: height,
         color: enabled ? (color ?? AppColors.accent) : AppColors.inactive.adaptTo(context),
         child: Flex(
           direction: direction,

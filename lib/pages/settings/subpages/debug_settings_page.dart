@@ -1,12 +1,13 @@
-import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/pages/settings/subpages/debug_logs_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
-import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
 class DebugSettingsPage extends StatefulWidget {
   const DebugSettingsPage({super.key});
@@ -38,136 +39,68 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Débogage")),
-      child: SafeArea(
-        child: ListView(
-          padding: .only(left: 10, right: 10, bottom: 10),
-          physics: const ClampingScrollPhysics(),
-          children: [
-            CupertinoListSection.insetGrouped(
-               margin: .zero,
-              backgroundColor: AppColors.transparent,
-              header: Text("Informations générales"),
-              children: [
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Nom d'utilisateur"),
-                  trailing: Text(globals.username ?? "-"),
-                ),
-                CupertinoListTile(backgroundColor: AppColors.secondaryBackground.adaptTo(context), title: Text("Version"), trailing: Text(globals.appVersion)),
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Photos de profil en cache"),
-                  trailing: Text(globals.pfpNotifiersCache.length.toString()),
-                ),
-              ],
-            ),
-            CupertinoListSection.insetGrouped(
-               margin: .zero,
-              backgroundColor: AppColors.transparent,
-              header: Text("Connexion"),
-              children: [
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Mode de test local"),
-                  trailing: Text(NetworkService().isLocalhost ? "Oui" : "Non"),
-                ),
+    return Page(
+      topBar: TopBar.tab(context, title: "Débogage"),
+      child: ListView(
+        children: [
+          ListSection(
+            title: "Informations générales",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(context, title: "Nom d'utilisateur", trailing: Text(globals.username ?? "-")),
+              ListTile.simple(context, title: "Version", trailing: Text(globals.appVersion)),
+              ListTile.simple(context, title: "Photos de profil en cache", trailing: Text(globals.pfpNotifiersCache.length.toString())),
+            ],
+          ),
+          ListSection(
+            title: "Connexion",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(context, title: "Mode de test local", trailing: Text(NetworkService().isLocalhost ? "Oui" : "Non")),
 
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Adresse du serveur"),
-                  trailing: Text(NetworkService().getBackendUri().host),
-                ),
+              ListTile.simple(context, title: "Adresse du serveur", trailing: Text(NetworkService().getBackendUri().host)),
 
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("État du WebSocket"),
-                  trailing: ValueListenableBuilder(
-                    valueListenable: network.connectionState,
-                    builder: (context, connectionState, _) {
-                      return Text(connectionState.name);
-                    },
-                  ),
+              ListTile.simple(
+                context,
+                title: "État du WebSocket",
+                trailing: ValueListenableBuilder(
+                  valueListenable: network.connectionState,
+                  builder: (context, connectionState, _) {
+                    return Text(connectionState.name);
+                  },
                 ),
-              ],
-            ),
-            CupertinoListSection.insetGrouped(
-              margin: .zero,
-              backgroundColor: AppColors.transparent,
-              header: Text("Jetons"),
-              children: [
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Jeton d'accès JWT"),
-                  trailing: Text(globals.token != null ? "Enregistré" : "Manquant"),
+              ),
+            ],
+          ),
+          ListSection(
+            title: "Jetons",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(context, title: "Jeton d'accès JWT", trailing: Text(globals.token != null ? "Enregistré" : "Manquant")),
+              ListTile.simple(context, title: "Jeton de renouvellement", trailing: Text(isRefreshTokenStored ? "Enregistré" : "Manquant")),
+              ListTile.simple(
+                context,
+                title: "Jeton FCM",
+                trailing: SizedBox(
+                  width: 150,
+                  child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: .end),
                 ),
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Jeton de renouvellement"),
-                  trailing: Text(isRefreshTokenStored ? "Enregistré" : "Manquant"),
-                ),
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Jeton FCM"),
-                  trailing: SizedBox(width: 150, child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: .end)),
-                ),
-              ],
-            ),
-            CupertinoListSection.insetGrouped(
-              margin: .zero,
-              backgroundColor: AppColors.transparent,
-              header: Text("Logs de l'application"),
-              children: [
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title: Text("Tout copier"),
-                  leading: CustomIcon(icon: HugeIcons.strokeRoundedCopy02, color: AppColors.text.adaptTo(context)),
-                  onTap: () => copy(context, globals.appLogs.join("\n")),
-                ),
-                CupertinoListTile(
-                  backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                  title:
-                      globals.appLogs.isNotEmpty
-                          ? ConstrainedBox(
-                            constraints: BoxConstraints(maxHeight: 450),
-                            child: ListView.separated(
-                              itemCount: globals.appLogs.length,
-                              reverse: true,
-                              itemBuilder: (context, index) {
-                                final logIndex = globals.appLogs.length - 1 - index;
-                                final content = globals.appLogs[logIndex].split(" ");
-
-                                return Padding(
-                                  padding: .only(top: 8),
-                                  child: Row(
-                                    crossAxisAlignment: .start,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          content.sublist(1).join(" "),
-                                          style: TextStyle(fontSize: 14, color: AppColors.secondaryText.adaptTo(context)),
-                                          softWrap: true,
-                                        ),
-                                      ),
-                                      Text(
-                                        content[0].replaceAll(RegExp(r'[\[\]]'), ''),
-                                        textAlign: .end,
-                                        style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              separatorBuilder: (context, index) => Divider(height: 0, color: AppColors.separator.adaptTo(context).withAlpha(10)),
-                            ),
-                          )
-                          : Row(spacing: 8, children: [CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.yellow), Text("Aucun log disponible.")]),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          ListSection(
+            title: "Logs de l'application",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(
+                context,
+                title: "Voir les logs",
+                onTap: () => showCupertinoSheet(context: context, enableDrag: false, builder: (context) => DebugLogsPage()),
+              ),
+            ],
+          ),
+          BottomSpacing(),
+        ],
       ),
     );
   }

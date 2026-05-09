@@ -68,7 +68,7 @@ class _TopBarState extends State<TopBar> {
     }
 
     return Container(
-      padding: .symmetric(horizontal: 10, vertical: 8),
+      padding: .symmetric(vertical: 8),
       height: 60,
       child: Row(
         children: [

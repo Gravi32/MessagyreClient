@@ -111,7 +111,6 @@ class Dialog extends StatelessWidget {
                   text: option.key,
                   transparent: true,
                   color: option.key == "Annuler" ? AppColors.secondaryButton.adaptTo(context) : (isDestructive ? AppColors.red : null),
-                  padding: .symmetric(vertical: 16),
                   onTap: () {
                     Navigator.of(context).pop();
                     option.value();
