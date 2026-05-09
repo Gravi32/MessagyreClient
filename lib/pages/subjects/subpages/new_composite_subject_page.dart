@@ -1,17 +1,24 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' hide Dialog;
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NewCompositeSubjectPage extends StatefulWidget {
@@ -110,79 +117,60 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
     required bool isMissingInfo,
     bool showHint = false,
   }) {
-    return CupertinoListSection.insetGrouped(
-      margin: const .symmetric(horizontal: 10),
-      backgroundColor: AppColors.transparent,
-      header: Text(title),
-      footer: showHint
-          ? Padding(
-              padding: const .only(top: 8),
-              child: Text(
-                "Merci de remplir les champs obligatoires *",
-                style: TextStyle(fontSize: 14, color: canBeConfirmed ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
-              ),
-            )
-          : null,
+    return ListSection(
+      margin: .only(top: 16),
+      footer: showHint ? "Merci de remplir les champs obligatoires *" : null,
       children: [
-        Container(
-          color: AppColors.tertiaryBackground.adaptTo(context),
-          padding: const .symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: .start,
-            spacing: 8,
+        ListTile(
+          buildChevron: false,
+          child: Row(
+            spacing: 12,
             children: [
-              const Text("Branche", style: TextStyle(fontWeight: .w600)),
-              Row(
-                spacing: 12,
-                children: [
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    child: subject == null
-                        ? CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context))
-                        : SubjectBadge(subject: subject),
-                  ),
-                  Expanded(
-                    child: SubjectAutocomplete(
-                      placeholder: "Entrez une branche *",
-                      controller: subjectFieldController,
-                      focusNode: subjectFieldFocusNode,
-                      onSubjectSelected: onSubjectSelected,
-                      style: const TextStyle(fontSize: 20, fontWeight: .w700),
-                      placeholderStyle: TextStyle(
-                        color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                        fontWeight: .w400,
-                      ),
-                    ),
-                  ),
-                  if (isMissingInfo) const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18),
-                ],
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                child: subject == null
+                    ? CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context))
+                    : SubjectBadge(subject: subject),
               ),
-              Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
-              const Text("Périodes par semaine", style: TextStyle(fontWeight: .w600)),
-              Row(
-                spacing: 12,
-                children: [
-                  Container(
-                    constraints: const BoxConstraints(minWidth: 40),
-                    height: 32,
-                    child: Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(periodsPerWeek.removeTrailingZero(), style: const TextStyle(fontSize: 24, fontWeight: .w700)),
-                      ),
-                    ),
+              Expanded(
+                child: SubjectAutocomplete(
+                  placeholder: "$title *",
+                  controller: subjectFieldController,
+                  focusNode: subjectFieldFocusNode,
+                  onSubjectSelected: onSubjectSelected,
+                  style: const TextStyle(fontSize: 20, fontWeight: .w700),
+                  placeholderStyle: TextStyle(color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context), fontWeight: .w400),
+                ),
+              ),
+              if (isMissingInfo) const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18),
+            ],
+          ),
+        ),
+
+        ListTile(
+          buildChevron: false,
+          child: Row(
+            spacing: 12,
+            children: [
+              Container(
+                constraints: const BoxConstraints(minWidth: 40),
+                height: 32,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(periodsPerWeek.removeTrailingZero(), style: AppStyles.header(context)),
                   ),
-                  Expanded(
-                    child: CupertinoSlider(
-                      min: 0,
-                      max: 10,
-                      divisions: 20,
-                      value: periodsPerWeek.toDouble(),
-                      activeColor: subject?.color ?? AppColors.grey,
-                      onChanged: (newValue) => onPeriodsPerWeekChanged(max(.5, newValue)),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoSlider(
+                  min: 0,
+                  max: 10,
+                  divisions: 20,
+                  value: periodsPerWeek.toDouble(),
+                  activeColor: subject?.color ?? AppColors.grey,
+                  onChanged: (newValue) => onPeriodsPerWeekChanged(max(.5, newValue)),
+                ),
               ),
             ],
           ),
@@ -192,64 +180,49 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   }
 
   Widget buildCalculationsTile() {
-    return CupertinoListSection.insetGrouped(
-      margin: const .symmetric(horizontal: 10),
-      backgroundColor: AppColors.transparent,
-      header: const Text("Calcul"),
+    return ListSection(
+      margin: .only(top: 24),
+      title: "Calcul de la moyenne finale",
       children: [
-        Container(
-          width: double.infinity,
-          color: AppColors.tertiaryBackground.adaptTo(context),
-          padding: const .symmetric(horizontal: 16, vertical: 10),
+        ListTile(
+          buildChevron: false,
           child: Column(
             mainAxisSize: .min,
+            spacing: 4,
             children: [
               Row(
                 mainAxisAlignment: .center,
+                spacing: 6,
                 children: [
-                  Text(
-                    firstSubjectPeriodsPerWeek.removeTrailingZero(),
-                    style: TextStyle(fontSize: 26, fontWeight: .w600, color: firstSubject?.color),
-                  ),
-                  const SizedBox(width: 6),
+                  Text(firstSubjectPeriodsPerWeek.removeTrailingZero(), style: AppStyles.header(context).copyWith(color: firstSubject?.color)),
                   Flexible(
                     child: Text(
                       firstSubject?.name ?? "Sous-branche 1",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 18, fontWeight: .w500),
+                      style: AppStyles.secondaryHeader(context),
                     ),
                   ),
-                  const Padding(
-                    padding: .symmetric(horizontal: 8),
-                    child: Text("+", style: TextStyle(fontSize: 20, fontWeight: .w600)),
-                  ),
-                  Text(
-                    secondSubjectPeriodsPerWeek.removeTrailingZero(),
-                    style: TextStyle(fontSize: 26, fontWeight: .w600, color: secondSubject?.color),
-                  ),
-                  const SizedBox(width: 6),
+
+                  Text("+", style: AppStyles.secondaryHeader(context)),
+
+                  Text(secondSubjectPeriodsPerWeek.removeTrailingZero(), style: AppStyles.header(context).copyWith(color: secondSubject?.color)),
                   Flexible(
                     child: Text(
                       secondSubject?.name ?? "Sous-branche 2",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 18, fontWeight: .w500),
+                      style: AppStyles.secondaryHeader(context),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
               LayoutBuilder(
                 builder: (context, constraints) {
                   return Container(height: 1, width: constraints.maxWidth * 0.8, color: AppColors.text.adaptTo(context));
                 },
               ),
-              const SizedBox(height: 4),
-              Text(
-                (firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek).removeTrailingZero(),
-                style: const TextStyle(fontSize: 26, fontWeight: .w600),
-              ),
+              Text((firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek).removeTrailingZero(), style: AppStyles.header(context)),
             ],
           ),
         ),
@@ -276,132 +249,86 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: unfocusFields,
-      child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          backgroundColor: AppColors.transparent,
-          leading: CupertinoButton(
-            padding: .zero,
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
-          ),
-          middle: Text("Branche composée"),
-          trailing: CupertinoButton(
-            padding: .zero,
-            onPressed: canBeConfirmed ? confirmCompositeSubject : showMissingInfoPopup,
-            child: Text(
-              editMode ? "Terminé" : "Ajouter",
-              style: TextStyle(color: canBeConfirmed ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: .w600),
-            ),
-          ),
+    return Page(
+      topBar: TopBar.form(
+        context,
+        title: editMode ? "Modifier la branche" : "Nouvelle branche",
+        trailing: Button.icon(
+          context,
+          onTap: canBeConfirmed ? confirmCompositeSubject : showMissingInfoPopup,
+          icon: editMode ? HugeIcons.strokeRoundedTick02 : HugeIcons.strokeRoundedAdd01,
         ),
-        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        child: SafeArea(
-          child: ListView(
-            physics: const ClampingScrollPhysics(),
-            children: [
-              CupertinoListSection.insetGrouped(
-                margin: const .symmetric(horizontal: 10),
-                backgroundColor: AppColors.transparent,
-                header: const Text("Titre"),
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    title: CupertinoTextField(
-                      controller: titleController,
-                      focusNode: titleFocusNode,
-                      decoration: const BoxDecoration(),
-                      placeholder: "Titre de la branche *",
-                      maxLines: 1,
-                      style: const TextStyle(fontSize: 20, fontWeight: .w400),
-                      placeholderStyle: TextStyle(
-                        color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                        fontWeight: .w400,
+      ),
+      child: ListView(
+        children: [
+          Field(
+            placeholder: "Titre de la branche *",
+            controller: titleController,
+            focusNode: titleFocusNode,
+            onChanged: (_) => setState(() => isMissingTitle = false),
+          ),
+
+          buildSubjectFields(
+            title: "Sous-branche 1",
+            subject: firstSubject,
+            periodsPerWeek: firstSubjectPeriodsPerWeek,
+            subjectFieldController: firstSubjectFieldController,
+            subjectFieldFocusNode: firstSubjectFocusNode,
+            onSubjectSelected: (selectedSubject) => setState(() {
+              firstSubject = selectedSubject;
+              isMissingFirstSubject = false;
+            }),
+            onPeriodsPerWeekChanged: (newAmount) => setState(() => firstSubjectPeriodsPerWeek = newAmount),
+            isMissingInfo: isMissingFirstSubject,
+          ),
+
+          buildSubjectFields(
+            title: "Sous-branche 2",
+            subject: secondSubject,
+            periodsPerWeek: secondSubjectPeriodsPerWeek,
+            subjectFieldController: secondSubjectFieldController,
+            subjectFieldFocusNode: secondSubjectFocusNode,
+            onSubjectSelected: (selectedSubject) => setState(() {
+              secondSubject = selectedSubject;
+              isMissingSecondSubject = false;
+            }),
+            onPeriodsPerWeekChanged: (newAmount) => setState(() => secondSubjectPeriodsPerWeek = newAmount),
+            isMissingInfo: isMissingSecondSubject,
+            showHint: true,
+          ),
+
+          buildCalculationsTile(),
+
+          // Delete button
+          if (editMode)
+            ListSection(
+              margin: const .only(top: 24),
+              footer: "En supprimeant cette branche, ses notes resteront dans ses sous-branches.",
+              children: [
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedDelete04,
+                  title: "Supprimer cette branche",
+                  isDestructive: true,
+                  onTap: () {
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (_) => Dialog.confirm(
+                        content: "Êtes-vous sûr de vouloir *supprimer la branche composée \"${widget.toEdit?.name}\"* ?",
+                        isDestructive: true,
+                        onConfirm: () {
+                          database.compositeSubjects.delete(widget.toEdit!);
+                          Navigator.of(context).pop(widget.toEdit);
+                        },
                       ),
-                      onTap: () => setState(() => isMissingTitle = false),
-                      onTapOutside: (event) => titleFocusNode.unfocus(),
-                    ),
-                    trailing: isMissingTitle ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18) : null,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              buildSubjectFields(
-                title: "Sous-branche 1",
-                subject: firstSubject,
-                periodsPerWeek: firstSubjectPeriodsPerWeek,
-                subjectFieldController: firstSubjectFieldController,
-                subjectFieldFocusNode: firstSubjectFocusNode,
-                onSubjectSelected: (selectedSubject) => setState(() {
-                  firstSubject = selectedSubject;
-                  isMissingFirstSubject = false;
-                }),
-                onPeriodsPerWeekChanged: (newAmount) => setState(() => firstSubjectPeriodsPerWeek = newAmount),
-                isMissingInfo: isMissingFirstSubject,
-              ),
-
-              buildSubjectFields(
-                title: "Sous-branche 2",
-                subject: secondSubject,
-                periodsPerWeek: secondSubjectPeriodsPerWeek,
-                subjectFieldController: secondSubjectFieldController,
-                subjectFieldFocusNode: secondSubjectFocusNode,
-                onSubjectSelected: (selectedSubject) => setState(() {
-                  secondSubject = selectedSubject;
-                  isMissingSecondSubject = false;
-                }),
-                onPeriodsPerWeekChanged: (newAmount) => setState(() => secondSubjectPeriodsPerWeek = newAmount),
-                isMissingInfo: isMissingSecondSubject,
-                showHint: true,
-              ),
-
-              const SizedBox(height: 8),
-
-              buildCalculationsTile(),
-
-              // Delete button
-              if (editMode)
-                CupertinoListSection.insetGrouped(
-                  margin: const .symmetric(horizontal: 10),
-                  backgroundColor: AppColors.transparent,
-                  header: const SizedBox.shrink(),
-                  footer: Padding(
-                    padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
-                    child: Text(
-                      "En supprimeant cette branche ses notes resteront dans ses sous-branches.",
-                      style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
-                    ),
-                  ),
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                      title: Text("Supprimer cette branche", style: TextStyle(color: AppColors.red)),
-
-                      onTap: () {
-                        showCupertinoDialog(
-                          context: context,
-                          builder: (_) => Dialog.confirm(
-                            content: "Êtes-vous sûr de vouloir *supprimer la branche composée \"${widget.toEdit?.name}\"* ?",
-                            isDestructive: true,
-                            onConfirm: () {
-                              database.compositeSubjects.delete(widget.toEdit!);
-                              Navigator.of(context).pop(widget.toEdit);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                    );
+                  },
                 ),
+              ],
+            ),
 
-              const SizedBox(height: 10),
-            ],
-          ),
-        ),
+          BottomSpacing(),
+        ],
       ),
     );
   }

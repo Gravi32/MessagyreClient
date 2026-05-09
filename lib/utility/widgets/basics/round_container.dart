@@ -9,10 +9,21 @@ class RoundContainer extends StatelessWidget {
   final bool blurOnly;
   final Color? color;
   final EdgeInsets? padding;
+  final EdgeInsets? margin;
   final Widget? child;
   final double? height;
 
-  const RoundContainer({super.key, this.transparent = true, this.enabled = true, this.blurOnly = false, this.color, this.padding, this.child, this.height});
+  const RoundContainer({
+    super.key,
+    this.transparent = true,
+    this.enabled = true,
+    this.blurOnly = false,
+    this.color,
+    this.padding,
+    this.margin,
+    this.child,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +31,7 @@ class RoundContainer extends StatelessWidget {
     final finalButtonColor = enabled ? (color ?? AppColors.secondaryBackground.adaptTo(context)) : AppColors.inactive.adaptTo(context);
 
     return BlurredContainer(
+      margin: margin,
       height: height,
       borderRadius: borderRadius,
       enabled: transparent,

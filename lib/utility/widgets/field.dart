@@ -102,9 +102,10 @@ class _FieldState extends State<Field> {
                     child: CupertinoTextField(
                       padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
                       placeholder: widget.placeholder,
-                      placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
-                        widget.textStyle,
-                      ),
+                      placeholderStyle:
+                          (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
+                            widget.textStyle,
+                          ),
                       minLines: 1,
                       maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
                       scrollPadding: const .only(bottom: 60), // Distance from the keyboard

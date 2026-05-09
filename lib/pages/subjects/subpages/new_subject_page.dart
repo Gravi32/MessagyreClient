@@ -1,15 +1,22 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' hide Dialog;
+import 'package:flutter/cupertino.dart' hide Page;
+import 'package:flutter/material.dart' show Icons;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
 class NewSubjectPage extends StatefulWidget {
   final Subject? toEdit;
@@ -265,7 +272,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   final database = DatabaseService();
 
   late final bool editMode = widget.toEdit != null;
-  late final TextEditingController nameController = TextEditingController(text: widget.toEdit?.name);
+  late final TextEditingController titleController = TextEditingController(text: widget.toEdit?.name);
 
   final subjectFocusNode = FocusNode();
   final titleFocusNode = FocusNode();
@@ -281,12 +288,12 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
               database.grades.getAll().any((grade) => grade.subject.value?.code == widget.toEdit?.code)));
 
   void confirmSubject() async {
-    if (nameController.text.isEmpty) return;
+    if (titleController.text.isEmpty) return;
 
     final subject = widget.toEdit ?? Subject();
     subject
-      ..name = nameController.text
-      ..code = widget.toEdit?.code ?? nameController.text.normalize().replaceAll(' ', '_').toLowerCase()
+      ..name = titleController.text
+      ..code = widget.toEdit?.code ?? titleController.text.normalize().replaceAll(' ', '_').toLowerCase()
       ..iconCodePoint = iconNotifier.value.codePoint
       ..colorValue = colorNotifier.value.toInt()
       ..isLocked = isLocked
@@ -313,12 +320,12 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   @override
   void initState() {
     super.initState();
-    nameController.addListener(() => setState(() {}));
+    titleController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    nameController.dispose();
+    titleController.dispose();
     subjectFocusNode.dispose();
     titleFocusNode.dispose();
     iconNotifier.dispose();
@@ -328,219 +335,143 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
   @override
   Widget build(BuildContext context) {
-    final fieldsHeight = (MediaQuery.of(context).size.width - 20) / 2;
+    return Page(
+      topBar: TopBar.form(
+        context,
+        title: editMode ? "Modifier la branche" : "Nouvelle branche",
+        trailing: Button.icon(
+          context,
+          onTap: titleController.text.isNotEmpty ? confirmSubject : showMissingInfoPopup,
+          icon: editMode ? HugeIcons.strokeRoundedTick02 : HugeIcons.strokeRoundedAdd01,
+        ),
+      ),
 
-    return GestureDetector(
-      onTap: unfocusFields,
-      child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          backgroundColor: AppColors.transparent,
-          leading: CupertinoButton(
-            padding: .zero,
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
-          ),
-          middle: Text(editMode ? "Modifier la branche" : "Nouvelle branche"),
-          trailing: CupertinoButton(
-            padding: .zero,
-            onPressed: nameController.text.isNotEmpty ? confirmSubject : showMissingInfoPopup,
-            child: Text(
-              editMode ? "Terminé" : "Ajouter",
-              style: TextStyle(
-                color: nameController.text.isNotEmpty ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context),
-                fontWeight: .w600,
+      child: ListView(
+        children: [
+          Field(placeholder: "Titre de la branche", maxLines: 1, controller: titleController, focusNode: titleFocusNode),
+
+          AspectRatio(
+            aspectRatio: 1.5,
+            child: RoundContainer(
+              margin: .only(top: 16),
+              child: ValueListenableBuilder<Color>(
+                valueListenable: colorNotifier,
+                builder: (context, selectedColor, _) {
+                  return ValueListenableBuilder<IconData>(
+                    valueListenable: iconNotifier,
+                    builder: (context, selectedIcon, _) {
+                      return GridView.builder(
+                        scrollDirection: .horizontal,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 6, crossAxisSpacing: 6),
+                        shrinkWrap: true,
+                        itemCount: availableIcons.length,
+                        itemBuilder: (context, index) {
+                          final thisIcon = availableIcons[index];
+                          final isSelected = thisIcon == selectedIcon;
+
+                          return CupertinoPressable(
+                            decoration: BoxDecoration(
+                              color: isSelected ? colorNotifier.value : AppColors.secondaryBackground.adaptTo(context),
+                              border: .all(color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.transparent),
+                              borderRadius: .circular(10),
+                            ),
+                            child: Center(child: Icon(thisIcon, size: 23, color: AppColors.white)),
+                            onTap: () => iconNotifier.value = thisIcon,
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ),
-        ),
-        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        child: SafeArea(
-          child: ListView(
-            physics: const ClampingScrollPhysics(),
-            children: [
-              CupertinoListSection.insetGrouped(
-                margin: const .symmetric(horizontal: 10),
-                backgroundColor: AppColors.transparent,
-                header: const Text("Titre"),
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    title: CupertinoTextField(
-                      controller: nameController,
-                      focusNode: titleFocusNode,
-                      decoration: const BoxDecoration(),
-                      placeholder: "Titre de la branche",
-                      maxLines: 1,
-                      style: const TextStyle(fontSize: 20, fontWeight: .w400),
-                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: .w400),
-                      onTapOutside: (event) => titleFocusNode.unfocus(),
-                    ),
-                  ),
-                ],
-              ),
-              CupertinoListSection.insetGrouped(
-                margin: const .symmetric(horizontal: 10),
-                backgroundColor: AppColors.transparent,
-                header: const Text("Icône"),
-                children: [
-                  CupertinoListTile.notched(
-                    padding: const .all(8),
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    title: ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: fieldsHeight),
-                      child: ValueListenableBuilder<Color>(
-                        valueListenable: colorNotifier,
-                        builder: (context, selectedColor, _) {
-                          return ValueListenableBuilder<IconData>(
-                            valueListenable: iconNotifier,
-                            builder: (context, selectedIcon, _) {
-                              return GridView.builder(
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6, mainAxisSpacing: 6, crossAxisSpacing: 6),
-                                shrinkWrap: true,
-                                itemCount: availableIcons.length,
-                                itemBuilder: (context, index) {
-                                  final thisIcon = availableIcons[index];
-                                  final isSelected = thisIcon == selectedIcon;
 
-                                  return CupertinoPressable(
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? colorNotifier.value : AppColors.secondaryBackground.adaptTo(context),
-                                      border: .all(color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.transparent),
-                                      borderRadius: .circular(10),
-                                    ),
-                                    child: Center(child: Icon(thisIcon, size: 23, color: AppColors.white)),
-                                    onTap: () => iconNotifier.value = thisIcon,
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          AspectRatio(
+            aspectRatio: 1.5,
+            child: RoundContainer(
+              margin: .only(top: 16),
+              child: ValueListenableBuilder<Color>(
+                valueListenable: colorNotifier,
+                builder: (context, selectedColor, _) {
+                  return GridView.builder(
+                    scrollDirection: .horizontal,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 8, crossAxisSpacing: 8),
+                    shrinkWrap: true,
+                    itemCount: availableColors.length,
+                    itemBuilder: (context, index) {
+                      final thisColor = availableColors[index];
+                      final isSelected = thisColor == selectedColor;
 
-              CupertinoListSection.insetGrouped(
-                margin: const .symmetric(horizontal: 10),
-                backgroundColor: AppColors.transparent,
-                header: const Text("Couleur"),
-                children: [
-                  CupertinoListTile.notched(
-                    padding: const .all(8),
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    title: ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: fieldsHeight),
-                      child: ValueListenableBuilder<Color>(
-                        valueListenable: colorNotifier,
-                        builder: (context, selectedColor, _) {
-                          return GridView.builder(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6, mainAxisSpacing: 8, crossAxisSpacing: 8),
-                            shrinkWrap: true,
-                            itemCount: availableColors.length,
-                            itemBuilder: (context, index) {
-                              final thisColor = availableColors[index];
-                              final isSelected = thisColor == selectedColor;
-
-                              return CupertinoPressable(
-                                decoration: BoxDecoration(
-                                  color: thisColor,
-                                  border: .all(color: isSelected ? AppColors.white : AppColors.transparent),
-                                  borderRadius: .circular(10),
-                                ),
-                                child: SizedBox.shrink(),
-                                onTap: () => colorNotifier.value = thisColor,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Lock option
-              CupertinoListSection.insetGrouped(
-                margin: const .symmetric(horizontal: 10),
-                backgroundColor: AppColors.transparent,
-                header: const Text("Options"),
-                children: [
-                  CupertinoListTile.notched(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: CustomIcon(icon: isLocked ? HugeIcons.strokeRoundedSquareLock02 : HugeIcons.strokeRoundedSquareUnlock02),
-                    title: Text("Branche bloquée"),
-                    trailing: CupertinoSwitch(value: isLocked, onChanged: (value) => setState(() => isLocked = value)),
-                  ),
-                ],
-              ),
-
-              // Grade picker
-              if (isLocked)
-                CupertinoListSection.insetGrouped(
-                  margin: const .only(right: 10, left: 10, top: 10),
-                  backgroundColor: AppColors.transparent,
-                  footer: Padding(
-                    padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
-                    child: Text(
-                      "Choisissez la note qui sera attribuée à cette branche dans le bulletin. Les branches bloquées ne peuvent pas être modifiées dans la page des notes.",
-                      style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
-                    ),
-                  ),
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      padding: const .symmetric(vertical: 12, horizontal: 16),
-                      title: GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
-                    ),
-                  ],
-                ),
-
-              // Delete button
-              if (editMode)
-                CupertinoListSection.insetGrouped(
-                  margin: const .symmetric(horizontal: 10),
-                  backgroundColor: AppColors.transparent,
-                  header: const SizedBox.shrink(),
-                  footer: canBeDeleted
-                      ? null
-                      : Padding(
-                          padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
-                          child: Text(
-                            "Cette branche ne peut pas être supprimé car elle est utilisée par des notes ou des devoirs !",
-                            style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 14),
-                          ),
+                      return CupertinoPressable(
+                        decoration: BoxDecoration(
+                          color: thisColor,
+                          border: .all(color: isSelected ? AppColors.white : AppColors.transparent),
+                          borderRadius: .circular(10),
                         ),
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context)),
-                      title: Text("Supprimer cette branche", style: TextStyle(color: canBeDeleted ? AppColors.red : AppColors.inactive.adaptTo(context))),
+                        child: SizedBox.shrink(),
+                        onTap: () => colorNotifier.value = thisColor,
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
 
-                      onTap: canBeDeleted
-                          ? () {
-                              showCupertinoDialog(
-                                context: context,
-                                builder: (_) => Dialog.confirm(
-                                  content: "Êtes-vous sûr de vouloir *supprimer cette note* ?",
-                                  isDestructive: true,
-                                  onConfirm: () {
-                                    database.subjects.delete(widget.toEdit!);
-                                    Navigator.of(context).pop(widget.toEdit);
-                                  },
-                                ),
-                              );
-                            }
-                          : null,
-                    ),
-                  ],
+          // Lock option
+          ListSection(
+            margin: .only(top: 16),
+            footer: isLocked
+                ? "Choisissez la note qui sera attribuée à cette branche dans le bulletin. *Les branches bloquées ne peuvent pas être modifiées dans la page des notes.*"
+                : null,
+            children: [
+              ListTile.simple(
+                context,
+                title: "Branche bloquée",
+                icon: isLocked ? HugeIcons.strokeRoundedSquareLock02 : HugeIcons.strokeRoundedSquareUnlock02,
+                trailing: CupertinoSwitch(value: isLocked, onChanged: (value) => setState(() => isLocked = value)),
+              ),
+
+              if (isLocked)
+                ListTile(
+                  buildChevron: false,
+                  child: GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
                 ),
-
-              const SizedBox(height: 10),
             ],
           ),
-        ),
+
+          // Delete button
+          if (editMode)
+            ListSection(
+              margin: .only(top: 16),
+              footer: canBeDeleted ? null : "Cette branche ne peut pas être supprimée ! Supprimez ses notes ses notes et devoirs d'abord.",
+              children: [
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedDelete04,
+                  title: "Supprimer cette branche",
+                  enabled: canBeDeleted,
+                  isDestructive: true,
+                  onTap: () {
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (_) => Dialog.confirm(
+                        content: "Êtes-vous sûr de vouloir *supprimer cette note* ?",
+                        isDestructive: true,
+                        onConfirm: () {
+                          database.subjects.delete(widget.toEdit!);
+                          Navigator.of(context).pop(widget.toEdit);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+          BottomSpacing(),
+        ],
       ),
     );
   }
