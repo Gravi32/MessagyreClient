@@ -115,8 +115,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
     // Forcing keyboard closure, it happens that the keyboard stays open
     FocusManager.instance.primaryFocus?.unfocus();
 
-    return AspectRatio(
-      aspectRatio: 6.5,
+    return SizedBox(
+      height: 50,
       child: CupertinoButton(
         padding: .symmetric(horizontal: 6),
         child: Row(
