@@ -9,7 +9,7 @@ class BottomSpacing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
-    final bottomBarHeight = includeBottomBar ? 60 : 0;
+    final bottomBarHeight = includeBottomBar ? 80 : 0;
     return SizedBox(height: bottomPadding + bottomBarHeight + height);
   }
 }

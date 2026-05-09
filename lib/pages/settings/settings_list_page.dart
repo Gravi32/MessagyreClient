@@ -76,256 +76,260 @@ class _SettingsListPageState extends State<SettingsListPage> {
   Widget build(BuildContext context) {
     if (account == null) getAccount();
 
-    final sections = [
-      ListSection(
-        title: "Votre compte",
-        children: [
-          ListTile(
-            child: (account == null || globals.username == null)
-                ? SizedBox(
-                    height: 39,
-                    child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
-                  )
-                : AspectRatio(
-                    aspectRatio: 4,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: .symmetric(vertical: 6),
-                          child: ProfilePictureDisplay(accountUsername: globals.username!),
-                        ),
-
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: .center,
-                            crossAxisAlignment: .start,
-                            children: [
-                              Text(account!.displayName ?? account!.defaultDisplayName, style: AppStyles.header(context)),
-                              const SizedBox(height: 4),
-                              Text(globals.username!, style: TextStyle(color: CupertinoColors.systemGrey.resolveFrom(context), fontSize: 16)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-            onTap: () async {
-              if (account!.username != globals.username) await getAccount();
-
-              if (!context.mounted) return;
-
-              Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
-                if (updated) getAccount();
-              });
-            },
-          ),
-          ListTile.simple(
-            context,
-            icon: HugeIcons.strokeRoundedLogoutSquare02,
-            title: "Se déconnecter",
-            onTap: () => showLogoutDialog(context, () {
-              account = null;
-              network.logout();
-              restartApp(context);
-            }),
-          ),
-          ListTile.simple(
-            context,
-            icon: HugeIcons.strokeRoundedGlobe02,
-            title: "Ouvrir Hermes II",
-            onTap: () => openUrl("https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
-          ),
-        ],
-      ),
-
-      ListSection(
-        title: "Apparence",
-        children: [
-          ListTile.simple(
-            context,
-            title: "Mode sombre",
-            icon: HugeIcons.strokeRoundedMoon02,
-            trailing: CupertinoSwitch(
-              value: isDarkMode,
-              onChanged: (value) {
-                setState(() {
-                  isDarkMode = value;
-                  globals.appBrightness = value ? .dark : .light;
-                  Phoenix.rebirth(context);
-                });
-              },
-            ),
-          ),
-          ListTile.simple(
-            context,
-            title: "Fond d'écran des conversations",
-            icon: HugeIcons.strokeRoundedBackground,
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
-          ),
-        ],
-      ),
-
-      ListSection(
-        title: "Options",
-        children: [
-          ListTile.simple(
-            context,
-            title: "Calendrier",
-            icon: HugeIcons.strokeRoundedCalendar04,
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
-          ),
-          ListTile.simple(
-            context,
-            title: "Branches",
-            icon: HugeIcons.strokeRoundedBooks02,
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsListPage())),
-          ),
-        ],
-      ),
-
-      ListSection(
-        title: "Stockage",
-        children: [
-          ListTile.simple(
-            context,
-            title: "Exporter les données",
-            icon: HugeIcons.strokeRoundedUploadSquare02,
-            isLoading: isCreatingBackup,
-            onTap: () async {
-              showCupertinoDialog(
-                context: context,
-                builder: (_) => Dialog.confirm(
-                  content: "Messagyre copiera vos données dans un fichier externe que vous pourrez exporter.",
-                  onConfirm: () async {
-                    setState(() => isCreatingBackup = true);
-
-                    await database.saveBackup();
-                    await Future.delayed(Duration(seconds: 5));
-
-                    setState(() => isCreatingBackup = false);
-
-                    if (!context.mounted) return;
-
-                    showCupertinoDialog(
-                      context: context,
-                      builder: (_) => Dialog(
-                        title: "Exportation terminée",
-                        content:
-                            "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour transférer vos donnés sur un autre dispositif.",
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-          ListTile.simple(
-            context,
-            title: "Importer des données",
-            icon: HugeIcons.strokeRoundedDownloadSquare02,
-            onTap: () async {
-              showCupertinoDialog(
-                context: context,
-                builder: (_) => Dialog.confirm(
-                  content: "L'importation de nouvelles données va *remplacer* vos données actuelles.",
-                  onConfirm: () async {
-                    try {
-                      await database.loadBackup();
-
-                      if (!context.mounted) return;
-                      showCupertinoDialog(
-                        context: context,
-                        builder: (_) => Dialog(
-                          title: "Importation terminée",
-                          content: "Les données ont été *importées avec succès*.\n\nPour qu'elles s'appliquent il est nécessaire de *redémarrer Messagyre* !",
-                        ),
-                      );
-                    } catch (e) {
-                      showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
-                    }
-                  },
-                  isDestructive: true,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-
-      ListSection(
-        title: "Informations légales",
-        children: [
-          ListTile.simple(
-            context,
-            title: "Conditions d'utilisation",
-            icon: HugeIcons.strokeRoundedAudit01,
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => TermsOfServicePage(readOnly: true))),
-          ),
-          ListTile.simple(
-            context,
-            title: "Politique de confidentialité",
-            icon: HugeIcons.strokeRoundedPolicy,
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PrivacyPolicyPage(readOnly: true))),
-          ),
-        ],
-      ),
-
-      ListSection(
-        title: "Autres",
-        children: [
-          ListTile.simple(
-            context,
-            title: "Laisser un avis",
-            icon: HugeIcons.strokeRoundedStar,
-            onTap: () async {
-              if (await InAppReview.instance.isAvailable()) {
-                InAppReview.instance.requestReview();
-              } else {
-                InAppReview.instance.openStoreListing(appStoreId: "6752887226");
-              }
-            },
-          ),
-          ListTile.simple(
-            context,
-            title: "Contacter le support",
-            icon: HugeIcons.strokeRoundedComment01,
-            onTap: () {
-              try {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (_) => Dialog.confirm(
-                    content:
-                        "Si vous avez la moindre question concernant Messagyre, vous pouvez écrire à *Support Messagyre*.\n\nVous recevrez une réponse sous *48 heures*.",
-                    onConfirm: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(username: "support.messagyre"))),
-                  ),
-                );
-              } catch (e) {
-                showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
-              }
-            },
-          ),
-
-          ListTile.simple(
-            context,
-            title: "Débogage",
-            icon: HugeIcons.strokeRoundedSourceCodeSquare,
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
-          ),
-        ],
-      ),
-
-      BottomSpacing(includeBottomBar: true,),
-    ];
-
     return Page.sliver(
       topBar: TopBar.sliver(title: "Réglages"),
-      body: ListView.separated(
+      body: ListView(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: sections.length,
-        itemBuilder: (context, index) => sections[index],
-        separatorBuilder: (_, _) => const SizedBox(height: 24),
+        padding: .zero,
+        children: [
+          ListSection(
+            title: "Votre compte",
+            margin: .only(top: 16),
+            children: [
+              ListTile(
+                child: (account == null || globals.username == null)
+                    ? SizedBox(
+                        height: 39,
+                        child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
+                      )
+                    : AspectRatio(
+                        aspectRatio: 4,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: .symmetric(vertical: 6),
+                              child: ProfilePictureDisplay(accountUsername: globals.username!),
+                            ),
+
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: .center,
+                                crossAxisAlignment: .start,
+                                children: [
+                                  Text(account!.displayName ?? account!.defaultDisplayName, style: AppStyles.header(context)),
+                                  const SizedBox(height: 4),
+                                  Text(globals.username!, style: TextStyle(color: CupertinoColors.systemGrey.resolveFrom(context), fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                onTap: () async {
+                  if (account!.username != globals.username) await getAccount();
+
+                  if (!context.mounted) return;
+
+                  Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
+                    if (updated) getAccount();
+                  });
+                },
+              ),
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedLogoutSquare02,
+                title: "Se déconnecter",
+                onTap: () => showLogoutDialog(context, () {
+                  account = null;
+                  network.logout();
+                  restartApp(context);
+                }),
+              ),
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedGlobe02,
+                title: "Ouvrir Hermes II",
+                onTap: () => openUrl("https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
+              ),
+            ],
+          ),
+
+          ListSection(
+            title: "Apparence",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(
+                context,
+                title: "Mode sombre",
+                icon: HugeIcons.strokeRoundedMoon02,
+                trailing: CupertinoSwitch(
+                  value: isDarkMode,
+                  onChanged: (value) {
+                    setState(() {
+                      isDarkMode = value;
+                      globals.appBrightness = value ? .dark : .light;
+                      Phoenix.rebirth(context);
+                    });
+                  },
+                ),
+              ),
+              ListTile.simple(
+                context,
+                title: "Fond d'écran des conversations",
+                icon: HugeIcons.strokeRoundedBackground,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => WallpaperSettingsPage())),
+              ),
+            ],
+          ),
+
+          ListSection(
+            title: "Options",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(
+                context,
+                title: "Calendrier",
+                icon: HugeIcons.strokeRoundedCalendar04,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
+              ),
+              ListTile.simple(
+                context,
+                title: "Branches",
+                icon: HugeIcons.strokeRoundedBooks02,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsListPage())),
+              ),
+            ],
+          ),
+
+          ListSection(
+            title: "Stockage",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(
+                context,
+                title: "Exporter les données",
+                icon: HugeIcons.strokeRoundedUploadSquare02,
+                isLoading: isCreatingBackup,
+                onTap: () async {
+                  showCupertinoDialog(
+                    context: context,
+                    builder: (_) => Dialog.confirm(
+                      content: "Messagyre copiera vos données dans un fichier externe que vous pourrez exporter.",
+                      onConfirm: () async {
+                        setState(() => isCreatingBackup = true);
+
+                        await database.saveBackup();
+                        await Future.delayed(Duration(seconds: 5));
+
+                        setState(() => isCreatingBackup = false);
+
+                        if (!context.mounted) return;
+
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (_) => Dialog(
+                            title: "Exportation terminée",
+                            content:
+                                "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour transférer vos donnés sur un autre dispositif.",
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+              ListTile.simple(
+                context,
+                title: "Importer des données",
+                icon: HugeIcons.strokeRoundedDownloadSquare02,
+                onTap: () async {
+                  showCupertinoDialog(
+                    context: context,
+                    builder: (_) => Dialog.confirm(
+                      content: "L'importation de nouvelles données va *remplacer* vos données actuelles.",
+                      onConfirm: () async {
+                        try {
+                          await database.loadBackup();
+
+                          if (!context.mounted) return;
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (_) => Dialog(
+                              title: "Importation terminée",
+                              content:
+                                  "Les données ont été *importées avec succès*.\n\nPour qu'elles s'appliquent il est nécessaire de *redémarrer Messagyre* !",
+                            ),
+                          );
+                        } catch (e) {
+                          showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
+                        }
+                      },
+                      isDestructive: true,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+
+          ListSection(
+            title: "Informations légales",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(
+                context,
+                title: "Conditions d'utilisation",
+                icon: HugeIcons.strokeRoundedAudit01,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => TermsOfServicePage(readOnly: true))),
+              ),
+              ListTile.simple(
+                context,
+                title: "Politique de confidentialité",
+                icon: HugeIcons.strokeRoundedPolicy,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PrivacyPolicyPage(readOnly: true))),
+              ),
+            ],
+          ),
+
+          ListSection(
+            title: "Autres",
+            margin: .only(top: 16),
+            children: [
+              ListTile.simple(
+                context,
+                title: "Laisser un avis",
+                icon: HugeIcons.strokeRoundedStar,
+                onTap: () async {
+                  if (await InAppReview.instance.isAvailable()) {
+                    InAppReview.instance.requestReview();
+                  } else {
+                    InAppReview.instance.openStoreListing(appStoreId: "6752887226");
+                  }
+                },
+              ),
+              ListTile.simple(
+                context,
+                title: "Contacter le support",
+                icon: HugeIcons.strokeRoundedComment01,
+                onTap: () {
+                  try {
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (_) => Dialog.confirm(
+                        content:
+                            "Si vous avez la moindre question concernant Messagyre, vous pouvez écrire à *Support Messagyre*.\n\nVous recevrez une réponse sous *48 heures*.",
+                        onConfirm: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ChatPage(username: "support.messagyre"))),
+                      ),
+                    );
+                  } catch (e) {
+                    showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
+                  }
+                },
+              ),
+
+              ListTile.simple(
+                context,
+                title: "Débogage",
+                icon: HugeIcons.strokeRoundedSourceCodeSquare,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
+              ),
+            ],
+          ),
+
+          BottomSpacing(includeBottomBar: true),
+        ],
       ),
     );
   }
