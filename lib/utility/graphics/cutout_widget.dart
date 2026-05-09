@@ -13,8 +13,20 @@ class CutoutWidget extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ClipPath(clipper: _CutoutClipper(cutoutSize: cutoutSize, alignment: cutoutAlignment), child: childToCutout),
-        Positioned.fill(child: Align(alignment: cutoutAlignment, child: SizedBox(width: cutoutSize, height: cutoutSize, child: Center(child: childInCutout)))),
+        ClipPath(
+          clipper: _CutoutClipper(cutoutSize: cutoutSize, alignment: cutoutAlignment),
+          child: childToCutout,
+        ),
+        Positioned.fill(
+          child: Align(
+            alignment: cutoutAlignment,
+            child: SizedBox(
+              width: cutoutSize,
+              height: cutoutSize,
+              child: Center(child: childInCutout),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -33,10 +45,12 @@ class _CutoutClipper extends CustomClipper<Path> {
     final double centerX = ((alignment.x + 1) / 2) * size.width;
     final double centerY = ((alignment.y + 1) / 2) * size.height;
 
-    final Offset center = Offset(
-      centerX.clamp(0.0 + cutoutSize / 2, size.width - cutoutSize / 2),
-      centerY.clamp(0.0 + cutoutSize / 2, size.height - cutoutSize / 2),
-    );
+    final double minX = cutoutSize / 2;
+    final double maxX = size.width - cutoutSize / 2;
+    final double minY = cutoutSize / 2;
+    final double maxY = size.height - cutoutSize / 2;
+
+    final Offset center = Offset(centerX.clamp(minX, maxX < minX ? minX : maxX), centerY.clamp(minY, maxY < minY ? minY : maxY));
 
     final hole = Path()..addOval(Rect.fromCircle(center: center, radius: cutoutSize / 2));
 

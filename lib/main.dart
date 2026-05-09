@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:flutter/services.dart';
@@ -95,15 +97,19 @@ void main() async {
   runZonedGuarded(
     () async {
       try {
-        BootProcedure.setupGlobals();
-        BootProcedure.setupDatabase();
-
+        await BootProcedure.setupGlobals();
+        await BootProcedure.setupDatabase();
         await BootProcedure.setupNotificationSystems();
         await BootProcedure.setupMiscellaneous();
 
         BootProcedure.setupSystemUI();
 
-        runApp(Phoenix(child: LifecycleService(child: App())));
+        runApp(
+          DevicePreview(
+            enabled: !kReleaseMode,
+            builder: (context) => Phoenix(child: LifecycleService(child: App())),
+          ),
+        );
       } catch (e, stack) {
         debugPrint("Error during initialization: $e");
         debugPrint(stack.toString());
@@ -139,6 +145,10 @@ class App extends StatelessWidget {
       builder: (context, brightness, _) {
         return CupertinoApp(
           navigatorKey: navigatorKey,
+
+          locale: DevicePreview.locale(context),
+          //builder: DevicePreview.appBuilder,
+
           theme: CupertinoThemeData(
             brightness: brightness,
             primaryColor: AppColors.accent,
@@ -151,7 +161,7 @@ class App extends StatelessWidget {
           ),
           localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
           supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
-          locale: Locale('fr', 'CH'),
+          // locale: Locale('fr', 'CH'),
           home: const MainPage(),
           builder: (context, child) {
             final MediaQueryData data = MediaQuery.of(context);

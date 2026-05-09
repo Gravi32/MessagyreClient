@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/widgets/cutout_widget.dart';
+import 'package:messagyre_client/utility/graphics/cutout_widget.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ProfilePictureDisplay extends StatefulWidget {
