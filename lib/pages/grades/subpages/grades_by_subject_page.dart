@@ -28,7 +28,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
         body: SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: .symmetric(horizontal: 12, vertical: 10),
             child: StreamBuilder(
               stream: database.grades.watchAll(),
               builder: (context, _) {
@@ -63,10 +63,10 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                 return SingleChildScrollView(
                   child: Column(
                     spacing: 10,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: .stretch,
                     children: [
                       GridView.builder(
-                        padding: EdgeInsets.zero,
+                        padding: .zero,
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           mainAxisSpacing: 8,
@@ -85,9 +85,9 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
 
                       if (allLockedSubjects.isNotEmpty) ...[
                         const SizedBox(height: 20),
-                        Text("Branches bloquées", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                        Text("Branches bloquées", style: TextStyle(fontSize: 25, fontWeight: .w600, color: AppColors.text.adaptTo(context))),
                         GridView.builder(
-                          padding: EdgeInsets.zero,
+                          padding: .zero,
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             mainAxisSpacing: 8,
@@ -106,9 +106,9 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
 
                       if (allInactiveSubjects.isNotEmpty) ...[
                         const SizedBox(height: 20),
-                        Text("Branches sans notes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                        Text("Branches sans notes", style: TextStyle(fontSize: 25, fontWeight: .w600, color: AppColors.text.adaptTo(context))),
                         GridView.builder(
-                          padding: EdgeInsets.zero,
+                          padding: .zero,
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             mainAxisSpacing: 8,
@@ -127,7 +127,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
 
                       CupertinoListSection.insetGrouped(
                         backgroundColor: AppColors.transparent,
-                        margin: EdgeInsets.zero,
+                        margin: .zero,
                         header: const SizedBox.shrink(),
                         children: [
                           CupertinoListTile.notched(

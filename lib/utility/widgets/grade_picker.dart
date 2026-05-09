@@ -17,7 +17,7 @@ class GradePicker extends StatelessWidget {
     return SizedBox(
       height: 60,
       child: Stack(
-        alignment: Alignment.center,
+        alignment: .center,
         children: [
           RotatedBox(
             quarterTurns: -1,
@@ -48,7 +48,7 @@ class GradePicker extends StatelessWidget {
                           style: TextStyle(
                             fontSize: isSelected ? 28 : 22,
                             color: isSelected ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
-                            fontWeight: FontWeight.w500,
+                            fontWeight: .w500,
                           ),
                         ),
                       ),
@@ -60,11 +60,11 @@ class GradePicker extends StatelessWidget {
           ),
           IgnorePointer(
             child: Align(
-              alignment: Alignment.center,
+              alignment: .center,
               child: Container(
                 width: 60,
                 height: 80,
-                decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: .circular(12)),
               ),
             ),
           ),

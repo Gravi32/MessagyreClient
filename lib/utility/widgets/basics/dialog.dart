@@ -78,7 +78,7 @@ class Dialog extends StatelessWidget {
         decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(40)),
         child: Column(
           spacing: 12,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: .min,
           children: [
             // Title
             if (title != null) Text(title!, style: AppStyles.header(context)),
@@ -94,8 +94,8 @@ class Dialog extends StatelessWidget {
                           // Content
                           child: CustomText(
                             content!.trim(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w400, height: 1.5),
+                            textAlign: .center,
+                            style: const TextStyle(fontSize: 19, fontWeight: .w400, height: 1.5),
                           ),
                         ),
                       ),

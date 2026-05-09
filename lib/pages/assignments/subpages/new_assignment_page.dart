@@ -213,7 +213,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
             height: 250,
             decoration: BoxDecoration(
               color: AppColors.background.adaptTo(context),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const .vertical(top: .circular(16)),
             ),
             child: SafeArea(
               top: false,
@@ -222,10 +222,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   Container(
                     color: AppColors.background.adaptTo(context),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: .spaceBetween,
                       children: [
                         CupertinoButton(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                        const Text("Me rappeler", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                        const Text("Me rappeler", style: TextStyle(fontSize: 18, fontWeight: .w600)),
                         CupertinoButton(
                           child: const Text("Terminé"),
                           onPressed: () {
@@ -241,7 +241,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      padding: .symmetric(horizontal: 10, vertical: 10),
                       child: Row(
                         children: [
                           // "Days Before" Picker
@@ -474,18 +474,18 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         navigationBar: CupertinoNavigationBar(
           backgroundColor: AppColors.transparent,
           leading: CupertinoButton(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             onPressed: () => Navigator.of(context).pop(),
             child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
           ),
           trailing: ValueListenableBuilder<bool>(
             valueListenable: canSubmitNotifier,
             builder: (context, canBeSubmitted, _) => CupertinoButton(
-              padding: EdgeInsets.zero,
+              padding: .zero,
               onPressed: canBeSubmitted ? confirmAssignment : showMissingInfoPopup,
               child: Text(
                 editMode ? "Terminé" : "Ajouter",
-                style: TextStyle(color: canBeSubmitted ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: FontWeight.w600),
+                style: TextStyle(color: canBeSubmitted ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: .w600),
               ),
             ),
           ),
@@ -494,17 +494,17 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         child: SafeArea(
           child: ListView(
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const .symmetric(horizontal: 10),
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const .symmetric(vertical: 14),
                 child: Text(
                   "${editMode ? "Modifier le" : "Nouveau"} ${mode == AssignmentType.assignment
                       ? "devoir"
                       : mode == AssignmentType.test
                       ? "test"
                       : "congé"}",
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 28, fontWeight: .w600),
                 ),
               ),
 
@@ -514,15 +514,15 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 thumbColor: adaptiveColor(AppColors.background.adaptTo(context), AppColors.text.adaptTo(context).withAlpha(20)),
                 children: const {
                   AssignmentType.assignment: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    padding: .symmetric(horizontal: 20, vertical: 6),
                     child: Text("Devoir", style: TextStyle(fontSize: 16)),
                   ),
                   AssignmentType.test: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    padding: .symmetric(horizontal: 20, vertical: 6),
                     child: Text("Test", style: TextStyle(fontSize: 16)),
                   ),
                   AssignmentType.leave: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    padding: .symmetric(horizontal: 20, vertical: 6),
                     child: Text("Congé", style: TextStyle(fontSize: 16)),
                   ),
                 },
@@ -532,11 +532,11 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
                 header: const SizedBox(),
-                margin: EdgeInsets.zero,
+                margin: .zero,
                 footer: mode == AssignmentType.leave
                     ? null
                     : Padding(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const .only(top: 8),
                         child: Text(
                           "Merci de remplir les champs obligatoires *",
                           style: TextStyle(fontSize: 14, color: canSubmitNotifier.value ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
@@ -546,7 +546,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   if (mode == AssignmentType.test)
                     CupertinoListTile.notched(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const .symmetric(horizontal: 14, vertical: 6),
                       leading: const CustomIcon(icon: HugeIcons.strokeRoundedSubtitle),
 
                       title: CupertinoTextField(
@@ -556,10 +556,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         placeholder: "Titre ${mode == AssignmentType.test ? "*" : ""}",
                         minLines: 1,
                         maxLines: 2,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+                        style: const TextStyle(fontSize: 20, fontWeight: .w400),
                         placeholderStyle: TextStyle(
                           color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                          fontWeight: FontWeight.w400,
+                          fontWeight: .w400,
                         ),
                         onTap: () => setState(() => isMissingTitle = false),
                         onTapOutside: (event) => titleFocusNode.unfocus(),
@@ -571,7 +571,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
                   CupertinoListTile.notched(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: const .symmetric(horizontal: 14, vertical: 6),
 
                     title: CupertinoTextField(
                       controller: contentController,
@@ -584,10 +584,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                       },
                       minLines: mode == AssignmentType.test ? 4 : 5,
                       maxLines: 10,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                      style: const TextStyle(fontSize: 18, fontWeight: .w400),
                       placeholderStyle: TextStyle(
                         color: isMissingContent ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                        fontWeight: FontWeight.w400,
+                        fontWeight: .w400,
                       ),
                       onTap: () => setState(() => isMissingContent = false),
                       onTapOutside: (event) => contentFocusNode.unfocus(),
@@ -610,7 +610,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                         controller: subjectController,
                         focusNode: subjectFocusNode,
                         decoration: const BoxDecoration(),
-                        padding: EdgeInsets.zero,
+                        padding: .zero,
                         placeholder: "Entrez une branche *",
                         placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
                         onSubjectSelected: (selectedSubject) {
@@ -631,13 +631,13 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
                 header: Text("Date ${mode == AssignmentType.leave ? "" : "de remise"}"),
-                margin: EdgeInsets.zero,
+                margin: .zero,
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     leading: const CustomIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                     trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisSize: .min,
                       children: [
                         Text(formatDate(dueDate, includeArticle: true), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                         CupertinoListTileChevron(),
@@ -658,7 +658,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               CupertinoListSection.insetGrouped(
                 backgroundColor: AppColors.transparent,
                 header: const Text("Me rappeler"),
-                margin: EdgeInsets.zero,
+                margin: .zero,
                 children: [
                   CupertinoListTile(
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -676,7 +676,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     onTap: showNotificationOptionsPicker,
                     trailing: isNotificationPossible
                         ? Row(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisSize: .min,
                             children: [
                               Text(
                                 notificationDate == null
@@ -705,7 +705,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   header: const Text("Supprimer"),
-                  margin: EdgeInsets.zero,
+                  margin: .zero,
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),

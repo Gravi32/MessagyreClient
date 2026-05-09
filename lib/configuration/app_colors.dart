@@ -45,5 +45,5 @@ class AppColor extends Color {
   const AppColor({required this.light, required this.dark}) : super(0);
 
   /// Adapts the color to the current platform brightness.
-  Color adaptTo(BuildContext context) => GlobalsService().appBrightness == Brightness.dark ? dark : light;
+  Color adaptTo(BuildContext context) => GlobalsService().appBrightness == .dark ? dark : light;
 }

@@ -167,7 +167,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         style: widget.style ?? TextStyle(color: AppColors.inactive.adaptTo(context)),
         placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.inactive.adaptTo(context)),
         decoration: widget.decoration ?? const BoxDecoration(),
-        padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
+        padding: widget.padding ?? const .symmetric(horizontal: 8),
         enabled: false,
       );
     }
@@ -207,7 +207,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           style: widget.style,
           placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
-          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
+          padding: widget.padding ?? const .symmetric(horizontal: 8),
 
           onSubmitted: (value) {
             if (widget.forceValid) {
@@ -231,34 +231,34 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         final options = rawOptions.toList();
 
         return Container(
-          margin: const EdgeInsets.only(top: 8),
+          margin: const .only(top: 8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
           decoration: BoxDecoration(
             color: AppColors.secondaryBackground.adaptTo(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: .circular(12),
             boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
           ),
 
           child: ListView.builder(
             shrinkWrap: true,
-            padding: EdgeInsets.zero,
+            padding: .zero,
             itemCount: options.length,
 
             itemBuilder: (context, index) {
               final option = options[index];
 
               return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: .stretch,
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => onSelected(option),
 
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      padding: const .symmetric(vertical: 10, horizontal: 16),
 
                       child: Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: .centerLeft,
 
                         child: Row(
                           spacing: 15,
@@ -268,7 +268,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                             Text.rich(
                               TextSpan(
                                 children: highlightSearchMatch(option.name, controller.text, useCache: true),
-                                style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
+                                style: const TextStyle(fontWeight: .w400, fontSize: 20),
                               ),
                             ),
                           ],

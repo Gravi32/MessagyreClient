@@ -107,7 +107,7 @@ class _FieldState extends State<Field> {
                       ),
                       minLines: 1,
                       maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
-                      scrollPadding: const EdgeInsets.only(bottom: 60), // Distance from the keyboard
+                      scrollPadding: const .only(bottom: 60), // Distance from the keyboard
                       decoration: const BoxDecoration(),
                       controller: widget.controller,
                       keyboardType: widget.keyboardType,

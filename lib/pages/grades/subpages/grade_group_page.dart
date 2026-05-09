@@ -28,7 +28,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
     });
 
     return ListView.separated(
-      padding: EdgeInsets.only(top: 8),
+      padding: .only(top: 8),
       itemCount: thisGroupGrades.length,
       itemBuilder:
           (context, index) => GradeBar(gradeData: thisGroupGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: thisGroupGrades.elementAt(index))),
@@ -64,7 +64,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
             body: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: .symmetric(horizontal: 16),
                 child: StreamBuilder(
                   stream: database.grades.watchAll(),
                   builder: (context, snapshot) {
@@ -81,8 +81,8 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
             child: GestureDetector(
               onTap: showNewGradePopup,
               child: Container(
-                padding: EdgeInsets.all(14),
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(20)),
+                padding: .all(14),
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(20)),
                 child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
               ),
             ),

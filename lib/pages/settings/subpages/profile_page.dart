@@ -82,7 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
               spacing: 8,
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  padding: .symmetric(horizontal: 8),
                   child: CustomIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
                 ),
                 Text("Prendre une photo", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
@@ -98,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
               spacing: 8,
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  padding: .symmetric(horizontal: 8),
                   child: CustomIcon(icon: HugeIcons.strokeRoundedAlbum02, color: AppColors.text.adaptTo(context)),
                 ),
                 Text("Choisir une photo de la galérie", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
@@ -119,7 +119,7 @@ class _ProfilePageState extends State<ProfilePage> {
               spacing: 8,
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  padding: .symmetric(horizontal: 8),
                   child: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
                 ),
                 Text("Supprimer la photo", style: TextStyle(fontSize: 20)),
@@ -351,7 +351,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     spacing: 2,
                     crossAxisAlignment: .start,
                     children: [
-                      Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+                      Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 24, fontWeight: .w600)),
 
                       Row(
                         spacing: 6,

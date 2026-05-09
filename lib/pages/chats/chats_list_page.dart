@@ -161,13 +161,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
                             children: [
                               if (lastMessage.isOwned && statusIconData != null)
                                 WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
+                                  alignment: .middle,
                                   child: Padding(
-                                    padding: const EdgeInsets.only(right: 2),
+                                    padding: const .only(right: 2),
                                     child: CustomIcon(
                                       icon: statusIconData.icon,
                                       size: 20,
-                                      color: statusIconData.color == AppColors.white && Theme.of(context).brightness == Brightness.light
+                                      color: statusIconData.color == AppColors.white && Theme.of(context).brightness == .light
                                           ? AppColors.grey
                                           : statusIconData.color.withAlpha(.6.toByte()),
                                     ),
@@ -175,9 +175,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                 ),
                               if (lastMessage.isDeleted)
                                 WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
+                                  alignment: .middle,
                                   child: Padding(
-                                    padding: const EdgeInsets.only(right: 3),
+                                    padding: const .only(right: 3),
                                     child: CustomIcon(
                                       icon: HugeIcons.strokeRoundedUnavailable,
                                       size: 14,
@@ -189,7 +189,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                               ...CustomText.parseSpans(
                                 lastMessage.isDeleted ? "Message supprimé" : lastMessage.content.trim(),
                                 style: TextStyle(
-                                  fontWeight: hasUnreadMessages ? FontWeight.w500 : FontWeight.w400,
+                                  fontWeight: hasUnreadMessages ? .w500 : .w400,
                                   color: AppColors.secondaryText.adaptTo(context),
                                 ),
                               ),
@@ -201,7 +201,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                         )
                       : Text(
                           "Envoyez un message...",
-                          style: TextStyle(fontStyle: FontStyle.italic, color: AppColors.tertiaryText.adaptTo(context)),
+                          style: TextStyle(fontStyle: .italic, color: AppColors.tertiaryText.adaptTo(context)),
                         ),
                   Spacer(flex: 2),
                 ],
@@ -211,29 +211,29 @@ class _ChatsListPageState extends State<ChatsListPage> {
             // Date and unread messages badge
             if (lastMessage != null)
               Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: .min,
+                crossAxisAlignment: .end,
                 children: [
                   const SizedBox(height: 4),
                   Text(
                     lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
-                    style: TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: hasUnreadMessages ? FontWeight.w600 : FontWeight.w400),
+                    style: TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: hasUnreadMessages ? .w600 : .w400),
                   ),
 
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: .min,
                     spacing: 4,
                     children: [
                       if (chatData.isPinned) CustomIcon(icon: HugeIcons.strokeRoundedPin, size: 16, color: AppColors.secondaryText.adaptTo(context)),
 
                       if (hasUnreadMessages)
                         Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(12)),
+                          margin: const .only(top: 4),
+                          padding: const .symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: .circular(12)),
                           child: Text(
                             chatData.unreadMessages.toString(),
-                            style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                            style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: .w500),
                           ),
                         ),
                     ],
@@ -321,7 +321,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
           return list.isEmpty
               ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: .center,
                   spacing: 2,
                   children: [
                     CustomIcon(icon: HugeIcons.strokeRoundedSleeping, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
@@ -329,20 +329,20 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     const SizedBox(height: 8),
                     Text(
                       "Silence total...",
-                      style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
+                      style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
                     ),
                     Text(
                       "Messagyre est faite aussi pour discuter !",
-                      style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
+                      style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context)),
                     ),
                     CupertinoButton(
                       onPressed: () => MainPage.pageIndex.value = 3,
-                      padding: EdgeInsets.only(top: 40),
+                      padding: .only(top: 40),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: .center,
                         spacing: 6,
                         children: [
-                          Text("Briser la glace", style: TextStyle(fontWeight: FontWeight.w400)),
+                          Text("Briser la glace", style: TextStyle(fontWeight: .w400)),
                           CustomIcon(icon: HugeIcons.strokeRoundedBubbleChatAdd, size: 18),
                         ],
                       ),
@@ -350,7 +350,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                   ],
                 )
               : ListView.separated(
-                  padding: EdgeInsets.only(top: 8),
+                  padding: .only(top: 8),
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     return buildChatBar(list[index]);

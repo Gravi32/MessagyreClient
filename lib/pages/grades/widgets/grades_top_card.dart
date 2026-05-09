@@ -53,16 +53,16 @@ class _GradesTopCardState extends State<GradesTopCard> {
     }
 
     return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: .max,
+      mainAxisAlignment: .center,
+      crossAxisAlignment: .center,
       spacing: 10,
       children: [
         Expanded(
           child: Stack(
             children: [
               Padding(
-                padding: EdgeInsets.only(top: 15, bottom: 15, left: 55),
+                padding: .only(top: 15, bottom: 15, left: 55),
                 child: LineChart(
                   LineChartData(
                     minY: max(minAverage.floor().toDouble(), 1),
@@ -79,8 +79,8 @@ class _GradesTopCardState extends State<GradesTopCard> {
                         belowBarData: BarAreaData(
                           show: true,
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                            begin: .topCenter,
+                            end: .bottomCenter,
                             colors: [color.withAlpha(80), AppColors.transparent],
                           ),
                         ),
@@ -105,7 +105,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
                     ),
                     lineTouchData: LineTouchData(enabled: false),
                     gridData: FlGridData(drawVerticalLine: false, horizontalInterval: .5),
-                    borderData: FlBorderData(show: true, border: Border.symmetric(horizontal: BorderSide(color: AppColors.text.adaptTo(context).withAlpha(1)))),
+                    borderData: FlBorderData(show: true, border: .symmetric(horizontal: BorderSide(color: AppColors.text.adaptTo(context).withAlpha(1)))),
                   ),
                 ),
               ),
@@ -116,7 +116,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
                 bottom: 0,
                 child: Stack(
                   clipBehavior: Clip.none,
-                  alignment: Alignment.center,
+                  alignment: .center,
                   children: [
                     Positioned(
                       top: -15,
@@ -125,7 +125,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
                       bottom: -15,
                       child: AspectRatio(
                         aspectRatio: 1,
-                        child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: BoxShape.circle)),
+                        child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: .circle)),
                       ),
                     ),
 
@@ -142,20 +142,20 @@ class _GradesTopCardState extends State<GradesTopCard> {
             ],
           ),
         ),
-        Text("Moyenne générale", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+        Text("Moyenne générale", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
       ],
     );
   }
 
   Widget buildReportCardTab() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: .spaceBetween,
+          crossAxisAlignment: .start,
           children: [
-            Text("Bulletin", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+            Text("Bulletin", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
             GestureDetector(
               onTap:
                   () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())).then((_) {
@@ -163,10 +163,10 @@ class _GradesTopCardState extends State<GradesTopCard> {
                   }),
 
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: .center,
                 spacing: 4,
                 children: [
-                  Text("Tout voir", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context))),
+                  Text("Tout voir", style: TextStyle(fontSize: 17, fontWeight: .w500, color: AppColors.tertiaryText.adaptTo(context))),
                   Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
                 ],
               ),
@@ -176,7 +176,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
         Expanded(
           child: ListView(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             children: [
               report.buildTotalPointsIndicator(minimized: true),
               if (report.maxFailingGrades > 0) ...[
@@ -201,17 +201,17 @@ class _GradesTopCardState extends State<GradesTopCard> {
   Widget buildStatsTab() {
     Widget statBox(String label, String value) {
       return Container(
-        margin: const EdgeInsets.all(4),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        margin: const .all(4),
+        padding: const .symmetric(vertical: 10, horizontal: 6),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
-          border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-          borderRadius: BorderRadius.circular(12),
+          border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
+          borderRadius: .circular(12),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: .center,
           children: [
-            Expanded(child: Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(value, style: const TextStyle(fontSize: 22, fontWeight: .w600))),
             Expanded(child: Text(label, style: const TextStyle(fontSize: 12))),
           ],
         ),
@@ -252,13 +252,13 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
     // Build the grid of statistics
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
-        Text("Statistiques", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+        Text("Statistiques", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
 
         Expanded(
           child: GridView.count(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             crossAxisCount: 3,
             childAspectRatio: 1.3,
             children: [
@@ -283,7 +283,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
     grades = database.grades.getAll();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 6),
+      padding: const .only(top: 6),
       child: PagedCard(height: 160, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
     );
   }

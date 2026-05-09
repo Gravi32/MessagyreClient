@@ -25,7 +25,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
   Widget buildRow(String subjectName, double? average, double? rawAverage, bool isLocked, {Subject? subject, CompositeSubject? compositeSubject}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const .symmetric(vertical: 5),
       child: Row(
         spacing: 4,
         children: [
@@ -38,21 +38,21 @@ class _ReportCardPageState extends State<ReportCardPage> {
           if (isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
 
           Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: .center,
+            crossAxisAlignment: .end,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(vertical: rawAverage == null ? 6 : 0),
+                padding: .symmetric(vertical: rawAverage == null ? 6 : 0),
                 child: Text(
                   (average?.removeTrailingZero() ?? "-").toString(),
-                  style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: .w800),
                 ),
               ),
 
               if (rawAverage != null)
                 Text(
                   rawAverage.toStringAsFixed(2),
-                  style: TextStyle(fontSize: 10, color: AppColors.text.adaptTo(context).withAlpha(.5.toByte()), fontWeight: FontWeight.w400),
+                  style: TextStyle(fontSize: 10, color: AppColors.text.adaptTo(context).withAlpha(.5.toByte()), fontWeight: .w400),
                 ),
             ],
           ),
@@ -104,11 +104,11 @@ class _ReportCardPageState extends State<ReportCardPage> {
             builder: (context, setPopupState) {
               return Container(
                 height: 250,
-                decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+                decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: const .vertical(top: .circular(16))),
                 child: SafeArea(
                   top: false,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: .stretch,
                     children: [
                       Container(
                         color: AppColors.background.adaptTo(context),
@@ -118,7 +118,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                             const Expanded(
                               child: Text(
                                 "Max. branches insuffisantes",
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                                style: TextStyle(fontSize: 18, fontWeight: .w600),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -138,7 +138,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
                       Expanded(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          padding: .symmetric(horizontal: 10, vertical: 10),
                           child: CupertinoPicker(
                             scrollController: pickerController,
                             itemExtent: 32,
@@ -179,12 +179,12 @@ class _ReportCardPageState extends State<ReportCardPage> {
         body: SafeArea(
           top: false,
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const .symmetric(horizontal: 12, vertical: 10),
             children: [
               // All subjects list
               Container(
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(12)),
+                padding: const .symmetric(horizontal: 12, vertical: 2),
                 child: Column(
                   children: [
                     // All subjects
@@ -211,8 +211,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     // Restricted group subjects
                     if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
                       const Padding(
-                        padding: EdgeInsets.only(top: 10, bottom: 2),
-                        child: Text("Groupe restreint", style: TextStyle(fontWeight: FontWeight.w600)),
+                        padding: .only(top: 10, bottom: 2),
+                        child: Text("Groupe restreint", style: TextStyle(fontWeight: .w600)),
                       ),
                       ...() {
                         final restrictedList = [...restrictedGroupCompositeSubjects, ...restrictedGroupSubjects];
@@ -238,8 +238,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
               // Points part
               Container(
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(12)),
+                padding: const .symmetric(horizontal: 12, vertical: 12),
                 child: Column(
                   spacing: 6,
                   children: [
@@ -266,7 +266,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
               const SizedBox(height: 20),
 
               CupertinoListSection.insetGrouped(
-                margin: EdgeInsets.zero,
+                margin: .zero,
                 backgroundColor: AppColors.transparent,
                 header: const Text("Options de calcul"),
                 children: [
@@ -274,7 +274,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                     title: const Text("Max. de notes insuffisantes"),
                     trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisSize: .min,
                       children: [
                         Text(report.maxFailingGrades.toString(), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                         CupertinoListTileChevron(),
@@ -299,7 +299,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
               if (allSubjects.length > 3) ...[
                 const SizedBox(height: 10),
                 CupertinoListSection.insetGrouped(
-                  margin: EdgeInsets.zero,
+                  margin: .zero,
                   backgroundColor: AppColors.transparent,
                   children: [
                     CupertinoListTile(
@@ -319,7 +319,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 if (usingRestrictedGroup) ...[
                   const SizedBox(height: 10),
                   CupertinoListSection.insetGrouped(
-                    margin: EdgeInsets.zero,
+                    margin: .zero,
                     backgroundColor: AppColors.transparent,
                     children: [
                       for (final compositeSubject in restrictedGroupCompositeSubjects)

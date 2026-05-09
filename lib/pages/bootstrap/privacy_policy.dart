@@ -41,13 +41,13 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
       navigationBar: CupertinoNavigationBar(middle: Text("Politique de confidentialité")),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const .symmetric(horizontal: 10, vertical: 10),
           child: Column(
             children: [
               Expanded(
                 child: Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(12)),
+                  padding: .all(10),
                   child: SingleChildScrollView(
                     controller: scrollController,
                     child: CustomText("""*Politique de confidentialité de Messagyre*
@@ -144,7 +144,7 @@ Toute modification substantielle sera communiquée aux utilisateurs via l'applic
 Pour toute question relative à la protection des données personnelles ou à la présente politique de confidentialité, l'utilisateur peut contacter Messagyre via l'application.
 
 *Messagyre* - *Pietro Gravina*
-""", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: AppColors.text.adaptTo(context))),
+""", style: TextStyle(fontSize: 14, fontWeight: .w300, color: AppColors.text.adaptTo(context))),
                   ),
                 ),
               ),

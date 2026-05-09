@@ -13,10 +13,9 @@ class RoundContainer extends StatelessWidget {
 
   const RoundContainer({super.key, this.transparent = true, this.enabled = true, this.blurOnly = false, this.color, this.padding, this.child});
 
-  static final borderRadius = BorderRadius.circular(24);
-
   @override
   Widget build(BuildContext context) {
+    final BorderRadius borderRadius = .circular(24);
     final finalButtonColor = enabled ? (color ?? AppColors.secondaryBackground.adaptTo(context)) : AppColors.inactive.adaptTo(context);
 
     return BlurredContainer(

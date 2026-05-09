@@ -32,7 +32,7 @@ class GradeBar extends StatelessWidget {
     final daysDistance = DateTime.now().difference(gradeData.date).inDays;
 
     return CupertinoPressable(
-      padding: EdgeInsets.only(left: 1.5),
+      padding: .only(left: 1.5),
       onTap: onTap,
       child: Row(
         children: [
@@ -48,16 +48,16 @@ class GradeBar extends StatelessWidget {
           // Content
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: .center,
+              crossAxisAlignment: .stretch,
               spacing: 4,
               children: [
                 // Title
                 Padding(
-                  padding: EdgeInsets.only(right: 20),
+                  padding: .only(right: 20),
                   child: CustomText(
                     gradeData.title,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
+                    style: TextStyle(fontWeight: .w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -83,7 +83,7 @@ class GradeBar extends StatelessWidget {
                         Expanded(
                           child: Text(
                             "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                            style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
                             maxLines: 1,
                           ),
                         ),

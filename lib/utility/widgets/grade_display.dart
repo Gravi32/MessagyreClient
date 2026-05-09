@@ -62,7 +62,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
           width: size,
           height: size + 14,
           child: Stack(
-            alignment: Alignment.center,
+            alignment: .center,
             children: [
               // Content \\
 
@@ -77,19 +77,19 @@ class _GradeDisplayState extends State<GradeDisplay> {
                             color: AppColors.tertiaryText.adaptTo(context),
                             strokeWidth: widget.strokeWidth - .5,
                             dashPattern: [4, 5],
-                            radius: Radius.circular(200),
-                            strokeCap: StrokeCap.round,
-                            borderPadding: EdgeInsets.all(2),
+                            radius: .circular(200),
+                            strokeCap: .round,
+                            borderPadding: .all(2),
                           ),
                           child: SizedBox.square(dimension: 200),
                         )
                         : Stack(
-                          fit: StackFit.expand,
+                          fit: .expand,
                           children: [
                             CircularProgressIndicator(
                               value: gradeAlpha,
                               strokeWidth: widget.strokeWidth,
-                              strokeCap: StrokeCap.round,
+                              strokeCap: .round,
                               color: getGradeColor(widget.grade).withAlpha(alpha),
                             ),
 
@@ -100,7 +100,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                                 child: CircularProgressIndicator(
                                   value: 1 - gradeAlpha - 1 / (.25 * size) - .005 * widget.strokeWidth,
                                   strokeWidth: widget.strokeWidth,
-                                  strokeCap: StrokeCap.round,
+                                  strokeCap: .round,
                                   color: adaptiveColor(AppColors.black, AppColors.white).withAlpha(30),
                                 ),
                               ),
@@ -112,20 +112,20 @@ class _GradeDisplayState extends State<GradeDisplay> {
               // Grade
               if (!isGradeHidden)
                 Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: .min,
+                  mainAxisAlignment: .center,
                   spacing: 2,
                   children: [
                     Text(
                       animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), ''),
-                      style: TextStyle(fontSize: size / 2.75, fontWeight: FontWeight.w600, height: 1.0, color: AppColors.text.adaptTo(context)),
+                      style: TextStyle(fontSize: size / 2.75, fontWeight: .w600, height: 1.0, color: AppColors.text.adaptTo(context)),
                     ),
 
                     if (widget.textBelow != null)
                       Text(
                         widget.textBelow!,
-                        textScaler: TextScaler.noScaling,
-                        style: TextStyle(fontSize: size / 6, fontWeight: FontWeight.w400, height: 1.0, color: AppColors.secondaryText.adaptTo(context)),
+                        textScaler: .noScaling,
+                        style: TextStyle(fontSize: size / 6, fontWeight: .w400, height: 1.0, color: AppColors.secondaryText.adaptTo(context)),
                       ),
                   ],
                 ),
@@ -138,14 +138,14 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     offset: const Offset(0, 1),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: .circular(4),
                         boxShadow: [BoxShadow(color: AppColors.background.adaptTo(context).withAlpha(200), blurRadius: 4, offset: const Offset(0, 2))],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const .symmetric(horizontal: 4),
                       child: Text(
                         getFractionString(widget.weight) ?? "${(widget.weight * 100).round()}%",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: AppColors.text.adaptTo(context)),
+                        textAlign: .center,
+                        style: TextStyle(fontSize: 14, fontWeight: .w300, color: AppColors.text.adaptTo(context)),
                       ),
                     ),
                   ),
@@ -157,8 +157,8 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   bottom: 5,
                   right: 0,
                   child: Container(
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.background.adaptTo(context)),
-                    padding: const EdgeInsets.only(left: 4, top: 5),
+                    decoration: BoxDecoration(shape: .circle, color: AppColors.background.adaptTo(context)),
+                    padding: const .only(left: 4, top: 5),
                     child: CustomIcon(
                       icon: badge,
                       size: 16,

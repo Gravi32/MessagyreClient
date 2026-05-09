@@ -86,14 +86,14 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
         },
         child: SafeArea(
           child: ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderRadius: .all(.circular(12)),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: .symmetric(horizontal: 10, vertical: 8),
                 color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.75.toByte()),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: .spaceBetween,
                   spacing: 8,
                   children: [
                     Row(
@@ -102,19 +102,19 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                         SizedBox(width: 10),
                         Expanded(
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: .start,
+                            crossAxisAlignment: .start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: .spaceBetween,
                                 children: [
-                                  Text(widget.title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context), fontSize: 18)),
+                                  Text(widget.title, style: TextStyle(fontWeight: .w600, color: AppColors.text.adaptTo(context), fontSize: 18)),
                                   if (unreadMessages != null && unreadMessages - 1 > 0)
                                     Container(
-                                      margin: EdgeInsets.only(top: 4),
-                                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(12)),
-                                      child: Text("${unreadMessages - 1}", style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+                                      margin: .only(top: 4),
+                                      padding: .symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: AppColors.accent, borderRadius: .circular(12)),
+                                      child: Text("${unreadMessages - 1}", style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: .w500)),
                                     ),
                                 ],
                               ),
@@ -123,7 +123,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                                 maxLines: 2,
                                 overflow: TextOverflow.fade,
                                 softWrap: true,
-                                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                                style: TextStyle(fontWeight: .w400, fontSize: 16),
                               ),
                             ],
                           ),
@@ -133,7 +133,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                     Container(
                       width: 100,
                       height: 4,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: AppColors.quaternaryText.adaptTo(context)),
+                      decoration: BoxDecoration(borderRadius: .circular(12), color: AppColors.quaternaryText.adaptTo(context)),
                     ),
                   ],
                 ),

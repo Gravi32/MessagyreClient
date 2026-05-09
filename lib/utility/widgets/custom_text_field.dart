@@ -44,8 +44,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
     bool isPasswordField = widget.keyboardType == TextInputType.visiblePassword;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: .center,
+      crossAxisAlignment: .stretch,
       children: [
         Text(widget.title, style: TextStyle(fontSize: 12)),
         SizedBox(height: 5),
@@ -56,18 +56,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
           keyboardType: widget.keyboardType,
           placeholder: widget.placeholder,
           enabled: !widget.disabled,
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+          padding: .symmetric(vertical: 12, horizontal: 10),
           style: TextStyle(color: widget.disabled ? AppColors.inactive.adaptTo(context) : adaptiveColor(AppColors.black, AppColors.white)),
           decoration: BoxDecoration(
             color: widget.disabled ? AppColors.inactive.adaptTo(context).withAlpha(50) : AppColors.secondaryBackground.adaptTo(context).withAlpha(200),
-            borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: adaptiveColor(AppColors.grey, Colors.transparent)),
+            borderRadius: .circular(8.0),
+            border: .all(color: adaptiveColor(AppColors.grey, Colors.transparent)),
           ),
           suffix:
               widget.suffix ??
               ((isPasswordField && !widget.alwaysHidePassword)
                   ? CupertinoButton(
-                      padding: EdgeInsets.zero,
+                      padding: .zero,
 
                       onPressed: widget.disabled
                           ? null

@@ -27,15 +27,15 @@ class _PagedCardState extends State<PagedCard> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 20),
+      padding: const .only(top: 6, bottom: 20),
       child: CupertinoPressable(
         onTap: null,
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
-          border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-          borderRadius: BorderRadius.circular(12),
+          border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
+          borderRadius: .circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const .symmetric(horizontal: 12, vertical: 12),
         child: Column(
           children: [
             SizedBox(
@@ -53,14 +53,14 @@ class _PagedCardState extends State<PagedCard> {
             ),
             const SizedBox(height: 12),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: .center,
               children: List.generate(widget.pages.length, (index) {
                 final isActive = index == _currentPage;
                 return Container(
                   width: isActive ? 5 : 4,
                   height: isActive ? 5 : 4,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(color: isActive ? AppColors.white : AppColors.white.withAlpha(0.4.toByte()), shape: BoxShape.circle),
+                  margin: const .symmetric(horizontal: 4),
+                  decoration: BoxDecoration(color: isActive ? AppColors.white : AppColors.white.withAlpha(0.4.toByte()), shape: .circle),
                 );
               }),
             ),

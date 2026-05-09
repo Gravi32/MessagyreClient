@@ -103,7 +103,7 @@ List<TextSpan> highlightSearchMatch(String fullText, String query, {bool useCach
     spans.add(
       TextSpan(
         text: fullText.substring(m.start, m.end),
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(fontWeight: .bold),
       ),
     );
     lastIndex = m.end;
@@ -160,7 +160,7 @@ extension ColorExtension on Color {
 }
 
 Color adaptiveColor(Color light, Color dark) {
-  return GlobalsService().appBrightness == Brightness.dark ? dark : light;
+  return GlobalsService().appBrightness == .dark ? dark : light;
 }
 
 Color getGradeColor(double grade, {Color? greenOverride}) {

@@ -49,9 +49,9 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
         title: "Vos branches",
         trailing: widget.isBootstrap && database.subjects.getAll().length >= 5
             ? CupertinoButton(
-                padding: EdgeInsets.zero,
+                padding: .zero,
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text("Terminé", style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Text("Terminé", style: TextStyle(fontWeight: .w800)),
               )
             : null,
       ),

@@ -35,7 +35,7 @@ class Page extends StatelessWidget {
       canPop: canPop,
       topBar: topBar,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const .symmetric(vertical: 20),
         child: Column(mainAxisSize: .min, crossAxisAlignment: .stretch, spacing: spacing, children: children),
       ),
     );

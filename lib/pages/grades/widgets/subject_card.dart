@@ -45,12 +45,12 @@ class SubjectCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isSubjectLocked ? AppColors.transparent : AppColors.secondaryBackground.adaptTo(context),
-        border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-        borderRadius: BorderRadius.circular(12),
+        border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
+        borderRadius: .circular(12),
       ),
       constraints: BoxConstraints(maxHeight: 150),
       child: CupertinoButton(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: .symmetric(horizontal: 12, vertical: 10),
         onPressed: () {
           // If the subject is locked
           if (isSubjectLocked) {
@@ -83,16 +83,16 @@ class SubjectCard extends StatelessWidget {
               builder: (dialogContext) => CupertinoActionSheet(
                 actions: [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: .symmetric(horizontal: 16, vertical: 12),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment: .stretch,
                       spacing: 10,
                       children: [
                         Row(
                           spacing: 6,
                           children: [
                             CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
-                            Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
+                            Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: .w600)),
                             Spacer(),
                             CustomIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
                           ],
@@ -112,7 +112,7 @@ class SubjectCard extends StatelessWidget {
                       spacing: 8,
                       children: [
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          padding: .symmetric(horizontal: 8),
                           child: SubjectBadge(subject: firstSubject),
                         ),
                         Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
@@ -127,7 +127,7 @@ class SubjectCard extends StatelessWidget {
                       spacing: 8,
                       children: [
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          padding: .symmetric(horizontal: 8),
                           child: SubjectBadge(subject: secondSubject),
                         ),
                         Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
@@ -142,13 +142,13 @@ class SubjectCard extends StatelessWidget {
           }
         },
         child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: .max,
+          mainAxisAlignment: .spaceBetween,
+          crossAxisAlignment: .stretch,
           spacing: 2,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: .spaceBetween,
               children: [
                 // Subject badge
                 if (subject != null) SubjectBadge(subject: subject!, size: 32),
@@ -158,27 +158,27 @@ class SubjectCard extends StatelessWidget {
                 if ((average ?? 0) != 0)
                   Text(
                     (subject?.lockedGrade ?? average!).removeTrailingZero(),
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                    style: TextStyle(fontSize: 24, fontWeight: .w600, color: AppColors.text.adaptTo(context)),
                   ),
               ],
             ),
 
             Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: .min,
+              mainAxisAlignment: .end,
+              crossAxisAlignment: .stretch,
               spacing: 10,
               children: [
                 // Subject title
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  crossAxisAlignment: .baseline,
                   textBaseline: TextBaseline.alphabetic,
                   spacing: 6,
                   children: [
                     Expanded(
                       child: Text(
                         subject?.name ?? compositeSubject?.name ?? "-",
-                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
+                        style: TextStyle(fontWeight: .w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),

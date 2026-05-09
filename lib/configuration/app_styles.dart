@@ -3,9 +3,9 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 
 class AppStyles {
   // Headers
-  static TextStyle header(BuildContext context) => .new(inherit: false, fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.text.adaptTo(context));
+  static TextStyle header(BuildContext context) => .new(inherit: false, fontSize: 24, fontWeight: .w700, color: AppColors.text.adaptTo(context));
   static TextStyle secondaryHeader(BuildContext context) =>
-      .new(inherit: false, fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text.adaptTo(context));
+      .new(inherit: false, fontSize: 20, fontWeight: .w700, color: AppColors.text.adaptTo(context));
 
   // Text
   static TextStyle primaryText(BuildContext context) => .new(inherit: false, fontSize: 17, color: AppColors.text.adaptTo(context));

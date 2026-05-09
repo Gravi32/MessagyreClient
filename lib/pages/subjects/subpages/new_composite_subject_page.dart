@@ -111,12 +111,12 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
     bool showHint = false,
   }) {
     return CupertinoListSection.insetGrouped(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const .symmetric(horizontal: 10),
       backgroundColor: AppColors.transparent,
       header: Text(title),
       footer: showHint
           ? Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const .only(top: 8),
               child: Text(
                 "Merci de remplir les champs obligatoires *",
                 style: TextStyle(fontSize: 14, color: canBeConfirmed ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
@@ -126,12 +126,12 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
       children: [
         Container(
           color: AppColors.tertiaryBackground.adaptTo(context),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const .symmetric(horizontal: 16, vertical: 8),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: .start,
             spacing: 8,
             children: [
-              const Text("Branche", style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text("Branche", style: TextStyle(fontWeight: .w600)),
               Row(
                 spacing: 12,
                 children: [
@@ -147,10 +147,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                       controller: subjectFieldController,
                       focusNode: subjectFieldFocusNode,
                       onSubjectSelected: onSubjectSelected,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                      style: const TextStyle(fontSize: 20, fontWeight: .w700),
                       placeholderStyle: TextStyle(
                         color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                        fontWeight: FontWeight.w400,
+                        fontWeight: .w400,
                       ),
                     ),
                   ),
@@ -158,7 +158,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 ],
               ),
               Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
-              const Text("Périodes par semaine", style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text("Périodes par semaine", style: TextStyle(fontWeight: .w600)),
               Row(
                 spacing: 12,
                 children: [
@@ -168,7 +168,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                     child: Center(
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(periodsPerWeek.removeTrailingZero(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                        child: Text(periodsPerWeek.removeTrailingZero(), style: const TextStyle(fontSize: 24, fontWeight: .w700)),
                       ),
                     ),
                   ),
@@ -193,23 +193,23 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
 
   Widget buildCalculationsTile() {
     return CupertinoListSection.insetGrouped(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const .symmetric(horizontal: 10),
       backgroundColor: AppColors.transparent,
       header: const Text("Calcul"),
       children: [
         Container(
           width: double.infinity,
           color: AppColors.tertiaryBackground.adaptTo(context),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const .symmetric(horizontal: 16, vertical: 10),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: .min,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: .center,
                 children: [
                   Text(
                     firstSubjectPeriodsPerWeek.removeTrailingZero(),
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: firstSubject?.color),
+                    style: TextStyle(fontSize: 26, fontWeight: .w600, color: firstSubject?.color),
                   ),
                   const SizedBox(width: 6),
                   Flexible(
@@ -217,16 +217,16 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                       firstSubject?.name ?? "Sous-branche 1",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 18, fontWeight: .w500),
                     ),
                   ),
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text("+", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                    padding: .symmetric(horizontal: 8),
+                    child: Text("+", style: TextStyle(fontSize: 20, fontWeight: .w600)),
                   ),
                   Text(
                     secondSubjectPeriodsPerWeek.removeTrailingZero(),
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: secondSubject?.color),
+                    style: TextStyle(fontSize: 26, fontWeight: .w600, color: secondSubject?.color),
                   ),
                   const SizedBox(width: 6),
                   Flexible(
@@ -234,7 +234,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                       secondSubject?.name ?? "Sous-branche 2",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 18, fontWeight: .w500),
                     ),
                   ),
                 ],
@@ -248,7 +248,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
               const SizedBox(height: 4),
               Text(
                 (firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek).removeTrailingZero(),
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+                style: const TextStyle(fontSize: 26, fontWeight: .w600),
               ),
             ],
           ),
@@ -282,17 +282,17 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
         navigationBar: CupertinoNavigationBar(
           backgroundColor: AppColors.transparent,
           leading: CupertinoButton(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             onPressed: () => Navigator.of(context).pop(),
             child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
           ),
           middle: Text("Branche composée"),
           trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             onPressed: canBeConfirmed ? confirmCompositeSubject : showMissingInfoPopup,
             child: Text(
               editMode ? "Terminé" : "Ajouter",
-              style: TextStyle(color: canBeConfirmed ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: FontWeight.w600),
+              style: TextStyle(color: canBeConfirmed ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: .w600),
             ),
           ),
         ),
@@ -302,7 +302,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
             physics: const ClampingScrollPhysics(),
             children: [
               CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                margin: const .symmetric(horizontal: 10),
                 backgroundColor: AppColors.transparent,
                 header: const Text("Titre"),
                 children: [
@@ -314,10 +314,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                       decoration: const BoxDecoration(),
                       placeholder: "Titre de la branche *",
                       maxLines: 1,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+                      style: const TextStyle(fontSize: 20, fontWeight: .w400),
                       placeholderStyle: TextStyle(
                         color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                        fontWeight: FontWeight.w400,
+                        fontWeight: .w400,
                       ),
                       onTap: () => setState(() => isMissingTitle = false),
                       onTapOutside: (event) => titleFocusNode.unfocus(),
@@ -365,7 +365,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
               // Delete button
               if (editMode)
                 CupertinoListSection.insetGrouped(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  margin: const .symmetric(horizontal: 10),
                   backgroundColor: AppColors.transparent,
                   header: const SizedBox.shrink(),
                   footer: Padding(

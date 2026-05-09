@@ -88,7 +88,7 @@ class _LogoPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = .round;
 
     canvas.drawPath(_generateTransformedPath(pathData, size), paint);
   }

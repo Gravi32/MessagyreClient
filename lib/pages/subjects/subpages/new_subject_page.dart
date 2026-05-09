@@ -336,19 +336,19 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
         navigationBar: CupertinoNavigationBar(
           backgroundColor: AppColors.transparent,
           leading: CupertinoButton(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             onPressed: () => Navigator.of(context).pop(),
             child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
           ),
           middle: Text(editMode ? "Modifier la branche" : "Nouvelle branche"),
           trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
+            padding: .zero,
             onPressed: nameController.text.isNotEmpty ? confirmSubject : showMissingInfoPopup,
             child: Text(
               editMode ? "Terminé" : "Ajouter",
               style: TextStyle(
                 color: nameController.text.isNotEmpty ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context),
-                fontWeight: FontWeight.w600,
+                fontWeight: .w600,
               ),
             ),
           ),
@@ -359,7 +359,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
             physics: const ClampingScrollPhysics(),
             children: [
               CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                margin: const .symmetric(horizontal: 10),
                 backgroundColor: AppColors.transparent,
                 header: const Text("Titre"),
                 children: [
@@ -371,20 +371,20 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                       decoration: const BoxDecoration(),
                       placeholder: "Titre de la branche",
                       maxLines: 1,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: FontWeight.w400),
+                      style: const TextStyle(fontSize: 20, fontWeight: .w400),
+                      placeholderStyle: TextStyle(color: AppColors.placeholderText.adaptTo(context), fontWeight: .w400),
                       onTapOutside: (event) => titleFocusNode.unfocus(),
                     ),
                   ),
                 ],
               ),
               CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                margin: const .symmetric(horizontal: 10),
                 backgroundColor: AppColors.transparent,
                 header: const Text("Icône"),
                 children: [
                   CupertinoListTile.notched(
-                    padding: const EdgeInsets.all(8),
+                    padding: const .all(8),
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     title: ConstrainedBox(
                       constraints: BoxConstraints(maxHeight: fieldsHeight),
@@ -405,8 +405,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                                   return CupertinoPressable(
                                     decoration: BoxDecoration(
                                       color: isSelected ? colorNotifier.value : AppColors.secondaryBackground.adaptTo(context),
-                                      border: Border.all(color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.transparent),
-                                      borderRadius: BorderRadius.circular(10),
+                                      border: .all(color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.transparent),
+                                      borderRadius: .circular(10),
                                     ),
                                     child: Center(child: Icon(thisIcon, size: 23, color: AppColors.white)),
                                     onTap: () => iconNotifier.value = thisIcon,
@@ -423,12 +423,12 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
               ),
 
               CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                margin: const .symmetric(horizontal: 10),
                 backgroundColor: AppColors.transparent,
                 header: const Text("Couleur"),
                 children: [
                   CupertinoListTile.notched(
-                    padding: const EdgeInsets.all(8),
+                    padding: const .all(8),
                     backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                     title: ConstrainedBox(
                       constraints: BoxConstraints(maxHeight: fieldsHeight),
@@ -446,8 +446,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                               return CupertinoPressable(
                                 decoration: BoxDecoration(
                                   color: thisColor,
-                                  border: Border.all(color: isSelected ? AppColors.white : AppColors.transparent),
-                                  borderRadius: BorderRadius.circular(10),
+                                  border: .all(color: isSelected ? AppColors.white : AppColors.transparent),
+                                  borderRadius: .circular(10),
                                 ),
                                 child: SizedBox.shrink(),
                                 onTap: () => colorNotifier.value = thisColor,
@@ -463,7 +463,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
               // Lock option
               CupertinoListSection.insetGrouped(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                margin: const .symmetric(horizontal: 10),
                 backgroundColor: AppColors.transparent,
                 header: const Text("Options"),
                 children: [
@@ -479,7 +479,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
               // Grade picker
               if (isLocked)
                 CupertinoListSection.insetGrouped(
-                  margin: const EdgeInsets.only(right: 10, left: 10, top: 10),
+                  margin: const .only(right: 10, left: 10, top: 10),
                   backgroundColor: AppColors.transparent,
                   footer: Padding(
                     padding: EdgeInsetsGeometry.symmetric(horizontal: 6, vertical: 6),
@@ -491,7 +491,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      padding: const .symmetric(vertical: 12, horizontal: 16),
                       title: GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
                     ),
                   ],
@@ -500,7 +500,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
               // Delete button
               if (editMode)
                 CupertinoListSection.insetGrouped(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  margin: const .symmetric(horizontal: 10),
                   backgroundColor: AppColors.transparent,
                   header: const SizedBox.shrink(),
                   footer: canBeDeleted

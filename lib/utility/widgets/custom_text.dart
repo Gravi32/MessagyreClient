@@ -25,7 +25,7 @@ class CustomText extends StatelessWidget {
     this.prefixSpans,
     this.suffixSpans,
     this.padding,
-    this.textAlign = TextAlign.start,
+    this.textAlign = .start,
     this.textScaler,
   });
 
@@ -42,7 +42,7 @@ class CustomText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: match.group(1),
-          style: style?.merge(TextStyle(fontWeight: boldWeight ?? FontWeight.bold)) ?? TextStyle(fontWeight: boldWeight ?? FontWeight.bold),
+          style: style?.merge(TextStyle(fontWeight: boldWeight ?? .bold)) ?? TextStyle(fontWeight: boldWeight ?? .bold),
         ),
       );
 

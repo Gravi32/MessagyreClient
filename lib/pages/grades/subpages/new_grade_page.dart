@@ -185,24 +185,24 @@ class _NewGradePageState extends State<NewGradePage> {
       navigationBar: CupertinoNavigationBar(
         backgroundColor: AppColors.transparent,
         border: null,
-        leading: CupertinoButton(padding: EdgeInsets.zero, onPressed: Navigator.of(context).pop, child: Text("Annuler")),
+        leading: CupertinoButton(padding: .zero, onPressed: Navigator.of(context).pop, child: Text("Annuler")),
         trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
+          padding: .zero,
           onPressed: confirmGrade,
-          child: Text(editMode ? "Terminé" : "Ajouter", style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(editMode ? "Terminé" : "Ajouter", style: TextStyle(fontWeight: .bold)),
         ),
       ),
       child: SafeArea(
         child: ListView(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          padding: .symmetric(horizontal: 10, vertical: 20),
           children: [
             Column(
               spacing: 10,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: .stretch,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: Text("${editMode ? "Modifier la" : "Nouvelle"} note", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600)),
+                  padding: .only(bottom: 10),
+                  child: Text("${editMode ? "Modifier la" : "Nouvelle"} note", style: TextStyle(fontSize: 28, fontWeight: .w600)),
                 ),
                 Row(
                   spacing: 14,
@@ -210,18 +210,18 @@ class _NewGradePageState extends State<NewGradePage> {
                     GradeDisplay(grade: grade, size: 50, weight: weight),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: .stretch,
                         spacing: 2,
                         children: [
                           AutocompleteField(
                             controller: titleController,
                             focusNode: titleFocusNode,
                             decoration: BoxDecoration(),
-                            padding: EdgeInsets.zero,
+                            padding: .zero,
                             placeholder: "Titre*",
                             placeholderStyle: TextStyle(
                               color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                              fontWeight: FontWeight.w500,
+                              fontWeight: .w500,
                             ),
                             forceValid: false,
                             suffix: isMissingTitle
@@ -229,16 +229,16 @@ class _NewGradePageState extends State<NewGradePage> {
                                 : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
 
                             suffixMode: OverlayVisibilityMode.notEditing,
-                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 26, fontWeight: .w500),
                             items: getPlannedGrades(),
-                            header: Padding(padding: EdgeInsets.only(left: 16, right: 10, top: 8, bottom: 8), child: Text("Depuis la page des devoirs :")),
+                            header: Padding(padding: .only(left: 16, right: 10, top: 8, bottom: 8), child: Text("Depuis la page des devoirs :")),
                             itemBuilder: (assignment, query) {
                               if (assignment is! Assignment) return SizedBox.shrink();
                               return Column(
                                 spacing: 8,
                                 children: [
                                   Align(
-                                    alignment: Alignment.centerLeft,
+                                    alignment: .centerLeft,
                                     child: Text.rich(
                                       TextSpan(
                                         children: [
@@ -247,25 +247,25 @@ class _NewGradePageState extends State<NewGradePage> {
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   color: AppColors.red.withBrightness(-.25),
-                                                  border: Border.all(color: AppColors.red),
-                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: .all(color: AppColors.red),
+                                                  borderRadius: .circular(6),
                                                 ),
-                                                padding: EdgeInsets.all(2),
+                                                padding: .all(2),
                                                 child: Text(
                                                   "TEST",
-                                                  style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white),
+                                                  style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
                                                 ),
                                               ),
                                             ),
                                           WidgetSpan(child: SizedBox(width: 10)),
                                           ...highlightSearchMatch(assignment.title ?? assignment.content, query, useCache: true),
                                         ],
-                                        style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
+                                        style: const TextStyle(fontWeight: .w400, fontSize: 20),
                                       ),
                                     ),
                                   ),
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment: .stretch,
                                     spacing: 4,
                                     children: [
                                       if (assignment.subject.value != null)
@@ -303,11 +303,11 @@ class _NewGradePageState extends State<NewGradePage> {
 
                 if (referenceId != null)
                   Container(
-                    decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(10)),
-                    margin: EdgeInsets.only(top: 10),
+                    decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(10)),
+                    margin: .only(top: 10),
                     padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 10),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment: .stretch,
                       children: [
                         GestureDetector(
                           onTap: () => setState(() => isReferenceTileExpanded = !isReferenceTileExpanded),
@@ -333,7 +333,7 @@ class _NewGradePageState extends State<NewGradePage> {
                           Opacity(
                             opacity: .9,
                             child: CupertinoListSection.insetGrouped(
-                              margin: EdgeInsets.zero,
+                              margin: .zero,
                               backgroundColor: AppColors.transparent,
                               children: [AssignmentTile(assignment: referencedAssignment!, ignoreTouch: true)],
                             ),
@@ -365,7 +365,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             },
                             child: Row(
                               spacing: 6,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: .center,
                               children: [
                                 CustomIcon(icon: HugeIcons.strokeRoundedUnlink04, color: AppColors.red),
                                 Text("Dissocier", style: TextStyle(color: AppColors.red)),
@@ -378,11 +378,11 @@ class _NewGradePageState extends State<NewGradePage> {
                   ),
 
                 Container(
-                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(10)),
-                  margin: EdgeInsets.only(top: 10),
+                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(10)),
+                  margin: .only(top: 10),
                   padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 10),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: .stretch,
                     children: [
                       GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
                       Divider(thickness: .25, color: AppColors.separator.adaptTo(context)),
@@ -391,9 +391,9 @@ class _NewGradePageState extends State<NewGradePage> {
 
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.only(top: 6),
+                        padding: .only(top: 6),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: .center,
                           spacing: 6,
                           children: [
                             ...fractions.keys
@@ -419,13 +419,13 @@ class _NewGradePageState extends State<NewGradePage> {
                         curve: Curves.easeInOut,
                         child: isValuePickerExpanded
                             ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                crossAxisAlignment: .stretch,
                                 children: [
                                   SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
-                                    padding: EdgeInsets.symmetric(vertical: 6),
+                                    padding: .symmetric(vertical: 6),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment: .center,
                                       spacing: 6,
                                       children: [
                                         for (var value = 0.05; value < 1.0; value += 0.05)
@@ -466,10 +466,10 @@ class _NewGradePageState extends State<NewGradePage> {
                                     ),
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 200),
-                                      padding: const EdgeInsets.only(left: 16, top: 12, bottom: 12, right: 6),
+                                      padding: const .only(left: 16, top: 12, bottom: 12, right: 6),
                                       decoration: BoxDecoration(
                                         color: AppColors.grey.withAlpha((weight == customWeight ? .1 : .05).toByte()),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: .circular(8),
                                       ),
                                       child: Row(
                                         spacing: 10,
@@ -486,7 +486,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                             customWeight == null ? "Ajouter" : "x${customWeight?.removeTrailingZero()}",
                                             style: TextStyle(
                                               fontSize: 18,
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: .w600,
                                               color: weight == customWeight ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
                                             ),
                                           ),
@@ -504,9 +504,9 @@ class _NewGradePageState extends State<NewGradePage> {
                         onTap: () => setState(() => isValuePickerExpanded = !isValuePickerExpanded),
                         behavior: HitTestBehavior.opaque,
                         child: Container(
-                          margin: EdgeInsets.only(top: 6),
+                          margin: .only(top: 6),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: .center,
                             children: [
                               Text(
                                 isValuePickerExpanded ? "Voir moins" : "Voir plus",
@@ -542,7 +542,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             ),
                           ),
                   ),
-                  margin: EdgeInsets.zero,
+                  margin: .zero,
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -555,7 +555,7 @@ class _NewGradePageState extends State<NewGradePage> {
                         controller: subjectController,
                         focusNode: subjectFocusNode,
                         decoration: const BoxDecoration(),
-                        padding: EdgeInsets.zero,
+                        padding: .zero,
                         placeholder: "Entrez une branche *",
                         placeholderStyle: isMissingSubject ? TextStyle(color: AppColors.red) : null,
                         onSubjectSelected: (selectedSubject) {
@@ -576,7 +576,7 @@ class _NewGradePageState extends State<NewGradePage> {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
                     header: Text("Groupe"),
-                    margin: EdgeInsets.zero,
+                    margin: .zero,
                     footer: isInGroup
                         ? null
                         : Padding(
@@ -609,13 +609,13 @@ class _NewGradePageState extends State<NewGradePage> {
                 if (isInGroup)
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
-                    margin: EdgeInsets.zero,
+                    margin: .zero,
                     children: [
                       ...getGroups().map((existingGroupName) {
                         return CupertinoListTile.notched(
                           backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                           leading: groupName == existingGroupName ? CustomIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.accent) : null,
-                          title: Text(existingGroupName, style: TextStyle(fontWeight: FontWeight.w600)),
+                          title: Text(existingGroupName, style: TextStyle(fontWeight: .w600)),
                           onTap: () => setState(() {
                             groupName = existingGroupName;
                           }),
@@ -654,13 +654,13 @@ class _NewGradePageState extends State<NewGradePage> {
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   header: Text("Date de reception"),
-                  margin: EdgeInsets.zero,
+                  margin: .zero,
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                       leading: CustomIcon(icon: HugeIcons.strokeRoundedWorkHistory),
                       trailing: CupertinoListTileChevron(),
-                      title: Text("Reçu ${formatDate(date, includeArticle: true)}", style: TextStyle(fontWeight: FontWeight.w600)),
+                      title: Text("Reçu ${formatDate(date, includeArticle: true)}", style: TextStyle(fontWeight: .w600)),
                       onTap: showDatePicker,
                     ),
                   ],
@@ -669,7 +669,7 @@ class _NewGradePageState extends State<NewGradePage> {
                 CupertinoListSection.insetGrouped(
                   backgroundColor: AppColors.transparent,
                   header: Text("Informations facultatives"),
-                  margin: EdgeInsets.zero,
+                  margin: .zero,
                   children: [
                     CupertinoListTile(
                       backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -685,13 +685,13 @@ class _NewGradePageState extends State<NewGradePage> {
                             });
                           });
                           return Stack(
-                            alignment: Alignment.topRight,
+                            alignment: .topRight,
                             children: [
                               DismissableTextField(
                                 controller: detailsController,
                                 focusNode: focusNode,
                                 decoration: BoxDecoration(),
-                                padding: EdgeInsets.symmetric(vertical: 10),
+                                padding: .symmetric(vertical: 10),
                                 textAlignVertical: TextAlignVertical.top,
                                 minLines: 1,
                                 maxLines: 15,
@@ -702,7 +702,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                   right: 0,
                                   top: 0,
                                   child: CupertinoButton(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: .symmetric(horizontal: 8, vertical: 4),
                                     onPressed: () => focusNode.unfocus(),
                                     child: Text("Fermer", style: TextStyle(color: AppColors.accent, fontSize: 14)),
                                   ),
@@ -724,7 +724,7 @@ class _NewGradePageState extends State<NewGradePage> {
                   CupertinoListSection.insetGrouped(
                     backgroundColor: AppColors.transparent,
                     header: Text("Autres"),
-                    margin: EdgeInsets.zero,
+                    margin: .zero,
                     children: [
                       CupertinoListTile(
                         backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
@@ -772,13 +772,13 @@ class WeightButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(color: AppColors.grey.withAlpha((isSelected ? .1 : .05).toByte()), borderRadius: BorderRadius.circular(8)),
+        padding: const .symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(color: AppColors.grey.withAlpha((isSelected ? .1 : .05).toByte()), borderRadius: .circular(8)),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: .w600,
             color: isSelected ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
           ),
         ),

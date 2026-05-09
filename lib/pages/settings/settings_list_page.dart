@@ -68,7 +68,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
   @override
   void initState() {
     super.initState();
-    isDarkMode = globals.appBrightness == Brightness.dark;
+    isDarkMode = globals.appBrightness == .dark;
     getAccount();
   }
 
@@ -98,8 +98,8 @@ class _SettingsListPageState extends State<SettingsListPage> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: .center,
+                            crossAxisAlignment: .start,
                             children: [
                               Text(account!.displayName ?? account!.defaultDisplayName, style: AppStyles.header(context)),
                               const SizedBox(height: 4),
@@ -151,7 +151,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
               onChanged: (value) {
                 setState(() {
                   isDarkMode = value;
-                  globals.appBrightness = value ? Brightness.dark : Brightness.light;
+                  globals.appBrightness = value ? .dark : .light;
                   Phoenix.rebirth(context);
                 });
               },

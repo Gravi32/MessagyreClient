@@ -119,7 +119,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
           style: widget.style,
           placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
-          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8),
+          padding: widget.padding ?? const .symmetric(horizontal: 8),
 
           onSubmitted: (value) {
             if (widget.forceValid) _validateAndFix();
@@ -129,23 +129,23 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
       },
       optionsViewBuilder: (context, onSelected, options) {
         return Container(
-          margin: const EdgeInsets.only(top: 8),
+          margin: const .only(top: 8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
           decoration: BoxDecoration(
             color: AppColors.secondaryBackground.adaptTo(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: .circular(12),
             boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
           ),
           child: ListView.builder(
             shrinkWrap: true,
-            padding: EdgeInsets.zero,
+            padding: .zero,
             itemCount: options.length + (widget.header == null ? 0 : 1),
             itemBuilder: (context, index) {
               if (widget.header != null) {
                 index -= 1;
                 if (index == -1) {
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: .stretch,
                     children: [widget.header!, Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte()))],
                   );
                 }
@@ -153,12 +153,12 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
 
               final option = options.elementAt(index);
               return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: .stretch,
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => onSelected(option),
-                    child: Padding(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), child: widget.itemBuilder(option, _controller.text)),
+                    child: Padding(padding: const .symmetric(vertical: 10, horizontal: 16), child: widget.itemBuilder(option, _controller.text)),
                   ),
                   if (index < options.length - 1) Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte())),
                 ],

@@ -31,13 +31,13 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
 
   Widget buildWeekPeek(List<Assignment> allAssignments, {required DateTime weekStart, required String title}) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: .stretch,
       spacing: 10,
       children: [
-        Text(title, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20), overflow: TextOverflow.ellipsis, maxLines: 1),
+        Text(title, style: TextStyle(fontWeight: .w500, fontSize: 20), overflow: TextOverflow.ellipsis, maxLines: 1),
 
         GridView.builder(
-          padding: EdgeInsets.zero,
+          padding: .zero,
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 70),
@@ -48,29 +48,29 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
             final isSelected = thisDay.isSameDayAs(today);
 
             return Container(
-              padding: EdgeInsets.all(4),
-              margin: EdgeInsets.symmetric(horizontal: 1),
-              decoration: BoxDecoration(color: AppColors.text.adaptTo(context).withAlpha(isSelected ? 20 : 5), borderRadius: BorderRadius.circular(12)),
+              padding: .all(4),
+              margin: .symmetric(horizontal: 1),
+              decoration: BoxDecoration(color: AppColors.text.adaptTo(context).withAlpha(isSelected ? 20 : 5), borderRadius: .circular(12)),
               child: Opacity(
                 opacity: (thisDay.weekday + 1) % 7 < 2 ? .4 : 1,
                 child: Stack(
-                  fit: StackFit.expand,
+                  fit: .expand,
                   children: [
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: .center,
                       children: [
                         Text(
                           DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
-                          textScaler: TextScaler.noScaling,
+                          textScaler: .noScaling,
                           style:
                               isSelected
-                                  ? TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)
+                                  ? TextStyle(color: AppColors.accent, fontWeight: .w600)
                                   : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
                         ),
                         Text(
                           thisDay.day.toString(),
-                          textScaler: TextScaler.noScaling,
-                          style: TextStyle(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: 20),
+                          textScaler: .noScaling,
+                          style: TextStyle(fontWeight: isSelected ? .w700 : .w500, fontSize: 20),
                         ),
                         const SizedBox(height: 8),
                       ],
@@ -81,7 +81,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                       left: 0,
                       child: Row(
                         spacing: 2,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: .center,
                         children: List.generate(min(thisDaysAssignments.length, 3), (index) {
                           final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
                           if (thisDaysAssignment == null) return SizedBox.shrink();
@@ -90,7 +90,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
 
                           return thisDaysAssignment.type == AssignmentType.leave
                               ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
-                              : Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: BoxShape.circle));
+                              : Container(width: 4, height: 4, decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: .circle));
                         }),
                       ),
                     ),
@@ -117,23 +117,23 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
     final daysLeft = nextHolidayDate.difference(today).inDays;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: .stretch,
       spacing: 0,
       children: [
-        Text("Prochaines vacances", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.tertiaryText.adaptTo(context))),
+        Text("Prochaines vacances", style: TextStyle(fontWeight: .w500, fontSize: 18, color: AppColors.tertiaryText.adaptTo(context))),
         TextGradiate(
-          text: Text(nextHolidayName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
+          text: Text(nextHolidayName, style: TextStyle(fontWeight: .w700, fontSize: 22)),
           colors: [AppColors.orange.withBrightness(.1), AppColors.yellow],
-          begin: Alignment.bottomLeft,
-          end: Alignment.topRight,
+          begin: .bottomLeft,
+          end: .topRight,
         ),
         Spacer(),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
+          crossAxisAlignment: .baseline,
           textBaseline: TextBaseline.alphabetic,
           spacing: 6,
           children: [
-            Text(daysLeft.toString(), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 30)),
+            Text(daysLeft.toString(), style: TextStyle(fontWeight: .w700, fontSize: 30)),
             Text("jours restants", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
           ],
         ),

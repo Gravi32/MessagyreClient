@@ -28,21 +28,21 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
   Widget buildPlaceholder() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: .center,
       spacing: 2,
       children: [
         const SizedBox(height: 60),
         CustomIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
         const SizedBox(height: 8),
-        Text("Rien pour le moment...", style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
-        Text("Vos devoirs s'afficheront ici", style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context))),
+        Text("Rien pour le moment...", style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
+        Text("Vos devoirs s'afficheront ici", style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context))),
         CupertinoButton(
           onPressed: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
-          padding: EdgeInsets.only(top: 40),
+          padding: .only(top: 40),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: .center,
             spacing: 6,
-            children: [Text("Ajouter un devoir", style: TextStyle(fontWeight: FontWeight.w400)), CustomIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
+            children: [Text("Ajouter un devoir", style: TextStyle(fontWeight: .w400)), CustomIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
           ),
         ),
       ],
@@ -55,10 +55,10 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       right: 20,
       child: CupertinoPressable(
         onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
-        padding: const EdgeInsets.all(14),
+        padding: const .all(14),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: .circular(20),
           boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
         ),
         child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
@@ -120,14 +120,14 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
                     return [
                       Padding(
-                        padding: EdgeInsets.only(bottom: 6),
+                        padding: .only(bottom: 6),
                         child: Text(
                           title,
-                          style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: FontWeight.w600, color: titleColor ?? AppColors.text.adaptTo(context)),
+                          style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: .w600, color: titleColor ?? AppColors.text.adaptTo(context)),
                         ),
                       ),
                       CupertinoListSection.insetGrouped(
-                        margin: EdgeInsets.zero,
+                        margin: .zero,
                         backgroundColor: AppColors.transparent,
                         children: list.map((a) => AssignmentTile(key: ValueKey(a.referenceId), assignment: a, showDate: tilesShowDate, dim: dimTiles)).toList(),
                       ),
@@ -136,7 +136,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                   }
 
                   return ListView(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    padding: .symmetric(horizontal: 10),
                     physics: const ClampingScrollPhysics(),
                     children: [
                       AssignmentsTopCard(),

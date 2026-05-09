@@ -42,11 +42,11 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
       navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Débogage")),
       child: SafeArea(
         child: ListView(
-          padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+          padding: .only(left: 10, right: 10, bottom: 10),
           physics: const ClampingScrollPhysics(),
           children: [
             CupertinoListSection.insetGrouped(
-               margin: EdgeInsets.zero,
+               margin: .zero,
               backgroundColor: AppColors.transparent,
               header: Text("Informations générales"),
               children: [
@@ -64,7 +64,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               ],
             ),
             CupertinoListSection.insetGrouped(
-               margin: EdgeInsets.zero,
+               margin: .zero,
               backgroundColor: AppColors.transparent,
               header: Text("Connexion"),
               children: [
@@ -93,7 +93,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
               ],
             ),
             CupertinoListSection.insetGrouped(
-              margin: EdgeInsets.zero,
+              margin: .zero,
               backgroundColor: AppColors.transparent,
               header: Text("Jetons"),
               children: [
@@ -110,12 +110,12 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 CupertinoListTile(
                   backgroundColor: AppColors.secondaryBackground.adaptTo(context),
                   title: Text("Jeton FCM"),
-                  trailing: SizedBox(width: 150, child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
+                  trailing: SizedBox(width: 150, child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: .end)),
                 ),
               ],
             ),
             CupertinoListSection.insetGrouped(
-              margin: EdgeInsets.zero,
+              margin: .zero,
               backgroundColor: AppColors.transparent,
               header: Text("Logs de l'application"),
               children: [
@@ -139,9 +139,9 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                                 final content = globals.appLogs[logIndex].split(" ");
 
                                 return Padding(
-                                  padding: EdgeInsets.only(top: 8),
+                                  padding: .only(top: 8),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment: .start,
                                     children: [
                                       Expanded(
                                         child: Text(
@@ -152,7 +152,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                                       ),
                                       Text(
                                         content[0].replaceAll(RegExp(r'[\[\]]'), ''),
-                                        textAlign: TextAlign.end,
+                                        textAlign: .end,
                                         style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context)),
                                       ),
                                     ],

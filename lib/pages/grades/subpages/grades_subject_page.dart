@@ -43,7 +43,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
     return Column(
       children: [
         CupertinoButton(
-          padding: EdgeInsets.zero,
+          padding: .zero,
           child: IntrinsicHeight(
             child: Column(
               spacing: 6,
@@ -59,25 +59,25 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         children: [
                           Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: .start,
+                              crossAxisAlignment: .start,
                               spacing: 4,
                               children: [
                                 Row(
                                   spacing: 6,
-                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  crossAxisAlignment: .baseline,
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
                                     Text(
                                       groupName,
-                                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white)),
+                                      style: TextStyle(fontWeight: .w600, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white)),
                                     ),
 
                                     Text(
                                       "contient ${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(fontSize: 15, color: AppColors.tertiaryText.adaptTo(context), fontWeight: FontWeight.w400),
+                                      style: TextStyle(fontSize: 15, color: AppColors.tertiaryText.adaptTo(context), fontWeight: .w400),
                                     ),
                                   ],
                                 ),
@@ -133,17 +133,17 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
           children: [
             Icon(icon, color: AppColors.tertiaryText.adaptTo(context)),
             Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+              margin: const .symmetric(vertical: 4),
+              padding: const .symmetric(vertical: 4, horizontal: 10),
               decoration: BoxDecoration(
                 color: AppColors.secondaryBackground.adaptTo(context),
-                border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                borderRadius: BorderRadius.circular(12),
+                border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
+                borderRadius: .circular(12),
               ),
               child: Row(
                 spacing: 8,
                 children: [
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(neededGrade, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22))]),
+                  Row(crossAxisAlignment: .start, children: [Text(neededGrade, style: TextStyle(fontWeight: .w700, fontSize: 22))]),
                 ],
               ),
             ),
@@ -151,7 +151,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             Expanded(
               child: Row(
                 spacing: 8,
-                children: [Text(title), if (goalGrade != null) Text(goalGrade, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: gradeColor))],
+                children: [Text(title), if (goalGrade != null) Text(goalGrade, style: TextStyle(fontWeight: .w700, fontSize: 22, color: gradeColor))],
               ),
             ),
           ],
@@ -163,20 +163,20 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
       height: 200,
       pages: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           children: [
             Row(
               spacing: 8,
               children: [
                 SubjectBadge(subject: widget.subject, size: 24),
-                Text("Moyenne", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
+                Text("Moyenne", style: TextStyle(fontWeight: .w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
                 Spacer(),
-                Text(average.toStringAsFixed(2), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: widget.subject.color)),
+                Text(average.toStringAsFixed(2), style: TextStyle(fontWeight: .w700, fontSize: 22, color: widget.subject.color)),
               ],
             ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: 10),
+                padding: .only(top: 10),
                 child: LineChart(
                   LineChartData(
                     minY: 1,
@@ -193,8 +193,8 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         belowBarData: BarAreaData(
                           show: true,
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                            begin: .topCenter,
+                            end: .bottomCenter,
                             colors: [widget.subject.color.withAlpha(80), AppColors.transparent],
                           ),
                         ),
@@ -222,12 +222,12 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
         ),
 
         Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           children: [
-            Text("Évolution des notes", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+            Text("Évolution des notes", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: 10, bottom: 8, left: 4),
+                padding: .only(top: 10, bottom: 8, left: 4),
                 child: LineChart(
                   LineChartData(
                     minY: 1,
@@ -243,8 +243,8 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         belowBarData: BarAreaData(
                           show: true,
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                            begin: .topCenter,
+                            end: .bottomCenter,
                             colors: [widget.subject.color.withAlpha(80), AppColors.transparent],
                           ),
                         ),
@@ -266,7 +266,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                           reservedSize: 18,
                           getTitlesWidget:
                               (value, meta) => Align(
-                                alignment: Alignment.centerRight,
+                                alignment: .centerRight,
                                 child: Text(meta.formattedValue, style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
                               ),
                         ),
@@ -283,23 +283,23 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
         ),
 
         Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           spacing: 6,
           children: [
             Row(
               spacing: 8,
               children: [
-                Text("Objectifs", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
+                Text("Objectifs", style: TextStyle(fontWeight: .w500, fontSize: 20, color: AppColors.text.adaptTo(context))),
                 Spacer(),
                 Text(
                   average.toStringAsFixed(2),
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: getGradeColor(average, greenOverride: widget.subject.color)),
+                  style: TextStyle(fontWeight: .w700, fontSize: 22, color: getGradeColor(average, greenOverride: widget.subject.color)),
                 ),
               ],
             ),
             Expanded(
               child: ListView(
-                padding: EdgeInsets.zero,
+                padding: .zero,
                 physics: ClampingScrollPhysics(),
                 children: [
                   if (average < 3.75)
@@ -334,11 +334,11 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                  padding: const .symmetric(vertical: 4, horizontal: 10),
                   decoration: BoxDecoration(
                     color: AppColors.secondaryBackground.adaptTo(context),
-                    border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                    borderRadius: BorderRadius.circular(12),
+                    border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
+                    borderRadius: .circular(12),
                   ),
                   child: Text("Note nécessaire", style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
                 ),
@@ -373,7 +373,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             body: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: .symmetric(horizontal: 16),
                 child: StreamBuilder(
                   stream: database.grades.watchAll(),
                   builder: (context, _) {
@@ -400,8 +400,8 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                       // All grades
                       if (thisSubjectGrades.isNotEmpty)
                         Padding(
-                          padding: EdgeInsets.only(top: 0),
-                          child: Text("Notes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                          padding: .only(top: 0),
+                          child: Text("Notes", style: TextStyle(fontSize: 25, fontWeight: .w600, color: AppColors.text.adaptTo(context))),
                         ),
                       ...thisSubjectGrades
                           .where((grade) => grade.groupName == null)
@@ -414,16 +414,16 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                       // Groups
                       if (groups.isNotEmpty)
                         Padding(
-                          padding: EdgeInsets.only(top: 12),
-                          child: Text("Groupes", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                          padding: .only(top: 12),
+                          child: Text("Groupes", style: TextStyle(fontSize: 25, fontWeight: .w600, color: AppColors.text.adaptTo(context))),
                         ),
                       ...groups.keys.map((groupName) => buildGroupBar(groupName)),
 
                       // Incoming grades
                       if (incomingGrades.isNotEmpty) ...[
                         Padding(
-                          padding: EdgeInsets.only(top: 36),
-                          child: Text("Notes prévues", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context))),
+                          padding: .only(top: 36),
+                          child: Text("Notes prévues", style: TextStyle(fontSize: 25, fontWeight: .w600, color: AppColors.text.adaptTo(context))),
                         ),
 
                         ...incomingGrades.map((assignment) {
@@ -457,7 +457,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
 
                     return ListView.separated(
                       shrinkWrap: true,
-                      padding: EdgeInsets.only(top: 8),
+                      padding: .only(top: 8),
                       itemCount: listContent.length,
                       itemBuilder: (context, index) => listContent[index],
                       separatorBuilder: (_, _) => SizedBox(height: 8),
@@ -474,8 +474,8 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             child: GestureDetector(
               onTap: showNewGradePopup,
               child: Container(
-                padding: EdgeInsets.all(14),
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(20)),
+                padding: .all(14),
+                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(20)),
                 child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
               ),
             ),

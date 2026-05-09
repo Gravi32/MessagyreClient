@@ -67,20 +67,20 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
       decoration:
           widget.isPreviewMode
               ? null
-              : BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+              : BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: .vertical(top: .circular(16))),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: .min,
         children: [
           if (!widget.isPreviewMode)
             Container(
               color: AppColors.background.adaptTo(context),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: .spaceBetween,
                 children: [
-                  CupertinoButton(padding: EdgeInsets.symmetric(horizontal: 16), child: Text("Annuler"), onPressed: () => Navigator.of(context).pop()),
-                  Text("Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                  CupertinoButton(padding: .symmetric(horizontal: 16), child: Text("Annuler"), onPressed: () => Navigator.of(context).pop()),
+                  Text("Date", style: TextStyle(fontSize: 18, fontWeight: .w500)),
                   CupertinoButton(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: .symmetric(horizontal: 16),
                     child: Text("Terminé"),
                     onPressed: () {
                       widget.onDateSelected(tempDate);
@@ -93,7 +93,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
           SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.all(10),
+              padding: .all(10),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return SizedBox(
@@ -126,23 +126,23 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                         final crossAxisCount = includeWeekends ? 7 : 5;
 
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 7),
+                          padding: const .symmetric(horizontal: 7),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            crossAxisAlignment: .stretch,
                             children: [
                               Text(
                                 DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                                style: TextStyle(fontSize: 22, fontWeight: .w600, color: AppColors.text.adaptTo(context)),
                               ),
                               SizedBox(height: 12),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: .spaceBetween,
                                 children:
                                     daysOfTheWeek
                                         .map(
                                           (d) => Expanded(
                                             child: Center(
-                                              child: Text(d, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.tertiaryText.adaptTo(context))),
+                                              child: Text(d, style: TextStyle(fontWeight: .bold, color: AppColors.tertiaryText.adaptTo(context))),
                                             ),
                                           ),
                                         )
@@ -151,7 +151,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                               SizedBox(height: 6),
                               Expanded(
                                 child: GridView.builder(
-                                  padding: EdgeInsets.zero,
+                                  padding: .zero,
                                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: crossAxisCount,
                                     crossAxisSpacing: 4,
@@ -194,7 +194,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                               isSelected
                                                   ? AppColors.accent
                                                   : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: .circular(12),
                                         ),
                                         child: Stack(
                                           children: [
@@ -204,7 +204,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                                 style: TextStyle(
                                                   fontSize: 20,
                                                   color: AppColors.text.adaptTo(context),
-                                                  fontWeight: isToday ? FontWeight.w800 : null,
+                                                  fontWeight: isToday ? .w800 : null,
                                                 ),
                                               ),
                                             ),
@@ -216,12 +216,12 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                               left: 0,
                                               child: Row(
                                                 spacing: 2,
-                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisAlignment: .center,
                                                 children: List.generate(min(thisDayPins.length, 3), (index) {
                                                   final thisPin = thisDayPins.elementAtOrNull(index);
                                                   if (thisPin == null) return SizedBox.shrink();
 
-                                                  return Container(width: 4, height: 4, decoration: BoxDecoration(color: thisPin, shape: BoxShape.circle));
+                                                  return Container(width: 4, height: 4, decoration: BoxDecoration(color: thisPin, shape: .circle));
                                                 }),
                                               ),
                                             ),

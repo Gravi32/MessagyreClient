@@ -43,7 +43,7 @@ class BootProcedure {
 
     final globals = GlobalsService();
     globals.username = globals.persistent.getString("Username");
-    globals.appBrightnessNotifier.value = Brightness.dark;
+    globals.appBrightnessNotifier.value = .dark;
   }
 
   /// Initializes the database and its repositories
@@ -76,9 +76,9 @@ class BootProcedure {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarIconBrightness: .light,
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: .light,
       ),
     );
   }

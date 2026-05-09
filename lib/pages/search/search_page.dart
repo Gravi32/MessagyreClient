@@ -90,10 +90,10 @@ class SearchPageState extends State<SearchPage> {
 
   Widget buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: .symmetric(horizontal: 10),
       child: CupertinoSearchTextField(
         placeholder: "Rechercher un.e gymnasien.ne",
-        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+        padding: .symmetric(vertical: 4, horizontal: 6),
         controller: searchBarController,
         focusNode: searchBarFocusNode,
         onChanged: search,
@@ -105,29 +105,29 @@ class SearchPageState extends State<SearchPage> {
 
   Widget buildResult(SearchResult result) {
     return CupertinoListTile.notched(
-      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+      padding: .symmetric(vertical: 6, horizontal: 10),
       title: Row(
         children: [
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: .start,
             children: [
-              Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20)),
+              Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: TextStyle(fontWeight: .w500, fontSize: 20)),
               Row(
                 spacing: 6,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
+                crossAxisAlignment: .baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text.rich(
                     TextSpan(
                       children: highlightSearchMatch(result.username, searchBarController.text),
-                      style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                      style: TextStyle(fontWeight: .w400, fontSize: 16),
                     ),
                   ),
                   if (result.classOrRole != null)
                     Text.rich(
                       TextSpan(
                         children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text),
-                        style: TextStyle(color: AppColors.grey, fontSize: 14, fontWeight: FontWeight.w400),
+                        style: TextStyle(color: AppColors.grey, fontSize: 14, fontWeight: .w400),
                       ),
                     ),
                 ],
@@ -172,7 +172,7 @@ class SearchPageState extends State<SearchPage> {
                   duration: Duration(seconds: backgroundFigureAnimation > 0 ? 2 : 1),
                   builder: (context, alpha, child) {
                     return Stack(
-                      alignment: Alignment.center,
+                      alignment: .center,
                       children: [
                         Positioned.fill(
                           child: AnimatedOpacity(
@@ -193,19 +193,19 @@ class SearchPageState extends State<SearchPage> {
                           ),
                         ),
                         Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: .center,
                           spacing: 2,
                           children: [
                             CustomIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
                             const SizedBox(height: 8),
                             Text(
                               "Recherchez un utilisateur",
-                              style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
+                              style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
                             ),
                             Text(
                               "Et appuyez sur son profil\npour entamer une conversation !",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
+                              textAlign: .center,
+                              style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context)),
                             ),
                             SizedBox(height: showDecoration ? 100 : 0),
                           ],
@@ -216,7 +216,7 @@ class SearchPageState extends State<SearchPage> {
                             duration: Duration(milliseconds: showDecoration ? 200 : 100),
                             child: ClipRect(
                               child: Align(
-                                alignment: Alignment.bottomCenter.add(AlignmentGeometry.xy(0, 4 - 2 * Curves.easeOutCubic.transform(alpha))),
+                                alignment: .bottomCenter.add(AlignmentGeometry.xy(0, 4 - 2 * Curves.easeOutCubic.transform(alpha))),
                                 child: Image.asset(
                                   "assets/messagyreGuy.png",
                                   fit: BoxFit.fitWidth,
@@ -235,7 +235,7 @@ class SearchPageState extends State<SearchPage> {
               : isSearcing
               ? Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14))
               : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: .center,
                 children: [
                   CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
                   SizedBox(height: 10),
@@ -274,9 +274,9 @@ class SearchPageState extends State<SearchPage> {
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.translucent,
       child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(middle: Text("Nouvelle conversation", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500))),
+        navigationBar: CupertinoNavigationBar(middle: Text("Nouvelle conversation", style: TextStyle(fontSize: 24, fontWeight: .w500))),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           spacing: 8,
           children: [
             const SizedBox.shrink(),

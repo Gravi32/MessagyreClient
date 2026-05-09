@@ -30,7 +30,7 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
     }
 
     return ListView(
-      padding: EdgeInsets.zero,
+      padding: .zero,
       children:
           grouped.entries.map((entry) {
             final start = entry.key;
@@ -39,12 +39,12 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
             return CupertinoListSection.insetGrouped(
               header: Text("${formatDate(start).capitalize()} - ${formatDate(end)}"),
               backgroundColor: AppColors.transparent,
-              margin: EdgeInsets.zero,
+              margin: .zero,
               children:
                   entry.value.map((grade) {
                     return CupertinoListTile(
                       backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      padding: EdgeInsets.symmetric(vertical: 6, horizontal:10),
+                      padding: .symmetric(vertical: 6, horizontal:10),
                       title: GradeBar(gradeData: grade, onTap: () => showNewGradePopup(grade), showSubject: true),
                     );
                   }).toList(),
@@ -56,16 +56,16 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
   Widget _statBox(String label, String value) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        margin: const .symmetric(horizontal: 4),
+        padding: const .symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
-          border: Border.all(color: AppColors.tertiaryBackground.adaptTo(context)),
-          borderRadius: BorderRadius.circular(12),
+          border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
+          borderRadius: .circular(12),
         ),
         child: Column(
           children: [
-            Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+            Text(value, style: const TextStyle(fontSize: 22, fontWeight: .w600)),
             const SizedBox(height: 4),
             Text(label, style: const TextStyle(fontSize: 12)),
           ],
@@ -103,12 +103,12 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
         body: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const .symmetric(horizontal: 10),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: .stretch,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: .spaceBetween,
                   children: [
                     _statBox("Total", "$total"),
                     _statBox("≥ $threshold", "$aboveThreshold %"),

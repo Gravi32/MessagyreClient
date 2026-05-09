@@ -10,21 +10,25 @@ class CompositeSubjectBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = BorderRadius.circular(size / 3.6);
-
     return SizedBox.square(
       dimension: size,
       child: ClipRRect(
-        borderRadius: borderRadius,
+        borderRadius: .circular(size / 3.6),
         child: Stack(
           children: [
             Align(
-              alignment: Alignment.centerLeft,
-              child: ClipRect(clipper: _LeftHalfClipper(), child: SubjectBadge(subject: compositeSubject.firstSubject.value, size: size)),
+              alignment: .centerLeft,
+              child: ClipRect(
+                clipper: _LeftHalfClipper(),
+                child: SubjectBadge(subject: compositeSubject.firstSubject.value, size: size),
+              ),
             ),
             Align(
-              alignment: Alignment.centerRight,
-              child: ClipRect(clipper: _RightHalfClipper(), child: SubjectBadge(subject: compositeSubject.secondSubject.value, size: size)),
+              alignment: .centerRight,
+              child: ClipRect(
+                clipper: _RightHalfClipper(),
+                child: SubjectBadge(subject: compositeSubject.secondSubject.value, size: size),
+              ),
             ),
           ],
         ),

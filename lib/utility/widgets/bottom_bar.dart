@@ -55,8 +55,8 @@ class _BottomBarState extends State<BottomBar> {
                     valueListenable: page.showBadge,
                     builder: (context, showNotification, _) {
                       return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: .center,
+                        crossAxisAlignment: .center,
                         children: [
                           Expanded(
                             flex: 3,
@@ -65,10 +65,10 @@ class _BottomBarState extends State<BottomBar> {
                                     cutoutSize: 12,
                                     childToCutout: icon,
                                     childInCutout: Container(
-                                      margin: EdgeInsets.all(2.5),
-                                      decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                                      margin: .all(2.5),
+                                      decoration: BoxDecoration(color: AppColors.accent, shape: .circle),
                                     ),
-                                    cutoutAlignment: Alignment.topRight,
+                                    cutoutAlignment: .topRight,
                                   )
                                 : icon,
                           ),

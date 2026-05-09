@@ -40,7 +40,7 @@ class _GradesListPageState extends State<GradesListPage> {
     final bool shouldFade = totalHeight > maxHeight;
 
     Widget grid = GridView.builder(
-      padding: EdgeInsets.zero,
+      padding: .zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 8,
@@ -64,7 +64,7 @@ class _GradesListPageState extends State<GradesListPage> {
               ? ShaderMask(
                 shaderCallback: (Rect rect) {
                   return const LinearGradient(
-                    begin: Alignment.topCenter,
+                    begin: .topCenter,
                     end: Alignment(0, 1.1),
                     colors: [AppColors.black, AppColors.black, AppColors.transparent],
                     stops: [0, 0.6, 1.0],
@@ -104,7 +104,7 @@ class _GradesListPageState extends State<GradesListPage> {
             body: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
+                padding: .symmetric(horizontal: 12),
                 child: StreamBuilder(
                   stream: database.grades.watchAll(),
                   builder: (context, _) {
@@ -118,28 +118,28 @@ class _GradesListPageState extends State<GradesListPage> {
                     return SingleChildScrollView(
                       child: Column(
                         spacing: 10,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: .stretch,
                         children: [
                           GradesTopCard(),
 
                           SizedBox(),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: .spaceBetween,
                             children: [
                               Text(
                                 "Par branche",
-                                style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                                style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: .w600, color: AppColors.text.adaptTo(context)),
                               ),
 
                               CupertinoButton(
-                                padding: EdgeInsets.zero,
+                                padding: .zero,
                                 onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => GradesBySubjectPage())),
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: .end,
                                   children: [
                                     Text(
                                       "Tout voir",
-                                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context)),
+                                      style: TextStyle(fontSize: 17, fontWeight: .w500, color: AppColors.tertiaryText.adaptTo(context)),
                                     ),
                                     const SizedBox(width: 4),
                                     Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
@@ -154,22 +154,22 @@ class _GradesListPageState extends State<GradesListPage> {
                           if (allGrades.isNotEmpty) ...[
                             SizedBox(),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: .spaceBetween,
                               children: [
                                 Text(
                                   "Récentes",
-                                  style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: FontWeight.w600, color: AppColors.text.adaptTo(context)),
+                                  style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: .w600, color: AppColors.text.adaptTo(context)),
                                 ),
 
                                 CupertinoButton(
-                                  padding: EdgeInsets.zero,
+                                  padding: .zero,
                                   onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage())),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    crossAxisAlignment: .end,
                                     children: [
                                       Text(
                                         "Tout voir",
-                                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.tertiaryText.adaptTo(context)),
+                                        style: TextStyle(fontSize: 17, fontWeight: .w500, color: AppColors.tertiaryText.adaptTo(context)),
                                       ),
                                       const SizedBox(width: 4),
                                       Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
@@ -183,15 +183,15 @@ class _GradesListPageState extends State<GradesListPage> {
                               child: ShaderMask(
                                 shaderCallback: (Rect rect) {
                                   return const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
+                                    begin: .topCenter,
+                                    end: .bottomCenter,
                                     colors: [AppColors.black, AppColors.black, AppColors.transparent],
                                     stops: [0.0, 0.6, 1.0],
                                   ).createShader(rect);
                                 },
                                 blendMode: BlendMode.dstIn,
                                 child: ListView.separated(
-                                  padding: EdgeInsets.zero,
+                                  padding: .zero,
                                   itemCount: min(10, allGrades.length),
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
@@ -226,10 +226,10 @@ class _GradesListPageState extends State<GradesListPage> {
                     child: GestureDetector(
                       onTap: showNewGradePopup,
                       child: Container(
-                        padding: EdgeInsets.all(14),
+                        padding: .all(14),
                         decoration: BoxDecoration(
                           color: AppColors.secondaryBackground.adaptTo(context),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: .circular(20),
                           boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
                         ),
                         child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),

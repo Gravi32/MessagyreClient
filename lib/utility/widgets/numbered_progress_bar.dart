@@ -29,17 +29,17 @@ class NumberedProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, backgroundColor: color);
+    final textStyle = TextStyle(fontSize: fontSize, fontWeight: .w800, backgroundColor: color);
     final shadowColor = AppColors.secondaryBackground.adaptTo(context);
 
     final textSize = measureTextSize(value, textStyle);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: .stretch,
       spacing: (barHeight ?? 2) / 2,
       children: [
         SizedBox(height: max(textSize.height - 22, 0)),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(lowerBound), Text(upperBound)]),
+        Row(mainAxisAlignment: .spaceBetween, children: [Text(lowerBound), Text(upperBound)]),
 
         LayoutBuilder(
           builder: (context, constraints) {
@@ -76,7 +76,7 @@ class NumberedProgressBar extends StatelessWidget {
                   left: left - 32,
                   bottom: barHeight ?? 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const .symmetric(horizontal: 32),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [shadowColor.withAlpha(0), shadowColor, shadowColor, shadowColor.withAlpha(0)], stops: [0, .25, .75, 1]),
                     ),

@@ -6,7 +6,7 @@ class CutoutWidget extends StatelessWidget {
   final Widget? childInCutout;
   final Alignment cutoutAlignment;
 
-  const CutoutWidget({super.key, required this.cutoutSize, required this.childToCutout, this.childInCutout, this.cutoutAlignment = Alignment.bottomRight});
+  const CutoutWidget({super.key, required this.cutoutSize, required this.childToCutout, this.childInCutout, this.cutoutAlignment = .bottomRight});
 
   @override
   Widget build(BuildContext context) {

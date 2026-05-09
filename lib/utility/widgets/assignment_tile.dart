@@ -61,7 +61,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
     return CupertinoListTile.notched(
       key: ValueKey(assignment.id),
       backgroundColor: Color.lerp(AppColors.secondaryBackground.adaptTo(context), AppColors.background.adaptTo(context), widget.dim ? .4 : 0),
-      padding: const EdgeInsets.all(10),
+      padding: const .all(10),
       trailing: widget.ignoreTouch ? null : CustomIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppColors.grey),
       title: Row(
         spacing: 16,
@@ -82,7 +82,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
             child: Opacity(
               opacity: widget.dim ? .6 : 1,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: .start,
                 spacing: 8,
                 children: [
                   // Title and tag
@@ -94,13 +94,13 @@ class _AssignmentTileState extends State<AssignmentTile> {
                         Container(
                           decoration: BoxDecoration(
                             color: AppColors.red.withBrightness(-.25),
-                            border: Border.all(color: AppColors.red),
-                            borderRadius: BorderRadius.circular(6),
+                            border: .all(color: AppColors.red),
+                            borderRadius: .circular(6),
                           ),
-                          padding: EdgeInsets.all(2),
+                          padding: .all(2),
                           child: Text(
                             "TEST",
-                            style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white),
+                            style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
                           ),
                         ),
 
@@ -109,13 +109,13 @@ class _AssignmentTileState extends State<AssignmentTile> {
                         Container(
                           decoration: BoxDecoration(
                             color: AppColors.orange.withBrightness(-.05),
-                            border: Border.all(color: AppColors.yellow, strokeAlign: BorderSide.strokeAlignOutside),
-                            borderRadius: BorderRadius.circular(6),
+                            border: .all(color: AppColors.yellow, strokeAlign: BorderSide.strokeAlignOutside),
+                            borderRadius: .circular(6),
                           ),
-                          padding: EdgeInsets.all(2),
+                          padding: .all(2),
                           child: Text(
                             "CONGÉ",
-                            style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: FontWeight.w900, color: AppColors.white),
+                            style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
                           ),
                         ),
 
@@ -134,7 +134,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                               AssignmentType.test => assignment.title ?? "Test sans titre",
                               AssignmentType.leave => assignment.content,
                             },
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: assignment.type == AssignmentType.test ? AppColors.red : null),
+                            style: TextStyle(fontSize: 22, fontWeight: .w500, color: assignment.type == AssignmentType.test ? AppColors.red : null),
                             softWrap: true,
                             maxLines: 2,
                           ),
@@ -149,7 +149,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 80),
                       child: Text(
                         assignment.content,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                        style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
                         softWrap: true,
                         maxLines: 5,
                       ),
@@ -165,7 +165,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                           assignment.type == AssignmentType.leave
                               ? "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}"
                               : "${assignment.subject.value?.name}${widget.showDate ? "  •  ${formatDate(assignment.dueDate)}" : ""}",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: AppColors.secondaryText.adaptTo(context)),
+                          style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
                         ),
                       ),
                     ],

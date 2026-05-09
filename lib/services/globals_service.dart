@@ -27,7 +27,7 @@ class GlobalsService {
 
   // #region -> App brightness
 
-  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(Brightness.light);
+  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(.light);
   Brightness get appBrightness => appBrightnessNotifier.value;
   set appBrightness(Brightness value) => appBrightnessNotifier.value = value;
 

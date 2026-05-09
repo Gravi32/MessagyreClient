@@ -86,7 +86,7 @@ class ReportService {
 
   // #region -> UI
   TextStyle getIndicatorTitleStyle(bool minimized) =>
-      minimized ? const TextStyle(fontSize: 14, fontWeight: FontWeight.w600) : const TextStyle(fontSize: 19, fontWeight: FontWeight.w600);
+      minimized ? const TextStyle(fontSize: 14, fontWeight: .w600) : const TextStyle(fontSize: 19, fontWeight: .w600);
 
   Widget maybeExpanded({required bool condition, required Widget child, int flex = 1}) => condition ? Expanded(flex: flex, child: child) : child;
 
@@ -101,7 +101,7 @@ class ReportService {
 
     return Flex(
       direction: minimized ? Axis.horizontal : Axis.vertical,
-      crossAxisAlignment: minimized ? CrossAxisAlignment.start : CrossAxisAlignment.stretch,
+      crossAxisAlignment: minimized ? .start : .stretch,
       children: [
         maybeExpanded(
           condition: minimized,
@@ -140,7 +140,7 @@ class ReportService {
 
     return Flex(
       direction: minimized ? Axis.horizontal : Axis.vertical,
-      crossAxisAlignment: minimized ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+      crossAxisAlignment: minimized ? .center : .stretch,
       children: [
         maybeExpanded(
           condition: minimized,
@@ -182,7 +182,7 @@ class ReportService {
 
     return Flex(
       direction: minimized ? Axis.horizontal : Axis.vertical,
-      crossAxisAlignment: minimized ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+      crossAxisAlignment: minimized ? .center : .stretch,
       children: [
         maybeExpanded(
           condition: minimized,
@@ -232,7 +232,7 @@ class ReportService {
 
     return Flex(
       direction: minimized ? Axis.horizontal : Axis.vertical,
-      crossAxisAlignment: minimized ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+      crossAxisAlignment: minimized ? .center : .stretch,
       children: [
         maybeExpanded(
           condition: minimized,

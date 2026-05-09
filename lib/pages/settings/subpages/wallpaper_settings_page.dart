@@ -124,9 +124,9 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                           color: AppColors.secondaryText.adaptTo(context),
                                           strokeWidth: 2,
                                           dashPattern: [4, 5],
-                                          radius: Radius.circular(8),
-                                          strokeCap: StrokeCap.round,
-                                          borderPadding: EdgeInsets.all(2),
+                                          radius: .circular(8),
+                                          strokeCap: .round,
+                                          borderPadding: .all(2),
                                         ),
                                         child: SizedBox(
                                           width: MediaQuery.of(context).size.aspectRatio * 180,
@@ -148,11 +148,11 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                               child: Stack(
                                 children: [
                                   Container(
-                                    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                                    margin: .symmetric(vertical: 10, horizontal: 5),
                                     decoration: currentWallpaper == path
                                         ? BoxDecoration(
-                                            border: Border.all(color: AppColors.accent, strokeAlign: BorderSide.strokeAlignOutside),
-                                            borderRadius: BorderRadius.circular(8),
+                                            border: .all(color: AppColors.accent, strokeAlign: BorderSide.strokeAlignOutside),
+                                            borderRadius: .circular(8),
                                           )
                                         : null,
                                     child: ClipRRect(
@@ -174,8 +174,8 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                           saveData();
                                         },
                                         child: Container(
-                                          padding: EdgeInsets.all(6),
-                                          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.tertiaryBackground.adaptTo(context)),
+                                          padding: .all(6),
+                                          decoration: BoxDecoration(shape: .circle, color: AppColors.tertiaryBackground.adaptTo(context)),
                                           child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: AppColors.white),
                                         ),
                                       ),

@@ -144,14 +144,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         MessagyreLogo(size: 60, padding: .all(20),),
 
         const SizedBox(height: 20),
-        Text("Bienvenue sur Messagyre", textAlign: TextAlign.center, style: AppStyles.header(context)),
+        Text("Bienvenue sur Messagyre", textAlign: .center, style: AppStyles.header(context)),
         const SizedBox(height: 6),
-        Text("connectez-vous pour continuer", textAlign: TextAlign.center, style: AppStyles.secondaryText(context)),
+        Text("connectez-vous pour continuer", textAlign: .center, style: AppStyles.secondaryText(context)),
         const SizedBox(height: 6),
 
         Text(
           "Les comptes de Messagyre ne sont pas liés au gymnase ! Vous devez créer un compte à part si vous ne l'avez pas déjà fait !",
-          textAlign: TextAlign.center,
+          textAlign: .center,
           style: AppStyles.tertiaryText(context),
         ),
 
