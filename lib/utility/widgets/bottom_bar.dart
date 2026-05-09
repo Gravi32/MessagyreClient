@@ -16,7 +16,7 @@ class BottomBar extends StatefulWidget {
 class _BottomBarState extends State<BottomBar> {
   @override
   Widget build(BuildContext context) {
-    double bottomPadding = MediaQuery.paddingOf(context).bottom;
+    double bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
 
     return ValueListenableBuilder<int>(
       valueListenable: MainPage.pageIndex,

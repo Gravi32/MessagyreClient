@@ -51,7 +51,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
   Widget buildFloatingAddButton() {
     return Positioned(
-      bottom: MediaQuery.paddingOf(context).bottom + 20,
+      bottom: MediaQuery.viewPaddingOf(context).bottom + 20,
       right: 20,
       child: CupertinoPressable(
         onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),

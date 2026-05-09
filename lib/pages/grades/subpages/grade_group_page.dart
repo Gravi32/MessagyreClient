@@ -76,7 +76,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
           ),
 
           Positioned(
-            bottom: MediaQuery.paddingOf(context).bottom + 20,
+            bottom: MediaQuery.viewPaddingOf(context).bottom + 20,
             right: 20,
             child: GestureDetector(
               onTap: showNewGradePopup,
