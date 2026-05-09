@@ -25,6 +25,7 @@ import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
 class SettingsListPage extends StatefulWidget {
   const SettingsListPage({super.key});
@@ -314,21 +315,17 @@ class _SettingsListPageState extends State<SettingsListPage> {
         ],
       ),
 
-      SizedBox(height: 60),
+      BottomSpacing(includeBottomBar: true,),
     ];
 
     return Page.sliver(
       topBar: TopBar.sliver(title: "Réglages"),
-      body: SafeArea(
-        top: false,
-        child: ListView.separated(
-          shrinkWrap: true,
-          padding: .symmetric(vertical: 20),
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: sections.length,
-          itemBuilder: (context, index) => sections[index],
-          separatorBuilder: (_, _) => const SizedBox(height: 24),
-        ),
+      body: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: sections.length,
+        itemBuilder: (context, index) => sections[index],
+        separatorBuilder: (_, _) => const SizedBox(height: 24),
       ),
     );
   }
