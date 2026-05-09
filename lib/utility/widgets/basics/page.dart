@@ -22,14 +22,21 @@ class Page extends StatelessWidget {
     this.scrollController,
   });
 
-  factory Page.scrollable(BuildContext context, {required List<Widget> children, TopBar? topBar, bool canPop = true, Color? backgroundColor}) {
+  factory Page.scrollable(
+    BuildContext context, {
+    required List<Widget> children,
+    TopBar? topBar,
+    bool canPop = true,
+    Color? backgroundColor,
+    double spacing = 0,
+  }) {
     return Page(
       backgroundColor: backgroundColor,
       canPop: canPop,
       topBar: topBar,
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(mainAxisSize: .min, crossAxisAlignment: .stretch, children: children),
+        child: Column(mainAxisSize: .min, crossAxisAlignment: .stretch, spacing: spacing, children: children),
       ),
     );
   }

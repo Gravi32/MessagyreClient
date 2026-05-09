@@ -1,8 +1,13 @@
-import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:shimmer_animation/shimmer_animation.dart';
 
 class TermsOfServicePage extends StatefulWidget {
   final bool readOnly;
@@ -45,21 +50,17 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: AppColors.background.adaptTo(context),
-      navigationBar: CupertinoNavigationBar(middle: Text("Conditions d'utilisation"), automaticallyImplyLeading: widget.readOnly),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(12)),
-                  padding: EdgeInsets.all(10),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: CustomText("""*Conditions d'utilisation de Messagyre*
+    return Page(
+      topBar: TopBar.tab(context, title: "Conditions d'utilisation"),
+      child: Column(
+        spacing: 16,
+        children: [
+          Expanded(
+            child: RoundContainer(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: CustomText(
+                  """*Conditions d'utilisation de Messagyre*
 
 *1. Acceptation*
 En utilisant Messagyre, l'utilisateur confirme avoir lu et accepte integralement les presentes conditions. Messagyre applique une politique de tolerance zero envers les contenus illegaux, abusifs ou contraires aux lois applicables.
@@ -104,50 +105,30 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
 
 *Messagyre* - *Pietro Gravina*
-""", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: AppColors.text.adaptTo(context))),
-                  ),
+""",
+                  style: AppStyles.primaryText(context),
+                  boldWeight: .w800,
                 ),
               ),
-              SizedBox(height: 16),
-
-              if (!widget.readOnly) ...[
-                CupertinoListSection.insetGrouped(
-                  margin: EdgeInsets.zero,
-                  backgroundColor: AppColors.transparent,
-                  children: [
-                    CupertinoListTile(
-                      title: Text(
-                        "J'ai lu et j'accepte les conditions",
-                        style: TextStyle(color: hasScrolledToEnd ? AppColors.white : AppColors.inactive.adaptTo(context)),
-                      ),
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      trailing: CupertinoSwitch(value: accepted, onChanged: hasScrolledToEnd ? (v) => setState(() => accepted = v) : null),
-                      subtitle: hasScrolledToEnd ? null : Text("Lire le document pour continuer"),
-                      onTap: null,
-                    ),
-                  ],
-                ),
-
-                if (accepted)
-                  CupertinoListSection.insetGrouped(
-                    margin: EdgeInsets.only(top: 10),
-                    backgroundColor: AppColors.transparent,
-                    children: [
-                      Shimmer(
-                        interval: Duration(seconds: 5),
-                        child: CupertinoListTile(
-                          padding: EdgeInsets.zero,
-                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                          title: Center(child: Text("Continuer", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white))),
-                          onTap: _acceptTermsOfService,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ],
+            ),
           ),
-        ),
+
+          if (!widget.readOnly) ...[
+            ListSection(
+              children: [
+                ListTile.simple(
+                  context,
+                  title: hasScrolledToEnd ? "J'ai lu et j'accepte les conditions" : "Lire le document pour continuer",
+                  buildChevron: false,
+                  trailing: hasScrolledToEnd ? CupertinoSwitch(value: accepted, onChanged: (v) => setState(() => accepted = v)) : null,
+                ),
+              ],
+            ),
+
+            if (accepted) Button(text: "Continuer", onTap: _acceptTermsOfService),
+          ],
+          SizedBox(),
+        ],
       ),
     );
   }

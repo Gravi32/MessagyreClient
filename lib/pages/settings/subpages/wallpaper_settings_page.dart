@@ -1,12 +1,16 @@
 import 'dart:io';
 
 import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -71,58 +75,46 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Fond d'écran")),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsetsGeometry.all(10),
-          child: Column(
-            spacing: 12,
-            children: [
-              CupertinoListSection.insetGrouped(
-                backgroundColor: AppColors.transparent,
-                margin: EdgeInsets.zero,
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    leading: CustomIcon(icon: HugeIcons.strokeRoundedBackground, color: AppColors.text.adaptTo(context)),
-                    title: Text("Fond d'écran par défaut"),
-                    trailing: CupertinoSwitch(
-                      value: globals.persistent.getBool("useDefaultWallpaper") ?? true,
-                      onChanged: (newValue) {
-                        setState(() {
-                          globals.persistent.setBool("useDefaultWallpaper", newValue);
-                        });
-                      },
-                    ),
-                  ),
-                ],
+    return Page.scrollable(
+      context,
+      topBar: TopBar.tab(context, title: "Fond d'écran"),
+      children: [
+        ListSection(
+          children: [
+            ListTile.simple(
+              context,
+              title: "Fond d'écran par défaut",
+              icon: HugeIcons.strokeRoundedBackground,
+              trailing: CupertinoSwitch(
+                value: globals.persistent.getBool("useDefaultWallpaper") ?? true,
+                onChanged: (newValue) {
+                  setState(() {
+                    globals.persistent.setBool("useDefaultWallpaper", newValue);
+                  });
+                },
               ),
-              if (!(globals.persistent.getBool("useDefaultWallpaper") ?? true)) ...[
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context)),
-                  header: Text("Vos fonds d'écran"),
-                  margin: EdgeInsets.zero,
-                  footer:
-                      isEditMode
-                          ? null
-                          : Text("Appuyez longuement pour modifier.", style: TextStyle(fontSize: 14, color: AppColors.tertiaryText.adaptTo(context))),
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(horizontal: 5),
-                        itemCount: savedWallpapers.length + 1,
-                        itemBuilder: (context, index) {
-                          final isLastItem = index >= savedWallpapers.length;
-                          final path = isLastItem ? "" : savedWallpapers[index];
+            ),
+          ],
+        ),
+        if (!(globals.persistent.getBool("useDefaultWallpaper") ?? true)) ...[
+          ListSection(
+            title: "Vos fonds d'écran",
+            children: [
+              ListTile(
+                buildChevron: false,
+                child: SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    scrollDirection: .horizontal,
+                    itemCount: savedWallpapers.length + 1,
+                    itemBuilder: (context, index) {
+                      final isLastItem = index >= savedWallpapers.length;
+                      final path = isLastItem ? "" : savedWallpapers[index];
 
-                          return isLastItem
-                              ? isEditMode
-                                  ? SizedBox.shrink()
-                                  : GestureDetector(
+                      return isLastItem
+                          ? isEditMode
+                                ? SizedBox.shrink()
+                                : GestureDetector(
                                     onTap: () => pickImage(ImageSource.gallery),
                                     behavior: HitTestBehavior.opaque,
                                     child: Padding(
@@ -138,99 +130,82 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                         ),
                                         child: SizedBox(
                                           width: MediaQuery.of(context).size.aspectRatio * 180,
-                                          child: Center(child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context))),
+                                          child: Center(
+                                            child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.secondaryText.adaptTo(context)),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   )
-                              : GestureDetector(
-                                onTap:
-                                    isEditMode
-                                        ? null
-                                        : () {
-                                          setState(() => currentWallpaper = path);
+                          : GestureDetector(
+                              onTap: isEditMode
+                                  ? null
+                                  : () {
+                                      setState(() => currentWallpaper = path);
+                                      saveData();
+                                    },
+                              onLongPress: () => setState(() => isEditMode = true),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                                    decoration: currentWallpaper == path
+                                        ? BoxDecoration(
+                                            border: Border.all(color: AppColors.accent, strokeAlign: BorderSide.strokeAlignOutside),
+                                            borderRadius: BorderRadius.circular(8),
+                                          )
+                                        : null,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadiusGeometry.circular(8),
+                                      clipBehavior: Clip.hardEdge,
+                                      child: Image.file(File(path), fit: BoxFit.cover),
+                                    ),
+                                  ),
+                                  if (isEditMode)
+                                    Positioned(
+                                      right: 0,
+                                      top: 5,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            if (path == currentWallpaper) currentWallpaper = "";
+                                            savedWallpapers.remove(path);
+                                          });
                                           saveData();
                                         },
-                                onLongPress: () => setState(() => isEditMode = true),
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                                      decoration:
-                                          currentWallpaper == path
-                                              ? BoxDecoration(
-                                                border: Border.all(color: AppColors.accent, strokeAlign: BorderSide.strokeAlignOutside),
-                                                borderRadius: BorderRadius.circular(8),
-                                              )
-                                              : null,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadiusGeometry.circular(8),
-                                        clipBehavior: Clip.hardEdge,
-                                        child: Image.file(File(path), fit: BoxFit.cover),
-                                      ),
-                                    ),
-                                    if (isEditMode)
-                                      Positioned(
-                                        right: 0,
-                                        top: 5,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              if (path == currentWallpaper) currentWallpaper = "";
-                                              savedWallpapers.remove(path);
-                                            });
-                                            saveData();
-                                          },
-                                          child: Container(
-                                            padding: EdgeInsets.all(2),
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppColors.tertiaryBackground.adaptTo(context),
-                                              boxShadow: [BoxShadow(blurRadius: 20, spreadRadius: 2)],
-                                            ),
-                                            child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: AppColors.white),
-                                          ),
+                                        child: Container(
+                                          padding: EdgeInsets.all(6),
+                                          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.tertiaryBackground.adaptTo(context)),
+                                          child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 18, color: AppColors.white),
                                         ),
                                       ),
-                                  ],
-                                ),
-                              );
-                        },
-                      ),
-                    ),
-                    if (isEditMode)
-                      CupertinoListTile(
-                        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                        leading: CustomIcon(icon: HugeIcons.strokeRoundedTick02, color: AppColors.text.adaptTo(context)),
-                        title: Text("Terminé"),
-                        onTap: () => setState(() => isEditMode = false),
-                      ),
-                  ],
+                                    ),
+                                ],
+                              ),
+                            );
+                    },
+                  ),
                 ),
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-
-                  margin: EdgeInsets.zero,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: CustomIcon(icon: HugeIcons.strokeRoundedImageAdd02, color: AppColors.text.adaptTo(context)),
-                      title: Text("Ajoutez une photo depuis la galérie"),
-                      onTap: () => pickImage(ImageSource.gallery),
-                    ),
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: CustomIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
-                      title: Text("Prenez une photo"),
-                      onTap: () => pickImage(ImageSource.gallery),
-                    ),
-                  ],
+              ),
+              if (isEditMode)
+                ListTile.simple(
+                  context,
+                  title: "Terminé",
+                  buildChevron: false,
+                  icon: HugeIcons.strokeRoundedTick02,
+                  onTap: () => setState(() => isEditMode = false),
                 ),
-              ],
             ],
           ),
-        ),
-      ),
+
+          ListSection(
+            children: [
+              ListTile.simple(context, title: "Prenez une photo", icon: HugeIcons.strokeRoundedCamera01, onTap: () => pickImage(.camera)),
+              ListTile.simple(context, title: "Ajoutez une photo depuis la galérie", icon: HugeIcons.strokeRoundedImageAdd02, onTap: () => pickImage(.gallery)),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

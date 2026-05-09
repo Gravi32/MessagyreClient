@@ -10,17 +10,28 @@ class ListTile extends StatefulWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool isLoading;
+  final bool buildChevron;
   final void Function()? onTap;
 
-  const ListTile({super.key, this.child, this.leading, this.trailing, this.onTap, this.isLoading = false});
+  const ListTile({super.key, this.child, this.leading, this.trailing, this.onTap, this.isLoading = false, this.buildChevron = true});
 
-  factory ListTile.simple(BuildContext context, {String? title, List<List>? icon, void Function()? onTap, Widget? trailing, bool isLoading = false}) {
+  factory ListTile.simple(
+    BuildContext context, {
+    String? title,
+    List<List>? icon,
+    void Function()? onTap,
+    Widget? trailing,
+    bool isLoading = false,
+    bool isDestructive = false,
+    bool buildChevron = true,
+  }) {
     return ListTile(
-      leading: icon != null ? HugeIcon(icon: icon) : null,
+      leading: icon != null ? HugeIcon(icon: icon, color: isDestructive ? AppColors.red : AppColors.accent) : null,
       onTap: onTap,
       trailing: trailing,
       isLoading: isLoading,
-      child: title != null ? Text(title, style: AppStyles.primaryText(context)) : null,
+      buildChevron: buildChevron,
+      child: title != null ? Text(title, style: AppStyles.primaryText(context).copyWith(color: isDestructive ? AppColors.red : null)) : null,
     );
   }
 
@@ -34,7 +45,7 @@ class _ListTileState extends State<ListTile> {
     return CupertinoButton(
       padding: .zero,
       minimumSize: .fromHeight(36),
-      onPressed: () => widget.onTap?.call(),
+      onPressed: widget.onTap,
       child: Container(
         color: AppColors.secondaryBackground.adaptTo(context).withTransparency(.5),
         padding: .symmetric(horizontal: 24, vertical: 14),
@@ -45,7 +56,7 @@ class _ListTileState extends State<ListTile> {
                 children: [
                   if (widget.leading != null) widget.leading!,
                   Expanded(child: widget.child ?? SizedBox()),
-                  widget.trailing ?? CupertinoListTileChevron(),
+                  widget.trailing ?? (widget.buildChevron ? const CupertinoListTileChevron() : const SizedBox()),
                 ],
               ),
       ),

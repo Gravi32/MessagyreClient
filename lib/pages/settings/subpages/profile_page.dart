@@ -11,12 +11,14 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
-import 'package:messagyre_client/utility/widgets/dismissable_text_field.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
@@ -142,204 +144,40 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return CupertinoPageScaffold(
-              navigationBar: CupertinoNavigationBar(
-                middle: Text("Infos"),
-                leading: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  child: Text("Annuler"),
-                  onPressed: () {
+            return Page.scrollable(
+              context,
+              topBar: TopBar.form(
+                context,
+                title: "Infos",
+                trailing: Button.icon(
+                  context,
+                  icon: HugeIcons.strokeRoundedTick02,
+                  enabled: displayNameController.text != originalDisplayName || bioController.text != originalBio,
+                  onTap: () {
+                    changesMade = true;
+                    account.displayName = displayNameController.text;
+                    profile["Bio"] = bioController.text;
                     Navigator.of(context).pop();
                   },
                 ),
-                trailing: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: (displayNameController.text != originalDisplayName || bioController.text != originalBio)
-                      ? () {
-                          changesMade = true;
-                          account.displayName = displayNameController.text;
-                          profile["Bio"] = bioController.text;
-                          Navigator.of(context).pop();
-                        }
-                      : null,
-                  child: Text("Terminé"),
-                ),
               ),
-              child: SafeArea(
-                child: ListView(
-                  padding: EdgeInsets.all(10),
-                  children: [
-                    Column(
-                      children: [
-                        CupertinoListSection.insetGrouped(
-                          backgroundColor: AppColors.transparent,
-                          header: Text("Pseudo"),
-                          margin: EdgeInsets.zero,
-                          children: [
-                            CupertinoListTile(
-                              backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                              title: DismissableTextField(
-                                controller: displayNameController,
-                                focusNode: displayNameFocusNode,
-                                decoration: BoxDecoration(),
-                                padding: EdgeInsets.zero,
-                                placeholder: "Entrez votre pseudo",
-                                minLines: 1,
-                                maxLines: 1,
-                                maxLength: 100,
-                                onChanged: (_) => setSheetState(() {}),
-                              ),
-                              onTap: () => displayNameFocusNode.requestFocus(),
-                            ),
-                          ],
-                        ),
+              children: [
+                Field(placeholder: "Pseudo", controller: displayNameController, focusNode: displayNameFocusNode, onChanged: (_) => setSheetState(() {})),
+                SizedBox(height: 12),
+                Field(placeholder: "Bio", controller: bioController, focusNode: bioFocusNode, maxLines: 5, onChanged: (_) => setSheetState(() {})),
 
-                        CupertinoListSection.insetGrouped(
-                          backgroundColor: AppColors.transparent,
-                          header: Text("Entrez votre biographie"),
-                          margin: EdgeInsets.zero,
-                          children: [
-                            CupertinoListTile(
-                              backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                              title: DismissableTextField(
-                                controller: bioController,
-                                focusNode: bioFocusNode,
-                                decoration: BoxDecoration(),
-                                padding: EdgeInsets.symmetric(vertical: 8),
-                                placeholder: "Bio",
-                                minLines: 3,
-                                maxLines: 5,
-                                maxLength: 100,
-                                onChanged: (_) => setSheetState(() {}),
-                                onTap: () => bioFocusNode.requestFocus(),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 6),
-                        Row(
-                          spacing: 8,
-                          crossAxisAlignment: .start,
-                          children: [
-                            CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.secondaryText.adaptTo(context), size: 16),
-                            Expanded(
-                              child: Text(
-                                "Votre bio sera visible par tout les utilisateurs de Messagyre.",
-                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                                softWrap: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                SizedBox(height: 12),
+
+                CustomText(
+                  "Ces informations seront visibles par tous les utilisateurs de Messagyre.",
+                  style: AppStyles.secondaryText(context).copyWith(fontSize: 17),
+                  padding: .symmetric(horizontal: 20),
                 ),
-              ),
+              ],
             );
           },
         );
       },
-    );
-  }
-
-  void changeContacts() {
-    final phoneNumberController = TextEditingController(text: profile["PhoneNumber"]);
-    final instagramUsernameController = TextEditingController(text: profile["InstagramUsername"]);
-    final snapchatUsernameController = TextEditingController(text: profile["SnapchatUsername"]);
-    final discordUsernameController = TextEditingController(text: profile["DiscordUsername"]);
-
-    bool checkChanges() =>
-        profile["PhoneNumber"] != phoneNumberController.text ||
-        profile["InstagramUsername"] != instagramUsernameController.text ||
-        profile["SnapchatUsername"] != snapchatUsernameController.text ||
-        profile["DiscordUsername"] != discordUsernameController.text;
-
-    showCupertinoSheet(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => CupertinoPageScaffold(
-          navigationBar: CupertinoNavigationBar(
-            middle: Text("Vos contacts"),
-            leading: CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: Text("Annuler"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            trailing: CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: checkChanges()
-                  ? () {
-                      changesMade = true;
-                      profile["PhoneNumber"] = phoneNumberController.text.isEmpty ? null : phoneNumberController.text;
-                      profile["InstagramUsername"] = instagramUsernameController.text.isEmpty ? null : instagramUsernameController.text;
-                      profile["SnapchatUsername"] = snapchatUsernameController.text.isEmpty ? null : snapchatUsernameController.text;
-                      profile["DiscordUsername"] = discordUsernameController.text.isEmpty ? null : discordUsernameController.text;
-                      Navigator.of(context).pop();
-                    }
-                  : null,
-              child: Text("Terminé"),
-            ),
-          ),
-          child: SafeArea(
-            child: ListView(
-              physics: const ClampingScrollPhysics(),
-              children: [
-                CupertinoListSection.insetGrouped(
-                  children: [
-                    contactTile(
-                      "PhoneNumber",
-                      HugeIcons.strokeRoundedCall02,
-                      placeholder: "Numéro de téléphone",
-                      controller: phoneNumberController,
-                      onChanged: (value) {
-                        final formatted = formatSwissPhoneNumber(value);
-
-                        if (formatted != phoneNumberController.text) {
-                          final cursorPos = formatted.length;
-                          phoneNumberController.value = TextEditingValue(
-                            text: formatted,
-                            selection: TextSelection.collapsed(offset: cursorPos),
-                          );
-                        }
-
-                        setSheetState(() {});
-                      },
-                    ),
-
-                    contactTile(
-                      "InstagramUsername",
-                      HugeIcons.strokeRoundedInstagram,
-                      placeholder: "Nom d'utilisateur sur Instagram",
-                      controller: instagramUsernameController,
-                      onChanged: (_) => setSheetState(() {}),
-                    ),
-
-                    contactTile(
-                      "SnapchatUsername",
-                      HugeIcons.strokeRoundedSnapchat,
-                      placeholder: "Nom d'utilisateur sur Snapchat",
-                      controller: snapchatUsernameController,
-                      onChanged: (_) => setSheetState(() {}),
-                    ),
-
-                    contactTile(
-                      "DiscordUsername",
-                      HugeIcons.strokeRoundedDiscord,
-                      placeholder: "Nom d'utilisateur sur Discord",
-                      controller: discordUsernameController,
-                      onChanged: (_) => setSheetState(() {}),
-                      description: true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -388,46 +226,6 @@ class _ProfilePageState extends State<ProfilePage> {
         isDestructive: true,
       ),
     );
-  }
-
-  CupertinoListTile contactTile(
-    String contact,
-    List<List>? icon, {
-    bool description = false,
-    String? placeholder,
-    TextEditingController? controller,
-    void Function(String)? onChanged,
-  }) {
-    final value = profile[contact];
-
-    if (editMode) {
-      controller ??= TextEditingController(text: value);
-      return CupertinoListTile(
-        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        leading: CustomIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
-        title: CupertinoTextField(
-          controller: controller,
-          decoration: BoxDecoration(),
-          padding: EdgeInsets.zero,
-          placeholder: placeholder ?? "Ajouter",
-          onChanged: onChanged,
-        ),
-        subtitle: description ? Text("Ces informations ne sont visibles que par les utilisateurs de Messagyre.") : null,
-      );
-    } else {
-      return CupertinoListTile(
-        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        leading: CustomIcon(icon: icon ?? HugeIcons.strokeRoundedMailAccount01),
-        title: Text(
-          value ?? "Ajouter",
-          overflow: TextOverflow.fade,
-          softWrap: false,
-          style: value == null ? TextStyle(color: AppColors.inactive.adaptTo(context)) : null,
-        ),
-        subtitle: description ? Text("Appuyez pour copier dans le presse-papiers.") : null,
-        onTap: value != null ? () => copy(context, value) : null,
-      );
-    }
   }
 
   Widget? buildTrailing() {
@@ -522,28 +320,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget buildListTile(List<List<dynamic>> icon, String title, {VoidCallback? onTap, bool isDestructive = false}) {
-    final enabled = onTap != null;
-    final color = enabled
-        ? isDestructive
-              ? AppColors.red
-              : AppColors.text.adaptTo(context)
-        : AppColors.inactive.adaptTo(context);
-
-    return CupertinoListTile(
-      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-      leading: CustomIcon(icon: icon, color: color),
-      title: Text(title, style: TextStyle(color: color)),
-      onTap: onTap,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     isBlocked = globals.blockedUsers.contains(account.username);
 
     return Page.scrollable(
       context,
+      spacing: 16,
       topBar: editMode
           ? TopBar.form(context, title: "Votre profil", onCloseConfirmed: changesMade ? () => Navigator.pop(context) : null, trailing: buildTrailing())
           : TopBar.tab(context, title: account.username),
@@ -595,16 +378,14 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        SizedBox(height: 6),
 
         if (isBlocked)
-          CupertinoListSection.insetGrouped(
-            backgroundColor: AppColors.transparent,
-            margin: EdgeInsets.zero,
+          ListSection(
             children: [
-              buildListTile(
-                HugeIcons.strokeRoundedUserUnlock01,
-                "Débloquer cet utilisateur",
+              ListTile.simple(
+                context,
+                title: "Débloquer cet utilisateur",
+                icon: HugeIcons.strokeRoundedUserUnlock01,
                 onTap: () => showCupertinoDialog(
                   context: context,
                   builder: (dialogContext) => Dialog.confirm(
@@ -620,41 +401,26 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
 
-        if (account.username != globals.username) ...[
-          if (!widget.openedFromChat)
-            CupertinoListSection.insetGrouped(
-              backgroundColor: AppColors.transparent,
-              margin: EdgeInsets.zero,
-
-              children: [
-                if (!widget.openedFromChat)
-                  buildListTile(
-                    HugeIcons.strokeRoundedSent,
-                    "Envoyer un message",
-                    onTap: isBlocked
-                        ? null
-                        : () => Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatPage(username: account.username))),
-                  ),
-
-                // TODO
-                // buildListTile(HugeIcons.strokeRoundedUserGroup, "Ajouter à un groupe"),
-                // buildListTile(HugeIcons.strokeRoundedLinkForward, "Transférer ce profil"),
-                // buildListTile(HugeIcons.strokeRoundedShare08, "Partager ce profil"),
-              ],
-            ),
-        ],
+        if (account.username != globals.username && !widget.openedFromChat)
+          ListSection(
+            children: [
+              ListTile.simple(
+                context,
+                title: "Envoyer un message",
+                icon: HugeIcons.strokeRoundedSent,
+                onTap: () => Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => ChatPage(username: account.username))),
+              ),
+            ],
+          ),
 
         if (chat != null)
-          CupertinoListSection.insetGrouped(
-            backgroundColor: AppColors.transparent,
-            margin: EdgeInsets.zero,
-
-            header: Text("Conversation"),
-
+          ListSection(
+            title: "Conversation",
             children: [
-              buildListTile(
-                chat!.isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
-                chat!.isPinned ? "Désépingler" : "Épingler",
+              ListTile.simple(
+                context,
+                title: chat!.isPinned ? "Désépingler" : "Épingler",
+                icon: chat!.isPinned ? HugeIcons.strokeRoundedPinOff : HugeIcons.strokeRoundedPin,
                 onTap: () {
                   if (chat == null) return;
 
@@ -663,43 +429,58 @@ class _ProfilePageState extends State<ProfilePage> {
                   setState(() {});
                 },
               ),
-              buildListTile(HugeIcons.strokeRoundedDelete01, "Effacer les messages", onTap: deleteMessages),
-              buildListTile(HugeIcons.strokeRoundedDelete04, "Supprimer la conversation", isDestructive: true, onTap: deleteChat),
+              ListTile.simple(
+                context,
+                title: "Effacer les messages",
+                icon: HugeIcons.strokeRoundedDelete01,
+                isDestructive: true,
+                buildChevron: false,
+                onTap: () => deleteMessages(),
+              ),
+              ListTile.simple(
+                context,
+                title: "Supprimer la conversation",
+                icon: HugeIcons.strokeRoundedDelete04,
+                isDestructive: true,
+                buildChevron: false,
+                onTap: () => deleteChat(),
+              ),
             ],
           ),
 
         if (account.username == globals.username) ...[
-          CupertinoListSection.insetGrouped(
-            backgroundColor: AppColors.transparent,
-            margin: EdgeInsets.zero,
-
+          ListSection(
             children: [
-              buildListTile(HugeIcons.strokeRoundedPencilEdit02, "Modifier le profil", onTap: () => changeProfile()),
-              buildListTile(HugeIcons.strokeRoundedUserCircle, "Changer de photo de profil", onTap: () => changeProfilePicture()),
-              //TODO
-              //buildListTile(HugeIcons.strokeRoundedSquareLock02, "Parametres de visibilité"),
+              ListTile.simple(context, title: "Modifier le profil", icon: HugeIcons.strokeRoundedPencilEdit02, onTap: () => changeProfile()),
+              ListTile.simple(context, title: "Changer de photo de profil", icon: HugeIcons.strokeRoundedUserCircle, onTap: () => changeProfilePicture()),
             ],
           ),
-          CupertinoListSection.insetGrouped(
-            backgroundColor: AppColors.transparent,
-            margin: EdgeInsets.zero,
-            children: [buildListTile(HugeIcons.strokeRoundedUserRemove01, "Supprimer le compte", isDestructive: true, onTap: () => deleteAccount())],
+
+          ListSection(
+            children: [
+              ListTile.simple(
+                context,
+                title: "Supprimer le compte",
+                icon: HugeIcons.strokeRoundedUserRemove01,
+                isDestructive: true,
+                buildChevron: false,
+                onTap: () => deleteAccount(),
+              ),
+            ],
           ),
         ],
 
         if (account.username != globals.username) ...[
-          CupertinoListSection.insetGrouped(
-            backgroundColor: AppColors.transparent,
-            margin: EdgeInsets.zero,
-
-            header: Text("Utilisateur"),
-
+          ListSection(
+            title: "Utilisateur",
             children: [
               if (!isBlocked)
-                buildListTile(
-                  HugeIcons.strokeRoundedUserBlock01,
-                  "Bloquer",
+                ListTile.simple(
+                  context,
+                  title: "Bloquer",
+                  icon: HugeIcons.strokeRoundedUserBlock01,
                   isDestructive: true,
+                  buildChevron: false,
                   onTap: () => showCupertinoDialog(
                     context: context,
                     builder: (_) => Dialog.confirm(
@@ -713,10 +494,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-              buildListTile(
-                HugeIcons.strokeRoundedFlag02,
-                "Signaler",
+
+              ListTile.simple(
+                context,
+                title: "Signaler",
+                icon: HugeIcons.strokeRoundedFlag02,
                 isDestructive: true,
+                buildChevron: false,
                 onTap: () => showCupertinoDialog(
                   context: context,
                   builder: (dialogContext) => Dialog.confirm(

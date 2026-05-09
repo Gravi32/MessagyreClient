@@ -32,7 +32,6 @@ class ListSection extends StatelessWidget {
             separatorBuilder: (context, _) => Divider(thickness: .5, height: 0, color: AppColors.tertiaryBackground.adaptTo(context)),
           ),
         ),
-        const SizedBox(height: 24),
       ],
     );
   }

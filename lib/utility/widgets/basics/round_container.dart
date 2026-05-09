@@ -13,7 +13,7 @@ class RoundContainer extends StatelessWidget {
 
   const RoundContainer({super.key, this.transparent = true, this.enabled = true, this.blurOnly = false, this.color, this.padding, this.child});
 
-  static final borderRadius = BorderRadius.circular(34);
+  static final borderRadius = BorderRadius.circular(24);
 
   @override
   Widget build(BuildContext context) {

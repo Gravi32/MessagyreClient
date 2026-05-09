@@ -1,9 +1,12 @@
-import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class CalendarSettingsPage extends StatefulWidget {
   const CalendarSettingsPage({super.key});
@@ -17,51 +20,33 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(previousPageTitle: "Réglages", middle: Text("Calendrier")),
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.all(10),
-          children: [
-            Column(
-              children: [
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  margin: EdgeInsets.zero,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      leading: CustomIcon(icon: HugeIcons.strokeRoundedCalendarFavorite01, color: AppColors.text.adaptTo(context)),
-                      title: Text("Inclure les week-ends"),
-                      trailing: CupertinoSwitch(
-                        value: globals.persistent.getBool("includeWeekends") ?? false,
-                        onChanged: (newValue) {
-                          setState(() {
-                            globals.persistent.setBool("includeWeekends", newValue);
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
+    return Page.scrollable(
+      context,
+      topBar: TopBar.tab(context, title: "Calendrier"),
+      children: [
+        RoundContainer(
+          child: CustomDatePicker(initialDate: DateTime.now(), onDateSelected: (_) {}, isPreviewMode: true),
+        ),
 
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  margin: EdgeInsets.zero,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      padding: EdgeInsets.zero,
-                      title: CustomDatePicker(initialDate: DateTime.now(), onDateSelected: (_) {}, isPreviewMode: true),
-                    ),
-                  ],
-                ),
-              ],
+        const SizedBox(height: 20),
+
+        ListSection(
+          children: [
+            ListTile.simple(
+              context,
+              title: "Inclure les week-ends",
+              icon: HugeIcons.strokeRoundedCalendarFavorite01,
+              trailing: CupertinoSwitch(
+                value: globals.persistent.getBool("includeWeekends") ?? false,
+                onChanged: (newValue) {
+                  globals.persistent.setBool("includeWeekends", newValue);
+                  setState(() {});
+                },
+              ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

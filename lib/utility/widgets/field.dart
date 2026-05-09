@@ -94,7 +94,7 @@ class _FieldState extends State<Field> {
               decoration: BoxDecoration(
                 color: color.withTransparency(widget.enabled ? 0.25 : 0.75),
                 border: .all(color: color, width: 2),
-                borderRadius: .circular(34),
+                borderRadius: .circular(24),
               ),
               child: Row(
                 children: [

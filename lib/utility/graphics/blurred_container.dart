@@ -35,7 +35,7 @@ class BlurredContainer extends StatelessWidget {
     return Padding(
       padding: margin ?? .zero,
       child: ClipRRect(
-        borderRadius: borderRadius ?? .circular(34),
+        borderRadius: borderRadius ?? .circular(24),
         child: Stack(
           children: [
             if (blurredChild != null) Positioned.fill(child: blurredChild!),
