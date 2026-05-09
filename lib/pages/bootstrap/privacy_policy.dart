@@ -1,7 +1,11 @@
-import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
 class PrivacyPolicyPage extends StatefulWidget {
   final bool readOnly;
@@ -36,21 +40,15 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: AppColors.background.adaptTo(context),
-      navigationBar: CupertinoNavigationBar(middle: Text("Politique de confidentialité")),
-      child: SafeArea(
-        child: Padding(
-          padding: const .symmetric(horizontal: 10, vertical: 10),
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(12)),
-                  padding: .all(10),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: CustomText("""*Politique de confidentialité de Messagyre*
+    return Page(
+      topBar: TopBar.tab(context, title: "Politique de confidentialité"),
+      child: Column(
+        children: [
+          Expanded(
+            child: RoundContainer(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: CustomText("""*Politique de confidentialité de Messagyre*
 
 *1. Objet*
 La présente politique de confidentialité a pour objet d'informer les utilisateurs de l'application Messagyre des modalités de collecte, d'utilisation, de conservation et de protection de leurs données personnelles, conformément à la Loi fédérale sur la protection des données (LPD, RS 235.1), telle que révisée (nLPD), ainsi qu'aux législations suisses applicables.
@@ -143,15 +141,12 @@ Toute modification substantielle sera communiquée aux utilisateurs via l'applic
 *13. Contact*
 Pour toute question relative à la protection des données personnelles ou à la présente politique de confidentialité, l'utilisateur peut contacter Messagyre via l'application.
 
-*Messagyre* - *Pietro Gravina*
-""", style: TextStyle(fontSize: 14, fontWeight: .w300, color: AppColors.text.adaptTo(context))),
-                  ),
-                ),
+*Messagyre* - *Pietro Gravina*""", style: AppStyles.primaryText(context).copyWith(fontWeight: .w300)),
               ),
-              SizedBox(height: 16),
-            ],
+            ),
           ),
-        ),
+          BottomSpacing(),
+        ],
       ),
     );
   }

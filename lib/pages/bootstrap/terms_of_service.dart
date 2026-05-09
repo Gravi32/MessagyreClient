@@ -8,6 +8,7 @@ import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
 class TermsOfServicePage extends StatefulWidget {
   final bool readOnly;
@@ -59,8 +60,7 @@ class _TermsOfServicePageState extends State<TermsOfServicePage> {
             child: RoundContainer(
               child: SingleChildScrollView(
                 controller: scrollController,
-                child: CustomText(
-                  """*Conditions d'utilisation de Messagyre*
+                child: CustomText("""*Conditions d'utilisation de Messagyre*
 
 *1. Acceptation*
 En utilisant Messagyre, l'utilisateur confirme avoir lu et accepte integralement les presentes conditions. Messagyre applique une politique de tolerance zero envers les contenus illegaux, abusifs ou contraires aux lois applicables.
@@ -102,13 +102,7 @@ Messagyre se reserve le droit de modifier les presentes conditions afin de respe
 *11. Acceptation finale*
 En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve l'ensemble de ces conditions et s'engage a respecter un comportement responsable, legal et respectueux envers les autres membres de la plateforme.
 
-
-
-*Messagyre* - *Pietro Gravina*
-""",
-                  style: AppStyles.primaryText(context),
-                  boldWeight: .w800,
-                ),
+*Messagyre* - *Pietro Gravina*""", style: AppStyles.primaryText(context).copyWith(fontWeight: .w300)),
               ),
             ),
           ),
@@ -127,7 +121,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
 
             if (accepted) Button(text: "Continuer", onTap: _acceptTermsOfService),
           ],
-          SizedBox(),
+          BottomSpacing(),
         ],
       ),
     );

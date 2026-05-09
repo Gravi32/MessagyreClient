@@ -43,7 +43,12 @@ class TopBar extends StatefulWidget {
   factory TopBar.tab(BuildContext context, {String? title}) {
     return TopBar(
       leading: Button.icon(context, icon: HugeIcons.strokeRoundedArrowLeft01, onTap: () => Navigator.pop(context)),
-      middle: title != null ? Text(title, style: AppStyles.header(context), textAlign: .center) : null,
+      middle: title != null
+          ? Padding(
+              padding: .symmetric(horizontal: 8),
+              child: Text(title, style: AppStyles.header(context), textAlign: .center),
+            )
+          : null,
     );
   }
 
