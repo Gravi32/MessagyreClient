@@ -45,7 +45,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
       radius: getRadius(diameter),
       backgroundColor: AppColors.transparent,
       child: ClipOval(
-        child: Image.file(File(widget.picturePath!), width: diameter, height: diameter, fit: BoxFit.cover),
+        child: Image.file(File(widget.picturePath!), width: diameter, height: diameter, fit: .cover),
       ),
     );
   }
@@ -61,7 +61,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
           imageUrl: widget.pictureURL!,
           width: diameter,
           height: diameter,
-          fit: BoxFit.cover,
+          fit: .cover,
           errorWidget: (context, _, _) => withoutPicture(diameter),
         ),
       ),
@@ -84,7 +84,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                     imageUrl: newImageURL,
                     width: diameter,
                     height: diameter,
-                    fit: BoxFit.cover,
+                    fit: .cover,
                     errorWidget: (context, _, _) => withoutPicture(diameter),
                   ),
                 ),

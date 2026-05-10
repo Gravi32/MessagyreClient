@@ -157,7 +157,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                 height: 32,
                 child: Center(
                   child: FittedBox(
-                    fit: BoxFit.scaleDown,
+                    fit: .scaleDown,
                     child: Text(periodsPerWeek.removeTrailingZero(), style: AppStyles.header(context)),
                   ),
                 ),

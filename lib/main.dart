@@ -106,7 +106,7 @@ void main() async {
 
         runApp(
           DevicePreview(
-            enabled: !kReleaseMode,
+            enabled: false, // !kReleaseMode,
             builder: (context) => Phoenix(child: LifecycleService(child: App())),
           ),
         );
@@ -146,9 +146,8 @@ class App extends StatelessWidget {
         return CupertinoApp(
           navigatorKey: navigatorKey,
 
-          locale: DevicePreview.locale(context),
+          //locale: DevicePreview.locale(context),
           //builder: DevicePreview.appBuilder,
-
           theme: CupertinoThemeData(
             brightness: brightness,
             primaryColor: AppColors.accent,

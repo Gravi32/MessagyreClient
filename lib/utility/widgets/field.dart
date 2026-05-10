@@ -11,6 +11,7 @@ class Field extends StatefulWidget {
   final IconData? icon;
   final Function(String content)? onSubmitted;
   final Function(String content)? onChanged;
+  final Function()? onTap;
   final String? suffix;
   final String? error;
   final TextEditingController? controller;
@@ -30,6 +31,7 @@ class Field extends StatefulWidget {
     this.icon,
     this.onSubmitted,
     this.onChanged,
+    this.onTap,
     this.suffix,
     this.error,
     this.controller,
@@ -102,10 +104,9 @@ class _FieldState extends State<Field> {
                     child: CupertinoTextField(
                       padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
                       placeholder: widget.placeholder,
-                      placeholderStyle:
-                          (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
-                            widget.textStyle,
-                          ),
+                      placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
+                        widget.textStyle,
+                      ),
                       minLines: 1,
                       maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
                       scrollPadding: const .only(bottom: 60), // Distance from the keyboard
@@ -120,6 +121,7 @@ class _FieldState extends State<Field> {
                       textAlign: isNumeric ? .center : .start,
                       style: widget.textStyle,
                       onTapOutside: widget.focusNode == null ? (_) => FocusScope.of(context).unfocus() : null,
+                      onTap: widget.onTap,
                     ),
                   ),
                   if (widget.suffix != null) Text(widget.suffix!),

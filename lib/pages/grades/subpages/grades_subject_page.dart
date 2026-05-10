@@ -66,7 +66,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                                 Row(
                                   spacing: 6,
                                   crossAxisAlignment: .baseline,
-                                  textBaseline: TextBaseline.alphabetic,
+                                  textBaseline: .alphabetic,
                                   children: [
                                     Text(
                                       groupName,

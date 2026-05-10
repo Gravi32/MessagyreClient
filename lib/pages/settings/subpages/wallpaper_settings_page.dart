@@ -158,7 +158,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                     child: ClipRRect(
                                       borderRadius: BorderRadiusGeometry.circular(8),
                                       clipBehavior: Clip.hardEdge,
-                                      child: Image.file(File(path), fit: BoxFit.cover),
+                                      child: Image.file(File(path), fit: .cover),
                                     ),
                                   ),
                                   if (isEditMode)

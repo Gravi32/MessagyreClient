@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -9,6 +9,9 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
@@ -88,21 +91,6 @@ class SearchPageState extends State<SearchPage> {
     });
   }
 
-  Widget buildSearchBar() {
-    return Padding(
-      padding: .symmetric(horizontal: 10),
-      child: CupertinoSearchTextField(
-        placeholder: "Rechercher un.e gymnasien.ne",
-        padding: .symmetric(vertical: 4, horizontal: 6),
-        controller: searchBarController,
-        focusNode: searchBarFocusNode,
-        onChanged: search,
-        autocorrect: false,
-        onTap: () => setState(() => showDecoration = false),
-      ),
-    );
-  }
-
   Widget buildResult(SearchResult result) {
     return CupertinoListTile.notched(
       padding: .symmetric(vertical: 6, horizontal: 10),
@@ -115,7 +103,7 @@ class SearchPageState extends State<SearchPage> {
               Row(
                 spacing: 6,
                 crossAxisAlignment: .baseline,
-                textBaseline: TextBaseline.alphabetic,
+                textBaseline: .alphabetic,
                 children: [
                   Text.rich(
                     TextSpan(
@@ -162,86 +150,94 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget buildDecoration() {
-    return Center(
-      child:
-          searchBarController.text.length < 2
-              ? SizedBox.expand(
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0, end: backgroundFigureAnimation),
-                  curve: Curves.easeOutCubic,
-                  duration: Duration(seconds: backgroundFigureAnimation > 0 ? 2 : 1),
-                  builder: (context, alpha, child) {
-                    return Stack(
-                      alignment: .center,
-                      children: [
-                        Positioned.fill(
-                          child: AnimatedOpacity(
-                            opacity: showDecoration ? 1 : 0,
-                            duration: Duration(milliseconds: showDecoration ? 200 : 100),
-                            child: ShaderMask(
-                              shaderCallback: (bounds) {
-                                return LinearGradient(
-                                  begin: Alignment(0, 1.2),
-                                  end: Alignment(0, 1 - alpha),
-                                  colors: [AppColors.white.withAlpha(30), AppColors.white.withAlpha(40), AppColors.transparent],
-                                  stops: [.1, 0.3, 1],
-                                ).createShader(bounds);
-                              },
-                              blendMode: BlendMode.dstIn,
-                              child: Image.asset("assets/wallpaper.png", fit: BoxFit.cover),
-                            ),
-                          ),
-                        ),
-                        Column(
-                          mainAxisAlignment: .center,
-                          spacing: 2,
-                          children: [
-                            CustomIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Recherchez un utilisateur",
-                              style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
-                            ),
-                            Text(
-                              "Et appuyez sur son profil\npour entamer une conversation !",
-                              textAlign: .center,
-                              style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context)),
-                            ),
-                            SizedBox(height: showDecoration ? 100 : 0),
-                          ],
-                        ),
-                        SafeArea(
-                          child: AnimatedOpacity(
-                            opacity: showDecoration ? 1 : 0,
-                            duration: Duration(milliseconds: showDecoration ? 200 : 100),
-                            child: ClipRect(
-                              child: Align(
-                                alignment: .bottomCenter.add(AlignmentGeometry.xy(0, 4 - 2 * Curves.easeOutCubic.transform(alpha))),
-                                child: Image.asset(
-                                  "assets/messagyreGuy.png",
-                                  fit: BoxFit.fitWidth,
-                                  width: MediaQuery.widthOf(context),
-                                  errorBuilder: (_, _, _) => Image.asset("assets/MessagyreGuy.png"),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              )
-              : isSearcing
-              ? Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14))
-              : Column(
+    final bool isShortQuery = searchBarController.text.length < 2;
+
+    if (!isShortQuery) {
+      return Center(
+        child: isSearcing
+            ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+            : Column(
                 mainAxisAlignment: .center,
                 children: [
                   CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
                 ],
               ),
+      );
+    }
+
+    return Center(
+      child: SizedBox.expand(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0, end: backgroundFigureAnimation),
+          curve: Curves.easeOutCubic,
+          duration: Duration(seconds: backgroundFigureAnimation > 0 ? 2 : 1),
+          builder: (context, alpha, child) {
+            return Stack(
+              alignment: .center,
+              children: [
+                _buildBackgroundImage(alpha),
+                _buildCenterContent(context),
+                _buildForegroundCharacter(context, alpha, -80 + (MediaQuery.viewPaddingOf(context).bottom + 80) * Curves.easeOutCubic.transform(alpha)),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundImage(double alpha) {
+    return Positioned.fill(
+      child: AnimatedOpacity(
+        opacity: showDecoration ? 1 : 0,
+        duration: Duration(milliseconds: showDecoration ? 200 : 100),
+        child: ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            begin: const Alignment(0, 1.2),
+            end: Alignment(0, 1 - alpha),
+            colors: [AppColors.white.withAlpha(30), AppColors.white.withAlpha(40), AppColors.transparent],
+            stops: const [.1, 0.3, 1],
+          ).createShader(bounds),
+          blendMode: BlendMode.dstIn,
+          child: Image.asset("assets/wallpaper.png", fit: BoxFit.cover),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCenterContent(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 2,
+      children: [
+        CustomIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+        const SizedBox(height: 8),
+        Text(
+          "Recherchez un utilisateur",
+          style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
+        ),
+        Text(
+          "Et appuyez sur son profil\npour entamer une conversation !",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.w400, color: AppColors.tertiaryText.adaptTo(context)),
+        ),
+        SizedBox(height: showDecoration ? 100 : 0),
+      ],
+    );
+  }
+
+  Widget _buildForegroundCharacter(BuildContext context, double alpha, double yPosition) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: yPosition,
+      child: AnimatedOpacity(
+        opacity: showDecoration ? 1 : 0,
+        duration: Duration(milliseconds: showDecoration ? 200 : 100),
+        child: Image.asset("assets/messagyreGuy.png", fit: .fitWidth),
+      ),
     );
   }
 
@@ -270,32 +266,33 @@ class SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.translucent,
-      child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(middle: Text("Nouvelle conversation", style: TextStyle(fontSize: 24, fontWeight: .w500))),
-        child: Column(
-          crossAxisAlignment: .stretch,
-          spacing: 8,
-          children: [
-            const SizedBox.shrink(),
+    return Page(
+      topBar: TopBar.tab(context, title: "Recherche", buildChevron: false),
+      child: Column(
+        crossAxisAlignment: .stretch,
+        spacing: 8,
+        children: [
+          const SizedBox.shrink(),
 
-            buildSearchBar(),
+          Field(
+            placeholder: "Rechercher un.e gymnasien.ne",
+            controller: searchBarController,
+            focusNode: searchBarFocusNode,
+            onChanged: search,
+            onTap: () => setState(() => showDecoration = false),
+          ),
 
-            Expanded(
-              child: AnimatedOpacity(
-                opacity: backgroundFigureAnimation,
-                duration: Duration(milliseconds: 200),
-                curve: Curves.easeOutSine,
-                child:
-                    searchResults.isNotEmpty
-                        ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))
-                        : buildDecoration(),
-              ),
+          Expanded(
+            child: AnimatedOpacity(
+              opacity: backgroundFigureAnimation,
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeOutSine,
+              child: searchResults.isNotEmpty
+                  ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))
+                  : buildDecoration(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

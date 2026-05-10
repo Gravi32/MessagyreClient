@@ -876,11 +876,11 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     ? DecorationImage(
                         image: AssetImage("assets/wallpaper.png"),
                         repeat: ImageRepeat.repeat,
-                        fit: BoxFit.fitWidth,
+                        fit: .fitWidth,
                         opacity: .12,
                         colorFilter: globals.appBrightness == .dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
                       )
-                    : DecorationImage(image: Image.file(File(currentWallpaper!)).image, fit: BoxFit.cover),
+                    : DecorationImage(image: Image.file(File(currentWallpaper!)).image, fit: .cover),
               ),
             ),
           ),

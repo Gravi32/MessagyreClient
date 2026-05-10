@@ -130,7 +130,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
         Spacer(),
         Row(
           crossAxisAlignment: .baseline,
-          textBaseline: TextBaseline.alphabetic,
+          textBaseline: .alphabetic,
           spacing: 6,
           children: [
             Text(daysLeft.toString(), style: TextStyle(fontWeight: .w700, fontSize: 30)),

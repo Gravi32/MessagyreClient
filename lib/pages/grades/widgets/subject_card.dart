@@ -172,7 +172,7 @@ class SubjectCard extends StatelessWidget {
                 // Subject title
                 Row(
                   crossAxisAlignment: .baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                  textBaseline: .alphabetic,
                   spacing: 6,
                   children: [
                     Expanded(
