@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 
@@ -160,10 +161,9 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
                     // "Days Before" Picker
                     Expanded(
                       flex: 2,
-                      child: CupertinoPicker(
-                        scrollController: daysBeforePickerController,
-                        itemExtent: 32,
-                        onSelectedItemChanged: (index) {
+                      child: Picker(
+                        controller: daysBeforePickerController,
+                        onChanged: (index) {
                           final daysBefore = widget.notificationDayOptions.keys.toList()[index];
 
                           if (!isValid(widget.dueDate.addDays(-daysBefore), countTimeToo: false)) {
@@ -195,8 +195,6 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
                             }
                           });
                         },
-                        squeeze: .9,
-                        diameterRatio: 10,
                         children: widget.notificationDayOptions.values.mapIndexed((index, text) {
                           final daysBefore = widget.notificationDayOptions.keys.toList()[index];
                           return Center(
@@ -214,10 +212,9 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
                     // Hour Picker
                     if (chosenDateTime != null)
                       Expanded(
-                        child: CupertinoPicker(
-                          scrollController: hourPickerController,
-                          itemExtent: 32,
-                          onSelectedItemChanged: (index) {
+                        child: Picker(
+                          controller: hourPickerController,
+                          onChanged: (index) {
                             final resultDateTime = chosenDateTime?.copyWith(hour: hours[index]);
 
                             if (!isValid(resultDateTime)) {
@@ -225,12 +222,8 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
                               return;
                             }
 
-                            setState(() {
-                              chosenDateTime = resultDateTime;
-                            });
+                            setState(() => chosenDateTime = resultDateTime);
                           },
-                          squeeze: .9,
-                          diameterRatio: 10,
                           children: hours
                               .map(
                                 (hour) => Center(
@@ -249,10 +242,9 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
                     // Minutes Picker
                     if (chosenDateTime != null)
                       Expanded(
-                        child: CupertinoPicker(
-                          scrollController: minutesPickerController,
-                          itemExtent: 32,
-                          onSelectedItemChanged: (index) {
+                        child: Picker(
+                          controller: minutesPickerController,
+                          onChanged: (index) {
                             final resultTime = chosenDateTime?.copyWith(minute: minutes[index]);
 
                             if (!isValid(resultTime)) {
@@ -264,8 +256,6 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
                               chosenDateTime = resultTime;
                             });
                           },
-                          squeeze: .9,
-                          diameterRatio: 10,
                           children: minutes
                               .map(
                                 (minute) => Center(

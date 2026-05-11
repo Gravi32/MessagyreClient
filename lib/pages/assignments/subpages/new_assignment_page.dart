@@ -12,6 +12,7 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/segmented_control.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -222,26 +223,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ),
       child: ListView(
         children: [
-          CupertinoSlidingSegmentedControl<AssignmentType>(
-            groupValue: mode,
-            backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-            thumbColor: adaptiveColor(AppColors.background.adaptTo(context), AppColors.text.adaptTo(context).withAlpha(20)),
-            children: const {
-              .assignment: Padding(
-                padding: .symmetric(horizontal: 20, vertical: 6),
-                child: Text("Devoir", style: TextStyle(fontSize: 16)),
-              ),
-              .test: Padding(
-                padding: .symmetric(horizontal: 20, vertical: 6),
-                child: Text("Test", style: TextStyle(fontSize: 16)),
-              ),
-              .leave: Padding(
-                padding: .symmetric(horizontal: 20, vertical: 6),
-                child: Text("Congé", style: TextStyle(fontSize: 16)),
-              ),
-            },
-            onValueChanged: updateMode,
-          ),
+          SegmentedControl<AssignmentType>(options: {"Devoir": .assignment, "Test": .test, "Congé": .leave}, onTap: updateMode),
 
           const SizedBox(height: 8),
 
