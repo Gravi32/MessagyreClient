@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
@@ -192,11 +193,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                             children: [
                                               Expanded(child: isToday ? Text("Auj.", style: TextStyle(fontSize: 13)) : SizedBox()),
 
-                                              Expanded(
-                                                child: Text(
-                                                  dayNumber.toString(),
-                                                  style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context), fontWeight: isToday ? .w800 : null),
-                                                ),
+                                              Text(
+                                                dayNumber.toString(),
+                                                style: AppStyles.secondaryHeader(context).copyWith(fontWeight: isToday ? .w800 : null),
+                                                overflow: .visible,
                                               ),
 
                                               Expanded(
