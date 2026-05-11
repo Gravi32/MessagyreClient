@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
@@ -10,7 +10,9 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
-import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 final assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
@@ -34,35 +36,27 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
         const SizedBox(height: 60),
         CustomIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
         const SizedBox(height: 8),
-        Text("Rien pour le moment...", style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22)),
-        Text("Vos devoirs s'afficheront ici", style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context))),
+        Text(
+          "Rien pour le moment...",
+          style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
+        ),
+        Text(
+          "Vos devoirs s'afficheront ici",
+          style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context)),
+        ),
         CupertinoButton(
           onPressed: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
           padding: .only(top: 40),
           child: Row(
             mainAxisAlignment: .center,
             spacing: 6,
-            children: [Text("Ajouter un devoir", style: TextStyle(fontWeight: .w400)), CustomIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18)],
+            children: [
+              Text("Ajouter un devoir", style: TextStyle(fontWeight: .w400)),
+              CustomIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18),
+            ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget buildFloatingAddButton() {
-    return Positioned(
-      bottom: MediaQuery.viewPaddingOf(context).bottom + 20,
-      right: 20,
-      child: CupertinoPressable(
-        onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
-        padding: const .all(14),
-        decoration: BoxDecoration(
-          color: AppColors.secondaryBackground.adaptTo(context),
-          borderRadius: .circular(20),
-          boxShadow: [BoxShadow(color: AppColors.black.withAlpha(30), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 5))],
-        ),
-        child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
-      ),
     );
   }
 
@@ -86,73 +80,56 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: Stack(
-        children: [
-          NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [CupertinoSliverNavigationBar(largeTitle: Text("Devoirs"))],
-            body: SafeArea(
-              top: false,
-              child: StreamBuilder(
-                stream: database.assignments.watchAll(),
-                builder: (context, snapshot) {
-                  final allAssignments = snapshot.data ?? [];
+    return Page.sliver(
+      topBar: TopBar.sliver(title: "Devoirs"),
+      onFloatingButtonTap: () => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(), enableDrag: false),
+      body: StreamBuilder(
+        stream: database.assignments.watchAll(),
+        builder: (context, snapshot) {
+          final allAssignments = snapshot.data ?? [];
 
-                  final today = DateTime.now().dateOnly();
-                  final tomorrow = today.add(const Duration(days: 1));
+          final today = DateTime.now().dateOnly();
+          final tomorrow = today.add(const Duration(days: 1));
 
-                  final pastAssignments = allAssignments.where((a) => a.dueDate.isBefore(today));
-                  final todaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(today));
-                  final tomorrowsAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(tomorrow));
-                  final plannedAssignments = allAssignments.where((a) => a.dueDate.isAfter(tomorrow));
+          final pastAssignments = allAssignments.where((a) => a.dueDate.isBefore(today));
+          final todaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(today));
+          final tomorrowsAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(tomorrow));
+          final plannedAssignments = allAssignments.where((a) => a.dueDate.isAfter(tomorrow));
 
-                  List<Widget> buildSection(
-                    Iterable<Assignment> list,
-                    String title, {
-                    Color? titleColor,
-                    bool tilesShowDate = true,
-                    bool dimTiles = false,
-                    bool reverseSort = false,
-                  }) {
-                    list = list.sorted((a, b) => a.dueDate.compareTo(b.dueDate));
+          Widget buildSection(
+            Iterable<Assignment> list,
+            String title, {
+            Color? titleColor,
+            bool tilesShowDate = true,
+            bool dimTiles = false,
+            bool reverseSort = false,
+          }) {
+            list = list.sorted((a, b) => a.dueDate.compareTo(b.dueDate));
 
-                    if (reverseSort) list = list.toList().reversed;
+            if (reverseSort) list = list.toList().reversed;
 
-                    return [
-                      Padding(
-                        padding: .only(bottom: 6),
-                        child: Text(
-                          title,
-                          style: TextStyle(fontSize: 25, letterSpacing: .1, fontWeight: .w600, color: titleColor ?? AppColors.text.adaptTo(context)),
-                        ),
-                      ),
-                      CupertinoListSection.insetGrouped(
-                        margin: .zero,
-                        backgroundColor: AppColors.transparent,
-                        children: list.map((a) => AssignmentTile(key: ValueKey(a.referenceId), assignment: a, showDate: tilesShowDate, dim: dimTiles)).toList(),
-                      ),
-                      const SizedBox(height: 30),
-                    ];
-                  }
+            return ListSection(
+              title: title,
+              useLargeTitle: true,
+              margin: .only(top: 16),
+              children: list
+                  .map((assignment) => AssignmentTile(key: ValueKey(assignment.referenceId), assignment: assignment, showDate: tilesShowDate, dim: dimTiles))
+                  .toList(),
+            );
+          }
 
-                  return ListView(
-                    padding: .symmetric(horizontal: 10),
-                    physics: const ClampingScrollPhysics(),
-                    children: [
-                      AssignmentsTopCard(),
-                      if (todaysAssignments.isNotEmpty) ...buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
-                      if (tomorrowsAssignments.isNotEmpty) ...buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
-                      if (plannedAssignments.isNotEmpty) ...buildSection(plannedAssignments, "À venir"),
-                      if (pastAssignments.isNotEmpty) ...buildSection(pastAssignments, "Passés", dimTiles: true, reverseSort: true),
-                      if (allAssignments.isEmpty) buildPlaceholder(),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-          buildFloatingAddButton(),
-        ],
+          return ListView(
+            padding: .zero,
+            children: [
+              AssignmentsTopCard(),
+              if (todaysAssignments.isNotEmpty) buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
+              if (tomorrowsAssignments.isNotEmpty) buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
+              if (plannedAssignments.isNotEmpty) buildSection(plannedAssignments, "À venir"),
+              if (pastAssignments.isNotEmpty) buildSection(pastAssignments, "Passés", dimTiles: true, reverseSort: true),
+              if (allAssignments.isEmpty) buildPlaceholder(),
+            ],
+          );
+        },
       ),
     );
   }

@@ -12,6 +12,7 @@ class RoundContainer extends StatelessWidget {
   final EdgeInsets? margin;
   final Widget? child;
   final double? height;
+  final double opacity;
 
   const RoundContainer({
     super.key,
@@ -23,6 +24,7 @@ class RoundContainer extends StatelessWidget {
     this.margin,
     this.child,
     this.height,
+    this.opacity = 1,
   });
 
   @override
@@ -36,7 +38,7 @@ class RoundContainer extends StatelessWidget {
       borderRadius: borderRadius,
       enabled: transparent,
       child: Opacity(
-        opacity: enabled ? 1 : .5,
+        opacity: enabled ? opacity : .5,
         child: Container(
           height: height,
           padding: padding ?? .all(16),

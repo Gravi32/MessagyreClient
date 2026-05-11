@@ -335,7 +335,7 @@ class _NewGradePageState extends State<NewGradePage> {
                             child: CupertinoListSection.insetGrouped(
                               margin: .zero,
                               backgroundColor: AppColors.transparent,
-                              children: [AssignmentTile(assignment: referencedAssignment!, ignoreTouch: true)],
+                              children: [AssignmentTile(assignment: referencedAssignment!, enabled: false)],
                             ),
                           ),
                           const SizedBox(height: 10),

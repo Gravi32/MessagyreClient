@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 
 class Page extends StatelessWidget {
@@ -10,6 +12,7 @@ class Page extends StatelessWidget {
   final bool isSliver;
   final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
   final ScrollController? scrollController;
+  final void Function()? onFloatingButtonTap;
 
   const Page({
     super.key,
@@ -20,6 +23,7 @@ class Page extends StatelessWidget {
     this.isSliver = false,
     this.sliverHeaderBuilder,
     this.scrollController,
+    this.onFloatingButtonTap,
   });
 
   factory Page.scrollable(
@@ -41,13 +45,21 @@ class Page extends StatelessWidget {
     );
   }
 
-  factory Page.sliver({required Widget body, required TopBar topBar, ScrollController? controller, bool canPop = true, Color? backgroundColor}) {
+  factory Page.sliver({
+    required Widget body,
+    required TopBar topBar,
+    ScrollController? controller,
+    bool canPop = true,
+    Color? backgroundColor,
+    void Function()? onFloatingButtonTap,
+  }) {
     return Page(
       isSliver: true,
       sliverHeaderBuilder: (_, _) => [topBar],
       scrollController: controller,
       canPop: canPop,
       backgroundColor: backgroundColor,
+      onFloatingButtonTap: onFloatingButtonTap,
       child: body,
     );
   }
@@ -60,28 +72,41 @@ class Page extends StatelessWidget {
       canPop: canPop,
       child: CupertinoPageScaffold(
         backgroundColor: bgColor,
-        child: isSliver
-            ? NestedScrollView(
-                controller: scrollController,
-                headerSliverBuilder: sliverHeaderBuilder!,
-                physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                body: SafeArea(top: false, minimum: .symmetric(horizontal: 10), child: child),
-              )
-            : SafeArea(
-                minimum: const .symmetric(horizontal: 10),
-                child: Column(
-                  crossAxisAlignment: .stretch,
-                  children: [
-                    if (topBar != null) topBar!,
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(color: bgColor),
-                        child: child,
-                      ),
+        child: Stack(
+          children: [
+            isSliver
+                ? NestedScrollView(
+                    controller: scrollController,
+                    headerSliverBuilder: sliverHeaderBuilder!,
+                    physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                    body: SafeArea(top: false, minimum: .symmetric(horizontal: 10), child: child),
+                  )
+                : SafeArea(
+                    minimum: const .symmetric(horizontal: 10),
+                    child: Column(
+                      crossAxisAlignment: .stretch,
+                      children: [
+                        if (topBar != null) topBar!,
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(color: bgColor),
+                            child: child,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+            if (onFloatingButtonTap != null)
+              Positioned(
+                bottom: MediaQuery.viewPaddingOf(context).bottom + 90,
+                right: 13,
+                child: SizedBox(
+                  height: 50,
+                  child: Button.icon(context, icon: HugeIcons.strokeRoundedAdd01, onTap: () => onFloatingButtonTap!()),
                 ),
               ),
+          ],
+        ),
       ),
     );
   }

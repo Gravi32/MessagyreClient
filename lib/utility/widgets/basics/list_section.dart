@@ -10,8 +10,9 @@ class ListSection extends StatelessWidget {
   final String? title;
   final String? footer;
   final EdgeInsets? margin;
+  final bool useLargeTitle;
 
-  const ListSection({super.key, this.children, this.title, this.footer, this.margin});
+  const ListSection({super.key, this.children, this.title, this.footer, this.margin, this.useLargeTitle = false});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class ListSection extends StatelessWidget {
           if (title != null)
             Padding(
               padding: .symmetric(horizontal: 16).add(.only(bottom: 8)),
-              child: Text(title!, style: AppStyles.secondaryHeader(context)),
+              child: Text(title!, style: useLargeTitle ? AppStyles.header(context) : AppStyles.secondaryHeader(context)),
             ),
           RoundContainer(
             padding: .zero,
