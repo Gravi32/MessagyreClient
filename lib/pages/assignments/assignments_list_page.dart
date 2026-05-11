@@ -13,6 +13,7 @@ import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 final assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
@@ -127,6 +128,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
               if (plannedAssignments.isNotEmpty) buildSection(plannedAssignments, "À venir"),
               if (pastAssignments.isNotEmpty) buildSection(pastAssignments, "Passés", dimTiles: true, reverseSort: true),
               if (allAssignments.isEmpty) buildPlaceholder(),
+              BottomSpacing(),
             ],
           );
         },
