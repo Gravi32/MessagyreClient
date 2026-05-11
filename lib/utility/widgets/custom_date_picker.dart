@@ -1,12 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 
 class CustomDatePicker extends StatefulWidget {
   final DateTime initialDate;
@@ -63,187 +66,177 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     final includeWeekends = globals.persistent.getBool("includeWeekends") ?? false;
     final daysOfTheWeek = includeWeekends ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
-    return Container(
-      decoration:
-          widget.isPreviewMode
-              ? null
-              : BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: .vertical(top: .circular(16))),
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          if (!widget.isPreviewMode)
-            Container(
-              color: AppColors.background.adaptTo(context),
-              child: Row(
-                mainAxisAlignment: .spaceBetween,
-                children: [
-                  CupertinoButton(padding: .symmetric(horizontal: 16), child: Text("Annuler"), onPressed: () => Navigator.of(context).pop()),
-                  Text("Date", style: TextStyle(fontSize: 18, fontWeight: .w500)),
-                  CupertinoButton(
-                    padding: .symmetric(horizontal: 16),
-                    child: Text("Terminé"),
-                    onPressed: () {
-                      widget.onDateSelected(tempDate);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: .all(10),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SizedBox(
-                    height: constraints.maxWidth,
-                    child: PageView.builder(
-                      controller: monthController,
-                      itemCount: 12,
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      physics: PageScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final date = DateTime(minDate.year, minDate.month + index, 1);
-                        final allDays = daysInMonth(date.year, date.month);
-
-                        final visibleDays =
-                            includeWeekends ? allDays : allDays.where((d) => d.weekday >= DateTime.monday && d.weekday <= DateTime.friday).toList();
-
-                        int offset;
-                        if (visibleDays.isEmpty) {
-                          offset = 0;
-                        } else {
-                          if (includeWeekends) {
-                            offset = DateTime(date.year, date.month, 1).weekday - 1;
-                          } else {
-                            offset = visibleDays.first.weekday - 1;
-                          }
-                        }
-
-                        final totalCells = offset + visibleDays.length;
-                        final crossAxisCount = includeWeekends ? 7 : 5;
-
-                        return Padding(
-                          padding: const .symmetric(horizontal: 7),
-                          child: Column(
-                            crossAxisAlignment: .stretch,
-                            children: [
-                              Text(
-                                DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
-                                style: TextStyle(fontSize: 22, fontWeight: .w600, color: AppColors.text.adaptTo(context)),
-                              ),
-                              SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: .spaceBetween,
-                                children:
-                                    daysOfTheWeek
-                                        .map(
-                                          (d) => Expanded(
-                                            child: Center(
-                                              child: Text(d, style: TextStyle(fontWeight: .bold, color: AppColors.tertiaryText.adaptTo(context))),
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                              ),
-                              SizedBox(height: 6),
-                              Expanded(
-                                child: GridView.builder(
-                                  padding: .zero,
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 4,
-                                    mainAxisSpacing: 4,
-                                  ),
-                                  itemCount: totalCells,
-                                  itemBuilder: (context, i) {
-                                    if (i < offset) return SizedBox.shrink();
-
-                                    final dayIndex = i - offset;
-                                    if (dayIndex >= visibleDays.length) return SizedBox.shrink();
-
-                                    final dayDate = visibleDays[dayIndex];
-                                    final dayNumber = dayDate.day;
-
-                                    final today = DateTime.now();
-                                    final isEnabled = (widget.allowPast || !dayDate.isBefore(today)) && (widget.allowFuture || !dayDate.isAfter(today));
-                                    final isSelected = tempDate.isSameDayAs(dayDate);
-                                    final isToday = today.isSameDayAs(dayDate);
-                                    final isWeekend = dayDate.weekday == DateTime.saturday || dayDate.weekday == DateTime.sunday;
-                                    final thisDayPins =
-                                        widget.pins.entries.firstWhere((entry) => entry.key.isSameDayAs(dayDate), orElse: () => MapEntry(dayDate, [])).value;
-
-                                    return Opacity(
-                                      opacity:
-                                          isEnabled
-                                              ? isWeekend
-                                                  ? .5
-                                                  : 1
-                                              : .25,
-                                      child: CupertinoPressable(
-                                        onTap:
-                                            isEnabled
-                                                ? () {
-                                                  setState(() => tempDate = dayDate);
-                                                }
-                                                : null,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              isSelected
-                                                  ? AppColors.accent
-                                                  : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
-                                          borderRadius: .circular(12),
-                                        ),
-                                        child: Stack(
-                                          children: [
-                                            Center(
-                                              child: Text(
-                                                dayNumber.toString(),
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  color: AppColors.text.adaptTo(context),
-                                                  fontWeight: isToday ? .w800 : null,
-                                                ),
-                                              ),
-                                            ),
-                                            if (isToday)
-                                              Positioned(top: 4, right: 0, left: 0, child: Center(child: Text("Auj.", style: TextStyle(fontSize: 13)))),
-                                            Positioned(
-                                              bottom: 8,
-                                              right: 0,
-                                              left: 0,
-                                              child: Row(
-                                                spacing: 2,
-                                                mainAxisAlignment: .center,
-                                                children: List.generate(min(thisDayPins.length, 3), (index) {
-                                                  final thisPin = thisDayPins.elementAtOrNull(index);
-                                                  if (thisPin == null) return SizedBox.shrink();
-
-                                                  return Container(width: 4, height: 4, decoration: BoxDecoration(color: thisPin, shape: .circle));
-                                                }),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
+    return Stack(
+      children: [
+        SafeArea(
+          top: false,
+          child: RoundContainer(
+            padding: .all(16).copyWith(top: widget.isPreviewMode ? null : 0),
+            margin: .all(10),
+            child: Column(
+              mainAxisSize: .min,
+              spacing: 8,
+              children: [
+                if (!widget.isPreviewMode)
+                  TopBar.form(
+                    context,
+                    title: "Date",
+                    trailing: Button.icon(
+                      context,
+                      icon: HugeIcons.strokeRoundedTick02,
+                      onTap: () {
+                        widget.onDateSelected(tempDate);
+                        Navigator.of(context).pop();
                       },
                     ),
-                  );
-                },
-              ),
+                  ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SizedBox(
+                      height: constraints.maxWidth,
+                      child: PageView.builder(
+                        controller: monthController,
+                        itemCount: 12,
+                        scrollDirection: .horizontal,
+                        itemBuilder: (context, index) {
+                          final date = DateTime(minDate.year, minDate.month + index, 1);
+                          final allDays = daysInMonth(date.year, date.month);
+
+                          final visibleDays = includeWeekends
+                              ? allDays
+                              : allDays.where((d) => d.weekday >= DateTime.monday && d.weekday <= DateTime.friday).toList();
+
+                          int offset;
+                          if (visibleDays.isEmpty) {
+                            offset = 0;
+                          } else {
+                            if (includeWeekends) {
+                              offset = DateTime(date.year, date.month, 1).weekday - 1;
+                            } else {
+                              offset = visibleDays.first.weekday - 1;
+                            }
+                          }
+
+                          final totalCells = offset + visibleDays.length;
+                          final crossAxisCount = includeWeekends ? 7 : 5;
+
+                          return Padding(
+                            padding: .symmetric(horizontal: 8),
+                            child: Column(
+                              crossAxisAlignment: .stretch,
+                              children: [
+                                Text(
+                                  DateFormat("MMMM", 'fr_CH').format(date).capitalize(),
+                                  style: TextStyle(fontSize: 22, fontWeight: .w600, color: AppColors.text.adaptTo(context)),
+                                ),
+                                SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: .spaceBetween,
+                                  children: daysOfTheWeek
+                                      .map(
+                                        (d) => Expanded(
+                                          child: Center(
+                                            child: Text(
+                                              d,
+                                              style: TextStyle(fontWeight: .bold, color: AppColors.tertiaryText.adaptTo(context)),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                                SizedBox(height: 6),
+                                Expanded(
+                                  child: GridView.builder(
+                                    padding: .zero,
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: 4,
+                                      mainAxisSpacing: 4,
+                                    ),
+                                    itemCount: totalCells,
+                                    itemBuilder: (context, i) {
+                                      if (i < offset) return SizedBox.shrink();
+
+                                      final dayIndex = i - offset;
+                                      if (dayIndex >= visibleDays.length) return SizedBox.shrink();
+
+                                      final dayDate = visibleDays[dayIndex];
+                                      final dayNumber = dayDate.day;
+
+                                      final today = DateTime.now();
+                                      final isEnabled = (widget.allowPast || !dayDate.isBefore(today)) && (widget.allowFuture || !dayDate.isAfter(today));
+                                      final isSelected = tempDate.isSameDayAs(dayDate);
+                                      final isToday = today.isSameDayAs(dayDate);
+                                      final isWeekend = dayDate.weekday == DateTime.saturday || dayDate.weekday == DateTime.sunday;
+                                      final thisDayPins = widget.pins.entries
+                                          .firstWhere((entry) => entry.key.isSameDayAs(dayDate), orElse: () => MapEntry(dayDate, []))
+                                          .value;
+
+                                      return Opacity(
+                                        opacity: isEnabled
+                                            ? isWeekend
+                                                  ? .5
+                                                  : 1
+                                            : .25,
+                                        child: Button(
+                                          onTap: isEnabled ? () => setState(() => tempDate = dayDate) : null,
+                                          transparent: true,
+                                          color: isSelected
+                                              ? AppColors.accent
+                                              : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
+                                          padding: .all(2).copyWith(bottom: 4),
+                                          rawChild: Column(
+                                            mainAxisSize: .max,
+                                            mainAxisAlignment: .center,
+                                            children: [
+                                              Expanded(child: isToday ? Text("Auj.", style: TextStyle(fontSize: 13)) : SizedBox()),
+
+                                              Expanded(
+                                                child: Text(
+                                                  dayNumber.toString(),
+                                                  style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context), fontWeight: isToday ? .w800 : null),
+                                                ),
+                                              ),
+
+                                              Expanded(
+                                                child: Row(
+                                                  spacing: 2,
+                                                  mainAxisAlignment: .center,
+                                                  children: List.generate(min(thisDayPins.length, 3), (index) {
+                                                    final thisPin = thisDayPins.elementAtOrNull(index);
+                                                    if (thisPin == null) return SizedBox.shrink();
+
+                                                    return Container(
+                                                      width: 4,
+                                                      height: 4,
+                                                      decoration: BoxDecoration(color: thisPin, shape: .circle),
+                                                    );
+                                                  }),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(left: 16, top: 0, bottom: 0, child: Icon(CupertinoIcons.left_chevron, size: 14, color: AppColors.secondaryBackground.adaptTo(context))),
+        Positioned(right: 16, top: 0, bottom: 0, child: Icon(CupertinoIcons.right_chevron, size: 14, color: AppColors.secondaryBackground.adaptTo(context))),
+      ],
     );
   }
 }

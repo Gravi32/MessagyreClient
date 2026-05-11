@@ -1,15 +1,21 @@
-import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/pages/assignments/subpages/notification_date_picker.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/field.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:uuid/uuid.dart';
@@ -120,269 +126,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     Navigator.of(context).pop();
   }
 
-  void showNotificationOptionsPicker() {
-    final List<int> hours = List.generate(24, (i) => i);
-    final List<int> minutes = [0, 15, 30, 45];
-
-    DateTime? chosenDateTime = notificationDate; // ?? dueDate.addDays( -1));
-
-    bool isValid(DateTime? dateTime, {bool countTimeToo = true}) =>
-        dateTime == null ? true : (countTimeToo ? dateTime : dateTime.copyWith(hour: 23, minute: 59)).isAfter(DateTime.now());
-    int getDaysBefore() => chosenDateTime == null ? -1 : dueDate.dateOnly().difference(chosenDateTime!.dateOnly()).inDays;
-
-    if (!isValid(chosenDateTime)) {
-      final firstValidDaysBefore = notificationDayOptions.keys.firstWhere(
-        (daysBefore) => hours.any((hour) => minutes.any((minute) => isValid(chosenDateTime?.addDays(-daysBefore).copyWith(hour: hour, minute: minute)))),
-        orElse: () => notificationDayOptions.keys.last,
-      );
-
-      // Setting first valid date
-      chosenDateTime = dueDate.addDays(-firstValidDaysBefore);
-
-      // Setting first valid hour
-      chosenDateTime = chosenDateTime.copyWith(
-        hour: hours.firstWhere(
-          (hour) => minutes.any((minute) => isValid(chosenDateTime?.copyWith(hour: hour, minute: minute))),
-          orElse: () => 0,
-        ),
-      );
-
-      // Setting first valid minutes
-      chosenDateTime = chosenDateTime.copyWith(
-        minute: minutes.firstWhere((hour) => isValid(chosenDateTime?.copyWith(minute: hour)), orElse: () => 0),
-      );
-    }
-
-    int initialIndex = notificationDayOptions.keys.toList().indexOf(getDaysBefore());
-    if (initialIndex == -1) initialIndex = notificationDayOptions.length - 1;
-
-    final daysBeforePickerController = FixedExtentScrollController(initialItem: initialIndex);
-    final hourPickerController = FixedExtentScrollController(initialItem: chosenDateTime?.hour ?? 0);
-    final minutesPickerController = FixedExtentScrollController(
-      initialItem: !minutes.contains(chosenDateTime?.minute) ? 0 : minutes.indexOf(chosenDateTime?.minute ?? 0),
-    );
-
-    void scrollToFirstAvailableDaysBefore() {
-      DateTime? firstValidDate;
-      int firstValidIndex = notificationDayOptions.keys.indexed.firstWhere((item) {
-        if (isValid(dueDate.addDays(-item.$2), countTimeToo: false)) {
-          firstValidDate = dueDate.addDays(-item.$2);
-          return true;
-        }
-        return false;
-      }, orElse: () => (notificationDayOptions.keys.length - 1, -1)).$1;
-
-      daysBeforePickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
-
-      chosenDateTime = firstValidDate?.copyWith(hour: chosenDateTime?.hour, minute: chosenDateTime?.minute);
-    }
-
-    void scrollToFirstAvailableHour() {
-      int firstValidHour = 0;
-      int firstValidIndex = hours.indexWhere((hour) {
-        if (isValid(chosenDateTime?.copyWith(hour: hour, minute: 44))) {
-          firstValidHour = hour;
-          return true;
-        }
-        return false;
-      });
-
-      hourPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
-      chosenDateTime = chosenDateTime?.copyWith(hour: firstValidHour);
-    }
-
-    void scrollToFirstAvailableMinutes() {
-      int firstValidMinutes = 0;
-      int firstValidIndex = minutes.indexWhere((minutes) {
-        if (isValid(chosenDateTime?.copyWith(minute: minutes))) {
-          firstValidMinutes = minutes;
-          return true;
-        }
-        return false;
-      });
-
-      minutesPickerController.animateToItem(firstValidIndex, duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
-      chosenDateTime = chosenDateTime?.copyWith(hour: firstValidMinutes);
-    }
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => StatefulBuilder(
-        builder: (context, setPopupState) {
-          return Container(
-            height: 250,
-            decoration: BoxDecoration(
-              color: AppColors.background.adaptTo(context),
-              borderRadius: const .vertical(top: .circular(16)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                children: [
-                  Container(
-                    color: AppColors.background.adaptTo(context),
-                    child: Row(
-                      mainAxisAlignment: .spaceBetween,
-                      children: [
-                        CupertinoButton(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                        const Text("Me rappeler", style: TextStyle(fontSize: 18, fontWeight: .w600)),
-                        CupertinoButton(
-                          child: const Text("Terminé"),
-                          onPressed: () {
-                            setState(() {
-                              notificationDate = chosenDateTime;
-                            });
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Expanded(
-                    child: Padding(
-                      padding: .symmetric(horizontal: 10, vertical: 10),
-                      child: Row(
-                        children: [
-                          // "Days Before" Picker
-                          Expanded(
-                            flex: 2,
-                            child: CupertinoPicker(
-                              scrollController: daysBeforePickerController,
-                              itemExtent: 32,
-                              onSelectedItemChanged: (index) {
-                                final daysBefore = notificationDayOptions.keys.toList()[index];
-
-                                if (!isValid(dueDate.addDays(-daysBefore), countTimeToo: false)) {
-                                  scrollToFirstAvailableDaysBefore();
-                                  return;
-                                }
-
-                                setPopupState(() {
-                                  // If is enabling notifications
-                                  if (daysBefore == -1) {
-                                    chosenDateTime = null;
-                                  } else {
-                                    DateTime result = dueDate.addDays(-daysBefore).dateOnly();
-
-                                    if (chosenDateTime == null) {
-                                      result = result.copyWith(hour: 17);
-                                      WidgetsBinding.instance.addPostFrameCallback(
-                                        (_) => hourPickerController.animateToItem(17, duration: Duration(milliseconds: 200), curve: Curves.easeInOut),
-                                      );
-                                    } else {
-                                      result = result.withTheTimeOf(chosenDateTime!);
-                                    }
-
-                                    chosenDateTime = result;
-                                  }
-
-                                  if (!isValid(chosenDateTime)) {
-                                    scrollToFirstAvailableHour();
-                                    scrollToFirstAvailableMinutes();
-                                  }
-                                });
-                              },
-                              squeeze: .9,
-                              diameterRatio: 10,
-                              children: notificationDayOptions.values.mapIndexed((index, text) {
-                                final daysBefore = notificationDayOptions.keys.toList()[index];
-
-                                return Center(
-                                  child: Text(
-                                    text,
-                                    style: TextStyle(
-                                      color: isValid(dueDate.addDays(-daysBefore), countTimeToo: false) ? null : AppColors.inactive.adaptTo(context),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-
-                          // Hour Picker
-                          if (chosenDateTime != null)
-                            Expanded(
-                              child: CupertinoPicker(
-                                scrollController: hourPickerController,
-                                itemExtent: 32,
-                                onSelectedItemChanged: (index) {
-                                  final resultDateTime = chosenDateTime?.copyWith(hour: hours[index]);
-
-                                  if (!isValid(resultDateTime)) {
-                                    scrollToFirstAvailableHour();
-                                    return;
-                                  }
-
-                                  setPopupState(() {
-                                    chosenDateTime = resultDateTime;
-                                  });
-                                },
-
-                                squeeze: .9,
-                                diameterRatio: 10,
-                                children: hours
-                                    .map(
-                                      (hour) => Center(
-                                        child: Text(
-                                          hour.toString().padLeft(2, '0'),
-                                          style: TextStyle(
-                                            color: isValid(chosenDateTime?.copyWith(hour: hour, minute: 44)) ? null : AppColors.inactive.adaptTo(context),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
-
-                          // Minutes Picker
-                          if (chosenDateTime != null)
-                            Expanded(
-                              child: CupertinoPicker(
-                                scrollController: minutesPickerController,
-                                itemExtent: 32,
-                                onSelectedItemChanged: (index) {
-                                  final resultTime = chosenDateTime?.copyWith(minute: minutes[index]);
-
-                                  if (!isValid(resultTime)) {
-                                    scrollToFirstAvailableMinutes();
-                                    return;
-                                  }
-
-                                  setPopupState(() {
-                                    chosenDateTime = resultTime;
-                                  });
-                                },
-                                squeeze: .9,
-                                diameterRatio: 10,
-                                children: minutes
-                                    .map(
-                                      (minute) => Center(
-                                        child: Text(
-                                          minute.toString().padLeft(2, '0'),
-                                          style: TextStyle(
-                                            color: isValid(chosenDateTime?.copyWith(minute: minute)) ? null : AppColors.inactive.adaptTo(context),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   void showDatePicker() {
     final pins = <DateTime, List<Color>>{};
     for (var assignment in database.assignments.getAll()) {
@@ -393,12 +136,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       context: context,
       builder: (_) => CustomDatePicker(initialDate: dueDate, onDateSelected: (newDate) => setState(() => dueDate = newDate), pins: pins),
     );
-  }
-
-  void unfocusFields() {
-    subjectFocusNode.unfocus();
-    titleFocusNode.unfocus();
-    contentFocusNode.unfocus();
   }
 
   void showMissingInfoPopup() {
@@ -468,272 +205,192 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: unfocusFields,
-      child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          backgroundColor: AppColors.transparent,
-          leading: CupertinoButton(
-            padding: .zero,
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("Annuler", style: TextStyle(color: AppColors.text.adaptTo(context))),
-          ),
-          trailing: ValueListenableBuilder<bool>(
-            valueListenable: canSubmitNotifier,
-            builder: (context, canBeSubmitted, _) => CupertinoButton(
-              padding: .zero,
-              onPressed: canBeSubmitted ? confirmAssignment : showMissingInfoPopup,
-              child: Text(
-                editMode ? "Terminé" : "Ajouter",
-                style: TextStyle(color: canBeSubmitted ? AppColors.text.adaptTo(context) : AppColors.inactive.adaptTo(context), fontWeight: .w600),
-              ),
-            ),
-          ),
+    return Page(
+      topBar: TopBar.form(
+        context,
+        title:
+            "${editMode ? "Modifier le" : "Nouveau"} ${mode == .assignment
+                ? "devoir"
+                : mode == .test
+                ? "test"
+                : "congé"}",
+        trailing: ValueListenableBuilder<bool>(
+          valueListenable: canSubmitNotifier,
+          builder: (context, canBeSubmitted, _) =>
+              Button.icon(context, icon: HugeIcons.strokeRoundedTick02, onTap: canBeSubmitted ? confirmAssignment : showMissingInfoPopup),
         ),
-        backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-        child: SafeArea(
-          child: ListView(
-            physics: const ClampingScrollPhysics(),
-            padding: const .symmetric(horizontal: 10),
+      ),
+      child: ListView(
+        children: [
+          CupertinoSlidingSegmentedControl<AssignmentType>(
+            groupValue: mode,
+            backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+            thumbColor: adaptiveColor(AppColors.background.adaptTo(context), AppColors.text.adaptTo(context).withAlpha(20)),
+            children: const {
+              .assignment: Padding(
+                padding: .symmetric(horizontal: 20, vertical: 6),
+                child: Text("Devoir", style: TextStyle(fontSize: 16)),
+              ),
+              .test: Padding(
+                padding: .symmetric(horizontal: 20, vertical: 6),
+                child: Text("Test", style: TextStyle(fontSize: 16)),
+              ),
+              .leave: Padding(
+                padding: .symmetric(horizontal: 20, vertical: 6),
+                child: Text("Congé", style: TextStyle(fontSize: 16)),
+              ),
+            },
+            onValueChanged: updateMode,
+          ),
+
+          const SizedBox(height: 8),
+
+          if (mode == .test)
+            Field(
+              margin: .only(top: 8),
+              controller: titleController,
+              focusNode: titleFocusNode,
+              placeholder: "Titre ${mode == AssignmentType.test ? "*" : ""}",
+              maxLines: 2,
+              error: isMissingTitle ? "Entrez un titre" : null,
+              onTap: () => setState(() => isMissingTitle = false),
+            ),
+
+          Field(
+            margin: .only(top: 8),
+            controller: contentController,
+            focusNode: contentFocusNode,
+            placeholder: switch (mode) {
+              .assignment => "Ce que vous devez faire... *",
+              .test => "Déscription du test...",
+              .leave => "Motif, période ou durée du congé...",
+            },
+            minLines: mode == AssignmentType.test ? 3 : 5,
+            maxLines: 10,
+            onTap: () => setState(() => isMissingContent = false),
+          ),
+
+          ListSection(
+            margin: .only(top: 24),
+            footer: mode == .leave ? null : "Merci de remplir les champs obligatoires *",
             children: [
-              Padding(
-                padding: const .symmetric(vertical: 14),
-                child: Text(
-                  "${editMode ? "Modifier le" : "Nouveau"} ${mode == AssignmentType.assignment
-                      ? "devoir"
-                      : mode == AssignmentType.test
-                      ? "test"
-                      : "congé"}",
-                  style: const TextStyle(fontSize: 28, fontWeight: .w600),
-                ),
-              ),
+              if (mode != AssignmentType.leave)
+                ListTile(
+                  onTap: () => subjectFocusNode.requestFocus(),
+                  leading: const CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
+                  trailing: isMissingSubject ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18) : null,
 
-              CupertinoSlidingSegmentedControl<AssignmentType>(
-                groupValue: mode,
-                backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                thumbColor: adaptiveColor(AppColors.background.adaptTo(context), AppColors.text.adaptTo(context).withAlpha(20)),
-                children: const {
-                  AssignmentType.assignment: Padding(
-                    padding: .symmetric(horizontal: 20, vertical: 6),
-                    child: Text("Devoir", style: TextStyle(fontSize: 16)),
+                  child: SubjectAutocomplete(
+                    controller: subjectController,
+                    focusNode: subjectFocusNode,
+                    decoration: const BoxDecoration(),
+                    padding: .zero,
+                    placeholder: "Entrez une branche *",
+                    placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
+                    onSubjectSelected: (selectedSubject) {
+                      setState(() {
+                        subject = selectedSubject;
+                        isMissingSubject = false;
+                      });
+                      updateCanSubmit();
+                    },
+                    forceValid: true,
                   ),
-                  AssignmentType.test: Padding(
-                    padding: .symmetric(horizontal: 20, vertical: 6),
-                    child: Text("Test", style: TextStyle(fontSize: 16)),
-                  ),
-                  AssignmentType.leave: Padding(
-                    padding: .symmetric(horizontal: 20, vertical: 6),
-                    child: Text("Congé", style: TextStyle(fontSize: 16)),
-                  ),
+                ),
+
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedWorkHistory,
+                trailing: Row(
+                  mainAxisSize: .min,
+                  children: [Text(formatDate(dueDate, includeArticle: true), style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))],
+                ),
+                title: switch (mode) {
+                  .assignment => "Délai du devoir",
+                  .test => "Date du test",
+                  .leave => "Date du congé",
                 },
-                onValueChanged: updateMode,
+                onTap: showDatePicker,
               ),
-
-              CupertinoListSection.insetGrouped(
-                backgroundColor: AppColors.transparent,
-                header: const SizedBox(),
-                margin: .zero,
-                footer: mode == AssignmentType.leave
-                    ? null
-                    : Padding(
-                        padding: const .only(top: 8),
-                        child: Text(
-                          "Merci de remplir les champs obligatoires *",
-                          style: TextStyle(fontSize: 14, color: canSubmitNotifier.value ? AppColors.secondaryText.adaptTo(context) : AppColors.yellow),
-                        ),
-                      ),
-                children: [
-                  if (mode == AssignmentType.test)
-                    CupertinoListTile.notched(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      padding: const .symmetric(horizontal: 14, vertical: 6),
-                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedSubtitle),
-
-                      title: CupertinoTextField(
-                        controller: titleController,
-                        focusNode: titleFocusNode,
-                        decoration: const BoxDecoration(),
-                        placeholder: "Titre ${mode == AssignmentType.test ? "*" : ""}",
-                        minLines: 1,
-                        maxLines: 2,
-                        style: const TextStyle(fontSize: 20, fontWeight: .w400),
-                        placeholderStyle: TextStyle(
-                          color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                          fontWeight: .w400,
-                        ),
-                        onTap: () => setState(() => isMissingTitle = false),
-                        onTapOutside: (event) => titleFocusNode.unfocus(),
-                      ),
-                      trailing: isMissingTitle
-                          ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                          : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
-                    ),
-
-                  CupertinoListTile.notched(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    padding: const .symmetric(horizontal: 14, vertical: 6),
-
-                    title: CupertinoTextField(
-                      controller: contentController,
-                      focusNode: contentFocusNode,
-                      decoration: const BoxDecoration(),
-                      placeholder: switch (mode) {
-                        AssignmentType.assignment => "Ce que vous devez faire... *",
-                        AssignmentType.test => "Si vous voulez, entrez une déscription du test...",
-                        AssignmentType.leave => "Motif, période ou durée du congé...",
-                      },
-                      minLines: mode == AssignmentType.test ? 4 : 5,
-                      maxLines: 10,
-                      style: const TextStyle(fontSize: 18, fontWeight: .w400),
-                      placeholderStyle: TextStyle(
-                        color: isMissingContent ? AppColors.red : AppColors.placeholderText.adaptTo(context),
-                        fontWeight: .w400,
-                      ),
-                      onTap: () => setState(() => isMissingContent = false),
-                      onTapOutside: (event) => contentFocusNode.unfocus(),
-                    ),
-                    trailing: isMissingContent
-                        ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                        : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
-                  ),
-
-                  if (mode != AssignmentType.leave)
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      onTap: () => subjectFocusNode.requestFocus(),
-                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
-                      trailing: isMissingSubject
-                          ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
-                          : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
-
-                      title: SubjectAutocomplete(
-                        controller: subjectController,
-                        focusNode: subjectFocusNode,
-                        decoration: const BoxDecoration(),
-                        padding: .zero,
-                        placeholder: "Entrez une branche *",
-                        placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
-                        onSubjectSelected: (selectedSubject) {
-                          setState(() {
-                            subject = selectedSubject;
-                            isMissingSubject = false;
-                          });
-                          updateCanSubmit();
-                        },
-                        forceValid: true,
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              CupertinoListSection.insetGrouped(
-                backgroundColor: AppColors.transparent,
-                header: Text("Date ${mode == AssignmentType.leave ? "" : "de remise"}"),
-                margin: .zero,
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: const CustomIcon(icon: HugeIcons.strokeRoundedWorkHistory),
-                    trailing: Row(
-                      mainAxisSize: .min,
-                      children: [
-                        Text(formatDate(dueDate, includeArticle: true), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                        CupertinoListTileChevron(),
-                      ],
-                    ),
-                    title: Text(switch (mode) {
-                      AssignmentType.assignment => "Délai du devoir",
-                      AssignmentType.test => "Date du test",
-                      AssignmentType.leave => "Date du congé",
-                    }),
-                    onTap: showDatePicker,
-                  ),
-                ],
-              ),
-
-              SizedBox(height: mode == AssignmentType.leave ? 10 : 20),
-
-              CupertinoListSection.insetGrouped(
-                backgroundColor: AppColors.transparent,
-                header: const Text("Me rappeler"),
-                margin: .zero,
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                    leading: CustomIcon(
-                      icon: HugeIcons.strokeRoundedNotification01,
-                      color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context),
-                    ),
-                    title: Text(
-                      notificationDate == null ? "Planifier une alerte" : "Alerte",
-                      style: TextStyle(color: isNotificationPossible ? null : AppColors.inactive.adaptTo(context)),
-                    ),
-                    subtitle: isNotificationPossible
-                        ? null
-                        : Text("Ce devoir est situé dans le passé", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
-                    onTap: showNotificationOptionsPicker,
-                    trailing: isNotificationPossible
-                        ? Row(
-                            mainAxisSize: .min,
-                            children: [
-                              Text(
-                                notificationDate == null
-                                    ? "Non"
-                                    : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour.toString().padLeft(2, "0")}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}"} ",
-                                style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                              ),
-                              CupertinoListTileChevron(),
-                            ],
-                          )
-                        : null,
-                  ),
-
-                  if (mode == AssignmentType.test)
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge04),
-                      title: Text("Suggérer dans la page des notes", style: TextStyle(color: AppColors.text.adaptTo(context))),
-                      trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              if (widget.toEdit != null)
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: AppColors.transparent,
-                  header: const Text("Supprimer"),
-                  margin: .zero,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                      leading: const CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                      title: Text("Supprimer ce ${formatAssignmentType(mode)}", style: const TextStyle(color: AppColors.red)),
-                      onTap: () {
-                        showCupertinoDialog(
-                          context: context,
-                          builder: (_) => Dialog.confirm(
-                            content: "Êtes-vous sûr de vouloir supprimer ce ${formatAssignmentType(mode)} ?",
-                            onConfirm: () {
-                              if (widget.toEdit?.referenceId != null) {
-                                notifications.cancel(widget.toEdit!.referenceId!.hashCode.remainder(100000));
-                              }
-                              database.assignments.delete(widget.toEdit!);
-                              Navigator.of(context).pop(widget.toEdit);
-                            },
-                            isDestructive: true,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 10),
             ],
           ),
-        ),
+
+          ListSection(
+            margin: .only(top: 24),
+            footer: isNotificationPossible ? null : "Ce devoir est situé dans le passé",
+            children: [
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedNotification01,
+                title: notificationDate == null ? "Planifier une alerte" : "Alerte",
+
+                onTap: () => showCupertinoModalPopup(
+                  context: context,
+                  builder: (context) => NotificationDatePicker(
+                    notificationDate: notificationDate,
+                    dueDate: dueDate,
+                    notificationDayOptions: notificationDayOptions,
+                    onNotificationDateChanged: (newDate) => setState(() => notificationDate = newDate),
+                  ),
+                ),
+                trailing: isNotificationPossible
+                    ? Row(
+                        mainAxisSize: .min,
+                        children: [
+                          Text(
+                            notificationDate == null
+                                ? "Non"
+                                : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour.toString().padLeft(2, "0")}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}"} ",
+                            style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                          ),
+                          CupertinoListTileChevron(),
+                        ],
+                      )
+                    : null,
+              ),
+
+              if (mode == AssignmentType.test)
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                  title: "Suggérer dans la page des notes",
+                  trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          if (widget.toEdit != null)
+            CupertinoListSection.insetGrouped(
+              backgroundColor: AppColors.transparent,
+              header: const Text("Supprimer"),
+              margin: .zero,
+              children: [
+                CupertinoListTile(
+                  backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
+                  leading: const CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
+                  title: Text("Supprimer ce ${formatAssignmentType(mode)}", style: const TextStyle(color: AppColors.red)),
+                  onTap: () {
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (_) => Dialog.confirm(
+                        content: "Êtes-vous sûr de vouloir supprimer ce ${formatAssignmentType(mode)} ?",
+                        onConfirm: () {
+                          if (widget.toEdit?.referenceId != null) {
+                            notifications.cancel(widget.toEdit!.referenceId!.hashCode.remainder(100000));
+                          }
+                          database.assignments.delete(widget.toEdit!);
+                          Navigator.of(context).pop(widget.toEdit);
+                        },
+                        isDestructive: true,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          const SizedBox(height: 10),
+        ],
       ),
     );
   }

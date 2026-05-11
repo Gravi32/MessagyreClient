@@ -4,7 +4,6 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
-import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 
@@ -24,9 +23,7 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
       context,
       topBar: TopBar.tab(context, title: "Calendrier"),
       children: [
-        RoundContainer(
-          child: CustomDatePicker(initialDate: DateTime.now(), onDateSelected: (_) {}, isPreviewMode: true),
-        ),
+        CustomDatePicker(initialDate: DateTime.now(), onDateSelected: (_) {}, isPreviewMode: true),
 
         const SizedBox(height: 20),
 

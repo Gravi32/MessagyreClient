@@ -19,7 +19,9 @@ class Field extends StatefulWidget {
   final TextStyle? textStyle;
   final FocusNode? focusNode;
   final ScrollPhysics? scrollPhysics;
+  final EdgeInsets? margin;
   final int? maxLines;
+  final int? minLines;
   final bool thin;
   final bool isPassword;
   final bool alwaysHidePassword;
@@ -39,7 +41,9 @@ class Field extends StatefulWidget {
     this.textStyle,
     this.focusNode,
     this.scrollPhysics,
+    this.margin,
     this.maxLines = 1,
+    this.minLines = 1,
     this.thin = false,
     this.isPassword = false,
     this.alwaysHidePassword = false,
@@ -85,70 +89,74 @@ class _FieldState extends State<Field> {
     bool isNumeric = widget.keyboardType == .number;
     bool showingError = (widget.error ?? "").isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: .stretch,
-      mainAxisSize: .min,
-      children: [
-        Stack(
-          children: [
-            Container(
-              padding: .only(right: 16),
-              decoration: BoxDecoration(
-                color: color.withTransparency(widget.enabled ? 0.25 : 0.75),
-                border: .all(color: color, width: 2),
-                borderRadius: .circular(24),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CupertinoTextField(
-                      padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
-                      placeholder: widget.placeholder,
-                      placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
-                        widget.textStyle,
+
+    return Padding(
+      padding: widget.margin ?? .zero,
+      child: Column(
+        crossAxisAlignment: .stretch,
+        mainAxisSize: .min,
+        children: [
+          Stack(
+            children: [
+              Container(
+                padding: .only(right: 16),
+                decoration: BoxDecoration(
+                  color: color.withTransparency(widget.enabled ? 0.25 : 0.75),
+                  border: .all(color: color, width: 2),
+                  borderRadius: .circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoTextField(
+                        padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
+                        placeholder: widget.placeholder,
+                        placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
+                          widget.textStyle,
+                        ),
+                        minLines: widget.minLines,
+                        maxLines: widget.maxLines,
+                        scrollPadding: const .only(bottom: 60), // Distance from the keyboard
+                        decoration: const BoxDecoration(),
+                        controller: widget.controller,
+                        keyboardType: widget.keyboardType,
+                        onSubmitted: widget.onSubmitted,
+                        onChanged: widget.onChanged,
+                        obscureText: _obscureText,
+                        focusNode: widget.focusNode,
+                        scrollPhysics: widget.scrollPhysics,
+                        textAlign: isNumeric ? .center : .start,
+                        style: widget.textStyle,
+                        onTapOutside: widget.focusNode == null ? (_) => FocusScope.of(context).unfocus() : null,
+                        onTap: widget.onTap,
                       ),
-                      minLines: 1,
-                      maxLines: widget.maxLines ?? (isNumeric ? 1 : (_obscureText ? 1 : null)),
-                      scrollPadding: const .only(bottom: 60), // Distance from the keyboard
-                      decoration: const BoxDecoration(),
-                      controller: widget.controller,
-                      keyboardType: widget.keyboardType,
-                      onSubmitted: widget.onSubmitted,
-                      onChanged: widget.onChanged,
-                      obscureText: _obscureText,
-                      focusNode: widget.focusNode,
-                      scrollPhysics: widget.scrollPhysics,
-                      textAlign: isNumeric ? .center : .start,
-                      style: widget.textStyle,
-                      onTapOutside: widget.focusNode == null ? (_) => FocusScope.of(context).unfocus() : null,
-                      onTap: widget.onTap,
                     ),
-                  ),
-                  if (widget.suffix != null) Text(widget.suffix!),
-                  if (widget.icon != null) Icon(widget.icon),
-                ],
-              ),
-            ),
-            if (widget.isPassword && !widget.alwaysHidePassword)
-              Positioned(
-                right: 6,
-                top: 6,
-                bottom: 6,
-                child: Button.icon(
-                  context,
-                  onTap: () => setState(() => _obscureText = !_obscureText),
-                  icon: _obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
-                  enabled: widget.enabled,
+                    if (widget.suffix != null) Text(widget.suffix!),
+                    if (widget.icon != null) Icon(widget.icon),
+                  ],
                 ),
               ),
-          ],
-        ),
-        if (showingError)
-          Padding(
-            padding: const .only(top: 4, left: 16, right: 16),
-            child: CustomText(widget.error!, style: AppStyles.error(context)),
+              if (widget.isPassword && !widget.alwaysHidePassword)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  bottom: 6,
+                  child: Button.icon(
+                    context,
+                    onTap: () => setState(() => _obscureText = !_obscureText),
+                    icon: _obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
+                    enabled: widget.enabled,
+                  ),
+                ),
+            ],
           ),
-      ],
+          if (showingError)
+            Padding(
+              padding: const .only(top: 4, left: 16, right: 16),
+              child: CustomText(widget.error!, style: AppStyles.error(context)),
+            ),
+        ],
+      ),
     );
   }
 }
