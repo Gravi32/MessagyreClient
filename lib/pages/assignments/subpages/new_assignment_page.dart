@@ -223,7 +223,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ),
       child: ListView(
         children: [
-          SegmentedControl<AssignmentType>(options: {"Devoir": .assignment, "Test": .test, "Congé": .leave}, onTap: updateMode),
+          SegmentedControl<AssignmentType>(options: {"Devoir": .assignment, "Test": .test, "Congé": .leave}, onTap: updateMode, defaultIndex: mode.index,),
 
           const SizedBox(height: 8),
 

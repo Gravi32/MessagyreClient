@@ -120,6 +120,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                       .test => widget.dim,
                       .leave => false,
                     },
+                    color: AppColors.text.adaptTo(context),
                     duration: animationDuration,
                     child: Text(
                       switch (assignment.type) {
