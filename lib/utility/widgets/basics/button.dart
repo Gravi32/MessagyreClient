@@ -4,6 +4,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class Button extends StatefulWidget {
   final Axis direction;
@@ -14,6 +15,7 @@ class Button extends StatefulWidget {
   final List<List>? icon;
   final IconData? legacyIcon;
   final double spacing;
+  final double? pressedOpacity;
   final FontWeight textWeight;
   final Color? color;
   final Color? textColor;
@@ -34,6 +36,7 @@ class Button extends StatefulWidget {
     this.icon,
     this.legacyIcon,
     this.spacing = 4,
+    this.pressedOpacity,
     this.textWeight = .w600,
     this.color,
     this.textColor,
@@ -83,79 +86,57 @@ class Button extends StatefulWidget {
 }
 
 class _ButtonState extends State<Button> {
-  bool _pressed = false;
-
   @override
   Widget build(BuildContext context) {
     final finalIcon = widget.icon ?? widget.legacyIcon;
     final finalIconColor = widget.iconColor ?? (widget.transparent ? (widget.textColor ?? widget.color ?? AppColors.accent) : AppColors.white);
+
     final usingLegacyIcon = widget.icon == null && widget.legacyIcon != null;
     final isIconOnly = widget.text == null && finalIcon != null;
     final finalTextColor = widget.textColor ?? (widget.transparent ? AppColors.text.adaptTo(context) : AppColors.white);
 
-    final finalColor = widget.enabled ? (widget.color ?? AppColors.accent) : AppColors.inactive.adaptTo(context);
-    final BorderRadius borderRadius = BorderRadius.circular(24);
-
-    return GestureDetector(
-      onTapDown: widget.enabled && widget.onTap != null ? (_) => setState(() => _pressed = true) : null,
-      onTapUp: widget.enabled && widget.onTap != null
-          ? (_) {
-              setState(() => _pressed = false);
-              widget.onTap!();
-            }
-          : null,
-      onTapCancel: widget.enabled && widget.onTap != null ? () => setState(() => _pressed = false) : null,
-      child: AnimatedOpacity(
-        opacity: _pressed ? 0.4 : 1.0,
-        duration: _pressed ? const Duration(milliseconds: 60) : const Duration(milliseconds: 180),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          curve: Curves.easeInOut,
-          height: widget.height,
-          padding: widget.padding ?? .all(12),
-          decoration: BoxDecoration(
-            borderRadius: borderRadius,
-            color: widget.transparent && finalColor.a > 0
-                ? finalColor.withTransparency(.5)
-                : widget.transparent
-                ? finalColor
-                : finalColor,
-            border: Border.all(width: 2, color: finalColor),
-          ),
-          child: Flex(
-            direction: widget.direction,
-            crossAxisAlignment: .center,
-            mainAxisAlignment: .center,
-            spacing: widget.spacing,
-            children: [
-              if (finalIcon != null)
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: usingLegacyIcon ? Icon(widget.legacyIcon, color: finalIconColor) : HugeIcon(icon: widget.icon!, color: finalIconColor),
-                ),
-
-              if (!isIconOnly)
-                widget.isLoading
-                    ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-                    : Expanded(
-                        child: widget.rawChild != null
-                            ? widget.rawChild!
-                            : Text(
-                                widget.text ?? "Tap",
-                                textAlign: .center,
-                                style: TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: widget.textWeight,
-                                  color: widget.enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
-                                ),
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      onPressed: widget.enabled ? widget.onTap : null,
+      pressedOpacity: widget.pressedOpacity,
+      child: RoundContainer(
+        transparent: widget.transparent,
+        enabled: widget.enabled,
+        padding: widget.padding ?? const .all(12),
+        height: widget.height,
+        color: widget.enabled ? (widget.color ?? AppColors.accent) : AppColors.inactive.adaptTo(context),
+        child: Flex(
+          direction: widget.direction,
+          crossAxisAlignment: .center,
+          mainAxisAlignment: .center,
+          spacing: widget.spacing,
+          children: [
+            if (finalIcon != null)
+              AspectRatio(
+                aspectRatio: 1,
+                child: usingLegacyIcon ? Icon(widget.legacyIcon, color: finalIconColor) : HugeIcon(icon: widget.icon!, color: finalIconColor),
+              ),
+            if (!isIconOnly)
+              widget.isLoading
+                  ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+                  : Expanded(
+                      child: widget.rawChild != null
+                          ? widget.rawChild!
+                          : Text(
+                              widget.text ?? "Tap",
+                              textAlign: .center,
+                              style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: widget.textWeight,
+                                color: widget.enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
                               ),
-                      ),
-
-              if (finalIcon != null && widget.text != null) const AspectRatio(aspectRatio: 1),
-            ],
-          ),
-        ).withAspectRatio(1, enabled: isIconOnly),
-      ),
+                            ),
+                    ),
+            if (finalIcon != null && widget.text != null) const AspectRatio(aspectRatio: 1),
+          ],
+        ),
+      ).withAspectRatio(1, enabled: isIconOnly),
     );
   }
 }

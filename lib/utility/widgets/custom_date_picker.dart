@@ -183,6 +183,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                         child: Button(
                                           onTap: isEnabled ? () => setState(() => tempDate = dayDate) : null,
                                           transparent: true,
+                                          pressedOpacity: 1,
                                           color: isSelected
                                               ? AppColors.accent
                                               : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),

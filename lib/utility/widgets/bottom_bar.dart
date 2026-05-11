@@ -39,7 +39,7 @@ class _BottomBarState extends State<BottomBar> {
           children: App.pages.mapIndexed((index, page) {
             final isSelected = index == currentIndex;
             final color = (isSelected ? AppColors.text : AppColors.secondaryText).adaptTo(context);
-            final icon = Button.icon(
+            final button = Button.icon(
               context,
               icon: page.icon,
               iconColor: isSelected ? null : AppColors.secondaryButton.adaptTo(context),
@@ -62,14 +62,14 @@ class _BottomBarState extends State<BottomBar> {
                           child: showNotification
                               ? CutoutWidget(
                                   cutoutSize: 12,
-                                  childToCutout: icon,
+                                  childToCutout: button,
                                   childInCutout: Container(
                                     margin: .all(2.5),
                                     decoration: BoxDecoration(color: AppColors.accent, shape: .circle),
                                   ),
                                   cutoutAlignment: .topRight,
                                 )
-                              : icon,
+                              : button,
                         ),
                         Expanded(
                           flex: 1,
