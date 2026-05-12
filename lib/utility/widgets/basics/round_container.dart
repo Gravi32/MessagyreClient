@@ -12,6 +12,7 @@ class RoundContainer extends StatelessWidget {
   final EdgeInsets? margin;
   final Widget? child;
   final double? height;
+  final double? width;
   final double opacity;
   final double blurAmount;
 
@@ -25,6 +26,7 @@ class RoundContainer extends StatelessWidget {
     this.margin,
     this.child,
     this.height,
+    this.width,
     this.opacity = 1,
     this.blurAmount = 15,
   });
@@ -37,6 +39,7 @@ class RoundContainer extends StatelessWidget {
     return BlurredContainer(
       margin: margin,
       height: height,
+      width: width,
       borderRadius: borderRadius,
       enabled: transparent,
       blur: blurAmount,
@@ -44,6 +47,7 @@ class RoundContainer extends StatelessWidget {
         opacity: enabled ? opacity : .5,
         child: Container(
           height: height,
+          width: width,
           padding: padding ?? .all(16),
           decoration: BoxDecoration(
             borderRadius: borderRadius,
