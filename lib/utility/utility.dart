@@ -163,11 +163,11 @@ Color adaptiveColor(Color light, Color dark) {
   return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
-Color getGradeColor(double grade, {Color? greenOverride}) {
+Color getGradeColor(double grade, {Color? defaultColor, BuildContext? context}) {
   Color result = AppColors.red;
 
   if (grade >= 4) {
-    result = greenOverride ?? AppColors.accent;
+    result = defaultColor ?? (context != null ? AppColors.text.adaptTo(context) : AppColors.accent);
   } else if (grade > 3.75) {
     result = AppColors.orange;
   }

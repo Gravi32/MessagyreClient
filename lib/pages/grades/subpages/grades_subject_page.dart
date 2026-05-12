@@ -293,7 +293,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 Spacer(),
                 Text(
                   average.toStringAsFixed(2),
-                  style: TextStyle(fontWeight: .w700, fontSize: 22, color: getGradeColor(average, greenOverride: widget.subject.color)),
+                  style: TextStyle(fontWeight: .w700, fontSize: 22, color: getGradeColor(average, defaultColor: widget.subject.color)),
                 ),
               ],
             ),
@@ -310,7 +310,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                       title: "pour monter à",
                       goalGrade: (average.roundToHalves() + .5).removeTrailingZero(),
                       neededGrade: formatGrade(toBoost),
-                      gradeColor: getGradeColor(average + .5, greenOverride: widget.subject.color),
+                      gradeColor: getGradeColor(average + .5, defaultColor: widget.subject.color),
                       dim: toBoost < 1 || toBoost > 6,
                     ),
                   buildGoalBox(
@@ -318,7 +318,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                     title: "pour maintenir",
                     goalGrade: average.roundToHalves().removeTrailingZero(),
                     neededGrade: formatGrade(toMaintain),
-                    gradeColor: getGradeColor(average, greenOverride: widget.subject.color),
+                    gradeColor: getGradeColor(average, defaultColor: widget.subject.color),
                     dim: toMaintain < 1 || toMaintain > 6,
                   ),
                   if (average >= 4.25)

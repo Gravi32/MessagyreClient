@@ -1,15 +1,25 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' hide Page;
+import 'package:flutter/material.dart' show Divider;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/picker.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ReportCardPage extends StatefulWidget {
@@ -33,7 +43,9 @@ class _ReportCardPageState extends State<ReportCardPage> {
           if (compositeSubject != null) CompositeSubjectBadge(compositeSubject: compositeSubject, size: 24),
 
           const SizedBox(width: 8),
-          Expanded(child: Text(subjectName, style: const TextStyle(fontSize: 18), overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: Text(subjectName, style: AppStyles.primaryText(context), overflow: TextOverflow.ellipsis),
+          ),
 
           if (isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
 
@@ -45,15 +57,11 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 padding: .symmetric(vertical: rawAverage == null ? 6 : 0),
                 child: Text(
                   (average?.removeTrailingZero() ?? "-").toString(),
-                  style: TextStyle(fontSize: 18, color: (average ?? 4) < 4 ? AppColors.red : null, fontWeight: .w800),
+                  style: AppStyles.secondaryHeader(context).copyWith(color: getGradeColor(average ?? 4, context: context)),
                 ),
               ),
 
-              if (rawAverage != null)
-                Text(
-                  rawAverage.toStringAsFixed(2),
-                  style: TextStyle(fontSize: 10, color: AppColors.text.adaptTo(context).withAlpha(.5.toByte()), fontWeight: .w400),
-                ),
+              if (rawAverage != null) Text(rawAverage.toStringAsFixed(2), style: AppStyles.footer(context).copyWith()),
             ],
           ),
         ],
@@ -99,66 +107,51 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
     showCupertinoModalPopup(
       context: context,
-      builder:
-          (BuildContext context) => StatefulBuilder(
-            builder: (context, setPopupState) {
-              return Container(
-                height: 250,
-                decoration: BoxDecoration(color: AppColors.background.adaptTo(context), borderRadius: const .vertical(top: .circular(16))),
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    crossAxisAlignment: .stretch,
-                    children: [
-                      Container(
-                        color: AppColors.background.adaptTo(context),
-                        child: Row(
-                          children: [
-                            CupertinoButton(child: const Text("Annuler"), onPressed: () => Navigator.pop(context)),
-                            const Expanded(
-                              child: Text(
-                                "Max. branches insuffisantes",
-                                style: TextStyle(fontSize: 18, fontWeight: .w600),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                            CupertinoButton(
-                              child: const Text("Terminé"),
-                              onPressed: () {
-                                setState(() {
-                                  globals.persistent.setInt("MaxFailingSubjects", maxFailingSubjects);
-                                });
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Expanded(
-                        child: Padding(
-                          padding: .symmetric(horizontal: 10, vertical: 10),
-                          child: CupertinoPicker(
-                            scrollController: pickerController,
-                            itemExtent: 32,
-                            onSelectedItemChanged: (index) {
-                              setPopupState(() {
-                                maxFailingSubjects = index;
-                              });
-                            },
-                            squeeze: .9,
-                            diameterRatio: 10,
-                            children: [for (int index = 0; index <= 10; index++) Center(child: Text(index.toString(), style: TextStyle()))],
-                          ),
-                        ),
-                      ),
-                    ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setPopupState) {
+          return SafeArea(
+            top: false,
+            child: RoundContainer(
+              height: 250,
+              padding: .all(16).copyWith(top: 0),
+              margin: .all(10),
+              child: Column(
+                crossAxisAlignment: .stretch,
+                children: [
+                  TopBar.form(
+                    context,
+                    title: "Max. branches insuffisantes",
+                    trailing: Button.icon(
+                      context,
+                      icon: HugeIcons.strokeRoundedTick02,
+                      onTap: () async {
+                        globals.persistent.setInt("MaxFailingSubjects", maxFailingSubjects);
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
+
+                  Expanded(
+                    child: Padding(
+                      padding: .symmetric(horizontal: 10, vertical: 10),
+                      child: Picker(
+                        controller: pickerController,
+                        onChanged: (index) {
+                          setPopupState(() {
+                            maxFailingSubjects = index;
+                          });
+                        },
+                        children: [for (int index = 0; index <= 10; index++) Center(child: Text(index.toString(), style: TextStyle()))],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -171,196 +164,179 @@ class _ReportCardPageState extends State<ReportCardPage> {
     final restrictedGroupCompositeSubjects = report.restrictedGroupCompositeSubjects;
     final restrictedGroupSubjects = report.restrictedGroupSubjects;
 
-    return CupertinoPageScaffold(
-      child: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [const CupertinoSliverNavigationBar(largeTitle: Text("Votre bulletin"), previousPageTitle: "Toutes les notes")];
-        },
-        body: SafeArea(
-          top: false,
-          child: ListView(
-            padding: const .symmetric(horizontal: 12, vertical: 10),
-            children: [
-              // All subjects list
-              Container(
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(12)),
-                padding: const .symmetric(horizontal: 12, vertical: 2),
-                child: Column(
-                  children: [
-                    // All subjects
-                    ...() {
-                      final filteredList =
-                          [...allCompositeSubjects, ...allSubjects].where((subject) {
-                            final String code = (subject as dynamic).code;
-                            return !(usingRestrictedGroup && restrictedGroupCodes.contains(code));
-                          }).toList();
+    return Page(
+      topBar: TopBar.tab(context, title: "Votre bulletin"),
+      child: ListView(
+        padding: .zero,
+        children: [
+          // All subjects list
+          RoundContainer(
+            child: Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                // All subjects
+                () {
+                  final filteredList = [
+                    ...allCompositeSubjects,
+                    ...allSubjects,
+                  ].where((subject) => !(usingRestrictedGroup && restrictedGroupCodes.contains((subject as dynamic).code))).toList();
 
-                      return filteredList.indexed.map(
-                        (subject) => Column(
-                          children: [
-                            if (subject.$2 is CompositeSubject)
-                              buildCompositeSubjectRow(subject.$2 as CompositeSubject)
-                            else
-                              buildSubjectRow(subject.$2 as Subject),
-                            if (subject.$1 != filteredList.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
-                          ],
-                        ),
-                      );
-                    }(),
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final subject = filteredList[index];
+                      return subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
+                    },
+                    separatorBuilder: (context, _) => Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
+                    itemCount: filteredList.length,
+                  );
+                }(),
 
-                    // Restricted group subjects
-                    if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
-                      const Padding(
-                        padding: .only(top: 10, bottom: 2),
-                        child: Text("Groupe restreint", style: TextStyle(fontWeight: .w600)),
-                      ),
-                      ...() {
-                        final restrictedList = [...restrictedGroupCompositeSubjects, ...restrictedGroupSubjects];
-
-                        return restrictedList.indexed.map(
-                          (subject) => Column(
-                            children: [
-                              if (subject.$2 is CompositeSubject)
-                                buildCompositeSubjectRow(subject.$2 as CompositeSubject)
-                              else
-                                buildSubjectRow(subject.$2 as Subject),
-                              if (subject.$1 != restrictedList.length - 1) Divider(color: AppColors.tertiaryBackground.adaptTo(context), height: 0),
-                            ],
-                          ),
-                        );
-                      }(),
-                    ],
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Points part
-              Container(
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(12)),
-                padding: const .symmetric(horizontal: 12, vertical: 12),
-                child: Column(
-                  spacing: 6,
-                  children: [
-                    report.buildTotalPointsIndicator(),
-
-                    if (report.maxFailingGrades > 0) ...[
-                      Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
-                      report.buildMaxFailingSubjectsIndicator(),
-                    ],
-
-                    if (report.usingDoubleCompensation) ...[
-                      Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
-                      report.buildDoubleCompensationIndicator(),
-                    ],
-
-                    if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty) ...[
-                      Divider(color: AppColors.tertiaryBackground.adaptTo(context)),
-                      report.buildRestrictedGroupPointsIndicator(),
-                    ],
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              CupertinoListSection.insetGrouped(
-                margin: .zero,
-                backgroundColor: AppColors.transparent,
-                header: const Text("Options de calcul"),
-                children: [
-                  CupertinoListTile(
-                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    title: const Text("Max. de notes insuffisantes"),
-                    trailing: Row(
-                      mainAxisSize: .min,
-                      children: [
-                        Text(report.maxFailingGrades.toString(), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                        CupertinoListTileChevron(),
-                      ],
-                    ),
-                    onTap: () => chooseMaxFailingSubjects(),
+                // Restricted group subjects
+                if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
+                  Padding(
+                    padding: .only(top: 24, bottom: 6),
+                    child: Text("Groupe restreint", style: AppStyles.header(context)),
                   ),
-                  CupertinoListTile(
-                    backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                    title: const Text("Double compensation"),
-                    trailing: CupertinoSwitch(
-                      value: report.usingDoubleCompensation,
-                      onChanged: (newValue) {
-                        globals.persistent.setBool("UseDoubleCompensation", newValue);
-                        setState(() {});
+
+                  () {
+                    final restrictedList = [...restrictedGroupCompositeSubjects, ...restrictedGroupSubjects];
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final subject = restrictedList[index];
+                        return subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
                       },
-                    ),
-                  ),
-                ],
-              ),
-
-              if (allSubjects.length > 3) ...[
-                const SizedBox(height: 10),
-                CupertinoListSection.insetGrouped(
-                  margin: .zero,
-                  backgroundColor: AppColors.transparent,
-                  children: [
-                    CupertinoListTile(
-                      backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                      title: const Text("Groupe restreint"),
-                      trailing: CupertinoSwitch(
-                        value: usingRestrictedGroup,
-                        onChanged: (newValue) {
-                          globals.persistent.setBool("UseRestrictedGroup", newValue);
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (usingRestrictedGroup) ...[
-                  const SizedBox(height: 10),
-                  CupertinoListSection.insetGrouped(
-                    margin: .zero,
-                    backgroundColor: AppColors.transparent,
-                    children: [
-                      for (final compositeSubject in restrictedGroupCompositeSubjects)
-                        CupertinoListTile(
-                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                          leading: GestureDetector(
-                            onTap: () => onSubjectRemoved(compositeSubject.code),
-                            child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
-                          ),
-                          title: Row(spacing: 10, children: [CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20), Text(compositeSubject.name)]),
-                        ),
-
-                      for (final subject in restrictedGroupSubjects)
-                        CupertinoListTile(
-                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                          leading: GestureDetector(
-                            onTap: () => onSubjectRemoved(subject.code),
-                            child: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, color: AppColors.red),
-                          ),
-                          title: Row(spacing: 10, children: [SubjectBadge(subject: subject, size: 20), Text(subject.name)]),
-                        ),
-
-                      if (allSubjects.length - restrictedGroupSubjects.length - restrictedGroupCompositeSubjects.length > 1)
-                        CupertinoListTile(
-                          backgroundColor: AppColors.secondaryBackground.adaptTo(context),
-                          leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
-                          title: SubjectAutocomplete(
-                            placeholder: "Entrez une branche du groupe restreint",
-                            onSubjectSelected: (subject) => onSubjectSelected(subject.code),
-                            onCompositeSubjectSelected: (compositeSubject) => onSubjectSelected(compositeSubject.code),
-                            useCompositeSubjects: true,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
+                      separatorBuilder: (context, _) => Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
+                      itemCount: restrictedList.length,
+                    );
+                  }(),
                 ],
               ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Points part
+          RoundContainer(
+            child: Column(
+              spacing: 6,
+              children: [
+                report.buildTotalPointsIndicator(),
+
+                if (report.maxFailingGrades > 0) ...[Divider(color: AppColors.secondaryBackground.adaptTo(context)), report.buildMaxFailingSubjectsIndicator()],
+
+                if (report.usingDoubleCompensation) ...[
+                  Divider(color: AppColors.secondaryBackground.adaptTo(context)),
+                  report.buildDoubleCompensationIndicator(),
+                ],
+
+                if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty) ...[
+                  Divider(color: AppColors.secondaryBackground.adaptTo(context)),
+                  report.buildRestrictedGroupPointsIndicator(),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          ListSection(
+            title: "Critères de promotion",
+            children: [
+              ListTile.simple(
+                context,
+                title: "Max. de notes insuffisantes",
+                trailing: Row(
+                  mainAxisSize: .min,
+                  spacing: 6,
+                  children: [
+                    Text(report.maxFailingGrades.toString(), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                    CupertinoListTileChevron(),
+                  ],
+                ),
+                onTap: () => chooseMaxFailingSubjects(),
+              ),
+              ListTile.simple(
+                context,
+                title: "Double compensation",
+                trailing: CupertinoSwitch(
+                  value: report.usingDoubleCompensation,
+                  onChanged: (newValue) {
+                    globals.persistent.setBool("UseDoubleCompensation", newValue);
+                    setState(() {});
+                  },
+                ),
+              ),
             ],
           ),
-        ),
+
+          if (allSubjects.length > 3) ...[
+            const SizedBox(height: 10),
+            ListSection(
+              margin: .zero,
+              children: [
+                ListTile.simple(
+                  context,
+                  title: "Groupe restreint",
+                  trailing: CupertinoSwitch(
+                    value: usingRestrictedGroup,
+                    onChanged: (newValue) {
+                      globals.persistent.setBool("UseRestrictedGroup", newValue);
+                      setState(() {});
+                    },
+                  ),
+                ),
+
+                for (final compositeSubject in restrictedGroupCompositeSubjects)
+                  ListTile(
+                    leading: Button.icon(
+                      context,
+                      onTap: () => onSubjectRemoved(compositeSubject.code),
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      isDestructive: true,
+                    ),
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20),
+                        Text(compositeSubject.name),
+                      ],
+                    ),
+                  ),
+
+                for (final subject in restrictedGroupSubjects)
+                  ListTile(
+                    leading: SubjectBadge(subject: subject, size: 20),
+                    trailing: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                    child: Text(subject.name, style: AppStyles.primaryText(context)),
+                    onTap: () => showCupertinoDialog(
+                      context: context,
+                      builder: (_) =>
+                          Dialog.confirm(content: "Supprimer '${subject.name}' du groupe restraint ?", onConfirm: () => onSubjectRemoved(subject.code)),
+                    ),
+                  ),
+
+                if (allSubjects.length - restrictedGroupSubjects.length - restrictedGroupCompositeSubjects.length > 1)
+                  ListTile(
+                    leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
+                    buildChevron: false,
+                    child: SubjectAutocomplete(
+                      placeholder: "Ajouter une branche",
+                      onSubjectSelected: (subject) => onSubjectSelected(subject.code),
+                      onCompositeSubjectSelected: (compositeSubject) => onSubjectSelected(compositeSubject.code),
+                      useCompositeSubjects: true,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          BottomSpacing(),
+        ],
       ),
     );
   }

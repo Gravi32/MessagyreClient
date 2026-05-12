@@ -60,6 +60,7 @@ class Button extends StatefulWidget {
     bool transparent = true,
     bool enabled = true,
     bool isLoading = false,
+    bool isDestructive = false,
     double? size,
   }) {
     return Button(
@@ -69,7 +70,7 @@ class Button extends StatefulWidget {
       transparent: transparent,
       enabled: enabled,
       isLoading: isLoading,
-      color: color ?? AppColors.secondaryBackground.adaptTo(context),
+      color: color ?? (isDestructive ? AppColors.red : AppColors.secondaryBackground.adaptTo(context)),
       iconColor: iconColor,
       padding: .all(8),
       width: size,

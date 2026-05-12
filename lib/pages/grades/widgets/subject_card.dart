@@ -166,7 +166,7 @@ class SubjectCard extends StatelessWidget {
                     child: Center(
                       child: Text(
                         average!.removeTrailingZero(),
-                        style: AppStyles.header(context).copyWith(color: getGradeColor(average, greenOverride: AppColors.text.adaptTo(context))),
+                        style: AppStyles.header(context).copyWith(color: getGradeColor(average, defaultColor: AppColors.text.adaptTo(context))),
                       ),
                     ),
                   ),
