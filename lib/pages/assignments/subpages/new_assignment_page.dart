@@ -223,7 +223,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       ),
       child: ListView(
         children: [
-          SegmentedControl<AssignmentType>(options: {"Devoir": .assignment, "Test": .test, "Congé": .leave}, onTap: updateMode, defaultIndex: mode.index,),
+          SegmentedControl<AssignmentType>(options: {"Devoir": .assignment, "Test": .test, "Congé": .leave}, onTap: updateMode, defaultIndex: mode.index),
 
           const SizedBox(height: 8),
 
@@ -343,15 +343,15 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
           const SizedBox(height: 10),
 
           if (widget.toEdit != null)
-            CupertinoListSection.insetGrouped(
-              backgroundColor: AppColors.transparent,
-              header: const Text("Supprimer"),
+            ListSection(
+              title: "Supprimer",
               margin: .zero,
               children: [
-                CupertinoListTile(
-                  backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                  leading: const CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                  title: Text("Supprimer ce ${formatAssignmentType(mode)}", style: const TextStyle(color: AppColors.red)),
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedDelete04,
+                  title: "Supprimer ce ${formatAssignmentType(mode)}",
+                  isDestructive: true,
                   onTap: () {
                     showCupertinoDialog(
                       context: context,
