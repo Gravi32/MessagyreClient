@@ -155,10 +155,29 @@ class _GradesTopCardState extends State<GradesTopCard> {
     }
 
     final stats = [
-      buildReportStat("Points totaux", report.totalPoints.removeTrailingZero(), AppColors.green),
-      if (report.maxFailingGrades > 0) buildReportStat("Branches sous la moyenne", report.maxFailingGrades.toString(), AppColors.green),
-      if (report.usingRestrictedGroup) buildReportStat("Points du groupe restreint", report.totalPoints.removeTrailingZero(), AppColors.green),
-      if (report.usingDoubleCompensation) buildReportStat("Double compensation", report.totalPoints.removeTrailingZero(), AppColors.green),
+      buildReportStat(
+        "Points totaux",
+        report.totalPoints.removeTrailingZero(),
+        getGradeColor(report.totalPoints / report.maxTotalPoints * 6, defaultColor: AppColors.green),
+      ),
+      if (report.maxFailingGrades > 0)
+        buildReportStat(
+          "Branches sous la moyenne",
+          report.failingGrades.toString(),
+          getGradeColor(report.failingGrades / report.maxFailingGrades * 6, defaultColor: AppColors.green),
+        ),
+      if (report.usingRestrictedGroup)
+        buildReportStat(
+          "Points du groupe restreint",
+          report.restrictedGroupPoints.removeTrailingZero(),
+          getGradeColor(report.restrictedGroupPoints / report.maxRestrictedGroupPoints * 6, defaultColor: AppColors.green),
+        ),
+      if (report.usingDoubleCompensation)
+        buildReportStat(
+          "Double compensation",
+          report.doubleCompensation.removeTrailingZero(),
+          report.doubleCompensation >= 0 ? AppColors.green : AppColors.red,
+        ),
     ];
 
     return Column(
