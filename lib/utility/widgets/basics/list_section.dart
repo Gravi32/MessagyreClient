@@ -28,7 +28,7 @@ class ListSection extends StatelessWidget {
             ),
           RoundContainer(
             padding: .zero,
-            blurOnly: true,
+            borderOnly: true,
             child: ListView.separated(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),

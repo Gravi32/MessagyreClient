@@ -6,6 +6,7 @@ import 'package:messagyre_client/utility/utility.dart';
 class RoundContainer extends StatelessWidget {
   final bool transparent;
   final bool enabled;
+  final bool borderOnly;
   final bool blurOnly;
   final Color? color;
   final EdgeInsets? padding;
@@ -15,11 +16,13 @@ class RoundContainer extends StatelessWidget {
   final double? width;
   final double opacity;
   final double blurAmount;
+  final double borderRadius;
 
   const RoundContainer({
     super.key,
     this.transparent = true,
     this.enabled = true,
+    this.borderOnly = false,
     this.blurOnly = false,
     this.color,
     this.padding,
@@ -29,18 +32,18 @@ class RoundContainer extends StatelessWidget {
     this.width,
     this.opacity = 1,
     this.blurAmount = 15,
+    this.borderRadius = 24,
   });
 
   @override
   Widget build(BuildContext context) {
-    final BorderRadius borderRadius = .circular(24);
     final finalButtonColor = enabled ? (color ?? AppColors.secondaryBackground.adaptTo(context)) : AppColors.inactive.adaptTo(context);
 
     return BlurredContainer(
       margin: margin,
       height: height,
       width: width,
-      borderRadius: borderRadius,
+      borderRadius: .circular(borderRadius),
       enabled: transparent,
       blur: blurAmount,
       child: Opacity(
@@ -50,9 +53,9 @@ class RoundContainer extends StatelessWidget {
           width: width,
           padding: padding ?? .all(16),
           decoration: BoxDecoration(
-            borderRadius: borderRadius,
-            color: blurOnly ? AppColors.transparent : (transparent && finalButtonColor.a > 0 ? finalButtonColor.withTransparency(.5) : finalButtonColor),
-            border: .all(width: 2, color: finalButtonColor),
+            borderRadius: .circular(borderRadius),
+            color: borderOnly ? AppColors.transparent : (transparent && finalButtonColor.a > 0 ? finalButtonColor.withTransparency(.5) : finalButtonColor),
+            border: .all(width: 2, color: blurOnly ? AppColors.transparent : finalButtonColor),
           ),
           child: child,
         ),

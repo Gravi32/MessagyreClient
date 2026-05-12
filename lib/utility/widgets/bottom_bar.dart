@@ -59,17 +59,16 @@ class _BottomBarState extends State<BottomBar> {
                       children: [
                         Expanded(
                           flex: 3,
-                          child: showNotification
-                              ? CutoutWidget(
-                                  cutoutSize: 12,
-                                  childToCutout: button,
-                                  childInCutout: Container(
-                                    margin: .all(2.5),
-                                    decoration: BoxDecoration(color: AppColors.accent, shape: .circle),
-                                  ),
-                                  cutoutAlignment: .topRight,
-                                )
-                              : button,
+                          child: CutoutWidget(
+                            enabled: showNotification,
+                            cutoutSize: 16,
+                            childToCutout: button,
+                            childInCutout: Container(
+                              margin: .all(2.5),
+                              decoration: BoxDecoration(color: AppColors.accent, shape: .circle),
+                            ),
+                            cutoutAlignment: .topRight,
+                          ),
                         ),
                         Expanded(
                           flex: 1,

@@ -160,7 +160,7 @@ extension ColorExtension on Color {
 }
 
 Color adaptiveColor(Color light, Color dark) {
-  return GlobalsService().appBrightness == .dark ? dark : light;
+  return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
 Color getGradeColor(double grade, {Color? greenOverride}) {

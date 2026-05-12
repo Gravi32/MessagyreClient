@@ -14,7 +14,7 @@ class ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height ?? 8,
-      decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(12)),
+      decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(24)),
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (!centered) {

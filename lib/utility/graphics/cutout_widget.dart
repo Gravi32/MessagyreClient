@@ -5,30 +5,43 @@ class CutoutWidget extends StatelessWidget {
   final Widget childToCutout;
   final Widget? childInCutout;
   final Alignment cutoutAlignment;
+  final EdgeInsets? cutoutPadding;
+  final bool enabled;
 
-  const CutoutWidget({super.key, required this.cutoutSize, required this.childToCutout, this.childInCutout, this.cutoutAlignment = .bottomRight});
+  const CutoutWidget({
+    super.key,
+    required this.cutoutSize,
+    required this.childToCutout,
+    this.childInCutout,
+    this.cutoutAlignment = .bottomRight,
+    this.cutoutPadding,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        ClipPath(
-          clipper: _CutoutClipper(cutoutSize: cutoutSize, alignment: cutoutAlignment),
-          child: childToCutout,
-        ),
-        Positioned.fill(
-          child: Align(
-            alignment: cutoutAlignment,
-            child: SizedBox(
-              width: cutoutSize,
-              height: cutoutSize,
-              child: Center(child: childInCutout),
-            ),
-          ),
-        ),
-      ],
-    );
+    return enabled
+        ? Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ClipPath(
+                clipper: _CutoutClipper(cutoutSize: cutoutSize, alignment: cutoutAlignment),
+                child: childToCutout,
+              ),
+              Positioned.fill(
+                child: Align(
+                  alignment: cutoutAlignment,
+                  child: Container(
+                    width: cutoutSize,
+                    height: cutoutSize,
+                    padding: cutoutPadding,
+                    child: Center(child: childInCutout),
+                  ),
+                ),
+              ),
+            ],
+          )
+        : childToCutout;
   }
 }
 
