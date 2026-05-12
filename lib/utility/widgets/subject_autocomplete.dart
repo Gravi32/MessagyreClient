@@ -7,6 +7,7 @@ import 'package:messagyre_client/database/models/composite_subjects/composite_su
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
@@ -175,6 +176,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     return RawAutocomplete<SubjectOption>(
       textEditingController: controller,
       focusNode: focusNode,
+      optionsViewOpenDirection: .up,
 
       optionsBuilder: (query) {
         if (query.text.isEmpty || currentOption != null) {
@@ -230,17 +232,14 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
       optionsViewBuilder: (context, onSelected, rawOptions) {
         final options = rawOptions.toList();
 
-        return Container(
-          margin: const .only(top: 8),
+        return RoundContainer(
+          margin: const .only(bottom: 8),
+          padding: .zero,
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
-          decoration: BoxDecoration(
-            color: AppColors.secondaryBackground.adaptTo(context),
-            borderRadius: .circular(12),
-            boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
-          ),
-
-          child: ListView.builder(
+          color: AppColors.secondaryBackground.adaptTo(context),
+          child: ListView.separated(
             shrinkWrap: true,
+            reverse: true,
             padding: .zero,
             itemCount: options.length,
 
@@ -276,11 +275,11 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                       ),
                     ),
                   ),
-
-                  if (index < options.length - 1) Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte())),
                 ],
               );
             },
+
+            separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.secondaryBackground.adaptTo(context)),
           ),
         );
       },

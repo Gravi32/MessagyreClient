@@ -11,6 +11,7 @@ class RoundContainer extends StatelessWidget {
   final Color? color;
   final EdgeInsets? padding;
   final EdgeInsets? margin;
+  final BoxConstraints? constraints;
   final Widget? child;
   final double? height;
   final double? width;
@@ -27,6 +28,7 @@ class RoundContainer extends StatelessWidget {
     this.color,
     this.padding,
     this.margin,
+    this.constraints,
     this.child,
     this.height,
     this.width,
@@ -46,11 +48,13 @@ class RoundContainer extends StatelessWidget {
       borderRadius: .circular(borderRadius),
       enabled: transparent,
       blur: blurAmount,
+      constraints: constraints,
       child: Opacity(
         opacity: enabled ? opacity : .5,
         child: Container(
           height: height,
           width: width,
+          constraints: constraints,
           padding: padding ?? .all(16),
           decoration: BoxDecoration(
             borderRadius: .circular(borderRadius),
