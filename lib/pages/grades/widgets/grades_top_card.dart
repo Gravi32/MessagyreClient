@@ -4,12 +4,17 @@ import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/pages/grades/subpages/report_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
+import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
 
@@ -71,18 +76,14 @@ class _GradesTopCardState extends State<GradesTopCard> {
                       LineChartBarData(
                         color: color,
                         isCurved: true,
-                        barWidth: 3,
+                        barWidth: 4,
                         preventCurveOverShooting: true,
                         isStrokeCapRound: true,
                         isStrokeJoinRound: true,
                         dotData: FlDotData(show: false),
                         belowBarData: BarAreaData(
                           show: true,
-                          gradient: LinearGradient(
-                            begin: .topCenter,
-                            end: .bottomCenter,
-                            colors: [color.withAlpha(80), AppColors.transparent],
-                          ),
+                          gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [color.withAlpha(80), AppColors.transparent]),
                         ),
                         spots: allAverages.mapIndexed((index, average) => FlSpot(index / allAverages.length, average)).toList(),
                       ),
@@ -95,103 +96,102 @@ class _GradesTopCardState extends State<GradesTopCard> {
                         sideTitles: SideTitles(
                           showTitles: true,
                           interval: 1,
-                          getTitlesWidget:
-                              (value, meta) => SideTitleWidget(
-                                meta: meta,
-                                child: Text(value.removeTrailingZero(), style: TextStyle(fontSize: 12, color: AppColors.text.adaptTo(context).withAlpha(65))),
-                              ),
+                          getTitlesWidget: (value, meta) => SideTitleWidget(
+                            meta: meta,
+                            child: Text(value.removeTrailingZero(), style: TextStyle(fontSize: 12, color: AppColors.text.adaptTo(context).withAlpha(65))),
+                          ),
                         ),
                       ),
                     ),
                     lineTouchData: LineTouchData(enabled: false),
                     gridData: FlGridData(drawVerticalLine: false, horizontalInterval: .5),
-                    borderData: FlBorderData(show: true, border: .symmetric(horizontal: BorderSide(color: AppColors.text.adaptTo(context).withAlpha(1)))),
+                    borderData: FlBorderData(
+                      show: true,
+                      border: .symmetric(horizontal: BorderSide(color: AppColors.text.adaptTo(context).withAlpha(1))),
+                    ),
                   ),
                 ),
               ),
 
-              Positioned(
-                left: 5,
-                top: 0,
-                bottom: 0,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: .center,
-                  children: [
-                    Positioned(
-                      top: -15,
-                      right: -15,
-                      left: -15,
-                      bottom: -15,
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Container(decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), shape: .circle)),
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: .center,
+                children: [
+                  RoundContainer(
+                    borderRadius: 1000,
+                    padding: .zero,
+                    child: Center(
+                      child: GradeDisplay(
+                        grade: generalAverage,
+                        size: 100,
+                        strokeWidth: 5,
+                        roundGrade: false,
+                        textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
                       ),
                     ),
-
-                    GradeDisplay(
-                      grade: generalAverage,
-                      size: 100,
-                      strokeWidth: 5,
-                      roundGrade: false,
-                      textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
-                    ),
-                  ],
-                ),
+                  ).withAspectRatio(1),
+                ],
               ),
             ],
           ),
         ),
-        Text("Moyenne générale", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+        Text("Moyenne générale", style: AppStyles.header(context)),
       ],
     );
   }
 
   Widget buildReportCardTab() {
+    Widget buildReportStat(String title, String value, Color? valueColor) {
+      return Padding(
+        padding: .symmetric(horizontal: 12),
+        child: Row(
+          mainAxisAlignment: .spaceBetween,
+          children: [
+            Text(title, style: AppStyles.primaryText(context)),
+            Text(value, style: AppStyles.secondaryHeader(context).copyWith(color: valueColor)),
+          ],
+        ),
+      );
+    }
+
+    final stats = [
+      buildReportStat("Points totaux", report.totalPoints.removeTrailingZero(), AppColors.green),
+      if (report.maxFailingGrades > 0) buildReportStat("Branches sous la moyenne", report.maxFailingGrades.toString(), AppColors.green),
+      if (report.usingRestrictedGroup) buildReportStat("Points du groupe restreint", report.totalPoints.removeTrailingZero(), AppColors.green),
+      if (report.usingDoubleCompensation) buildReportStat("Double compensation", report.totalPoints.removeTrailingZero(), AppColors.green),
+    ];
+
     return Column(
       crossAxisAlignment: .start,
+      spacing: 8,
       children: [
         Row(
           mainAxisAlignment: .spaceBetween,
           crossAxisAlignment: .start,
           children: [
-            Text("Bulletin", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
-            GestureDetector(
-              onTap:
-                  () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())).then((_) {
-                    if (mounted) setState(() {});
-                  }),
-
-              child: Row(
-                crossAxisAlignment: .center,
-                spacing: 4,
-                children: [
-                  Text("Tout voir", style: TextStyle(fontSize: 17, fontWeight: .w500, color: AppColors.tertiaryText.adaptTo(context))),
-                  Icon(CupertinoIcons.chevron_right, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
-                ],
-              ),
+            Text("Bulletin", style: AppStyles.header(context)),
+            Button.icon(
+              context,
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: AppColors.secondaryBackground.adaptTo(context),
+              onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())).then((_) {
+                if (mounted) setState(() {});
+              }),
+              size: 40,
             ),
           ],
         ),
 
         Expanded(
-          child: ListView(
+          child: RoundContainer(
             padding: .zero,
-            children: [
-              report.buildTotalPointsIndicator(minimized: true),
-              if (report.maxFailingGrades > 0) ...[
-                Divider(height: 16, color: AppColors.tertiaryBackground.adaptTo(context)),
-                report.buildMaxFailingSubjectsIndicator(minimized: true),
-              ],
-              if (report.usingRestrictedGroup) ...[
-                Divider(height: 16, color: AppColors.tertiaryBackground.adaptTo(context)),
-                report.buildRestrictedGroupPointsIndicator(minimized: true),
-              ],
-              if (report.usingDoubleCompensation && !report.usingRestrictedGroup) ...[
-                Divider(height: 16, color: AppColors.tertiaryBackground.adaptTo(context)),
-                report.buildDoubleCompensationIndicator(minimized: true),
-              ],
-            ],
+            child: ListView.separated(
+              padding: .symmetric(vertical: 8),
+              itemCount: stats.length,
+              shrinkWrap: true,
+              itemBuilder: (context, index) => stats[index],
+              separatorBuilder: (context, index) => Divider(height: 16, color: AppColors.secondaryBackground.adaptTo(context)),
+            ),
           ),
         ),
       ],
@@ -199,20 +199,23 @@ class _GradesTopCardState extends State<GradesTopCard> {
   }
 
   Widget buildStatsTab() {
-    Widget statBox(String label, String value) {
-      return Container(
+    Widget buildBox(String title, String value) {
+      return RoundContainer(
         margin: const .all(4),
         padding: const .symmetric(vertical: 10, horizontal: 6),
-        decoration: BoxDecoration(
-          color: AppColors.secondaryBackground.adaptTo(context),
-          border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
-          borderRadius: .circular(12),
-        ),
+        color: AppColors.secondaryBackground.adaptTo(context),
         child: Column(
           mainAxisAlignment: .center,
+          crossAxisAlignment: .stretch,
+          spacing: 4,
           children: [
-            Expanded(child: Text(value, style: const TextStyle(fontSize: 22, fontWeight: .w600))),
-            Expanded(child: Text(label, style: const TextStyle(fontSize: 12))),
+            Expanded(
+              child: Text(title, style: AppStyles.tertiaryText(context), textAlign: .center),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(value, style: AppStyles.header(context), textAlign: .center),
+            ),
           ],
         ),
       );
@@ -254,7 +257,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
     return Column(
       crossAxisAlignment: .start,
       children: [
-        Text("Statistiques", style: TextStyle(fontWeight: .w500, fontSize: 20, color: adaptiveColor(AppColors.black, AppColors.white))),
+        Text("Statistiques", style: AppStyles.header(context)),
 
         Expanded(
           child: GridView.count(
@@ -262,15 +265,15 @@ class _GradesTopCardState extends State<GradesTopCard> {
             crossAxisCount: 3,
             childAspectRatio: 1.3,
             children: [
-              statBox("Notes", "$total"),
-              statBox("≥ $threshold", "$aboveThreshold %"),
-              statBox("Stabilité", stdDev.toStringAsFixed(2)),
-              statBox("Moyenne", average.toStringAsFixed(2)),
-              statBox("Médiane", median.toStringAsFixed(2)),
-              statBox("Maximum", maxGrade.toStringAsFixed(2)),
-              statBox("Minimum", minGrade.toStringAsFixed(2)),
-              statBox("Étendue", range.toStringAsFixed(2)),
-              statBox("Récente", recentAverage.toStringAsFixed(2)),
+              buildBox("Notes", "$total"),
+              buildBox("≥ $threshold", "$aboveThreshold %"),
+              buildBox("Stabilité", stdDev.toStringAsFixed(2)),
+              buildBox("Moyenne", average.toStringAsFixed(2)),
+              buildBox("Médiane", median.toStringAsFixed(2)),
+              buildBox("Maximum", maxGrade.toStringAsFixed(2)),
+              buildBox("Minimum", minGrade.toStringAsFixed(2)),
+              buildBox("Étendue", range.toStringAsFixed(2)),
+              buildBox("Récente", recentAverage.toStringAsFixed(2)),
             ],
           ),
         ),

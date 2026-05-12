@@ -119,10 +119,10 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
             foregroundDecoration: widget.isBlocked ? const BoxDecoration(color: AppColors.grey, backgroundBlendMode: BlendMode.saturation) : null,
             child: Center(
               child: CutoutWidget(
-                enabled: badge == null,
+                enabled: badge != null,
                 cutoutSize: cutoutSize,
                 childToCutout: adequateChild,
-                childInCutout: CustomIcon(icon: badge!, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8),
+                childInCutout: badge != null ? CustomIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8) : null,
               ),
             ),
           );
