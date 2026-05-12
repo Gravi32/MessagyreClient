@@ -12,9 +12,20 @@ class ListTile extends StatefulWidget {
   final bool isLoading;
   final bool buildChevron;
   final bool enabled;
+  final EdgeInsets? padding;
   final void Function()? onTap;
 
-  const ListTile({super.key, this.child, this.leading, this.trailing, this.onTap, this.isLoading = false, this.buildChevron = true, this.enabled = true});
+  const ListTile({
+    super.key,
+    this.child,
+    this.leading,
+    this.trailing,
+    this.onTap,
+    this.isLoading = false,
+    this.buildChevron = true,
+    this.enabled = true,
+    this.padding,
+  });
 
   factory ListTile.simple(
     BuildContext context, {
@@ -58,7 +69,7 @@ class _ListTileState extends State<ListTile> {
       onPressed: widget.enabled ? widget.onTap : null,
       child: Container(
         color: AppColors.secondaryBackground.adaptTo(context).withTransparency(widget.enabled ? .5 : .25),
-        padding: .symmetric(horizontal: 24, vertical: 14),
+        padding: widget.padding ?? .symmetric(horizontal: 24, vertical: 14),
         child: widget.isLoading
             ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
             : Row(
