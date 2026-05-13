@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Divider;
 import 'package:hugeicons/hugeicons.dart';
@@ -17,6 +19,7 @@ import 'package:messagyre_client/utility/widgets/basics/picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
+import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
@@ -44,7 +47,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
           const SizedBox(width: 8),
           Expanded(
-            child: Text(subjectName, style: AppStyles.primaryText(context), overflow: TextOverflow.ellipsis),
+            child: Text(subjectName, style: AppStyles.primaryText(context), overflow: .ellipsis),
           ),
 
           if (isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
@@ -164,6 +167,130 @@ class _ReportCardPageState extends State<ReportCardPage> {
     final restrictedGroupCompositeSubjects = report.restrictedGroupCompositeSubjects;
     final restrictedGroupSubjects = report.restrictedGroupSubjects;
 
+    final indicators = [
+      Builder(
+        builder: (context) {
+          final isLowerThanMinimum = report.totalPoints < report.minTotalPoints;
+          final difference = (report.minTotalPoints - report.totalPoints).abs().removeTrailingZero();
+
+          return Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              Text("Total des points", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+              Text(
+                "$difference point${difference == "1" ? "" : "s"} ${isLowerThanMinimum ? "nécessaires" : "au-dessus du minimum"}",
+                style: AppStyles.primaryText(context).copyWith(color: isLowerThanMinimum ? AppColors.red : AppColors.green),
+              ),
+
+              const SizedBox.square(dimension: 6),
+              NumberedProgressBar(
+                lowerBound: isLowerThanMinimum ? "0" : report.minTotalPoints.toString(),
+                upperBound: (isLowerThanMinimum ? report.minTotalPoints : report.maxTotalPoints).toString(),
+                progress: max(
+                  0,
+                  isLowerThanMinimum
+                      ? report.totalPoints / report.minTotalPoints
+                      : (report.totalPoints - report.minTotalPoints) / (report.maxTotalPoints - report.minTotalPoints),
+                ),
+                value: report.totalPoints.removeTrailingZero(),
+                color: isLowerThanMinimum ? AppColors.red : AppColors.green,
+                fontSize: 32,
+              ),
+            ],
+          );
+        },
+      ),
+
+      if (report.maxFailingGrades > 0)
+        Column(
+          crossAxisAlignment: .stretch,
+          children: [
+            Text("Moyennes insuffisantes", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+            const SizedBox.square(dimension: 6),
+            NumberedProgressBar(
+              lowerBound: "0",
+              upperBound: report.maxFailingGrades.toString(),
+              progress: (report.failingGrades / report.maxFailingGrades).clamp(0, 1),
+              value: report.failingGrades.toString(),
+              color: getProgressColor(report.failingGrades / report.maxFailingGrades),
+              fontSize: 32,
+            ),
+          ],
+        ),
+
+      if (report.usingDoubleCompensation)
+        Builder(
+          builder: (context) {
+            final isFailing = report.doubleCompensation < 0;
+            final progress = report.doubleCompensation / (report.deficit.abs() + report.surplus);
+            final difference = report.doubleCompensation.abs() * 2.0;
+
+            return Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                Text("Double compensation", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+
+                if (isFailing)
+                  Text(
+                    "+${difference.removeTrailingZero()} point${difference == 1.0 ? "" : "s"} nécessaires",
+                    style: TextStyle(fontSize: 14, color: AppColors.red),
+                  ),
+
+                const SizedBox.square(dimension: 6),
+                NumberedProgressBar(
+                  lowerBound: report.deficit.toDouble().removeTrailingZero(),
+                  upperBound: "+${report.surplus.toDouble().removeTrailingZero()}",
+                  progress: progress,
+                  value: report.doubleCompensation.toDouble().removeTrailingZero(),
+                  color: isFailing ? AppColors.red : AppColors.green,
+                  centered: true,
+                  fontSize: 32,
+                ),
+              ],
+            );
+          },
+        ),
+
+      if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty)
+        Builder(
+          builder: (context) {
+            final isLowerThanMinimum = report.restrictedGroupPoints < report.minRestrictedGroupPoints;
+
+            final progress = max(
+              0,
+              isLowerThanMinimum
+                  ? report.restrictedGroupPoints / report.minRestrictedGroupPoints
+                  : (report.restrictedGroupPoints - report.minRestrictedGroupPoints) / (report.maxRestrictedGroupPoints - report.minRestrictedGroupPoints),
+            ).toDouble();
+            final difference = (report.minRestrictedGroupPoints - report.restrictedGroupPoints).abs().removeTrailingZero();
+
+            return Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                Text("Points du groupe restreint", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+
+                Text(
+                  isLowerThanMinimum
+                      ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
+                      : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
+                  style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
+                ),
+
+                const SizedBox.square(dimension: 6),
+                NumberedProgressBar(
+                  lowerBound: isLowerThanMinimum ? "0" : report.minRestrictedGroupPoints.toString(),
+                  upperBound: (isLowerThanMinimum ? report.minRestrictedGroupPoints : report.maxRestrictedGroupPoints).toString(),
+                  progress: progress,
+                  value: report.totalPoints.removeTrailingZero(),
+                  color: isLowerThanMinimum ? AppColors.red : AppColors.green,
+                  fontSize: 32,
+                ),
+              ],
+            );
+          },
+        ),
+    ];
+
     return Page(
       topBar: TopBar.tab(context, title: "Votre bulletin"),
       child: ListView(
@@ -221,30 +348,20 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
           const SizedBox(height: 10),
 
-          // Points part
+          // Criteria Stats
           RoundContainer(
-            child: Column(
-              spacing: 6,
-              children: [
-                report.buildTotalPointsIndicator(),
-
-                if (report.maxFailingGrades > 0) ...[Divider(color: AppColors.secondaryBackground.adaptTo(context)), report.buildMaxFailingSubjectsIndicator()],
-
-                if (report.usingDoubleCompensation) ...[
-                  Divider(color: AppColors.secondaryBackground.adaptTo(context)),
-                  report.buildDoubleCompensationIndicator(),
-                ],
-
-                if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty) ...[
-                  Divider(color: AppColors.secondaryBackground.adaptTo(context)),
-                  report.buildRestrictedGroupPointsIndicator(),
-                ],
-              ],
+            child: ListView.separated(
+              itemCount: indicators.length,
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (_, index) => indicators[index],
+              separatorBuilder: (context, _) => Divider(height: 24, color: AppColors.secondaryBackground.adaptTo(context)),
             ),
           ),
 
           const SizedBox(height: 20),
 
+          // Criteria Options
           ListSection(
             title: "Critères de promotion",
             children: [

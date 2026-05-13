@@ -83,7 +83,7 @@ class _DebugSettingsPageState extends State<DebugSettingsPage> {
                 title: "Jeton FCM",
                 trailing: SizedBox(
                   width: 150,
-                  child: Text(globals.fcmToken ?? "Manquant", overflow: TextOverflow.ellipsis, textAlign: .end),
+                  child: Text(globals.fcmToken ?? "Manquant", overflow: .ellipsis, textAlign: .end),
                 ),
               ),
             ],

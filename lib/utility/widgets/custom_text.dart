@@ -20,7 +20,7 @@ class CustomText extends StatelessWidget {
     this.style,
     this.boldWeight,
     this.softWrap = true,
-    this.overflow = TextOverflow.clip,
+    this.overflow = .clip,
     this.maxLines,
     this.prefixSpans,
     this.suffixSpans,

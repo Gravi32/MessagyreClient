@@ -199,7 +199,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                     child: Text(
                       firstSubject?.name ?? "Sous-branche 1",
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: AppStyles.secondaryHeader(context),
                     ),
                   ),
@@ -211,7 +211,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                     child: Text(
                       secondSubject?.name ?? "Sous-branche 2",
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: AppStyles.secondaryHeader(context),
                     ),
                   ),

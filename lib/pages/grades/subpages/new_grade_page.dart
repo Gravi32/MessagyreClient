@@ -292,7 +292,7 @@ class _NewGradePageState extends State<NewGradePage> {
                           Text(
                             subject != null ? "Note ${subject!.name.withPreposition(lowercase: true)}" : "Pas de branche sélectionnée",
                             maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                            overflow: .ellipsis,
                             style: TextStyle(color: AppColors.quaternaryText.adaptTo(context), fontSize: 15),
                           ),
                         ],
@@ -390,7 +390,7 @@ class _NewGradePageState extends State<NewGradePage> {
                       Text("Valeur", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
 
                       SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                        scrollDirection: .horizontal,
                         padding: .only(top: 6),
                         child: Row(
                           mainAxisAlignment: .center,
@@ -422,7 +422,7 @@ class _NewGradePageState extends State<NewGradePage> {
                                 crossAxisAlignment: .stretch,
                                 children: [
                                   SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
+                                    scrollDirection: .horizontal,
                                     padding: .symmetric(vertical: 6),
                                     child: Row(
                                       mainAxisAlignment: .center,

@@ -58,7 +58,7 @@ class GradeBar extends StatelessWidget {
                   child: CustomText(
                     gradeData.title,
                     style: TextStyle(fontWeight: .w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
-                    overflow: TextOverflow.ellipsis,
+                    overflow: .ellipsis,
                   ),
                 ),
 
@@ -70,7 +70,7 @@ class GradeBar extends StatelessWidget {
                       gradeData.details!,
                       style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                     ),
                   ),
 
@@ -94,7 +94,7 @@ class GradeBar extends StatelessWidget {
                           ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
                           : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
                       maxLines: 2,
-                      overflow: TextOverflow.fade,
+                      overflow: .fade,
                       softWrap: true,
                       style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
                     ),

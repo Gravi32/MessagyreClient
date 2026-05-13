@@ -121,7 +121,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                               CustomText(
                                 widget.messageContent.trim(),
                                 maxLines: 2,
-                                overflow: TextOverflow.fade,
+                                overflow: .fade,
                                 softWrap: true,
                                 style: TextStyle(fontWeight: .w400, fontSize: 16),
                               ),

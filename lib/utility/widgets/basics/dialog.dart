@@ -117,7 +117,7 @@ class Dialog extends StatelessWidget {
                   },
                 );
 
-                return optionsDirection == Axis.horizontal ? Expanded(child: button) : button;
+                return optionsDirection == .horizontal ? Expanded(child: button) : button;
               }).toList(),
             ),
           ],

@@ -197,7 +197,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                           ),
                           maxLines: 2,
                           softWrap: true,
-                          overflow: TextOverflow.ellipsis,
+                          overflow: .ellipsis,
                         )
                       : Text(
                           "Envoyez un message...",

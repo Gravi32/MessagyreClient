@@ -75,7 +75,7 @@ class _BottomBarState extends State<BottomBar> {
                           child: Center(
                             child: Text(
                               page.name,
-                              overflow: TextOverflow.fade,
+                              overflow: .fade,
                               softWrap: false,
                               style: TextStyle(fontSize: 10, color: color),
                             ),
