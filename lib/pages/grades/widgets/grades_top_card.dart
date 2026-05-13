@@ -170,7 +170,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
         buildReportStat(
           "Points du groupe restreint",
           report.restrictedGroupPoints.removeTrailingZero(),
-          getGradeColor(report.restrictedGroupPoints / report.maxRestrictedGroupPoints * 6, defaultColor: AppColors.green),
+          getGradeColor(6 - report.restrictedGroupPoints / report.maxRestrictedGroupPoints * 6, defaultColor: AppColors.green),
         ),
       if (report.usingDoubleCompensation)
         buildReportStat(
