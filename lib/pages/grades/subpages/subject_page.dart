@@ -188,7 +188,11 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         dotData: FlDotData(show: false),
                         belowBarData: BarAreaData(
                           show: true,
-                          gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [widget.subject.color.withAlpha(80), AppColors.transparent]),
+                          gradient: LinearGradient(
+                            begin: .topCenter,
+                            end: .bottomCenter,
+                            colors: [widget.subject.color.withTransparency(.4), widget.subject.color.withAlpha(0)],
+                          ),
                         ),
                         spots: thisSubjectGrades
                             .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
@@ -233,7 +237,11 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                         isStrokeJoinRound: true,
                         belowBarData: BarAreaData(
                           show: true,
-                          gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [widget.subject.color.withAlpha(80), AppColors.transparent]),
+                          gradient: LinearGradient(
+                            begin: .topCenter,
+                            end: .bottomCenter,
+                            colors: [widget.subject.color.withTransparency(.4), widget.subject.color.withAlpha(0)],
+                          ),
                         ),
                         spots: thisSubjectGrades
                             .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
