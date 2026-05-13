@@ -170,6 +170,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
             padding: .zero,
             child: ListView.separated(
               padding: .symmetric(vertical: 8),
+              physics: ClampingScrollPhysics(),
               itemCount: stats.length,
               shrinkWrap: true,
               itemBuilder: (context, index) => stats[index],
