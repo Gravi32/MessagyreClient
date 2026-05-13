@@ -15,7 +15,7 @@ import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';

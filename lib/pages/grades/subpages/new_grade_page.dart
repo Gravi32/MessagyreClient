@@ -20,7 +20,7 @@ import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
@@ -162,6 +162,16 @@ class _NewGradePageState extends State<NewGradePage> {
 
     return resultList;
   }
+
+  Widget buildWeightButton(double value, double selectedWeight, String label, VoidCallback onTap) => IntrinsicWidth(
+    child: Button(
+      onTap: onTap,
+      padding: .symmetric(horizontal: 16, vertical: 12),
+      transparent: true,
+      color: (value == selectedWeight ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
+      text: label,
+    ),
+  );
 
   @override
   void initState() {
@@ -323,15 +333,10 @@ class _NewGradePageState extends State<NewGradePage> {
                       children: [
                         ...fractions.keys
                             .map((key) {
-                              return WeightButton(
-                                value: key,
-                                selectedWeight: weight,
-                                label: fractions[key] ?? "?",
-                                onTap: () {
-                                  setState(() => weight = key);
-                                  HapticFeedback.selectionClick();
-                                },
-                              );
+                              return buildWeightButton(key, weight, fractions[key] ?? "?", () {
+                                setState(() => weight = key);
+                                HapticFeedback.selectionClick();
+                              });
                             })
                             .toList()
                             .reversed,
@@ -355,15 +360,10 @@ class _NewGradePageState extends State<NewGradePage> {
                                   children: [
                                     for (var value = 0.05; value < 1.0; value += 0.05)
                                       if (!fractions.keys.contains(value))
-                                        WeightButton(
-                                          value: value,
-                                          selectedWeight: weight,
-                                          label: "${(value * 100).round()}%",
-                                          onTap: () {
-                                            setState(() => weight = value);
-                                            HapticFeedback.selectionClick();
-                                          },
-                                        ),
+                                        buildWeightButton(value, weight, "${(value * 100).round()}%", () {
+                                          setState(() => weight = value);
+                                          HapticFeedback.selectionClick();
+                                        }),
                                   ],
                                 ),
                               ),
@@ -574,30 +574,6 @@ class _NewGradePageState extends State<NewGradePage> {
             ],
           ),
       ],
-    );
-  }
-}
-
-class WeightButton extends StatelessWidget {
-  final double value;
-  final double selectedWeight;
-  final String label;
-  final VoidCallback onTap;
-
-  const WeightButton({super.key, required this.value, required this.selectedWeight, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = value == selectedWeight;
-
-    return IntrinsicWidth(
-      child: Button(
-        onTap: onTap,
-        padding: .symmetric(horizontal: 16, vertical: 12),
-        transparent: true,
-        color: (isSelected ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
-        text: label,
-      ),
     );
   }
 }

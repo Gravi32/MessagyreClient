@@ -16,7 +16,7 @@ import 'package:messagyre_client/utility/widgets/basics/segmented_control.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:uuid/uuid.dart';

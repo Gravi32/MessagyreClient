@@ -18,7 +18,7 @@ import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 

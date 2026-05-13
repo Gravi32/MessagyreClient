@@ -14,7 +14,7 @@ import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 

@@ -4,7 +4,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/workarounds/constrained_aspect_ratio.dart';
 
 class Dialog extends StatelessWidget {

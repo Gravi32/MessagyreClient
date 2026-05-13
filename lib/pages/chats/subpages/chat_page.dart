@@ -22,7 +22,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:messagyre_client/utility/widgets/text_chat_bubble.dart';

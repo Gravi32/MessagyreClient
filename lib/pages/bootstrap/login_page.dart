@@ -11,7 +11,7 @@ import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/graphics/messagyre_logo.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
-import 'package:messagyre_client/utility/widgets/field.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
