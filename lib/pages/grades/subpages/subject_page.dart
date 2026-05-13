@@ -16,6 +16,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/chart.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
@@ -173,43 +174,17 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             Expanded(
               child: Padding(
                 padding: .only(top: 10),
-                child: LineChart(
-                  LineChartData(
-                    minY: 1,
-                    maxY: 6,
-                    lineBarsData: [
-                      LineChartBarData(
-                        color: widget.subject.color,
-                        isCurved: true,
-                        barWidth: 3,
-                        preventCurveOverShooting: true,
-                        isStrokeCapRound: true,
-                        isStrokeJoinRound: true,
-                        dotData: FlDotData(show: false),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          gradient: LinearGradient(
-                            begin: .topCenter,
-                            end: .bottomCenter,
-                            colors: [widget.subject.color.withTransparency(.4), widget.subject.color.withAlpha(0)],
-                          ),
+                child: Chart(
+                  color: widget.subject.color,
+                  spots: thisSubjectGrades
+                      .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
+                      .mapIndexed(
+                        (index, grade) => FlSpot(
+                          index / thisSubjectGrades.length,
+                          calculateAverage(thisSubjectGrades.where((element) => element.date.compareTo(grade.date) <= 0).toList()),
                         ),
-                        spots: thisSubjectGrades
-                            .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
-                            .mapIndexed(
-                              (index, grade) => FlSpot(
-                                index / thisSubjectGrades.length,
-                                calculateAverage(thisSubjectGrades.where((element) => element.date.compareTo(grade.date) <= 0).toList()),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ],
-                    titlesData: FlTitlesData(show: false),
-                    lineTouchData: LineTouchData(enabled: false),
-                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
-                    borderData: FlBorderData(show: false),
-                  ),
+                      )
+                      .toList(),
                 ),
               ),
             ),
@@ -223,52 +198,14 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             Expanded(
               child: Padding(
                 padding: .only(top: 10, bottom: 8, left: 4),
-                child: LineChart(
-                  LineChartData(
-                    minY: 1,
-                    maxY: 6,
-                    lineBarsData: [
-                      LineChartBarData(
-                        color: widget.subject.color,
-                        isCurved: true,
-                        barWidth: 3,
-                        preventCurveOverShooting: true,
-                        isStrokeCapRound: true,
-                        isStrokeJoinRound: true,
-                        belowBarData: BarAreaData(
-                          show: true,
-                          gradient: LinearGradient(
-                            begin: .topCenter,
-                            end: .bottomCenter,
-                            colors: [widget.subject.color.withTransparency(.4), widget.subject.color.withAlpha(0)],
-                          ),
-                        ),
-                        spots: thisSubjectGrades
-                            .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
-                            .mapIndexed((index, grade) => FlSpot(index / thisSubjectGrades.length, grade.grade))
-                            .toList(),
-                      ),
-                    ],
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(),
-                      bottomTitles: AxisTitles(),
-                      topTitles: AxisTitles(),
-                      rightTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          interval: 1,
-                          reservedSize: 18,
-                          getTitlesWidget: (value, meta) => Align(
-                            alignment: .centerRight,
-                            child: Text(meta.formattedValue, style: AppStyles.footer(context)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    lineTouchData: LineTouchData(enabled: false),
-                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: 1),
-                    borderData: FlBorderData(show: false),
-                  ),
+                child: Chart(
+                  color: widget.subject.color,
+                  showDots: true,
+                  showTitles: true,
+                  spots: thisSubjectGrades
+                      .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
+                      .mapIndexed((index, grade) => FlSpot(index / thisSubjectGrades.length, grade.grade))
+                      .toList(),
                 ),
               ),
             ),

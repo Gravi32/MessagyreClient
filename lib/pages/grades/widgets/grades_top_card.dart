@@ -15,6 +15,7 @@ import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/chart.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/paged_card.dart';
 
@@ -68,48 +69,12 @@ class _GradesTopCardState extends State<GradesTopCard> {
             children: [
               Padding(
                 padding: .only(top: 15, bottom: 15, left: 55),
-                child: LineChart(
-                  LineChartData(
-                    minY: max(minAverage.floor().toDouble(), 1),
-                    maxY: min(maxAverage.ceil().toDouble(), 6),
-                    lineBarsData: [
-                      LineChartBarData(
-                        color: color,
-                        isCurved: true,
-                        barWidth: 4,
-                        preventCurveOverShooting: true,
-                        isStrokeCapRound: true,
-                        isStrokeJoinRound: true,
-                        dotData: FlDotData(show: false),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [color.withAlpha(80), color.withAlpha(0)]),
-                        ),
-                        spots: allAverages.mapIndexed((index, average) => FlSpot(index / allAverages.length, average)).toList(),
-                      ),
-                    ],
-                    titlesData: FlTitlesData(
-                      topTitles: AxisTitles(),
-                      leftTitles: AxisTitles(),
-                      bottomTitles: AxisTitles(),
-                      rightTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          interval: 1,
-                          getTitlesWidget: (value, meta) => SideTitleWidget(
-                            meta: meta,
-                            child: Text(value.removeTrailingZero(), style: TextStyle(fontSize: 12, color: AppColors.text.adaptTo(context).withAlpha(65))),
-                          ),
-                        ),
-                      ),
-                    ),
-                    lineTouchData: LineTouchData(enabled: false),
-                    gridData: FlGridData(drawVerticalLine: false, horizontalInterval: .5),
-                    borderData: FlBorderData(
-                      show: true,
-                      border: .symmetric(horizontal: BorderSide(color: AppColors.text.adaptTo(context).withAlpha(1))),
-                    ),
-                  ),
+                child: Chart(
+                  color: color,
+                  showTitles: true,
+                  min: max(minAverage.floor().toDouble(), 1),
+                  max: min(maxAverage.ceil().toDouble(), 6),
+                  spots: allAverages.mapIndexed((index, average) => FlSpot(index / allAverages.length, average)).toList(),
                 ),
               ),
 
