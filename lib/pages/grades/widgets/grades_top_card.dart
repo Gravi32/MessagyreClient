@@ -83,7 +83,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
                         dotData: FlDotData(show: false),
                         belowBarData: BarAreaData(
                           show: true,
-                          gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [color.withAlpha(80), AppColors.transparent]),
+                          gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [color.withAlpha(80), color.withAlpha(0)]),
                         ),
                         spots: allAverages.mapIndexed((index, average) => FlSpot(index / allAverages.length, average)).toList(),
                       ),
@@ -113,25 +113,20 @@ class _GradesTopCardState extends State<GradesTopCard> {
                 ),
               ),
 
-              Stack(
-                clipBehavior: Clip.none,
-                alignment: .center,
-                children: [
-                  RoundContainer(
-                    borderRadius: 1000,
-                    padding: .zero,
-                    child: Center(
-                      child: GradeDisplay(
-                        grade: generalAverage,
-                        size: 100,
-                        strokeWidth: 5,
-                        roundGrade: false,
-                        textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
-                      ),
-                    ),
-                  ).withAspectRatio(1),
-                ],
-              ),
+              RoundContainer(
+                borderRadius: 1000,
+                padding: .zero,
+                blurOnly: true,
+                child: Center(
+                  child: GradeDisplay(
+                    grade: generalAverage,
+                    size: 100,
+                    strokeWidth: 5,
+                    roundGrade: false,
+                    textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
+                  ),
+                ),
+              ).withAspectRatio(1),
             ],
           ),
         ),
@@ -164,7 +159,11 @@ class _GradesTopCardState extends State<GradesTopCard> {
         buildReportStat(
           "Branches sous la moyenne",
           report.failingGrades.toString(),
-          getGradeColor(report.failingGrades / report.maxFailingGrades * 6, defaultColor: AppColors.green),
+          report.failingGrades <= 0
+              ? AppColors.green
+              : report.failingGrades <= report.maxFailingGrades
+              ? AppColors.orange
+              : AppColors.red,
         ),
       if (report.usingRestrictedGroup)
         buildReportStat(

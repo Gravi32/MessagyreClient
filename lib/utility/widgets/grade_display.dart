@@ -4,7 +4,9 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradeDisplay extends StatefulWidget {
@@ -22,7 +24,7 @@ class GradeDisplay extends StatefulWidget {
     super.key,
     required this.grade,
     this.size = 48,
-    this.strokeWidth = 3,
+    this.strokeWidth = 2,
     this.weight = 1.0,
     this.textBelow,
     this.isIncoming = false,
@@ -40,7 +42,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
   Widget build(BuildContext context) {
     final isGradeHidden = widget.grade == 0;
     final size = widget.size;
-    final int alpha = ((.25 + widget.weight * .75) * 255).toInt();
+    final double transparency = .25 + widget.weight * .75;
 
     List<List<dynamic>>? badge;
     if (widget.isIncoming) {
@@ -67,46 +69,48 @@ class _GradeDisplayState extends State<GradeDisplay> {
               // Content \\
 
               // Dotted line / Circle
-              SizedBox(
-                width: size,
-                height: size,
-                child:
-                    isGradeHidden
-                        ? DottedBorder(
-                          options: RoundedRectDottedBorderOptions(
-                            color: AppColors.tertiaryText.adaptTo(context),
-                            strokeWidth: widget.strokeWidth - .5,
-                            dashPattern: [4, 5],
-                            radius: .circular(200),
-                            strokeCap: .round,
-                            borderPadding: .all(2),
-                          ),
-                          child: SizedBox.square(dimension: 200),
-                        )
-                        : Stack(
+              SizedBox.square(
+                dimension: size,
+                child: isGradeHidden
+                    ? DottedBorder(
+                        options: RoundedRectDottedBorderOptions(
+                          color: AppColors.tertiaryText.adaptTo(context),
+                          strokeWidth: widget.strokeWidth - .5,
+                          dashPattern: [4, 5],
+                          radius: .circular(200),
+                          strokeCap: .round,
+                          borderPadding: .all(2),
+                        ),
+                        child: SizedBox.square(dimension: 200),
+                      )
+                    : RoundContainer(
+                        blurOnly: true,
+                        padding: .zero,
+                        child: Stack(
                           fit: .expand,
                           children: [
+                            Transform.flip(
+                              flipX: true,
+                              child: Transform.rotate(
+                                angle: 4 * pi,
+                                child: CircularProgressIndicator(
+                                  value: 1 - gradeAlpha,
+                                  strokeWidth: widget.strokeWidth,
+                                  strokeCap: .round,
+                                  color: AppColors.secondaryBackground.adaptTo(context),
+                                ),
+                              ),
+                            ),
+
                             CircularProgressIndicator(
                               value: gradeAlpha,
                               strokeWidth: widget.strokeWidth,
                               strokeCap: .round,
-                              color: getGradeColor(widget.grade).withAlpha(alpha),
-                            ),
-
-                            Transform.flip(
-                              flipX: true,
-                              child: Transform.rotate(
-                                angle: pi / .25 / size + .015 * widget.strokeWidth,
-                                child: CircularProgressIndicator(
-                                  value: 1 - gradeAlpha - 1 / (.25 * size) - .005 * widget.strokeWidth,
-                                  strokeWidth: widget.strokeWidth,
-                                  strokeCap: .round,
-                                  color: adaptiveColor(AppColors.black, AppColors.white).withAlpha(30),
-                                ),
-                              ),
+                              color: getGradeColor(widget.grade).withTransparency(transparency),
                             ),
                           ],
                         ),
+                      ),
               ),
 
               // Grade
@@ -118,14 +122,14 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   children: [
                     Text(
                       animatedGrade.toStringAsFixed(widget.roundGrade ? 1 : 2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), ''),
-                      style: TextStyle(fontSize: size / 2.75, fontWeight: .w600, height: 1.0, color: AppColors.text.adaptTo(context)),
+                      style: AppStyles.secondaryHeader(context).copyWith(fontSize: size / 2.75, height: 1),
                     ),
 
                     if (widget.textBelow != null)
                       Text(
                         widget.textBelow!,
                         textScaler: .noScaling,
-                        style: TextStyle(fontSize: size / 6, fontWeight: .w400, height: 1.0, color: AppColors.secondaryText.adaptTo(context)),
+                        style: AppStyles.secondaryText(context).copyWith(fontSize: size / 6, height: 1),
                       ),
                   ],
                 ),
