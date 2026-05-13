@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class TopBar extends StatefulWidget {
   final Widget? leading;
@@ -56,9 +57,15 @@ class TopBar extends StatefulWidget {
     return TopBar(middle: Text(title), leading: leading, trailing: trailing, isSliver: true);
   }
 
-  factory TopBar.sliverWithChevron(BuildContext context, {required String title, Widget? trailing}) {
+  factory TopBar.sliverWithChevron(BuildContext context, {required String title, List<List>? icon, Widget? trailing}) {
     return TopBar(
-      middle: Text(title),
+      middle: Row(
+        spacing: 8,
+        children: [
+          if (icon != null) CustomIcon(icon: icon, strokeWidth: 1.5),
+          Text(title),
+        ],
+      ),
       leading: Button.icon(context, margin: .only(bottom: 2), icon: HugeIcons.strokeRoundedArrowLeft01, onTap: () => Navigator.pop(context)),
       isSliver: true,
       trailing: trailing,

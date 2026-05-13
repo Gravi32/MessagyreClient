@@ -1,12 +1,13 @@
-import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradeGroupPage extends StatefulWidget {
   final String groupName;
@@ -21,21 +22,6 @@ class GradeGroupPage extends StatefulWidget {
 class _GradeGroupPageState extends State<GradeGroupPage> {
   final database = DatabaseService();
 
-  Widget buildList(List<Grade> thisGroupGrades) {
-    // Sorting grades by date
-    thisGroupGrades.sort((gradeA, gradeB) {
-      return gradeB.date.compareTo(gradeA.date);
-    });
-
-    return ListView.separated(
-      padding: .only(top: 8),
-      itemCount: thisGroupGrades.length,
-      itemBuilder:
-          (context, index) => GradeBar(gradeData: thisGroupGrades.elementAt(index), onTap: () => showNewGradePopup(toEdit: thisGroupGrades.elementAt(index))),
-      separatorBuilder: (context, index) => SizedBox(height: 8),
-    );
-  }
-
   void showNewGradePopup({Grade? toEdit}) async {
     await showCupertinoSheet<Grade?>(
       context: context,
@@ -46,48 +32,27 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: Stack(
-        children: [
-          NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                CupertinoSliverNavigationBar(
-                  largeTitle: Row(
-                    spacing: 10,
-                    children: [CustomIcon(icon: HugeIcons.strokeRoundedSelect01, color: AppColors.text.adaptTo(context), size: 28), Text(widget.groupName)],
-                  ),
-                  previousPageTitle: "Retour",
-                ),
-              ];
-            },
-            body: SafeArea(
-              top: false,
-              child: Padding(
-                padding: .symmetric(horizontal: 16),
-                child: StreamBuilder(
-                  stream: database.grades.watchAll(),
-                  builder: (context, snapshot) {
-                    return buildList((snapshot.data ?? database.grades.getAll()).where((grade) => grade.groupName == widget.groupName).toList());
-                  },
-                ),
-              ),
-            ),
-          ),
+    return Page.sliver(
+      onFloatingButtonTap: showNewGradePopup,
+      topBar: TopBar.sliverWithChevron(context, title: widget.groupName, icon: HugeIcons.strokeRoundedSelect01),
+      body: StreamBuilder(
+        stream: database.grades.watchAll(),
+        builder: (context, snapshot) {
+          
+          final groupGrades = (snapshot.data ?? database.grades.getAll()).where((grade) => grade.groupName == widget.groupName).sorted((gradeA, gradeB) {
+            return gradeB.date.compareTo(gradeA.date);
+          });
 
-          Positioned(
-            bottom: MediaQuery.viewPaddingOf(context).bottom + 20,
-            right: 20,
-            child: GestureDetector(
-              onTap: showNewGradePopup,
-              child: Container(
-                padding: .all(14),
-                decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(20)),
-                child: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.text.adaptTo(context)),
-              ),
+          return ListView.separated(
+            padding: .only(top: 8),
+            itemCount: groupGrades.length,
+            itemBuilder: (context, index) => GradeBar(
+              gradeData: groupGrades.elementAt(index),
+              onTap: () => showNewGradePopup(toEdit: groupGrades.elementAt(index)),
             ),
-          ),
-        ],
+            separatorBuilder: (context, index) => SizedBox(height: 8),
+          );
+        },
       ),
     );
   }
