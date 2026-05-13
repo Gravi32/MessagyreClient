@@ -96,7 +96,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 8,
                       crossAxisSpacing: 8,
-                      mainAxisExtent: 90,
+                      mainAxisExtent: 100,
                     ),
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
