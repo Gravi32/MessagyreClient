@@ -615,7 +615,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             color: getBubbleColor(data.isOwned),
             borderRadius: getBubbleShape(data.isOwned),
-            border: .all(color: getBubbleColor(data.isOwned).withBrightness(globals.appBrightness == .light ? .1 : -.1), width: .5),
+            border: .all(color: getBubbleColor(data.isOwned).withBrightness(MediaQuery.maybePlatformBrightnessOf(context) == .light ? .1 : -.1), width: .5),
           ),
           child: TextChatBubbleWithTimeStamp(
             content: Text.rich(
@@ -878,7 +878,9 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         repeat: ImageRepeat.repeat,
                         fit: .fitWidth,
                         opacity: .12,
-                        colorFilter: globals.appBrightness == .dark ? null : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
+                        colorFilter: MediaQuery.maybePlatformBrightnessOf(context) == .dark
+                            ? null
+                            : ColorFilter.mode(Colors.black.withAlpha(200), BlendMode.srcIn),
                       )
                     : DecorationImage(image: Image.file(File(currentWallpaper!)).image, fit: .cover),
               ),

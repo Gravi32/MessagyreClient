@@ -25,14 +25,6 @@ class GlobalsService {
     return;
   }
 
-  // #region -> App brightness
-
-  ValueNotifier<Brightness> appBrightnessNotifier = ValueNotifier(.light);
-  Brightness get appBrightness => appBrightnessNotifier.value;
-  set appBrightness(Brightness value) => appBrightnessNotifier.value = value;
-
-  // #endregion
-
   // #region -> Calendars
 
   final _now = DateTime.now();

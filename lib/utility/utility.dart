@@ -10,7 +10,6 @@ import 'package:messagyre_client/database/models/composite_subjects/composite_su
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/database_service.dart';
-import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -157,10 +156,6 @@ extension ColorExtension on Color {
 
     return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
-}
-
-Color adaptiveColor(Color light, Color dark) {
-  return GlobalsService().appBrightness == Brightness.dark ? dark : light;
 }
 
 Color getGradeColor(double grade, {Color? defaultColor, BuildContext? context}) {

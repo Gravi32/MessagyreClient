@@ -7,7 +7,6 @@ class CupertinoPressable extends StatefulWidget {
   final VoidCallback? onTap;
   final BorderRadius? borderRadius;
   final Duration duration;
-  final Color? highlightColor;
   final BoxConstraints? constraints;
   final BoxDecoration? decoration;
   final EdgeInsetsGeometry? padding;
@@ -19,7 +18,6 @@ class CupertinoPressable extends StatefulWidget {
     required this.onTap,
     this.borderRadius,
     this.duration = const Duration(milliseconds: 120),
-    this.highlightColor,
     this.constraints,
     this.decoration,
     this.padding,
@@ -35,7 +33,6 @@ class _CupertinoPressableState extends State<CupertinoPressable> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultHighlight = adaptiveColor(AppColors.white.withAlpha(50), AppColors.black.withAlpha(25));
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -58,7 +55,7 @@ class _CupertinoPressableState extends State<CupertinoPressable> {
         height: widget.height,
 
         foregroundDecoration: BoxDecoration(
-          color: _pressed ? (widget.highlightColor ?? defaultHighlight) : null,
+          color: _pressed ? (AppColors.background.adaptTo(context).withTransparency(.25)) : null,
           borderRadius: widget.borderRadius ?? widget.decoration?.borderRadius,
         ),
         child: widget.child,

@@ -44,7 +44,6 @@ class BootProcedure {
 
     final globals = GlobalsService();
     globals.username = globals.persistent.getString("Username");
-    globals.appBrightnessNotifier.value = .dark;
   }
 
   /// Initializes the database and its repositories
@@ -139,35 +138,30 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Brightness>(
-      valueListenable: globals.appBrightnessNotifier,
-      builder: (context, brightness, _) {
-        return CupertinoApp(
-          navigatorKey: navigatorKey,
+    return CupertinoApp(
+      navigatorKey: navigatorKey,
 
-          //locale: DevicePreview.locale(context),
-          //builder: DevicePreview.appBuilder,
-          theme: CupertinoThemeData(
-            brightness: brightness,
-            primaryColor: AppColors.accent,
-            textTheme: CupertinoTextThemeData(
-              primaryColor: AppColors.accent,
-              textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17),
-            ),
-            scaffoldBackgroundColor: AppColors.background.adaptTo(context),
-            barBackgroundColor: AppColors.background.adaptTo(context),
-          ),
-          localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
-          supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
-          // locale: Locale('fr', 'CH'),
-          home: const MainPage(),
-          builder: (context, child) {
-            final MediaQueryData data = MediaQuery.of(context);
-            return MediaQuery(
-              data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)),
-              child: child!,
-            );
-          },
+      //locale: DevicePreview.locale(context),
+      //builder: DevicePreview.appBuilder,
+      theme: CupertinoThemeData(
+        brightness: MediaQuery.maybePlatformBrightnessOf(context),
+        primaryColor: AppColors.accent,
+        textTheme: CupertinoTextThemeData(
+          primaryColor: AppColors.accent,
+          textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17),
+        ),
+        scaffoldBackgroundColor: AppColors.background.adaptTo(context),
+        barBackgroundColor: AppColors.background.adaptTo(context),
+      ),
+      localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
+      supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
+      // locale: Locale('fr', 'CH'),
+      home: const MainPage(),
+      builder: (context, child) {
+        final MediaQueryData data = MediaQuery.of(context);
+        return MediaQuery(
+          data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)),
+          child: child!,
         );
       },
     );

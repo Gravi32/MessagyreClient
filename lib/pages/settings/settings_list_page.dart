@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart' hide Page;
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -40,8 +39,6 @@ class _SettingsListPageState extends State<SettingsListPage> {
   final network = NetworkService();
   final secureStorage = SecureStorageService();
 
-  late bool isDarkMode;
-
   Account? account;
   bool isCreatingBackup = false;
 
@@ -68,7 +65,6 @@ class _SettingsListPageState extends State<SettingsListPage> {
   @override
   void initState() {
     super.initState();
-    isDarkMode = globals.appBrightness == .dark;
     getAccount();
   }
 
@@ -150,21 +146,6 @@ class _SettingsListPageState extends State<SettingsListPage> {
             title: "Apparence",
             margin: .only(top: 16),
             children: [
-              ListTile.simple(
-                context,
-                title: "Mode sombre",
-                icon: HugeIcons.strokeRoundedMoon02,
-                trailing: CupertinoSwitch(
-                  value: isDarkMode,
-                  onChanged: (value) {
-                    setState(() {
-                      isDarkMode = value;
-                      globals.appBrightness = value ? .dark : .light;
-                      Phoenix.rebirth(context);
-                    });
-                  },
-                ),
-              ),
               ListTile.simple(
                 context,
                 title: "Fond d'écran des conversations",

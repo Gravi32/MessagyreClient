@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:messagyre_client/services/globals_service.dart';
 
 class AppColors {
   // Accent
@@ -45,5 +44,5 @@ class AppColor extends Color {
   const AppColor({required this.light, required this.dark}) : super(0);
 
   /// Adapts the color to the current platform brightness.
-  Color adaptTo(BuildContext context) => GlobalsService().appBrightness == .dark ? dark : light;
+  Color adaptTo(BuildContext context) => MediaQuery.maybePlatformBrightnessOf(context) == .dark ? dark : light;
 }
