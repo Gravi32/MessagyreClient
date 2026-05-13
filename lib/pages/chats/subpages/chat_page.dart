@@ -20,6 +20,7 @@ import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
@@ -214,12 +215,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                         crossAxisAlignment: message.isOwned ? .end : .start,
                         children: [
                           messageBubble(message, false, false, true),
-                          Container(
+                          RoundContainer(
                             width: 240,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.8.toByte()),
-                              borderRadius: .circular(12),
-                            ),
+                            color: AppColors.tertiaryBackground.adaptTo(context),
+                            padding: .zero,
                             child: Column(
                               crossAxisAlignment: .stretch,
                               children: [
@@ -239,23 +238,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                       ],
                                     ),
                                   ),
-                                  // Divider(height: 0, thickness: 1, color: AppColors.tertiaryBackground.adaptTo(context)),
-                                  // CupertinoPressable(
-                                  //   onTap: null,
-                                  //   padding: .symmetric(horizontal: 16, vertical: 10),
-                                  //   child: Row(
-                                  //     mainAxisSize: .max,
-                                  //     mainAxisAlignment: .spaceBetween,
-                                  //     children: [
-                                  //       Text("Infos", style: TextStyle(color: AppColors.inactive.adaptTo(context))),
-                                  //       CustomIcon(
-                                  //         icon: HugeIcons.strokeRoundedInformationSquare,
-                                  //         size: 20,
-                                  //         color: AppColors.inactive.adaptTo(context),
-                                  //       ),
-                                  //     ],
-                                  //   ),
-                                  // ),
                                 ],
                                 if (message.isOwned) ...[
                                   Divider(height: 0, thickness: 1, color: AppColors.tertiaryBackground.adaptTo(context)),
@@ -576,20 +558,15 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     bubbleKeys.putIfAbsent("${data.id}-${data.isOwned}", () => GlobalKey());
 
     BorderRadius getBubbleShape(bool isOwned) {
-      const double maxPx = 11;
-      const Radius max = .circular(maxPx);
+      const Radius max = .circular(24);
+      const Radius min = .circular(8);
       var isAlone = (isPreviousOwned ?? !isOwned) == !isOwned && (isNextOwned ?? !isOwned) == !isOwned;
 
-      BorderRadius owned = .only(
-        topRight: .circular(isPreviousOwned ?? false ? 4 : maxPx),
-        bottomRight: .circular(isAlone || (isNextOwned ?? false) ? 4 : maxPx),
-        topLeft: max,
-        bottomLeft: max,
-      );
+      BorderRadius owned = .only(topRight: isPreviousOwned == true ? min : max, bottomRight: isNextOwned == true ? min : max, topLeft: max, bottomLeft: max);
 
       BorderRadius received = .only(
-        topLeft: .circular(isPreviousOwned ?? true ? maxPx : 4),
-        bottomLeft: .circular(isAlone || !(isNextOwned ?? false) ? 4 : maxPx),
+        topLeft: isPreviousOwned ?? true ? max : min,
+        bottomLeft: isAlone || !(isNextOwned ?? false) ? min : max,
         topRight: max,
         bottomRight: max,
       );
@@ -758,7 +735,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             var previousMessage = messageIndex > 0 ? allMessagesList[messageIndex - 1] : currentMessage;
             var nextMessage = messageIndex < allMessagesList.length - 1 ? allMessagesList[messageIndex + 1] : currentMessage;
 
-            final bubble = messageBubble(currentMessage, previousMessage.isOwned, nextMessage.isOwned, false);
+            final bubble = messageBubble(
+              currentMessage,
+              previousMessage != currentMessage && previousMessage.sentAt.isSameDayAs(currentMessage.sentAt) ? previousMessage.isOwned : null,
+              nextMessage != currentMessage && nextMessage.sentAt.isSameDayAs(currentMessage.sentAt) ? nextMessage.isOwned : null,
+              false,
+            );
 
             return (currentMessage.sentAt.day != previousMessage.sentAt.day ||
                     currentMessage.sentAt.month != previousMessage.sentAt.month ||
