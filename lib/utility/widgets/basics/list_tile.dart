@@ -77,7 +77,7 @@ class _ListTileState extends State<ListTile> {
                 children: [
                   if (widget.leading != null) widget.leading!,
                   Expanded(child: widget.child ?? SizedBox()),
-                  widget.trailing ?? (widget.buildChevron ? const CupertinoListTileChevron() : const SizedBox()),
+                  if (widget.trailing != null || widget.enabled && widget.buildChevron) widget.trailing ?? const CupertinoListTileChevron(),
                 ],
               ),
       ),

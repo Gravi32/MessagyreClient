@@ -16,7 +16,7 @@ class AssignmentTile extends ListTile {
   final bool showDate;
   final bool dim;
 
-  const AssignmentTile({super.key, required this.assignment, this.showDate = true, this.dim = false, super.enabled});
+  const AssignmentTile({super.key, required this.assignment, this.showDate = true, this.dim = false, super.enabled, super.padding});
 
   @override
   State<AssignmentTile> createState() => _AssignmentTileState();
@@ -53,7 +53,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
       enabled: widget.enabled,
       buildChevron: widget.enabled,
       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false)),
-
+      padding: widget.padding,
       trailing: assignment.type == .assignment
           ? Button.icon(
               context,

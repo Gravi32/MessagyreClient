@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class AutocompleteField extends StatefulWidget {
   final List<Object> items;
@@ -33,7 +34,7 @@ class AutocompleteField extends StatefulWidget {
     this.placeholderStyle,
     this.prefix,
     this.suffix,
-    this.suffixMode = OverlayVisibilityMode.always,
+    this.suffixMode = .always,
     this.decoration,
     this.padding,
     this.optionsMaxHeight = 180,
@@ -120,7 +121,6 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
           placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const .symmetric(horizontal: 8),
-
           onSubmitted: (value) {
             if (widget.forceValid) _validateAndFix();
           },
@@ -128,14 +128,10 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
-        return Container(
+        return RoundContainer(
           margin: const .only(top: 8),
+          padding: .all(8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),
-          decoration: BoxDecoration(
-            color: AppColors.secondaryBackground.adaptTo(context),
-            borderRadius: .circular(12),
-            boxShadow: [BoxShadow(color: AppColors.black.withAlpha(150), blurRadius: 10)],
-          ),
           child: ListView.builder(
             shrinkWrap: true,
             padding: .zero,
@@ -146,7 +142,10 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
                 if (index == -1) {
                   return Column(
                     crossAxisAlignment: .stretch,
-                    children: [widget.header!, Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte()))],
+                    children: [
+                      widget.header!,
+                      Divider(height: 1, color: AppColors.separator.adaptTo(context).withAlpha(.1.toByte())),
+                    ],
                   );
                 }
               }

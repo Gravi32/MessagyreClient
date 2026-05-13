@@ -70,7 +70,7 @@ class DismissableTextField extends StatefulWidget {
     this.showCursor,
     this.prefix,
     this.suffix,
-    this.suffixMode = OverlayVisibilityMode.always,
+    this.suffixMode = .always,
     this.onTap,
     this.onChanged,
     this.onSubmitted,

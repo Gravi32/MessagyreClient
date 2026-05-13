@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class GradePicker extends StatelessWidget {
   final double grade;
@@ -19,6 +19,12 @@ class GradePicker extends StatelessWidget {
       child: Stack(
         alignment: .center,
         children: [
+          IgnorePointer(
+            child: Align(
+              alignment: .center,
+              child: RoundContainer(width: 60, height: 80, color: AppColors.tertiaryBackground.adaptTo(context)),
+            ),
+          ),
           RotatedBox(
             quarterTurns: -1,
             child: ListWheelScrollView.useDelegate(
@@ -55,16 +61,6 @@ class GradePicker extends StatelessWidget {
                     ),
                   );
                 },
-              ),
-            ),
-          ),
-          IgnorePointer(
-            child: Align(
-              alignment: .center,
-              child: Container(
-                width: 60,
-                height: 80,
-                decoration: BoxDecoration(color: AppColors.grey.withAlpha(.1.toByte()), borderRadius: .circular(12)),
               ),
             ),
           ),

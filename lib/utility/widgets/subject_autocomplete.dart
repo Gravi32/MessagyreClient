@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
@@ -52,7 +53,7 @@ class SubjectAutocomplete extends StatefulWidget {
     this.placeholderStyle,
     this.prefix,
     this.suffix,
-    this.suffixMode = OverlayVisibilityMode.always,
+    this.suffixMode = .always,
     this.decoration,
     this.padding,
     this.optionsMaxHeight = 180,
@@ -267,7 +268,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
                             Text.rich(
                               TextSpan(
                                 children: highlightSearchMatch(option.name, controller.text, useCache: true),
-                                style: const TextStyle(fontWeight: .w400, fontSize: 20),
+                                style: AppStyles.secondaryHeader(context).copyWith(fontWeight: .w400),
                               ),
                             ),
                           ],
