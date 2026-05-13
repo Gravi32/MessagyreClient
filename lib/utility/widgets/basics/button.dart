@@ -25,6 +25,7 @@ class Button extends StatefulWidget {
   final Function()? onTap;
   final String? text;
   final EdgeInsets? padding;
+  final EdgeInsets? margin;
   final Widget? rawChild;
 
   const Button({
@@ -47,6 +48,7 @@ class Button extends StatefulWidget {
 
     this.onTap,
     this.padding,
+    this.margin,
     this.rawChild,
   });
 
@@ -62,6 +64,7 @@ class Button extends StatefulWidget {
     bool isLoading = false,
     bool isDestructive = false,
     double? size,
+    EdgeInsets? margin,
   }) {
     return Button(
       icon: icon,
@@ -70,6 +73,7 @@ class Button extends StatefulWidget {
       transparent: transparent,
       enabled: enabled,
       isLoading: isLoading,
+      margin: margin,
       color: color ?? (isDestructive ? AppColors.red : AppColors.secondaryBackground.adaptTo(context)),
       iconColor: iconColor,
       padding: .all(8),
@@ -115,6 +119,7 @@ class _ButtonState extends State<Button> {
           transparent: widget.transparent,
           enabled: widget.enabled,
           padding: widget.padding ?? const .all(12),
+          margin: widget.margin,
           color: widget.enabled ? (widget.color ?? AppColors.accent) : AppColors.inactive.adaptTo(context),
           child: Row(
             crossAxisAlignment: .center,
