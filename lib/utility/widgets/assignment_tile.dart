@@ -55,20 +55,18 @@ class _AssignmentTileState extends State<AssignmentTile> {
       onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false)),
 
       trailing: assignment.type == .assignment
-          ? SizedBox(
-              width: 50,
-              child: Button.icon(
-                context,
-                icon: HugeIcons.strokeRoundedTick02,
-                iconColor: isDone ? AppColors.green : AppColors.secondaryBackground.adaptTo(context),
-                onTap: widget.enabled
-                    ? () async {
-                        isDone = !isDone;
-                        assignment.isMarkedAsDone = isDone;
-                        await database.assignments.save(assignment);
-                      }
-                    : null,
-              ),
+          ? Button.icon(
+              context,
+              size: 50,
+              icon: HugeIcons.strokeRoundedTick02,
+              color: AppColors.tertiaryBackground.adaptTo(context),
+              iconColor: isDone ? AppColors.green : AppColors.tertiaryBackground.adaptTo(context),
+              enabled: widget.enabled,
+              onTap: () async {
+                isDone = !isDone;
+                assignment.isMarkedAsDone = isDone;
+                await database.assignments.save(assignment);
+              },
             )
           : null,
 
@@ -128,7 +126,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                         .test => assignment.title ?? "Test sans titre",
                         .leave => assignment.content,
                       },
-                      style: AppStyles.header(context).copyWith(color: assignment.type == .test ? AppColors.red : null),
+                      style: AppStyles.secondaryHeader(context).copyWith(color: assignment.type == .test ? AppColors.red : null),
                       softWrap: true,
                       maxLines: 2,
                     ),
@@ -141,12 +139,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
             if (assignment.type == .test && assignment.content.isNotEmpty)
               ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 80),
-                child: Text(
-                  assignment.content,
-                  style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
-                  softWrap: true,
-                  maxLines: 5,
-                ),
+                child: Text(assignment.content, style: AppStyles.primaryText(context), softWrap: true, maxLines: 5),
               ),
 
             // Subject and date
