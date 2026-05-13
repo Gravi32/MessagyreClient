@@ -56,11 +56,12 @@ class TopBar extends StatefulWidget {
     return TopBar(middle: Text(title), leading: leading, trailing: trailing, isSliver: true);
   }
 
-  factory TopBar.sliverWithChevron(BuildContext context, {required String title}) {
+  factory TopBar.sliverWithChevron(BuildContext context, {required String title, Widget? trailing}) {
     return TopBar(
       middle: Text(title),
       leading: Button.icon(context, margin: .only(bottom: 2), icon: HugeIcons.strokeRoundedArrowLeft01, onTap: () => Navigator.pop(context)),
       isSliver: true,
+      trailing: trailing,
     );
   }
 

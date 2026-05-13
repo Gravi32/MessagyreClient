@@ -4,7 +4,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
-import 'package:messagyre_client/pages/grades/subpages/grades_subject_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -189,7 +189,9 @@ class SubjectCard extends StatelessWidget {
                   if (isSubjectLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
                   if (compositeSubjectMode) CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 14, color: AppColors.text.adaptTo(context)),
                   if (isSubjectEmpty && !isSubjectLocked && compositeSubject == null)
-                    Text("+ Ajouter une note", style: TextStyle(color: AppColors.tertiaryText.adaptTo(context))),
+                    Expanded(
+                      child: Text("+ Ajouter une note", softWrap: false, style: AppStyles.tertiaryText(context), overflow: .fade),
+                    ),
                 ],
               ),
             ),

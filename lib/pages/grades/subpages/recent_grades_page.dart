@@ -41,9 +41,9 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
       grouped.putIfAbsent(weekStart, () => []).add(grade);
     }
 
-    return Page(
-      topBar: TopBar.tab(context, title: "Toutes les notes"),
-      child: ListView(
+    return Page.sliver(
+      topBar: TopBar.sliverWithChevron(context, title: "Toutes les notes"),
+      body: ListView(
         padding: .zero,
         children: grouped.entries.map((entry) {
           final start = entry.key;
