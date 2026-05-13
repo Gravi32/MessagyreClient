@@ -52,8 +52,12 @@ class _AssignmentTileState extends State<AssignmentTile> {
       key: ValueKey(assignment.id),
       enabled: widget.enabled,
       buildChevron: widget.enabled,
-      onTap: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false)),
       padding: widget.padding,
+      onTap: () => showCupertinoSheet(
+        context: context,
+        builder: (context) => NewAssignmentPage(toEdit: assignment),
+        enableDrag: false,
+      ),
       trailing: assignment.type == .assignment
           ? Button.icon(
               context,
