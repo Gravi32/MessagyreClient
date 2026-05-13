@@ -37,6 +37,7 @@ class _PagedCardState extends State<PagedCard> {
             child: PageView.builder(
               controller: _controller,
               itemCount: widget.pages.length,
+              physics: ClampingScrollPhysics(),
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemBuilder: (context, index) => FractionallySizedBox(widthFactor: 1 / _controller.viewportFraction, child: widget.pages[index]),
             ),
