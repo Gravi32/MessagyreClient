@@ -150,7 +150,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
       children: [
         Row(
           mainAxisAlignment: .spaceBetween,
-          crossAxisAlignment: .start,
+          crossAxisAlignment: .center,
           children: [
             Text("Bulletin", style: AppStyles.header(context)),
             Button.icon(
@@ -240,8 +240,15 @@ class _GradesTopCardState extends State<GradesTopCard> {
     // Build the grid of statistics
     return Column(
       crossAxisAlignment: .start,
+      spacing: 4,
       children: [
-        Text("Statistiques", style: AppStyles.header(context)),
+        Row(
+          crossAxisAlignment: .center,
+          children: [
+            Text("Statistiques", style: AppStyles.header(context)),
+            SizedBox(height: 40),
+          ],
+        ),
 
         Expanded(
           child: GridView.count(
