@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart' hide Page;
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
@@ -9,10 +10,12 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/grades/subpages/grade_group_page.dart';
 import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
+import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
@@ -292,7 +295,15 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   Widget build(BuildContext context) {
     return Page.sliver(
       onFloatingButtonTap: showNewGradePopup,
-      topBar: TopBar.sliverWithChevron(context, title: widget.subject.name),
+      topBar: TopBar.sliverWithChevron(
+        context,
+        title: widget.subject.name,
+        trailing: Button.icon(
+          context,
+          icon: HugeIcons.strokeRoundedSettings05,
+          onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => NewSubjectPage(toEdit: widget.subject))),
+        ),
+      ),
       body: StreamBuilder(
         stream: database.grades.watchAll(),
         builder: (context, _) {
