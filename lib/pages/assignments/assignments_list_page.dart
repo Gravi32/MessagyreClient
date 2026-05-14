@@ -128,7 +128,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
               if (plannedAssignments.isNotEmpty) buildSection(plannedAssignments, "À venir"),
               if (pastAssignments.isNotEmpty) buildSection(pastAssignments, "Passés", dimTiles: true, reverseSort: true),
               if (allAssignments.isEmpty) buildPlaceholder(),
-              BottomSpacing(),
+              BottomSpacing(includeBottomBar: true),
             ],
           );
         },
