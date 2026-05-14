@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 3.62.929+929
+version: 3.65.938+938
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -67,6 +67,9 @@ version: 3.62.929+929
 # 2.60  Users can now choose the max number of failing subjects in the report
 # 3.61  Started transitioning to a more rounded looks style (dialogs)
 # 3.62  Redesigned subject cards
+# 3.63  Split report card in 3 separate pages
+# 3.64  Added settings shortcut buttons in the grade pages
+# 3.65  Improved light/dark mode picker
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
