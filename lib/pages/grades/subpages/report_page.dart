@@ -14,6 +14,7 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/modal_popup.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
@@ -113,50 +114,34 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setPopupState) {
-          return SafeArea(
-            top: false,
-            child: RoundContainer(
-              height: 250,
-              padding: .all(16).copyWith(top: 0),
-              margin: .all(10),
-              child: Column(
-                crossAxisAlignment: .stretch,
-                children: [
-                  TopBar.form(
-                    context,
-                    title: "Max. branches insuffisantes",
-                    trailing: Button.icon(
-                      context,
-                      icon: HugeIcons.strokeRoundedTick02,
-                      onTap: () async {
-                        globals.persistent.setInt("MaxFailingSubjects", maxFailingSubjects);
-                        setState(() {});
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-
-                  Expanded(
-                    child: Padding(
-                      padding: .symmetric(horizontal: 10, vertical: 10),
-                      child: Picker(
-                        controller: pickerController,
-                        onChanged: (index) {
-                          setPopupState(() {
-                            maxFailingSubjects = index;
-                          });
-                        },
-                        children: [for (int index = 0; index <= 10; index++) Center(child: Text(index.toString(), style: TextStyle()))],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      builder: (context) => ModalPopup(
+        topBar: TopBar.form(
+          context,
+          title: "Max. branches insuffisantes",
+          trailing: Button.icon(
+            context,
+            icon: HugeIcons.strokeRoundedTick02,
+            onTap: () async {
+              globals.persistent.setInt("MaxFailingSubjects", maxFailingSubjects);
+              setState(() {});
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        height: 180,
+        child: StatefulBuilder(
+          builder: (context, setPopupState) {
+            return Picker(
+              controller: pickerController,
+              onChanged: (index) {
+                setPopupState(() {
+                  maxFailingSubjects = index;
+                });
+              },
+              children: [for (int index = 0; index <= 10; index++) Center(child: Text(index.toString(), style: TextStyle()))],
+            );
+          },
+        ),
       ),
     );
   }

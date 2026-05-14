@@ -7,16 +7,18 @@ import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/subject_page.dart';
+import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/modal_popup.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/chart.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class SubjectCard extends StatelessWidget {
   final Subject? subject;
@@ -63,61 +65,70 @@ class SubjectCard extends StatelessWidget {
 
       showCupertinoModalPopup(
         context: context,
-        builder: (dialogContext) => CupertinoActionSheet(
-          actions: [
-            Padding(
-              padding: .symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: .stretch,
-                spacing: 10,
-                children: [
-                  Row(
-                    spacing: 6,
-                    children: [
-                      CustomIcon(icon: HugeIcons.strokeRoundedNodeAdd, size: 24, color: AppColors.text.adaptTo(context)),
-                      Text("Branche composée", style: TextStyle(fontSize: 26, fontWeight: .w600)),
-                      Spacer(),
-                      CustomIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: AppColors.secondaryText.adaptTo(context), size: 24, strokeWidth: 1.5),
-                    ],
-                  ),
-
-                  CustomText("\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.", style: TextStyle(fontSize: 16)),
-                  Text("Appuyez pour voir les notes de :", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                ],
-              ),
+        builder: (dialogContext) => ModalPopup(
+          topBar: TopBar.form(
+            context,
+            title: "Branche composée",
+            trailing: Button.icon(
+              context,
+              icon: HugeIcons.strokeRoundedMoreHorizontal,
+              onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => NewCompositeSubjectPage(toEdit: compositeSubject))),
             ),
-            CupertinoActionSheetAction(
-              onPressed: () => pushPage(context, firstSubject, dialogContext: dialogContext),
-              child: Row(
-                spacing: 8,
-                children: [
-                  Padding(
-                    padding: .symmetric(horizontal: 8),
-                    child: SubjectBadge(subject: firstSubject),
-                  ),
-                  Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-                  Spacer(),
-                  CupertinoListTileChevron(),
-                ],
+          ),
+          decorations: [Text("Appuyez pour voir les notes", style: AppStyles.footer(context))],
+          child: Column(
+            mainAxisSize: .min,
+            spacing: 16,
+            children: [
+              CustomText(
+                "\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.",
+                style: AppStyles.primaryText(context).copyWith(fontSize: 17),
               ),
-            ),
-            CupertinoActionSheetAction(
-              onPressed: () => pushPage(context, secondSubject, dialogContext: dialogContext),
-              child: Row(
-                spacing: 8,
-                children: [
-                  Padding(
-                    padding: .symmetric(horizontal: 8),
-                    child: SubjectBadge(subject: secondSubject),
-                  ),
-                  Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-                  Spacer(),
-                  CupertinoListTileChevron(),
-                ],
+              SizedBox(
+                height: 110,
+                child: Row(
+                  crossAxisAlignment: .stretch,
+                  spacing: 8,
+                  children: [
+                    Expanded(child: SubjectCard(subject: firstSubject)),
+                    Expanded(child: SubjectCard(subject: secondSubject)),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+
+        // CupertinoActionSheetAction(
+        //   onPressed: () => pushPage(context, firstSubject, dialogContext: dialogContext),
+        //   child: Row(
+        //     spacing: 8,
+        //     children: [
+        //       Padding(
+        //         padding: .symmetric(horizontal: 8),
+        //         child: SubjectBadge(subject: firstSubject),
+        //       ),
+        //       Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
+        //       Spacer(),
+        //       CupertinoListTileChevron(),
+        //     ],
+        //   ),
+        // ),
+        // CupertinoActionSheetAction(
+        //   onPressed: () => pushPage(context, secondSubject, dialogContext: dialogContext),
+        //   child: Row(
+        //     spacing: 8,
+        //     children: [
+        //       Padding(
+        //         padding: .symmetric(horizontal: 8),
+        //         child: SubjectBadge(subject: secondSubject),
+        //       ),
+        //       Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
+        //       Spacer(),
+        //       CupertinoListTileChevron(),
+        //     ],
+        //   ),
+        // ),
       );
     }
   }

@@ -4,8 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/modal_popup.dart';
 import 'package:messagyre_client/utility/widgets/basics/picker.dart';
-import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 
 void showNotificationOptionsPicker() {}
@@ -133,147 +133,129 @@ class _NotificationDatePickerState extends State<NotificationDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return RoundContainer(
-      padding: .all(16).copyWith(top: 0),
-      margin: .all(10),
+    return ModalPopup(
       height: 250,
-      child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            TopBar.form(
-              context,
-              title: "Me rappeler",
-              trailing: Button.icon(
-                context,
-                icon: HugeIcons.strokeRoundedTick02,
-                onTap: () {
-                  widget.onNotificationDateChanged(chosenDateTime);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: .symmetric(horizontal: 10, vertical: 10),
-                child: Row(
-                  children: [
-                    // "Days Before" Picker
-                    Expanded(
-                      flex: 2,
-                      child: Picker(
-                        controller: daysBeforePickerController,
-                        onChanged: (index) {
-                          final daysBefore = widget.notificationDayOptions.keys.toList()[index];
-
-                          if (!isValid(widget.dueDate.addDays(-daysBefore), countTimeToo: false)) {
-                            scrollToFirstAvailableDaysBefore();
-                            return;
-                          }
-
-                          setState(() {
-                            if (daysBefore == -1) {
-                              chosenDateTime = null;
-                            } else {
-                              DateTime result = widget.dueDate.addDays(-daysBefore).dateOnly();
-
-                              if (chosenDateTime == null) {
-                                result = result.copyWith(hour: 17);
-                                WidgetsBinding.instance.addPostFrameCallback(
-                                  (_) => hourPickerController.animateToItem(17, duration: Duration(milliseconds: 200), curve: Curves.easeInOut),
-                                );
-                              } else {
-                                result = result.withTheTimeOf(chosenDateTime!);
-                              }
-
-                              chosenDateTime = result;
-                            }
-
-                            if (!isValid(chosenDateTime)) {
-                              scrollToFirstAvailableHour();
-                              scrollToFirstAvailableMinutes();
-                            }
-                          });
-                        },
-                        children: widget.notificationDayOptions.values.mapIndexed((index, text) {
-                          final daysBefore = widget.notificationDayOptions.keys.toList()[index];
-                          return Center(
-                            child: Text(
-                              text,
-                              style: TextStyle(
-                                color: isValid(widget.dueDate.addDays(-daysBefore), countTimeToo: false) ? null : AppColors.inactive.adaptTo(context),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-
-                    // Hour Picker
-                    if (chosenDateTime != null)
-                      Expanded(
-                        child: Picker(
-                          controller: hourPickerController,
-                          onChanged: (index) {
-                            final resultDateTime = chosenDateTime?.copyWith(hour: hours[index]);
-
-                            if (!isValid(resultDateTime)) {
-                              scrollToFirstAvailableHour();
-                              return;
-                            }
-
-                            setState(() => chosenDateTime = resultDateTime);
-                          },
-                          children: hours
-                              .map(
-                                (hour) => Center(
-                                  child: Text(
-                                    hour.toString().padLeft(2, '0'),
-                                    style: TextStyle(
-                                      color: isValid(chosenDateTime?.copyWith(hour: hour, minute: 44)) ? null : AppColors.inactive.adaptTo(context),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-
-                    // Minutes Picker
-                    if (chosenDateTime != null)
-                      Expanded(
-                        child: Picker(
-                          controller: minutesPickerController,
-                          onChanged: (index) {
-                            final resultTime = chosenDateTime?.copyWith(minute: minutes[index]);
-
-                            if (!isValid(resultTime)) {
-                              scrollToFirstAvailableMinutes();
-                              return;
-                            }
-
-                            setState(() {
-                              chosenDateTime = resultTime;
-                            });
-                          },
-                          children: minutes
-                              .map(
-                                (minute) => Center(
-                                  child: Text(
-                                    minute.toString().padLeft(2, '0'),
-                                    style: TextStyle(color: isValid(chosenDateTime?.copyWith(minute: minute)) ? null : AppColors.inactive.adaptTo(context)),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+      topBar: TopBar.form(
+        context,
+        title: "Me rappeler",
+        trailing: Button.icon(
+          context,
+          icon: HugeIcons.strokeRoundedTick02,
+          onTap: () {
+            widget.onNotificationDateChanged(chosenDateTime);
+            Navigator.of(context).pop();
+          },
         ),
+      ),
+      child: Row(
+        children: [
+          // "Days Before" Picker
+          Expanded(
+            flex: 2,
+            child: Picker(
+              controller: daysBeforePickerController,
+              onChanged: (index) {
+                final daysBefore = widget.notificationDayOptions.keys.toList()[index];
+
+                if (!isValid(widget.dueDate.addDays(-daysBefore), countTimeToo: false)) {
+                  scrollToFirstAvailableDaysBefore();
+                  return;
+                }
+
+                setState(() {
+                  if (daysBefore == -1) {
+                    chosenDateTime = null;
+                  } else {
+                    DateTime result = widget.dueDate.addDays(-daysBefore).dateOnly();
+
+                    if (chosenDateTime == null) {
+                      result = result.copyWith(hour: 17);
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => hourPickerController.animateToItem(17, duration: Duration(milliseconds: 200), curve: Curves.easeInOut),
+                      );
+                    } else {
+                      result = result.withTheTimeOf(chosenDateTime!);
+                    }
+
+                    chosenDateTime = result;
+                  }
+
+                  if (!isValid(chosenDateTime)) {
+                    scrollToFirstAvailableHour();
+                    scrollToFirstAvailableMinutes();
+                  }
+                });
+              },
+              children: widget.notificationDayOptions.values.mapIndexed((index, text) {
+                final daysBefore = widget.notificationDayOptions.keys.toList()[index];
+                return Center(
+                  child: Text(
+                    text,
+                    style: TextStyle(color: isValid(widget.dueDate.addDays(-daysBefore), countTimeToo: false) ? null : AppColors.inactive.adaptTo(context)),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
+          // Hour Picker
+          if (chosenDateTime != null)
+            Expanded(
+              child: Picker(
+                controller: hourPickerController,
+                onChanged: (index) {
+                  final resultDateTime = chosenDateTime?.copyWith(hour: hours[index]);
+
+                  if (!isValid(resultDateTime)) {
+                    scrollToFirstAvailableHour();
+                    return;
+                  }
+
+                  setState(() => chosenDateTime = resultDateTime);
+                },
+                children: hours
+                    .map(
+                      (hour) => Center(
+                        child: Text(
+                          hour.toString().padLeft(2, '0'),
+                          style: TextStyle(color: isValid(chosenDateTime?.copyWith(hour: hour, minute: 44)) ? null : AppColors.inactive.adaptTo(context)),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+
+          // Minutes Picker
+          if (chosenDateTime != null)
+            Expanded(
+              child: Picker(
+                controller: minutesPickerController,
+                onChanged: (index) {
+                  final resultTime = chosenDateTime?.copyWith(minute: minutes[index]);
+
+                  if (!isValid(resultTime)) {
+                    scrollToFirstAvailableMinutes();
+                    return;
+                  }
+
+                  setState(() {
+                    chosenDateTime = resultTime;
+                  });
+                },
+                children: minutes
+                    .map(
+                      (minute) => Center(
+                        child: Text(
+                          minute.toString().padLeft(2, '0'),
+                          style: TextStyle(color: isValid(chosenDateTime?.copyWith(minute: minute)) ? null : AppColors.inactive.adaptTo(context)),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+        ],
       ),
     );
   }

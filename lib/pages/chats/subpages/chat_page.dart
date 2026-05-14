@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart' hide ConnectionState;
-import 'package:flutter/material.dart' hide ConnectionState;
+import 'package:flutter/material.dart' hide ConnectionState, Dialog;
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -20,6 +20,7 @@ import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -244,63 +245,29 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                                   CupertinoPressable(
                                     onTap: () {
                                       animationController.reverse().then((_) => entry.remove());
-                                      showCupertinoModalPopup(
+                                      showCupertinoDialog(
                                         context: context,
-                                        builder: (popupContext) {
-                                          return CupertinoActionSheet(
-                                            title: Text("Supprimer le message", style: TextStyle(fontSize: 14)),
-                                            message: Text(
-                                              "Choisissez comment supprimer le message. Ces actions sont irréversibles !",
-                                              style: TextStyle(fontSize: 14),
-                                            ),
-                                            actions: [
-                                              CupertinoActionSheetAction(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    chatData.messages.remove(message);
-                                                  });
-
-                                                  Navigator.pop(popupContext);
-                                                },
-                                                child: Row(
-                                                  mainAxisAlignment: .spaceBetween,
-                                                  children: [
-                                                    Text("Supprimer pour vous", style: TextStyle(color: AppColors.red, fontSize: 18)),
-                                                    CustomIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: AppColors.red),
-                                                  ],
-                                                ),
-                                              ),
-
-                                              if (!message.isDeleted)
-                                                CupertinoActionSheetAction(
-                                                  onPressed: () {
-                                                    try {
-                                                      final savedMessage = chatData.messages.firstWhere((element) => element.uuid == message.uuid);
-
-                                                      database.messages.markAsDeleted(savedMessage);
-
-                                                      network.sendMessageDelete([message.uuid], widget.username);
-
-                                                      setState(() {});
-                                                      debugPrint("[Chat] Deletion request sent for ${message.uuid}");
-                                                    } catch (e) {
-                                                      debugPrint("[Chat] Failed sending deletion request: $e");
-                                                    }
-                                                    Navigator.pop(popupContext);
-                                                  },
-                                                  child: Row(
-                                                    mainAxisAlignment: .spaceBetween,
-                                                    children: [
-                                                      Text("Supprimer pour tout le monde", style: TextStyle(color: AppColors.red, fontSize: 18)),
-                                                      CustomIcon(icon: HugeIcons.strokeRoundedDelete04, size: 20, color: AppColors.red),
-                                                    ],
-                                                  ),
-                                                ),
-                                            ],
-                                          );
-                                        },
+                                        builder: (context) => Dialog(
+                                          title: "Supprimer le message",
+                                          content: "Choisissez *comment supprimer ce message*. Ces actions sont irréversibles !",
+                                          options: {
+                                            "Supprimer pour vous": () => setState(() => chatData.messages.remove(message)),
+                                            "Supprimer pour tout le monde": () {
+                                              try {
+                                                final savedMessage = chatData.messages.firstWhere((element) => element.uuid == message.uuid);
+                                                database.messages.markAsDeleted(savedMessage);
+                                                network.sendMessageDelete([message.uuid], widget.username);
+                                                setState(() {});
+                                                debugPrint("[Chat] Deletion request sent for ${message.uuid}");
+                                              } catch (e) {
+                                                debugPrint("[Chat] Failed sending deletion request: $e");
+                                              }
+                                            },
+                                          },
+                                        ),
                                       );
                                     },
+
                                     padding: .symmetric(horizontal: 18, vertical: 10),
                                     child: Row(
                                       mainAxisSize: .max,
