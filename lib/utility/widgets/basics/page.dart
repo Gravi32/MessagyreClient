@@ -10,6 +10,7 @@ class Page extends StatelessWidget {
   final Color? backgroundColor;
   final TopBar? topBar;
   final bool isSliver;
+  final bool ignorePadding;
   final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
   final ScrollController? scrollController;
   final void Function()? onFloatingButtonTap;
@@ -21,6 +22,7 @@ class Page extends StatelessWidget {
     this.backgroundColor,
     this.topBar,
     this.isSliver = false,
+    this.ignorePadding = false,
     this.sliverHeaderBuilder,
     this.scrollController,
     this.onFloatingButtonTap,
@@ -66,6 +68,7 @@ class Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EdgeInsets padding = const .symmetric(horizontal: 10);
     final bgColor = backgroundColor ?? AppColors.background.adaptTo(context);
 
     return PopScope(
@@ -79,14 +82,14 @@ class Page extends StatelessWidget {
                     controller: scrollController,
                     headerSliverBuilder: sliverHeaderBuilder!,
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                    body: SafeArea(top: false, minimum: .symmetric(horizontal: 10), child: child),
+                    body: SafeArea(top: false, minimum: padding, child: child),
                   )
                 : SafeArea(
-                    minimum: const .symmetric(horizontal: 10),
+                    minimum: ignorePadding ? .zero : padding,
                     child: Column(
                       crossAxisAlignment: .stretch,
                       children: [
-                        if (topBar != null) topBar!,
+                        if (topBar != null) SafeArea(minimum: ignorePadding ? padding : .zero, child: topBar!),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(color: bgColor),

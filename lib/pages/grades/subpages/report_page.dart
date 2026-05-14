@@ -17,6 +17,7 @@ import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/segmented_control.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/composite_subject_badge.dart';
 import 'package:messagyre_client/utility/widgets/numbered_progress_bar.dart';
@@ -35,6 +36,8 @@ class ReportCardPage extends StatefulWidget {
 class _ReportCardPageState extends State<ReportCardPage> {
   final globals = GlobalsService();
   final report = ReportService();
+
+  final pageController = PageController();
 
   Widget buildRow(String subjectName, double? average, double? rawAverage, bool isLocked, {Subject? subject, CompositeSubject? compositeSubject}) {
     return Padding(
@@ -167,292 +170,344 @@ class _ReportCardPageState extends State<ReportCardPage> {
     final restrictedGroupCompositeSubjects = report.restrictedGroupCompositeSubjects;
     final restrictedGroupSubjects = report.restrictedGroupSubjects;
 
-    final indicators = [
-      Builder(
-        builder: (context) {
-          final isLowerThanMinimum = report.totalPoints < report.minTotalPoints;
-          final difference = (report.minTotalPoints - report.totalPoints).abs().removeTrailingZero();
-
-          return Column(
-            crossAxisAlignment: .stretch,
-            children: [
-              Text("Total des points", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
-              Text(
-                "$difference point${difference == "1" ? "" : "s"} ${isLowerThanMinimum ? "nécessaires" : "au-dessus du minimum"}",
-                style: AppStyles.primaryText(context).copyWith(color: isLowerThanMinimum ? AppColors.red : AppColors.green),
-              ),
-
-              const SizedBox.square(dimension: 6),
-              NumberedProgressBar(
-                lowerBound: isLowerThanMinimum ? "0" : report.minTotalPoints.toString(),
-                upperBound: (isLowerThanMinimum ? report.minTotalPoints : report.maxTotalPoints).toString(),
-                progress: max(
-                  0,
-                  isLowerThanMinimum
-                      ? report.totalPoints / report.minTotalPoints
-                      : (report.totalPoints - report.minTotalPoints) / (report.maxTotalPoints - report.minTotalPoints),
-                ),
-                value: report.totalPoints.removeTrailingZero(),
-                color: isLowerThanMinimum ? AppColors.red : AppColors.green,
-                fontSize: 32,
-              ),
-            ],
-          );
-        },
-      ),
-
-      if (report.maxFailingGrades > 0)
-        Column(
-          crossAxisAlignment: .stretch,
-          children: [
-            Text("Moyennes insuffisantes", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
-            const SizedBox.square(dimension: 6),
-            NumberedProgressBar(
-              lowerBound: "0",
-              upperBound: report.maxFailingGrades.toString(),
-              progress: (report.failingGrades / report.maxFailingGrades).clamp(0, 1),
-              value: report.failingGrades.toString(),
-              color: getProgressColor(report.failingGrades / report.maxFailingGrades),
-              fontSize: 32,
-            ),
-          ],
-        ),
-
-      if (report.usingDoubleCompensation)
-        Builder(
-          builder: (context) {
-            final isFailing = report.doubleCompensation < 0;
-            final progress = report.doubleCompensation / (report.deficit.abs() + report.surplus);
-            final difference = report.doubleCompensation.abs() * 2.0;
-
-            return Column(
-              crossAxisAlignment: .stretch,
-              children: [
-                Text("Double compensation", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
-
-                if (isFailing)
-                  Text(
-                    "+${difference.removeTrailingZero()} point${difference == 1.0 ? "" : "s"} nécessaires",
-                    style: TextStyle(fontSize: 14, color: AppColors.red),
-                  ),
-
-                const SizedBox.square(dimension: 6),
-                NumberedProgressBar(
-                  lowerBound: report.deficit.toDouble().removeTrailingZero(),
-                  upperBound: "+${report.surplus.toDouble().removeTrailingZero()}",
-                  progress: progress,
-                  value: report.doubleCompensation.toDouble().removeTrailingZero(),
-                  color: isFailing ? AppColors.red : AppColors.green,
-                  centered: true,
-                  fontSize: 32,
-                ),
-              ],
-            );
-          },
-        ),
-
-      if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty)
-        Builder(
-          builder: (context) {
-            final isLowerThanMinimum = report.restrictedGroupPoints < report.minRestrictedGroupPoints;
-
-            final progress = max(
-              0,
-              isLowerThanMinimum
-                  ? report.restrictedGroupPoints / report.minRestrictedGroupPoints
-                  : (report.restrictedGroupPoints - report.minRestrictedGroupPoints) / (report.maxRestrictedGroupPoints - report.minRestrictedGroupPoints),
-            ).toDouble();
-            final difference = (report.minRestrictedGroupPoints - report.restrictedGroupPoints).abs().removeTrailingZero();
-
-            return Column(
-              crossAxisAlignment: .stretch,
-              children: [
-                Text("Points du groupe restreint", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
-
-                Text(
-                  isLowerThanMinimum
-                      ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
-                      : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
-                  style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
-                ),
-
-                const SizedBox.square(dimension: 6),
-                NumberedProgressBar(
-                  lowerBound: isLowerThanMinimum ? "0" : report.minRestrictedGroupPoints.toString(),
-                  upperBound: (isLowerThanMinimum ? report.minRestrictedGroupPoints : report.maxRestrictedGroupPoints).toString(),
-                  progress: progress,
-                  value: report.totalPoints.removeTrailingZero(),
-                  color: isLowerThanMinimum ? AppColors.red : AppColors.green,
-                  fontSize: 32,
-                ),
-              ],
-            );
-          },
-        ),
-    ];
-
     return Page(
       topBar: TopBar.tab(context, title: "Votre bulletin"),
-      child: ListView(
-        padding: .zero,
+      ignorePadding: true,
+      child: Column(
+        spacing: 16,
         children: [
-          // All subjects list
-          RoundContainer(
-            child: Column(
-              crossAxisAlignment: .stretch,
+          Padding(
+            padding: .symmetric(horizontal: 10),
+            child: SegmentedControl(
+              pageController: pageController,
+              options: {"Bulletin": 0, "Critères": 1, "Options": 2},
+              onTap: (index) => pageController.animateToPage(index, duration: Duration(milliseconds: 120), curve: Curves.easeInOutQuart),
+            ),
+          ),
+          Expanded(
+            child: PageView(
+              controller: pageController,
               children: [
-                // All subjects
-                () {
-                  final filteredList = [
-                    ...allCompositeSubjects,
-                    ...allSubjects,
-                  ].where((subject) => !(usingRestrictedGroup && restrictedGroupCodes.contains((subject as dynamic).code))).toList();
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      final subject = filteredList[index];
-                      return subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
-                    },
-                    separatorBuilder: (context, _) => Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
-                    itemCount: filteredList.length,
-                  );
-                }(),
-
-                // Restricted group subjects
-                if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
-                  Padding(
-                    padding: .only(top: 24, bottom: 6),
-                    child: Text("Groupe restreint", style: AppStyles.header(context)),
-                  ),
-
-                  () {
-                    final restrictedList = [...restrictedGroupCompositeSubjects, ...restrictedGroupSubjects];
-
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final subject = restrictedList[index];
-                        return subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
-                      },
-                      separatorBuilder: (context, _) => Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
-                      itemCount: restrictedList.length,
-                    );
-                  }(),
-                ],
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Criteria Stats
-          RoundContainer(
-            child: ListView.separated(
-              itemCount: indicators.length,
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemBuilder: (_, index) => indicators[index],
-              separatorBuilder: (context, _) => Divider(height: 24, color: AppColors.secondaryBackground.adaptTo(context)),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Criteria Options
-          ListSection(
-            title: "Critères de promotion",
-            children: [
-              ListTile.simple(
-                context,
-                title: "Max. de notes insuffisantes",
-                trailing: Row(
-                  mainAxisSize: .min,
-                  spacing: 6,
+                // All subjects list
+                ListView(
+                  padding: .symmetric(horizontal: 10),
                   children: [
-                    Text(report.maxFailingGrades.toString(), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                    CupertinoListTileChevron(),
+                    RoundContainer(
+                      child: Column(
+                        crossAxisAlignment: .stretch,
+                        spacing: 6,
+                        children: [
+                          // All subjects
+                          () {
+                            final filteredList = [
+                              ...allCompositeSubjects,
+                              ...allSubjects,
+                            ].where((subject) => !(usingRestrictedGroup && restrictedGroupCodes.contains((subject as dynamic).code))).toList();
+
+                            return ListView.separated(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                final subject = filteredList[index];
+                                return subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
+                              },
+                              separatorBuilder: (context, _) => Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
+                              itemCount: filteredList.length,
+                            );
+                          }(),
+
+                          // Restricted group subjects
+                          if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
+                            Padding(
+                              padding: .only(top: 18),
+                              child: Text("Groupe restreint", style: AppStyles.header(context)),
+                            ),
+
+                            () {
+                              final restrictedList = [...restrictedGroupCompositeSubjects, ...restrictedGroupSubjects];
+
+                              return ListView.separated(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  final subject = restrictedList[index];
+                                  return subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
+                                },
+                                separatorBuilder: (context, _) => Divider(color: AppColors.secondaryBackground.adaptTo(context), height: 4),
+                                itemCount: restrictedList.length,
+                              );
+                            }(),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    BottomSpacing(),
                   ],
                 ),
-                onTap: () => chooseMaxFailingSubjects(),
-              ),
-              ListTile.simple(
-                context,
-                title: "Double compensation",
-                trailing: CupertinoSwitch(
-                  value: report.usingDoubleCompensation,
-                  onChanged: (newValue) {
-                    globals.persistent.setBool("UseDoubleCompensation", newValue);
-                    setState(() {});
-                  },
-                ),
-              ),
-            ],
-          ),
 
-          if (allSubjects.length > 3) ...[
-            const SizedBox(height: 10),
-            ListSection(
-              margin: .zero,
-              children: [
-                ListTile.simple(
-                  context,
-                  title: "Groupe restreint",
-                  trailing: CupertinoSwitch(
-                    value: usingRestrictedGroup,
-                    onChanged: (newValue) {
-                      globals.persistent.setBool("UseRestrictedGroup", newValue);
-                      setState(() {});
-                    },
-                  ),
-                ),
-
-                for (final compositeSubject in restrictedGroupCompositeSubjects)
-                  ListTile(
-                    leading: Button.icon(
-                      context,
-                      onTap: () => onSubjectRemoved(compositeSubject.code),
-                      icon: HugeIcons.strokeRoundedCancel01,
-                      isDestructive: true,
-                    ),
-                    child: Row(
-                      spacing: 10,
+                // Criteria Stats
+                ListView(
+                  padding: .symmetric(horizontal: 10),
+                  children: [
+                    ListSection(
                       children: [
-                        CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20),
-                        Text(compositeSubject.name),
+                        ListTile(
+                          buildChevron: false,
+                          child: Builder(
+                            builder: (context) {
+                              final isLowerThanMinimum = report.totalPoints < report.minTotalPoints;
+                              final difference = (report.minTotalPoints - report.totalPoints).abs().removeTrailingZero();
+
+                              return Column(
+                                crossAxisAlignment: .stretch,
+                                children: [
+                                  Text("Total des points", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+                                  Text(
+                                    "$difference point${difference == "1" ? "" : "s"} ${isLowerThanMinimum ? "nécessaires" : "au-dessus du minimum"}",
+                                    style: AppStyles.primaryText(context).copyWith(color: isLowerThanMinimum ? AppColors.red : AppColors.green),
+                                  ),
+
+                                  const SizedBox.square(dimension: 6),
+                                  NumberedProgressBar(
+                                    lowerBound: isLowerThanMinimum ? "0" : report.minTotalPoints.toString(),
+                                    upperBound: (isLowerThanMinimum ? report.minTotalPoints : report.maxTotalPoints).toString(),
+                                    progress: max(
+                                      0,
+                                      isLowerThanMinimum
+                                          ? report.totalPoints / report.minTotalPoints
+                                          : (report.totalPoints - report.minTotalPoints) / (report.maxTotalPoints - report.minTotalPoints),
+                                    ),
+                                    value: report.totalPoints.removeTrailingZero(),
+                                    color: isLowerThanMinimum ? AppColors.red : AppColors.green,
+                                    fontSize: 32,
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
-                  ),
 
-                for (final subject in restrictedGroupSubjects)
-                  ListTile(
-                    leading: SubjectBadge(subject: subject, size: 20),
-                    trailing: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
-                    child: Text(subject.name, style: AppStyles.primaryText(context)),
-                    onTap: () => showCupertinoDialog(
-                      context: context,
-                      builder: (_) =>
-                          Dialog.confirm(content: "Supprimer '${subject.name}' du groupe restraint ?", onConfirm: () => onSubjectRemoved(subject.code)),
-                    ),
-                  ),
+                    if (report.maxFailingGrades > 0)
+                      ListSection(
+                        margin: .only(top: 16),
+                        children: [
+                          ListTile(
+                            buildChevron: false,
+                            child: Column(
+                              crossAxisAlignment: .stretch,
+                              children: [
+                                Text("Moyennes insuffisantes", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+                                const SizedBox.square(dimension: 6),
+                                NumberedProgressBar(
+                                  lowerBound: "0",
+                                  upperBound: report.maxFailingGrades.toString(),
+                                  progress: (report.failingGrades / report.maxFailingGrades).clamp(0, 1),
+                                  value: report.failingGrades.toString(),
+                                  color: getProgressColor(report.failingGrades / report.maxFailingGrades),
+                                  fontSize: 32,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
 
-                if (allSubjects.length - restrictedGroupSubjects.length - restrictedGroupCompositeSubjects.length > 1)
-                  ListTile(
-                    leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
-                    buildChevron: false,
-                    child: SubjectAutocomplete(
-                      placeholder: "Ajouter une branche",
-                      onSubjectSelected: (subject) => onSubjectSelected(subject.code),
-                      onCompositeSubjectSelected: (compositeSubject) => onSubjectSelected(compositeSubject.code),
-                      useCompositeSubjects: true,
+                    if (report.usingDoubleCompensation)
+                      ListSection(
+                        margin: .only(top: 16),
+                        children: [
+                          ListTile(
+                            buildChevron: false,
+                            child: Builder(
+                              builder: (context) {
+                                final isFailing = report.doubleCompensation < 0;
+                                final progress = report.doubleCompensation / (report.deficit.abs() + report.surplus);
+                                final difference = report.doubleCompensation.abs() * 2.0;
+
+                                return Column(
+                                  crossAxisAlignment: .stretch,
+                                  children: [
+                                    Text("Double compensation", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+
+                                    if (isFailing)
+                                      Text(
+                                        "+${difference.removeTrailingZero()} point${difference == 1.0 ? "" : "s"} nécessaires",
+                                        style: TextStyle(fontSize: 14, color: AppColors.red),
+                                      ),
+
+                                    const SizedBox.square(dimension: 6),
+                                    NumberedProgressBar(
+                                      lowerBound: report.deficit.toDouble().removeTrailingZero(),
+                                      upperBound: "+${report.surplus.toDouble().removeTrailingZero()}",
+                                      progress: progress,
+                                      value: report.doubleCompensation.toDouble().removeTrailingZero(),
+                                      color: isFailing ? AppColors.red : AppColors.green,
+                                      centered: true,
+                                      fontSize: 32,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    if (usingRestrictedGroup && restrictedGroupCodes.isNotEmpty)
+                      ListSection(
+                        margin: .only(top: 16),
+                        children: [
+                          ListTile(
+                            buildChevron: false,
+                            child: Builder(
+                              builder: (context) {
+                                final isLowerThanMinimum = report.restrictedGroupPoints < report.minRestrictedGroupPoints;
+
+                                final progress = max(
+                                  0,
+                                  isLowerThanMinimum
+                                      ? report.restrictedGroupPoints / report.minRestrictedGroupPoints
+                                      : (report.restrictedGroupPoints - report.minRestrictedGroupPoints) /
+                                            (report.maxRestrictedGroupPoints - report.minRestrictedGroupPoints),
+                                ).toDouble();
+                                final difference = (report.minRestrictedGroupPoints - report.restrictedGroupPoints).abs().removeTrailingZero();
+
+                                return Column(
+                                  crossAxisAlignment: .stretch,
+                                  children: [
+                                    Text("Points du groupe restreint", style: AppStyles.secondaryHeader(context), maxLines: 2, overflow: .ellipsis),
+
+                                    Text(
+                                      isLowerThanMinimum
+                                          ? "Encore $difference point${difference == "1" ? "" : "s"}, courage !"
+                                          : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum !",
+                                      style: TextStyle(fontSize: 14, color: isLowerThanMinimum ? AppColors.red : AppColors.green),
+                                    ),
+
+                                    const SizedBox.square(dimension: 6),
+                                    NumberedProgressBar(
+                                      lowerBound: isLowerThanMinimum ? "0" : report.minRestrictedGroupPoints.toString(),
+                                      upperBound: (isLowerThanMinimum ? report.minRestrictedGroupPoints : report.maxRestrictedGroupPoints).toString(),
+                                      progress: progress,
+                                      value: report.totalPoints.removeTrailingZero(),
+                                      color: isLowerThanMinimum ? AppColors.red : AppColors.green,
+                                      fontSize: 32,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    BottomSpacing(),
+                  ],
+                ),
+
+                // Criteria Options
+                ListView(
+                  padding: .symmetric(horizontal: 10),
+                  children: [
+                    ListSection(
+                      children: [
+                        ListTile.simple(
+                          context,
+                          title: "Max. de notes insuffisantes",
+                          trailing: Row(
+                            mainAxisSize: .min,
+                            spacing: 6,
+                            children: [
+                              Text(report.maxFailingGrades.toString(), style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+                              CupertinoListTileChevron(),
+                            ],
+                          ),
+                          onTap: () => chooseMaxFailingSubjects(),
+                        ),
+                        ListTile.simple(
+                          context,
+                          title: "Double compensation",
+                          trailing: CupertinoSwitch(
+                            value: report.usingDoubleCompensation,
+                            onChanged: (newValue) {
+                              globals.persistent.setBool("UseDoubleCompensation", newValue);
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+
+                    if (allSubjects.length > 3)
+                      ListSection(
+                        margin: .only(top: 16),
+                        children: [
+                          ListTile.simple(
+                            context,
+                            title: "Groupe restreint",
+                            trailing: CupertinoSwitch(
+                              value: usingRestrictedGroup,
+                              onChanged: (newValue) {
+                                globals.persistent.setBool("UseRestrictedGroup", newValue);
+                                setState(() {});
+                              },
+                            ),
+                          ),
+
+                          for (final compositeSubject in restrictedGroupCompositeSubjects)
+                            ListTile(
+                              leading: Button.icon(
+                                context,
+                                onTap: () => onSubjectRemoved(compositeSubject.code),
+                                icon: HugeIcons.strokeRoundedCancel01,
+                                isDestructive: true,
+                              ),
+                              child: Row(
+                                spacing: 10,
+                                children: [
+                                  CompositeSubjectBadge(compositeSubject: compositeSubject, size: 20),
+                                  Text(compositeSubject.name),
+                                ],
+                              ),
+                            ),
+
+                          for (final subject in restrictedGroupSubjects)
+                            ListTile(
+                              leading: SubjectBadge(subject: subject, size: 20),
+                              trailing: CustomIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                              child: Text(subject.name, style: AppStyles.primaryText(context)),
+                              onTap: () => showCupertinoDialog(
+                                context: context,
+                                builder: (_) => Dialog.confirm(
+                                  content: "Supprimer '*${subject.name}*' du groupe restreint ?",
+                                  onConfirm: () => onSubjectRemoved(subject.code),
+                                ),
+                              ),
+                            ),
+
+                          if (allSubjects.length - restrictedGroupSubjects.length - restrictedGroupCompositeSubjects.length > 1)
+                            ListTile(
+                              leading: CustomIcon(icon: HugeIcons.strokeRoundedAdd01, color: AppColors.placeholderText.adaptTo(context)),
+                              buildChevron: false,
+                              child: SubjectAutocomplete(
+                                placeholder: "Ajouter une branche",
+                                onSubjectSelected: (subject) => onSubjectSelected(subject.code),
+                                onCompositeSubjectSelected: (compositeSubject) => onSubjectSelected(compositeSubject.code),
+                                useCompositeSubjects: true,
+                              ),
+                            ),
+                        ],
+                      ),
+
+                    BottomSpacing(),
+                  ],
+                ),
               ],
             ),
-          ],
-          BottomSpacing(),
+          ),
         ],
       ),
     );

@@ -6,8 +6,9 @@ class SegmentedControl<T> extends StatefulWidget {
   final Map<String, T> options;
   final void Function(T) onTap;
   final int defaultIndex;
+  final PageController? pageController;
 
-  const SegmentedControl({super.key, required this.options, required this.onTap, this.defaultIndex = 0});
+  const SegmentedControl({super.key, required this.options, required this.onTap, this.defaultIndex = 0, this.pageController});
 
   @override
   State<SegmentedControl<T>> createState() => _SegmentedControlState();
@@ -15,6 +16,27 @@ class SegmentedControl<T> extends StatefulWidget {
 
 class _SegmentedControlState<T> extends State<SegmentedControl<T>> {
   late int _selectedIndex = widget.defaultIndex;
+  late bool pageChangedManually = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.pageController?.addListener(_onPageChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.pageController?.removeListener(_onPageChanged);
+    super.dispose();
+  }
+
+  void _onPageChanged() {
+    if (pageChangedManually) {
+      pageChangedManually = false;
+      return;
+    }
+    setState(() => _selectedIndex = widget.pageController?.page?.round() ?? _selectedIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +68,7 @@ class _SegmentedControlState<T> extends State<SegmentedControl<T>> {
                 child: GestureDetector(
                   behavior: .opaque,
                   onTap: () {
+                    pageChangedManually = true;
                     setState(() => _selectedIndex = index);
                     widget.onTap(entry.value);
                   },
