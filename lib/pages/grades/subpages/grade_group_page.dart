@@ -23,7 +23,7 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
   final database = DatabaseService();
 
   void showNewGradePopup({Grade? toEdit}) async {
-    await showCupertinoSheet<Grade?>(
+    await showCupertinoSheet(
       context: context,
       enableDrag: false,
       builder: (context) => NewGradePage(groupName: widget.groupName, subject: widget.groupSubject, toEdit: toEdit),
@@ -38,7 +38,6 @@ class _GradeGroupPageState extends State<GradeGroupPage> {
       body: StreamBuilder(
         stream: database.grades.watchAll(),
         builder: (context, snapshot) {
-          
           final groupGrades = (snapshot.data ?? database.grades.getAll()).where((grade) => grade.groupName == widget.groupName).sorted((gradeA, gradeB) {
             return gradeB.date.compareTo(gradeA.date);
           });

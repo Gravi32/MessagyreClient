@@ -279,7 +279,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    await showCupertinoSheet<Grade?>(
+    await showCupertinoSheet(
       context: context,
       enableDrag: false,
       builder: (context) => NewGradePage(subject: widget.subject, toEdit: toEdit, toReference: toReference),

@@ -20,7 +20,6 @@ import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class GradesListPage extends StatefulWidget {
   const GradesListPage({super.key});
@@ -80,7 +79,7 @@ class _GradesListPageState extends State<GradesListPage> {
   }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
-    await showCupertinoModalBottomSheet<Grade?>(
+    await showCupertinoSheet(
       enableDrag: false,
       context: context,
       builder: (context) => NewGradePage(toEdit: toEdit, toReference: toReference),
