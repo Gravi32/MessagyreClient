@@ -191,22 +191,20 @@ class SubjectCard extends StatelessWidget {
           Expanded(
             child: () {
               if (!isSubjectLocked && (average ?? 0) != 0) {
-                return Expanded(
-                  child: Chart(
-                    padding: .symmetric(vertical: 3),
-                    backgroundColor: AppColors.background.adaptTo(context),
-                    color: subject?.color ?? compositeSubject?.firstSubject.value?.color ?? AppColors.accent,
-                    showLines: false,
-                    showDots: false,
-                    spots: subjectGrades.mapIndexed((index, grade) => FlSpot(index / subjectGrades.length, grade.grade)).toList(),
-                  ),
+                return Chart(
+                  padding: .symmetric(vertical: 3),
+                  backgroundColor: AppColors.background.adaptTo(context),
+                  color: subject?.color ?? compositeSubject?.firstSubject.value?.color ?? AppColors.accent,
+                  showLines: false,
+                  showDots: false,
+                  spots: subjectGrades.mapIndexed((index, grade) => FlSpot(index / subjectGrades.length, grade.grade)).toList(),
                 );
               }
 
               if (isSubjectLocked) {
                 return Align(
                   alignment: .bottomRight,
-                  child: Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
+                  child: Icon(CupertinoIcons.lock_fill, size: AppStyles.primaryText(context).fontSize, color: AppColors.text.adaptTo(context)),
                 );
               }
               if (isSubjectEmpty && !isSubjectLocked && compositeSubject == null) {

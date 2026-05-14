@@ -29,6 +29,8 @@ class Chart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (spots.length == 1) spots.add(spots.first.copyWith(x: spots.first.x + 1));
+
     return ClipRRect(
       borderRadius: .circular(12),
       clipBehavior: backgroundColor != null ? .antiAlias : .none,
@@ -39,8 +41,8 @@ class Chart extends StatelessWidget {
           LineChartData(
             minY: min,
             maxY: max,
-            minX: spots.first.x,
-            maxX: spots.last.x,
+            minX: spots.firstOrNull?.x ?? 0,
+            maxX: spots.lastOrNull?.x ?? 1,
             lineBarsData: [
               LineChartBarData(
                 color: color,
