@@ -160,7 +160,14 @@ class App extends StatelessWidget {
       builder: (context, child) {
         final MediaQueryData data = MediaQuery.of(context);
         return MediaQuery(
-          data: data.copyWith(textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)),
+          data: data.copyWith(
+            platformBrightness: switch (globals.persistent.getBool("useDarkMode")) {
+              true => .dark,
+              false => .light,
+              _ => null,
+            },
+            textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2),
+          ),
           child: child!,
         );
       },

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart' hide Page;
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -22,6 +23,7 @@ import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/segmented_control.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
@@ -146,6 +148,18 @@ class _SettingsListPageState extends State<SettingsListPage> {
             title: "Apparence",
             margin: .only(top: 16),
             children: [
+              ListTile(
+                buildChevron: false,
+                padding: .all(14),
+                child: SegmentedControl<Brightness?>(
+                  options: {"Sombre": .dark, "Clair": .light, "Système": null},
+                  onTap: (newBrightness) {
+                    globals.persistent.setBool("useDarkMode", newBrightness == .dark);
+                    if (newBrightness == null) globals.persistent.remove("useDarkMode");
+                    Phoenix.rebirth(context);
+                  },
+                ),
+              ),
               ListTile.simple(
                 context,
                 title: "Fond d'écran des conversations",

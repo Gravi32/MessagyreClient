@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class SegmentedControl<T> extends StatefulWidget {
@@ -73,7 +74,7 @@ class _SegmentedControlState<T> extends State<SegmentedControl<T>> {
                     widget.onTap(entry.value);
                   },
                   child: Center(
-                    child: Text(entry.key, style: TextStyle(fontWeight: _selectedIndex == index ? .bold : .normal)),
+                    child: Text(entry.key, style: AppStyles.primaryText(context).copyWith(fontWeight: _selectedIndex == index ? .bold : .normal)),
                   ),
                 ),
               );
