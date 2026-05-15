@@ -17,6 +17,7 @@ class Page extends StatefulWidget {
   final bool isSliver;
   final bool ignorePadding;
   final bool requireFaceId;
+  final ValueNotifier<int>? lockNotifier;
 
   final int? pageIndex;
   final Color? backgroundColor;
@@ -34,6 +35,7 @@ class Page extends StatefulWidget {
     this.isSliver = false,
     this.ignorePadding = false,
     this.requireFaceId = false,
+    this.lockNotifier,
 
     this.pageIndex,
     this.backgroundColor,
@@ -68,6 +70,7 @@ class Page extends StatefulWidget {
     ScrollController? controller,
     bool canPop = true,
     bool requireFaceId = false,
+    ValueNotifier<int>? lockNotifier,
     int? pageIndex,
     Color? backgroundColor,
     void Function()? onFloatingButtonTap,
@@ -78,6 +81,7 @@ class Page extends StatefulWidget {
       scrollController: controller,
       canPop: canPop,
       requireFaceId: requireFaceId,
+      lockNotifier: lockNotifier,
       pageIndex: pageIndex,
       backgroundColor: backgroundColor,
       onFloatingButtonTap: onFloatingButtonTap,
@@ -98,12 +102,16 @@ class _PageState extends State<Page> {
   late bool authFailed = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.lockNotifier?.addListener(() => setState(() => isUnlocked = false));
+  }
+
+  @override
   Widget build(BuildContext context) {
     EdgeInsets padding = const .symmetric(horizontal: 10);
     final bgColor = widget.backgroundColor ?? AppColors.background.adaptTo(context);
-    double authOverlayOpacity = isUnlocked ? 0 : 1;
-
-    if (widget.requireFaceId) print("${!isUnlocked} && ${!authInProgress} && ${!authFailed} && ${MainPage.pageIndex.value == widget.pageIndex}");
+    final authOverlayOpacity = isUnlocked ? 0 : 1;
 
     if (widget.requireFaceId && MainPage.pageIndex.value == widget.pageIndex && !isUnlocked && !authInProgress && !authFailed) {
       authInProgress = true;
@@ -158,7 +166,7 @@ class _PageState extends State<Page> {
                 child: IgnorePointer(
                   ignoring: authOverlayOpacity == 0,
                   child: AnimatedOpacity(
-                    opacity: authOverlayOpacity,
+                    opacity: authOverlayOpacity.toDouble(),
                     curve: Curves.easeInOutQuart,
                     duration: Duration(milliseconds: 200),
                     child: BlurredContainer(

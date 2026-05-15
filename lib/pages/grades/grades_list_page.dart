@@ -31,9 +31,10 @@ class GradesListPage extends StatefulWidget {
 
 class _GradesListPageState extends State<GradesListPage> {
   static const double subjectTileMaxHeight = 106;
-
   final database = DatabaseService();
   final globals = GlobalsService();
+
+  final lockNotifier = ValueNotifier(0);
 
   Widget buildSubjectsGrid(List<Subject> subjects, List<CompositeSubject> compositeSubjects) {
     const double maxHeight = 250;
@@ -99,7 +100,11 @@ class _GradesListPageState extends State<GradesListPage> {
   Widget build(BuildContext context) {
     return Page.sliver(
       pageIndex: 0,
-      topBar: TopBar.sliver(title: "Notes"),
+      topBar: TopBar.sliver(
+        title: "Notes",
+        trailing: Button.icon(context, icon: HugeIcons.strokeRoundedFaceId, onTap: () => lockNotifier.value++),
+      ),
+      lockNotifier: lockNotifier,
       requireFaceId: globals.persistent.getBool("GradesPageRequiresFaceId") ?? false,
       onFloatingButtonTap: showNewGradePopup,
       body: StreamBuilder(
