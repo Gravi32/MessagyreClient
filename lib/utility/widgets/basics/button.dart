@@ -114,7 +114,7 @@ class _ButtonState extends State<Button> {
         padding: .zero,
         minimumSize: .zero,
         onPressed: widget.enabled ? widget.onTap : null,
-        pressedOpacity: widget.pressedOpacity,
+        pressedOpacity: widget.pressedOpacity ?? .4,
         child: RoundContainer(
           transparent: widget.transparent,
           enabled: widget.enabled,
