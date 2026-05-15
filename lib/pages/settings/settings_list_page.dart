@@ -152,6 +152,11 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 buildChevron: false,
                 padding: .all(14),
                 child: SegmentedControl<Brightness?>(
+                  defaultIndex: switch (globals.persistent.getBool("useDarkMode")) {
+                    true => 0,
+                    false => 1,
+                    _ => 2,
+                  },
                   options: {"Sombre": .dark, "Clair": .light, "Système": null},
                   onTap: (newBrightness) {
                     globals.persistent.setBool("useDarkMode", newBrightness == .dark);

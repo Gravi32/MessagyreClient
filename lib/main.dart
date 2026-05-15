@@ -138,13 +138,19 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Brightness? brightness = switch (globals.persistent.getBool("useDarkMode")) {
+      true => .dark,
+      false => .light,
+      _ => null,
+    };
+
     return CupertinoApp(
       navigatorKey: navigatorKey,
 
       //locale: DevicePreview.locale(context),
       //builder: DevicePreview.appBuilder,
       theme: CupertinoThemeData(
-        brightness: MediaQuery.maybePlatformBrightnessOf(context),
+        brightness: brightness,
         primaryColor: AppColors.accent,
         textTheme: CupertinoTextThemeData(
           primaryColor: AppColors.accent,
@@ -155,20 +161,16 @@ class App extends StatelessWidget {
       ),
       localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
       supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
-      // locale: Locale('fr', 'CH'),
+      locale: Locale('fr', 'CH'),
       home: const MainPage(),
       builder: (context, child) {
         final MediaQueryData data = MediaQuery.of(context);
         return MediaQuery(
-          data: data.copyWith(
-            platformBrightness: switch (globals.persistent.getBool("useDarkMode")) {
-              true => .dark,
-              false => .light,
-              _ => null,
-            },
-            textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2),
+          data: data.copyWith(platformBrightness: brightness, textScaler: data.textScaler.clamp(minScaleFactor: 0, maxScaleFactor: 1.2)),
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: brightness == Brightness.dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+            child: child!,
           ),
-          child: child!,
         );
       },
     );
