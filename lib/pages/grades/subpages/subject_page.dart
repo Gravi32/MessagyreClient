@@ -262,17 +262,15 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
               ),
             ),
             Row(
+              spacing: 8,
               children: [
-                Container(
+                RoundContainer(
                   padding: const .symmetric(vertical: 4, horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondaryBackground.adaptTo(context),
-                    border: .all(color: AppColors.tertiaryBackground.adaptTo(context)),
-                    borderRadius: .circular(12),
-                  ),
+                  color: AppColors.tertiaryBackground.adaptTo(context),
                   child: Text("Note nécessaire", style: AppStyles.tertiaryText(context)),
                 ),
-                Text(" pour atteindre l'objectif", style: AppStyles.tertiaryText(context)),
+
+                Expanded(child: Text("pour atteindre l'objectif", style: AppStyles.tertiaryText(context))),
               ],
             ),
           ],
