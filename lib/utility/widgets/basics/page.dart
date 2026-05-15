@@ -1,30 +1,45 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/services/biometrics_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 
-class Page extends StatelessWidget {
+class Page extends StatefulWidget {
   final Widget child;
-  final bool canPop;
-  final Color? backgroundColor;
   final TopBar? topBar;
+
+  final bool canPop;
   final bool isSliver;
   final bool ignorePadding;
-  final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
+  final bool requireFaceId;
+
+  final int? pageIndex;
+  final Color? backgroundColor;
   final ScrollController? scrollController;
+
+  final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
   final void Function()? onFloatingButtonTap;
 
   const Page({
     super.key,
     required this.child,
-    this.canPop = true,
-    this.backgroundColor,
     this.topBar,
+
+    this.canPop = true,
     this.isSliver = false,
     this.ignorePadding = false,
-    this.sliverHeaderBuilder,
+    this.requireFaceId = false,
+
+    this.pageIndex,
+    this.backgroundColor,
     this.scrollController,
+
+    this.sliverHeaderBuilder,
     this.onFloatingButtonTap,
   });
 
@@ -52,6 +67,8 @@ class Page extends StatelessWidget {
     required TopBar topBar,
     ScrollController? controller,
     bool canPop = true,
+    bool requireFaceId = false,
+    int? pageIndex,
     Color? backgroundColor,
     void Function()? onFloatingButtonTap,
   }) {
@@ -60,6 +77,8 @@ class Page extends StatelessWidget {
       sliverHeaderBuilder: (_, _) => [topBar],
       scrollController: controller,
       canPop: canPop,
+      requireFaceId: requireFaceId,
+      pageIndex: pageIndex,
       backgroundColor: backgroundColor,
       onFloatingButtonTap: onFloatingButtonTap,
       child: body,
@@ -67,45 +86,105 @@ class Page extends StatelessWidget {
   }
 
   @override
+  State<Page> createState() => _PageState();
+}
+
+class _PageState extends State<Page> {
+  final globals = GlobalsService();
+  final biometrics = BiometricsService();
+
+  late bool isUnlocked = false;
+  late bool authInProgress = false;
+  late bool authFailed = false;
+
+  @override
   Widget build(BuildContext context) {
     EdgeInsets padding = const .symmetric(horizontal: 10);
-    final bgColor = backgroundColor ?? AppColors.background.adaptTo(context);
+    final bgColor = widget.backgroundColor ?? AppColors.background.adaptTo(context);
+    double authOverlayOpacity = isUnlocked ? 0 : 1;
+
+    if (widget.requireFaceId) print("${!isUnlocked} && ${!authInProgress} && ${!authFailed} && ${MainPage.pageIndex.value == widget.pageIndex}");
+
+    if (widget.requireFaceId && MainPage.pageIndex.value == widget.pageIndex && !isUnlocked && !authInProgress && !authFailed) {
+      authInProgress = true;
+      biometrics.authenticate().then(
+        (unlocked) => setState(() {
+          authInProgress = false;
+          unlocked ? isUnlocked = true : authFailed = true;
+        }),
+      );
+    }
 
     return PopScope(
-      canPop: canPop,
+      canPop: widget.canPop,
       child: CupertinoPageScaffold(
         backgroundColor: bgColor,
         child: Stack(
           children: [
-            isSliver
+            widget.isSliver
                 ? NestedScrollView(
-                    controller: scrollController,
-                    headerSliverBuilder: sliverHeaderBuilder!,
+                    controller: widget.scrollController,
+                    headerSliverBuilder: widget.sliverHeaderBuilder!,
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                    body: SafeArea(top: false, minimum: padding, child: child),
+                    body: SafeArea(top: false, minimum: padding, child: widget.child),
                   )
                 : SafeArea(
-                    minimum: ignorePadding ? .zero : padding,
+                    minimum: widget.ignorePadding ? .zero : padding,
                     child: Column(
                       crossAxisAlignment: .stretch,
                       children: [
-                        if (topBar != null) SafeArea(minimum: ignorePadding ? padding : .zero, child: topBar!),
+                        if (widget.topBar != null) SafeArea(minimum: widget.ignorePadding ? padding : .zero, child: widget.topBar!),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(color: bgColor),
-                            child: child,
+                            child: widget.child,
                           ),
                         ),
                       ],
                     ),
                   ),
-            if (onFloatingButtonTap != null)
+            if (widget.onFloatingButtonTap != null)
               Positioned(
                 bottom: MediaQuery.viewPaddingOf(context).bottom + 90,
                 right: 13,
                 child: SizedBox(
                   height: 50,
-                  child: Button.icon(context, icon: HugeIcons.strokeRoundedAdd01, onTap: () => onFloatingButtonTap!()),
+                  child: Button.icon(context, icon: HugeIcons.strokeRoundedAdd01, onTap: () => widget.onFloatingButtonTap!()),
+                ),
+              ),
+
+            if (widget.requireFaceId)
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: authOverlayOpacity == 0,
+                  child: AnimatedOpacity(
+                    opacity: authOverlayOpacity,
+                    curve: Curves.easeInOutQuart,
+                    duration: Duration(milliseconds: 200),
+                    child: BlurredContainer(
+                      blur: 24,
+                      padding: .all(24),
+                      child: authFailed
+                          ? Column(
+                              mainAxisAlignment: .center,
+                              spacing: 16,
+                              children: [
+                                HugeIcon(icon: HugeIcons.strokeRoundedFaceId),
+                                Text("Page bloquée", style: AppStyles.header(context)),
+                                Text(
+                                  "Cette page est confidentielle,\nauthentifiez-vous avec le FaceID pour continuer.",
+                                  style: AppStyles.primaryText(context),
+                                  textAlign: .center,
+                                ),
+                                Text("Vous pouvez désactiver cet écran dans les réglages.", style: AppStyles.tertiaryText(context), textAlign: .center),
+
+                                SizedBox(height: 16),
+                                Button(text: "FaceID", transparent: true, onTap: () => setState(() => authFailed = false)),
+                              ],
+                            )
+                          : null,
+                    ),
+                  ),
                 ),
               ),
           ],

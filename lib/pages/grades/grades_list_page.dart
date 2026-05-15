@@ -15,6 +15,7 @@ import 'package:messagyre_client/pages/grades/subpages/recent_grades_page.dart';
 import 'package:messagyre_client/pages/grades/widgets/grades_top_card.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
@@ -32,6 +33,7 @@ class _GradesListPageState extends State<GradesListPage> {
   static const double subjectTileMaxHeight = 106;
 
   final database = DatabaseService();
+  final globals = GlobalsService();
 
   Widget buildSubjectsGrid(List<Subject> subjects, List<CompositeSubject> compositeSubjects) {
     const double maxHeight = 250;
@@ -96,7 +98,9 @@ class _GradesListPageState extends State<GradesListPage> {
   @override
   Widget build(BuildContext context) {
     return Page.sliver(
+      pageIndex: 0,
       topBar: TopBar.sliver(title: "Notes"),
+      requireFaceId: globals.persistent.getBool("GradesPageRequiresFaceId") ?? false,
       onFloatingButtonTap: showNewGradePopup,
       body: StreamBuilder(
         stream: database.grades.watchAll(),
