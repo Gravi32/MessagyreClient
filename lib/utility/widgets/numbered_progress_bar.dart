@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/progress_bar.dart';
 
@@ -29,7 +30,7 @@ class NumberedProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = TextStyle(fontSize: fontSize, fontWeight: .w800, backgroundColor: color);
+    final textStyle = AppStyles.header(context).copyWith(fontSize: fontSize);
     final shadowColor = AppColors.secondaryBackground.adaptTo(context);
 
     final textSize = measureTextSize(value, textStyle);
@@ -39,7 +40,13 @@ class NumberedProgressBar extends StatelessWidget {
       spacing: (barHeight ?? 2) / 2,
       children: [
         SizedBox(height: max(textSize.height - 22, 0)),
-        Row(mainAxisAlignment: .spaceBetween, children: [Text(lowerBound), Text(upperBound)]),
+        Row(
+          mainAxisAlignment: .spaceBetween,
+          children: [
+            Text(lowerBound, style: AppStyles.primaryText(context)),
+            Text(upperBound, style: AppStyles.primaryText(context)),
+          ],
+        ),
 
         LayoutBuilder(
           builder: (context, constraints) {
@@ -80,7 +87,7 @@ class NumberedProgressBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [shadowColor.withAlpha(0), shadowColor, shadowColor, shadowColor.withAlpha(0)], stops: [0, .25, .75, 1]),
                     ),
-                    child: Text(value, style: textStyle.copyWith(backgroundColor: AppColors.transparent, fontSize: fontSize)),
+                    child: Text(value, style: textStyle),
                   ),
                 ),
               ],

@@ -254,10 +254,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
                                     style: AppStyles.primaryText(context).copyWith(color: isLowerThanMinimum ? AppColors.red : AppColors.green),
                                   ),
 
-                                  const SizedBox.square(dimension: 6),
+                                  const SizedBox.square(dimension: 10),
                                   NumberedProgressBar(
-                                    lowerBound: isLowerThanMinimum ? "0" : report.minTotalPoints.toString(),
-                                    upperBound: (isLowerThanMinimum ? report.minTotalPoints : report.maxTotalPoints).toString(),
+                                    lowerBound: isLowerThanMinimum ? "0" : report.minTotalPoints.removeTrailingZero(),
+                                    upperBound: (isLowerThanMinimum ? report.minTotalPoints : report.maxTotalPoints).removeTrailingZero(),
                                     progress: max(
                                       0,
                                       isLowerThanMinimum
@@ -326,10 +326,10 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
                                     const SizedBox.square(dimension: 6),
                                     NumberedProgressBar(
-                                      lowerBound: report.deficit.toDouble().removeTrailingZero(),
-                                      upperBound: "+${report.surplus.toDouble().removeTrailingZero()}",
+                                      lowerBound: report.deficit.removeTrailingZero(),
+                                      upperBound: "+${report.surplus.removeTrailingZero()}",
                                       progress: progress,
-                                      value: report.doubleCompensation.toDouble().removeTrailingZero(),
+                                      value: report.doubleCompensation.removeTrailingZero(),
                                       color: isFailing ? AppColors.red : AppColors.green,
                                       centered: true,
                                       fontSize: 32,
@@ -375,8 +375,8 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
                                     const SizedBox.square(dimension: 6),
                                     NumberedProgressBar(
-                                      lowerBound: isLowerThanMinimum ? "0" : report.minRestrictedGroupPoints.toString(),
-                                      upperBound: (isLowerThanMinimum ? report.minRestrictedGroupPoints : report.maxRestrictedGroupPoints).toString(),
+                                      lowerBound: isLowerThanMinimum ? "0" : report.minRestrictedGroupPoints.removeTrailingZero(),
+                                      upperBound: (isLowerThanMinimum ? report.minRestrictedGroupPoints : report.maxRestrictedGroupPoints).removeTrailingZero(),
                                       progress: progress,
                                       value: report.totalPoints.removeTrailingZero(),
                                       color: isLowerThanMinimum ? AppColors.red : AppColors.green,
