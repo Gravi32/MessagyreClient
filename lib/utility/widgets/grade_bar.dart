@@ -35,6 +35,7 @@ class GradeBar extends StatelessWidget {
       padding: .only(left: 1.5),
       onTap: onTap,
       child: Row(
+        spacing: 6,
         children: [
           // Grade Display
           GradeDisplay(
@@ -43,7 +44,8 @@ class GradeBar extends StatelessWidget {
             isIncoming: isIncoming,
             isPlanned: isPlanned,
           ),
-          SizedBox(width: 12),
+
+          SizedBox(),
 
           // Content
           Expanded(
@@ -77,36 +79,35 @@ class GradeBar extends StatelessWidget {
                 // Subject / Date
                 showSubject
                     ? Row(
-                      spacing: 6,
-                      children: [
-                        if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
-                        Expanded(
-                          child: Text(
-                            "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
-                            style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
-                            maxLines: 1,
+                        spacing: 6,
+                        children: [
+                          if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
+                          Expanded(
+                            child: Text(
+                              "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
+                              style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
+                              maxLines: 1,
+                            ),
                           ),
-                        ),
-                      ],
-                    )
+                        ],
+                      )
                     : Text(
-                      isGradeUnknown
-                          ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                          : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
-                      maxLines: 2,
-                      overflow: .fade,
-                      softWrap: true,
-                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
-                    ),
+                        isGradeUnknown
+                            ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
+                            : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
+                        maxLines: 2,
+                        overflow: .fade,
+                        softWrap: true,
+                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
+                      ),
               ],
             ),
           ),
 
           // Trailing
-          if (!showSubject)
+          if (!showSubject && isGradeUnknown)
             CustomIcon(
-              icon:
-                  isGradeUnknown ? (isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01) : HugeIcons.strokeRoundedPencilEdit02,
+              icon: isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01,
               size: 20,
               color: AppColors.tertiaryText.adaptTo(context),
             ),
