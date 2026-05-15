@@ -178,6 +178,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   padding: .symmetric(horizontal: 10),
                   children: [
                     RoundContainer(
+                      padding: .symmetric(horizontal: 16, vertical: 4),
                       child: Column(
                         crossAxisAlignment: .stretch,
                         spacing: 6,
