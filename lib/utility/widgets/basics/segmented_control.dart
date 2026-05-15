@@ -73,8 +73,16 @@ class _SegmentedControlState<T> extends State<SegmentedControl<T>> {
                     setState(() => _selectedIndex = index);
                     widget.onTap(entry.value);
                   },
-                  child: Center(
-                    child: Text(entry.key, style: AppStyles.primaryText(context).copyWith(fontWeight: _selectedIndex == index ? .bold : .normal)),
+                  child: Padding(
+                    padding: .symmetric(horizontal: 8),
+                    child: Center(
+                      child: Text(
+                        entry.key,
+                        maxLines: 1,
+                        overflow: .ellipsis,
+                        style: AppStyles.primaryText(context).copyWith(fontWeight: _selectedIndex == index ? .bold : .normal),
+                      ),
+                    ),
                   ),
                 ),
               );

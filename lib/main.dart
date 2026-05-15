@@ -188,7 +188,7 @@ class AppPage {
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
-  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(2);
+  static final ValueNotifier<int> pageIndex = ValueNotifier<int>(GlobalsService().persistent.getInt("DefaultPage") ?? 2);
 
   @override
   State<MainPage> createState() => _MainPageState();

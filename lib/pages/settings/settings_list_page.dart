@@ -8,8 +8,8 @@ import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/bootstrap/privacy_policy.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/preferences_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
-import 'package:messagyre_client/pages/settings/subpages/calendar_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/debug_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
@@ -175,9 +175,9 @@ class _SettingsListPageState extends State<SettingsListPage> {
             children: [
               ListTile.simple(
                 context,
-                title: "Calendrier",
-                icon: HugeIcons.strokeRoundedCalendar04,
-                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => CalendarSettingsPage())),
+                title: "Préférences",
+                icon: HugeIcons.strokeRoundedSettings04,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PreferencesSettingsPage())),
               ),
               ListTile.simple(
                 context,
