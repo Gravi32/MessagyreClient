@@ -20,10 +20,12 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
+import 'package:messagyre_client/utility/parsers/round_container_parser.dart';
 import 'package:messagyre_client/utility/widgets/bottom_bar.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:stac/stac.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -91,6 +93,8 @@ void main() async {
   BootProcedure.overridePrintFunction();
 
   await NetworkService().checkLocalhostAvailability();
+
+  Stac.initialize(parsers: [StacRoundContainerParser()]);
 
   runZonedGuarded(
     () async {

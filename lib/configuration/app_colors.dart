@@ -36,6 +36,18 @@ class AppColors {
   // Special colors
   static const transparent = Color.fromRGBO(0, 0, 0, 0.0);
   static const inactive = AppColor(light: Color.fromRGBO(142, 142, 147, 1.0), dark: Color.fromRGBO(99, 99, 102, 1.0));
+
+  // Getter
+  static Color fromName(String? name) => switch (name) {
+    "white" => AppColors.white,
+    "red" => AppColors.red,
+    "orange" => AppColors.orange,
+    "yellow" => AppColors.yellow,
+    "green" => AppColors.green,
+    "grey" => AppColors.grey,
+    "black" => AppColors.black,
+    _ => AppColors.accent,
+  };
 }
 
 class AppColor extends Color {

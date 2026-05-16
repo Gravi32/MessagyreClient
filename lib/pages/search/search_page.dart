@@ -3,17 +3,20 @@ import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
+import 'package:stac/stac.dart';
 
 class SearchResult {
   final String username;
@@ -56,10 +59,9 @@ class SearchPageState extends State<SearchPage> {
   List<SearchResult> searchResults = [];
 
   Future<void> fetchNews() async {
-    final apiResponse = await network.get("news/get");
+    final apiResponse = await network.get("/news/get");
     if (apiResponse.body.isEmpty) return;
-    news.value = tryJsonDecode(apiResponse.body) ?? [];
-    print(news.value);
+    news.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
   }
 
   void search(String query) async {
@@ -105,24 +107,16 @@ class SearchPageState extends State<SearchPage> {
           Column(
             crossAxisAlignment: .start,
             children: [
-              Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: TextStyle(fontWeight: .w500, fontSize: 20)),
+              Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: AppStyles.secondaryHeader(context)),
               Row(
                 spacing: 6,
                 crossAxisAlignment: .baseline,
                 textBaseline: .alphabetic,
                 children: [
-                  Text.rich(
-                    TextSpan(
-                      children: highlightSearchMatch(result.username, searchBarController.text),
-                      style: TextStyle(fontWeight: .w400, fontSize: 16),
-                    ),
-                  ),
+                  Text.rich(TextSpan(children: highlightSearchMatch(result.username, searchBarController.text), style: AppStyles.primaryText(context))),
                   if (result.classOrRole != null)
                     Text.rich(
-                      TextSpan(
-                        children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text),
-                        style: TextStyle(color: AppColors.grey, fontSize: 14, fontWeight: .w400),
-                      ),
+                      TextSpan(children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text), style: AppStyles.secondaryText(context)),
                     ),
                 ],
               ),
@@ -198,7 +192,24 @@ class SearchPageState extends State<SearchPage> {
       builder: (context, newsContent, _) => ListView(
         shrinkWrap: true,
         children: [
-          ...newsContent.map((e) => Container(child: Text(e.keys.join(" ")))),
+          ...newsContent.map((box) {
+            final Map<String, dynamic>? coverWidget = tryJsonDecode(box.tryGetValue("CoverWidget"));
+            final Map<String, dynamic>? pageWidget = tryJsonDecode(box.tryGetValue("PageWidget"));
+
+            if (coverWidget == null || pageWidget == null) return const SizedBox();
+
+            return Button(
+              margin: .only(bottom: 16),
+              rawChild: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
+              onTap: () => showCupertinoSheet(
+                context: context,
+                builder: (context) => Page(
+                  topBar: TopBar.tab(context),
+                  child: Stac.fromJson(coverWidget, context) ?? Center(child: Text("Une erreur s'est produite.")),
+                ),
+              ),
+            );
+          }),
           BottomSpacing(includeBottomBar: true),
         ],
       ),
@@ -215,11 +226,9 @@ class SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Page.sliver(
-      topBar: TopBar.sliver(
-        title: "Recherche",
-        field: Field(placeholder: "Rechercher un.e gymnasien.ne", controller: searchBarController, focusNode: searchBarFocusNode, onChanged: search),
-      ),
+      topBar: TopBar.sliver(title: "Recherche"),
       onRefresh: () async => await fetchNews(),
+      field: Field(placeholder: "Rechercher un.e gymnasien.ne", controller: searchBarController, focusNode: searchBarFocusNode, onChanged: search),
       body: searchBarFocusNode.hasFocus
           ? searchResults.isNotEmpty
                 ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))

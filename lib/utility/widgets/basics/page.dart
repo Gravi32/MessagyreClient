@@ -7,7 +7,9 @@ import 'package:messagyre_client/services/biometrics_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/workarounds/field_header_delegate.dart';
 
 class Page extends StatefulWidget {
   final Widget child;
@@ -69,6 +71,7 @@ class Page extends StatefulWidget {
   factory Page.sliver({
     required Widget body,
     required TopBar topBar,
+    Field? field,
     ScrollController? controller,
     bool canPop = true,
     bool requireFaceId = false,
@@ -80,7 +83,10 @@ class Page extends StatefulWidget {
   }) {
     return Page(
       isSliver: true,
-      sliverHeaderBuilder: (_, _) => [topBar],
+      sliverHeaderBuilder: (_, innerBoxIsScrolled) => [
+        topBar,
+        if (field != null) SliverPersistentHeader(pinned: true, delegate: FieldHeaderDelegate(field: field)),
+      ],
       scrollController: controller,
       canPop: canPop,
       requireFaceId: requireFaceId,
