@@ -25,6 +25,7 @@ class Page extends StatefulWidget {
 
   final List<Widget> Function(BuildContext, bool)? sliverHeaderBuilder;
   final void Function()? onFloatingButtonTap;
+  final Future<void> Function()? onRefresh;
 
   const Page({
     super.key,
@@ -43,6 +44,7 @@ class Page extends StatefulWidget {
 
     this.sliverHeaderBuilder,
     this.onFloatingButtonTap,
+    this.onRefresh,
   });
 
   factory Page.scrollable(
@@ -74,6 +76,7 @@ class Page extends StatefulWidget {
     int? pageIndex,
     Color? backgroundColor,
     void Function()? onFloatingButtonTap,
+    Future<void> Function()? onRefresh,
   }) {
     return Page(
       isSliver: true,
@@ -85,6 +88,7 @@ class Page extends StatefulWidget {
       pageIndex: pageIndex,
       backgroundColor: backgroundColor,
       onFloatingButtonTap: onFloatingButtonTap,
+      onRefresh: onRefresh,
       child: body,
     );
   }
@@ -134,7 +138,16 @@ class _PageState extends State<Page> {
                     controller: widget.scrollController,
                     headerSliverBuilder: widget.sliverHeaderBuilder!,
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                    body: SafeArea(top: false, minimum: padding, child: widget.child),
+                    body: widget.onRefresh != null
+                        ? CustomScrollView(
+                            slivers: [
+                              CupertinoSliverRefreshControl(onRefresh: widget.onRefresh!),
+                              SliverToBoxAdapter(
+                                child: SafeArea(top: false, minimum: padding, child: widget.child),
+                              ),
+                            ],
+                          )
+                        : SafeArea(top: false, minimum: padding, child: widget.child),
                   )
                 : SafeArea(
                     minimum: widget.ignorePadding ? .zero : padding,

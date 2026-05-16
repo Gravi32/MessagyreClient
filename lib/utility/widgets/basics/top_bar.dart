@@ -3,15 +3,17 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class TopBar extends StatefulWidget {
   final Widget? leading;
   final Widget? middle;
   final Widget? trailing;
+  final Field? field;
   final bool isSliver;
 
-  const TopBar({super.key, this.leading, this.middle, this.trailing, this.isSliver = false});
+  const TopBar({super.key, this.leading, this.middle, this.trailing, this.field, this.isSliver = false});
 
   factory TopBar.form(BuildContext context, {String? title, void Function()? onPop, void Function()? onCloseConfirmed, Widget? trailing}) {
     return TopBar(
@@ -53,8 +55,8 @@ class TopBar extends StatefulWidget {
     );
   }
 
-  factory TopBar.sliver({required String title, Widget? leading, Widget? trailing}) {
-    return TopBar(middle: Text(title), leading: leading, trailing: trailing, isSliver: true);
+  factory TopBar.sliver({required String title, Widget? leading, Widget? trailing, Field? field}) {
+    return TopBar(middle: Text(title), leading: leading, trailing: trailing, field: field, isSliver: true);
   }
 
   factory TopBar.sliverWithChevron(BuildContext context, {required String title, List<List>? icon, Widget? trailing}) {
@@ -80,7 +82,17 @@ class _TopBarState extends State<TopBar> {
   @override
   Widget build(BuildContext context) {
     if (widget.isSliver) {
-      return CupertinoSliverNavigationBar(leading: widget.leading, largeTitle: widget.middle, trailing: widget.trailing);
+      return CupertinoSliverNavigationBar(
+        leading: widget.leading,
+        largeTitle: widget.middle,
+        trailing: widget.trailing,
+        bottom: widget.field != null
+            ? PreferredSize(
+                preferredSize: const .fromHeight(60),
+                child: Padding(padding: .symmetric(horizontal: 8).add(.only(bottom: 8)), child: widget.field!),
+              )
+            : null,
+      );
     }
 
     return Container(

@@ -89,7 +89,6 @@ class _FieldState extends State<Field> {
     bool isNumeric = widget.keyboardType == .number;
     bool showingError = (widget.error ?? "").isNotEmpty;
 
-
     return Padding(
       padding: widget.margin ?? .zero,
       child: Column(
@@ -106,14 +105,13 @@ class _FieldState extends State<Field> {
                   borderRadius: .circular(24),
                 ),
                 child: Row(
+                  crossAxisAlignment: .center,
                   children: [
                     Expanded(
                       child: CupertinoTextField(
                         padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
                         placeholder: widget.placeholder,
-                        placeholderStyle: (isNumeric ? AppStyles.placeholder(context).copyWith(fontSize: 20) : AppStyles.placeholder(context)).merge(
-                          widget.textStyle,
-                        ),
+                        placeholderStyle: AppStyles.placeholder(context).copyWith(fontSize: isNumeric ? 20 : null),
                         minLines: widget.minLines,
                         maxLines: widget.maxLines,
                         scrollPadding: const .only(bottom: 60), // Distance from the keyboard
@@ -126,7 +124,7 @@ class _FieldState extends State<Field> {
                         focusNode: widget.focusNode,
                         scrollPhysics: widget.scrollPhysics,
                         textAlign: isNumeric ? .center : .start,
-                        style: widget.textStyle,
+                        style: AppStyles.primaryText(context).merge(widget.textStyle),
                         onTapOutside: widget.focusNode == null ? (_) => FocusScope.of(context).unfocus() : null,
                         onTap: widget.onTap,
                       ),
