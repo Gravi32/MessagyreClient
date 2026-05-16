@@ -205,6 +205,7 @@ class SearchPageState extends State<SearchPage> {
                 child: Button(
                   transparent: true,
                   color: AppColors.secondaryBackground.adaptTo(context),
+                  onTap: () => openUrl("https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
                   rawChild: Column(
                     children: [
                       SizedBox.square(dimension: 40, child: Image.asset("assets/icons/hermesII.png")),
@@ -219,6 +220,7 @@ class SearchPageState extends State<SearchPage> {
                 child: Button(
                   transparent: true,
                   color: AppColors.secondaryBackground.adaptTo(context),
+                  onTap: () => openUrl("https://teams.microsoft.com/v2/"),
                   rawChild: Column(
                     children: [
                       SizedBox.square(dimension: 40, child: Image.asset("assets/icons/teams.png")),

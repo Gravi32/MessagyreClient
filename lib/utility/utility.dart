@@ -396,16 +396,15 @@ void restartApp(BuildContext context) {
   Phoenix.rebirth(mountedContext);
 }
 
-Future<void> openUrl(String url) async {
-  final Uri uri = Uri.parse(url);
+Future<void> openUrl(String url, {bool tryApp = false}) async {
+  Uri uri = Uri.parse(url);
 
-  if (!await launchUrl(
-    uri,
-    mode: LaunchMode.inAppBrowserView,
-    webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true),
-  )) {
-    debugPrint("[Utility] Failed to open URL '$url'");
+  if (tryApp) {
+    bool launched = await launchUrl(uri, mode: .externalApplication);
+    if (launched) return;
   }
+
+  await launchUrl(uri, mode: .inAppBrowserView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true));
 }
 
 // #endregion
