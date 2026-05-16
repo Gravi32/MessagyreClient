@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 3.65.938+938
+version: 3.69.951+951
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -70,6 +70,10 @@ version: 3.65.938+938
 # 3.63  Split report card in 3 separate pages
 # 3.64  Added settings shortcut buttons in the grade pages
 # 3.65  Improved light/dark mode picker
+# 3.66  Default page selector added in the settings
+# 3.67  Added FaceID requirement for the grades page
+# 3.68  FaceID can now be activated manually via a trailing button
+# 3.69  Added news page
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
