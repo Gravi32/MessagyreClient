@@ -1,0 +1,22 @@
+{
+    "type": "row",
+    "children": [
+        {
+            "type": "expanded",
+            "child": {
+                "type": "app_text",
+                "data": "Fin des cours",
+                "style": "header"
+            }
+        },
+        {
+            "type": "expanded",
+            "child": {
+                "type": "app_text",
+                "data": "22 mai",
+                "textAlign": "TextAlign.right",
+                "style": "header"
+            }
+        }
+    ]
+}

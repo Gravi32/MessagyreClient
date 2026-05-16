@@ -190,22 +190,69 @@ class SearchPageState extends State<SearchPage> {
     return ValueListenableBuilder(
       valueListenable: news,
       builder: (context, newsContent, _) => ListView(
+        padding: .only(top: 8),
         shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         children: [
+          Padding(
+            padding: .symmetric(horizontal: 10, vertical: 8),
+            child: Text("Raccourcis", style: AppStyles.header(context)),
+          ),
+          Row(
+            spacing: 8,
+            children: [
+              Expanded(
+                child: Button(
+                  transparent: true,
+                  color: AppColors.secondaryBackground.adaptTo(context),
+                  rawChild: Column(
+                    children: [
+                      SizedBox.square(dimension: 40, child: Image.asset("assets/icons/hermesII.png")),
+                      SizedBox(height: 16),
+                      Text("Hermes II", style: AppStyles.secondaryHeader(context)),
+                      Text("Ouvrir", style: AppStyles.tertiaryText(context)),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Button(
+                  transparent: true,
+                  color: AppColors.secondaryBackground.adaptTo(context),
+                  rawChild: Column(
+                    children: [
+                      SizedBox.square(dimension: 40, child: Image.asset("assets/icons/teams.png")),
+                      SizedBox(height: 16),
+                      Text("Teams", style: AppStyles.secondaryHeader(context)),
+                      Text("Ouvrir", style: AppStyles.tertiaryText(context)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          Padding(
+            padding: .symmetric(horizontal: 10, vertical: 8),
+            child: Text("Annonces", style: AppStyles.header(context)),
+          ),
           ...newsContent.map((box) {
-            final Map<String, dynamic>? coverWidget = tryJsonDecode(box.tryGetValue("CoverWidget"));
-            final Map<String, dynamic>? pageWidget = tryJsonDecode(box.tryGetValue("PageWidget"));
+            final Map<String, dynamic>? metadata = tryJsonDecode(box["Metadata"] ?? "{}");
+            final Map<String, dynamic>? coverWidget = tryJsonDecode(box["CoverWidget"] ?? "{}");
+            final Map<String, dynamic>? pageWidget = tryJsonDecode(box["PageWidget"] ?? "{}");
 
             if (coverWidget == null || pageWidget == null) return const SizedBox();
 
             return Button(
               margin: .only(bottom: 16),
+              color: AppColors.fromName(metadata?["Color"]) ?? AppColors.secondaryBackground.adaptTo(context),
               rawChild: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
               onTap: () => showCupertinoSheet(
                 context: context,
                 builder: (context) => Page(
                   topBar: TopBar.tab(context),
-                  child: Stac.fromJson(coverWidget, context) ?? Center(child: Text("Une erreur s'est produite.")),
+                  child: Stac.fromJson(pageWidget, context) ?? Center(child: Text("Une erreur s'est produite.")),
                 ),
               ),
             );
