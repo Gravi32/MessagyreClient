@@ -114,7 +114,12 @@ class _PageState extends State<Page> {
   @override
   void initState() {
     super.initState();
-    widget.lockNotifier?.addListener(() => setState(() => isUnlocked = false));
+    widget.lockNotifier?.addListener(
+      () => setState(() {
+        isUnlocked = false;
+        authFailed = true;
+      }),
+    );
   }
 
   @override
@@ -191,13 +196,17 @@ class _PageState extends State<Page> {
                     child: BlurredContainer(
                       blur: 24,
                       padding: .all(24),
-                      child: authFailed
-                          ? Column(
+                      child: authInProgress
+                          ? null
+                          : Column(
                               mainAxisAlignment: .center,
                               spacing: 16,
                               children: [
-                                HugeIcon(icon: HugeIcons.strokeRoundedFaceId),
+                                HugeIcon(icon: HugeIcons.strokeRoundedFaceId, size: 36),
                                 Text("Page bloquée", style: AppStyles.header(context)),
+
+                                const SizedBox(height: 16),
+
                                 Text(
                                   "Cette page est confidentielle,\nauthentifiez-vous avec le FaceID pour continuer.",
                                   style: AppStyles.primaryText(context),
@@ -205,11 +214,11 @@ class _PageState extends State<Page> {
                                 ),
                                 Text("Vous pouvez désactiver cet écran dans les réglages.", style: AppStyles.tertiaryText(context), textAlign: .center),
 
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
+
                                 Button(text: "FaceID", transparent: true, onTap: () => setState(() => authFailed = false)),
                               ],
-                            )
-                          : null,
+                            ),
                     ),
                   ),
                 ),
