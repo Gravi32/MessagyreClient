@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Theme;
 import 'package:in_app_review/in_app_review.dart';
@@ -59,17 +60,17 @@ class SearchPageState extends State<SearchPage> {
   int searchCounter = 0;
   int latestSearch = 0;
 
-  final news = ValueNotifier<List<Map<String, dynamic>>>([]);
+  final newsNotifier = ValueNotifier<List<Map<String, dynamic>>>([]);
 
   List<SearchResult> searchResults = [];
 
   Future<void> fetchNews() async {
     final apiResponse = await network.get("/news/get");
     if (apiResponse.body.isEmpty) return;
-    news.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
+    newsNotifier.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
 
-    App.pages[3].showBadge.value = globals.persistent.getInt("SeenNewsCount") != news.value.length;
-    globals.persistent.setInt("SeenNewsCount", news.value.length);
+    App.pages[3].showBadge.value = globals.persistent.getInt("SeenNewsCount") != newsNotifier.value.length;
+    globals.persistent.setInt("SeenNewsCount", newsNotifier.value.length);
   }
 
   void search(String query) async {
@@ -198,7 +199,7 @@ class SearchPageState extends State<SearchPage> {
 
   Widget buildNews() {
     return ValueListenableBuilder(
-      valueListenable: news,
+      valueListenable: newsNotifier,
       builder: (context, newsContent, _) => ListView(
         padding: .only(top: 8),
         shrinkWrap: true,
@@ -249,22 +250,25 @@ class SearchPageState extends State<SearchPage> {
             padding: .symmetric(horizontal: 10, vertical: 8),
             child: Text("Annonces", style: AppStyles.header(context)),
           ),
-          ...newsContent.map((box) {
-            final Map<String, dynamic>? metadata = tryJsonDecode(box["Metadata"] ?? "{}");
-            final Map<String, dynamic>? coverWidget = tryJsonDecode(box["CoverWidget"] ?? "{}");
-            final Map<String, dynamic>? pageWidget = tryJsonDecode(box["PageWidget"] ?? "{}");
+          ...newsContent.map((newsBox) {
+            final Map<String, dynamic>? metadata = tryJsonDecode(newsBox["Metadata"] ?? "{}");
+            final Map<String, dynamic>? coverWidget = tryJsonDecode(newsBox["CoverWidget"] ?? "{}");
+            final Map<String, dynamic>? pageWidget = tryJsonDecode(newsBox["PageWidget"] ?? "{}");
             final hasBackgroundImage = metadata?["BackgroundImageUrl"] != null;
-            final hasAuthor = box["AuthorUsername"] != null;
+            final hasAuthor = (newsBox["AuthorUsername"] ?? "") != "";
             final backgroundColor = AppColors.fromName(metadata?["Color"]);
             final onTapUrl = metadata?["OnTapUrl"];
 
             if (coverWidget == null || pageWidget == null) return const SizedBox();
             final isTappable = onTapUrl != null || pageWidget.isNotEmpty;
+            const double authorPictureHeight = 30;
+            const double trailingButtonHeight = 40;
+            final double bottomPadding = max((hasAuthor ? authorPictureHeight + 8 : 0), (isTappable ? trailingButtonHeight + 8 : 0));
 
             return Button(
               margin: .only(bottom: 16),
               transparent: true,
-              padding: hasBackgroundImage ? .zero : null,
+              padding: .zero,
               color: backgroundColor ?? AppColors.secondaryBackground.adaptTo(context),
               rawChild: Stack(
                 children: [
@@ -276,21 +280,24 @@ class SearchPageState extends State<SearchPage> {
                       ),
                     ),
                   Container(
-                    padding: hasBackgroundImage ? .all(14) : .zero,
-                    margin: .only(bottom: 48),
+                    padding: .all(14),
+                    margin: .only(bottom: bottomPadding),
                     child: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
                   ),
                   if (hasAuthor)
                     Positioned(
                       bottom: 8,
                       left: 8,
-                      child: SizedBox.square(dimension: 30, child: ProfilePictureDisplay(accountUsername: box["AuthorUsername"], includeBadge: false)),
+                      child: SizedBox.square(
+                        dimension: authorPictureHeight,
+                        child: ProfilePictureDisplay(accountUsername: newsBox["AuthorUsername"], includeBadge: false),
+                      ),
                     ),
                   if (isTappable)
                     Positioned(
                       bottom: 8,
                       right: 8,
-                      child: Button.icon(context, icon: HugeIcons.strokeRoundedArrowRight01, size: 40, color: backgroundColor),
+                      child: Button.icon(context, icon: HugeIcons.strokeRoundedArrowRight01, size: trailingButtonHeight, color: backgroundColor),
                     ),
                 ],
               ),

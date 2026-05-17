@@ -20,7 +20,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
-import 'package:messagyre_client/utility/parsers/app_styles_parser.dart';
+import 'package:messagyre_client/utility/parsers/app_text_parser.dart';
 import 'package:messagyre_client/utility/parsers/round_container_parser.dart';
 import 'package:messagyre_client/utility/widgets/bottom_bar.dart';
 import 'package:messagyre_client/services/lifecycle_service.dart';
