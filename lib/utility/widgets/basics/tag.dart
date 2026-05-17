@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class Tag extends StatelessWidget {
   final String text;
@@ -10,12 +10,8 @@ class Tag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withBrightness(-.25),
-        border: .all(color: color),
-        borderRadius: .circular(24),
-      ),
+    return RoundContainer(
+      color: color,
       padding: .symmetric(horizontal: 8, vertical: 4),
       child: Text(
         text,
