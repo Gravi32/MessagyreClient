@@ -9,6 +9,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/tag.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class AssignmentTile extends ListTile {
@@ -85,34 +86,10 @@ class _AssignmentTileState extends State<AssignmentTile> {
               spacing: 10,
               children: [
                 // Test tag
-                if (assignment.type == AssignmentType.test)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.red.withBrightness(-.25),
-                      border: .all(color: AppColors.red),
-                      borderRadius: .circular(24),
-                    ),
-                    padding: .all(4),
-                    child: Text(
-                      "TEST",
-                      style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
-                    ),
-                  ),
+                if (assignment.type == AssignmentType.test) Tag(text: "TEST", color: AppColors.red),
 
                 // Leave tag
-                if (assignment.type == AssignmentType.leave)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.orange.withBrightness(-.05),
-                      border: .all(color: AppColors.yellow, strokeAlign: BorderSide.strokeAlignOutside),
-                      borderRadius: .circular(24),
-                    ),
-                    padding: .all(4),
-                    child: Text(
-                      "CONGÉ",
-                      style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
-                    ),
-                  ),
+                if (assignment.type == AssignmentType.leave) Tag(text: "CONGÉ", color: AppColors.orange),
 
                 // Title
                 Expanded(

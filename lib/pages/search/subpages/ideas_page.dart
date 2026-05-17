@@ -8,6 +8,7 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/tag.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
@@ -58,6 +59,13 @@ class _IdeasPageState extends State<IdeasPage> {
               int id = idea["ID"] ?? -1;
               int myVote = idea["MyVote"] ?? 0;
 
+              final (String, Color)? tag = switch (idea["Status"]) {
+                "Done" => ("Terminé", AppColors.green),
+                "InProgress" => ("En cours", AppColors.orange),
+                "Planned" => ("Planifié", AppColors.cyan),
+                _ => null,
+              };
+
               if (id < 0) return SizedBox();
 
               return RoundContainer(
@@ -67,8 +75,14 @@ class _IdeasPageState extends State<IdeasPage> {
                   crossAxisAlignment: .stretch,
                   spacing: 8,
                   children: [
+                    if (tag != null)
+                      Row(
+                        children: [Tag(text: tag.$1, color: tag.$2)],
+                      ),
                     Text(idea["Title"] ?? "Sans titre", style: AppStyles.header(context), textAlign: .left),
+
                     Text(idea["Description"] ?? "Sans description", style: AppStyles.primaryText(context), textAlign: .left),
+
                     SizedBox(
                       height: 40,
                       child: Row(
