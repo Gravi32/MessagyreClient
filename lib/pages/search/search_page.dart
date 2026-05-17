@@ -215,17 +215,17 @@ class SearchPageState extends State<SearchPage> {
               ...[
                 (name: "Hermes II", iconPath: "assets/icons/hermesII.webp", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
                 (name: "Teams", iconPath: "assets/icons/teams.webp", url: "https://teams.microsoft.com/v2/"),
-                (name: "Moodle", iconPath: "assets/icons/moodle.webp", url: "https://teams.microsoft.com/v2/"),
+                (name: "Moodle", iconPath: "assets/icons/moodle.webp", url: "https://moodle.eduvaud.ch/my/"),
               ].map(
                 (shortcut) => Expanded(
                   child: Button(
                     transparent: true,
                     color: AppColors.secondaryBackground.adaptTo(context),
-                    onTap: () => openUrl(shortcut.url),
+                    onTap: () => openUrl(shortcut.url, tryApp: true),
                     rawChild: Column(
                       children: [
-                        SizedBox.square(dimension: 40, child: Image.asset(shortcut.iconPath)),
-                        SizedBox(height: 8),
+                        SizedBox.square(dimension: 48, child: Image.asset(shortcut.iconPath)),
+                        SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: .center,
                           spacing: 2,

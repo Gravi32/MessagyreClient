@@ -62,6 +62,8 @@
         </array>
         <key>LSApplicationQueriesSchemes</key>
         <array>
+            <string>msteams</string>
+            <string>moodlemobile</string>
             <string>https</string>
             <string>http</string>
         </array>
