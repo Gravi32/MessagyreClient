@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart' hide Page;
+import 'package:flutter/material.dart' show Theme;
+import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -11,6 +13,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
@@ -63,7 +66,7 @@ class SearchPageState extends State<SearchPage> {
     final apiResponse = await network.get("/news/get");
     if (apiResponse.body.isEmpty) return;
     news.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
-    
+
     App.pages[3].showBadge.value = globals.persistent.getInt("SeenNewsCount") != news.value.length;
     globals.persistent.setInt("SeenNewsCount", news.value.length);
   }
@@ -208,8 +211,9 @@ class SearchPageState extends State<SearchPage> {
             spacing: 8,
             children: [
               ...[
-                (name: "Hermes II", iconPath: "assets/icons/hermesII.png", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
-                (name: "Teams", iconPath: "assets/icons/teams.png", url: "https://teams.microsoft.com/v2/"),
+                (name: "Hermes II", iconPath: "assets/icons/hermesII.webp", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
+                (name: "Teams", iconPath: "assets/icons/teams.webp", url: "https://teams.microsoft.com/v2/"),
+                (name: "Moodle", iconPath: "assets/icons/moodle.webp", url: "https://teams.microsoft.com/v2/"),
               ].map(
                 (shortcut) => Expanded(
                   child: Button(
@@ -219,9 +223,17 @@ class SearchPageState extends State<SearchPage> {
                     rawChild: Column(
                       children: [
                         SizedBox.square(dimension: 40, child: Image.asset(shortcut.iconPath)),
-                        SizedBox(height: 16),
-                        Text(shortcut.name, style: AppStyles.secondaryHeader(context)),
-                        Text("Ouvrir", style: AppStyles.tertiaryText(context)),
+                        SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: .center,
+                          spacing: 2,
+                          children: [
+                            Expanded(
+                              child: Text(shortcut.name, maxLines: 1, softWrap: false, overflow: .fade, style: AppStyles.secondaryHeader(context)),
+                            ),
+                            Icon(CupertinoIcons.chevron_right, size: AppStyles.tertiaryText(context).fontSize, color: AppColors.tertiaryText.adaptTo(context)),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -250,6 +262,7 @@ class SearchPageState extends State<SearchPage> {
 
             return Button(
               margin: .only(bottom: 16),
+              transparent: true,
               padding: hasBackgroundImage ? .zero : null,
               color: backgroundColor ?? AppColors.secondaryBackground.adaptTo(context),
               rawChild: Stack(
@@ -293,6 +306,57 @@ class SearchPageState extends State<SearchPage> {
                   : null,
             );
           }),
+
+          Button(
+            padding: .all(16),
+            color: AppColors.secondaryBackground.adaptTo(context),
+            transparent: true,
+            rawChild: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      Row(
+                        spacing: 2,
+
+                        children: [
+                          Expanded(child: Text("Laisser un avis", style: AppStyles.header(context))),
+                          ...List.generate(
+                            5,
+                            (_) => HugeIcon(
+                              icon: HugeIcons.strokeRoundedStar,
+                              size: AppStyles.secondaryHeader(context).fontSize,
+                              color: AppColors.tertiaryText.adaptTo(context),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      Text(
+                        "Soutenez Messagyre en laissant un avis sur ${Theme.of(context).platform == .android ? "Google Play" : "l'App Store"} !",
+                        style: AppStyles.tertiaryText(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            onTap: () async {
+              if (await InAppReview.instance.isAvailable()) {
+                await InAppReview.instance.requestReview();
+              } else {
+                await InAppReview.instance.openStoreListing(appStoreId: "6752887226");
+              }
+              if (context.mounted) {
+                showCupertinoDialog(
+                  context: context,
+                  builder: (_) => Dialog(title: "Merci !", options: {"Fermer": () {}}),
+                );
+              }
+            },
+          ),
+
           BottomSpacing(includeBottomBar: true),
         ],
       ),
