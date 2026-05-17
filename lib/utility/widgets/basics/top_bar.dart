@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -86,6 +87,7 @@ class _TopBarState extends State<TopBar> {
         leading: widget.leading,
         largeTitle: widget.middle,
         trailing: widget.trailing,
+        backgroundColor: AppColors.background.adaptTo(context),
         bottom: widget.field != null
             ? PreferredSize(
                 preferredSize: const .fromHeight(60),
