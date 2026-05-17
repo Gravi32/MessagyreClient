@@ -100,52 +100,56 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget buildResult(SearchResult result) {
-    return CupertinoListTile.notched(
-      padding: .symmetric(vertical: 6, horizontal: 10),
-      title: Row(
-        children: [
-          Column(
-            crossAxisAlignment: .start,
-            children: [
-              Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: AppStyles.secondaryHeader(context)),
-              Row(
-                spacing: 6,
-                crossAxisAlignment: .baseline,
-                textBaseline: .alphabetic,
-                children: [
-                  Text.rich(TextSpan(children: highlightSearchMatch(result.username, searchBarController.text), style: AppStyles.primaryText(context))),
-                  if (result.classOrRole != null)
-                    Text.rich(
-                      TextSpan(children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text), style: AppStyles.secondaryText(context)),
-                    ),
-                ],
-              ),
+    return SizedBox(
+      width: .infinity,
+      height: 60,
+      child: CupertinoButton(
+        minimumSize: .zero,
+        padding: .symmetric(vertical: 6, horizontal: 10),
+        onPressed: () async {
+          setState(() {
+            usernameBeingLoaded = result.username;
+          });
+
+          final account = await network.getAccount(result.username);
+
+          setState(() {
+            usernameBeingLoaded = null;
+          });
+
+          if (account != null && mounted) {
+            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfilePage(account)));
+          }
+        },
+        child: Row(
+          children: [
+            ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 26),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: .start,
+              children: [
+                Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: AppStyles.secondaryHeader(context)),
+                Row(
+                  spacing: 6,
+                  crossAxisAlignment: .baseline,
+                  textBaseline: .alphabetic,
+                  children: [
+                    Text.rich(TextSpan(children: highlightSearchMatch(result.username, searchBarController.text), style: AppStyles.primaryText(context))),
+                    if (result.classOrRole != null)
+                      Text.rich(
+                        TextSpan(children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text), style: AppStyles.secondaryText(context)),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            if (usernameBeingLoaded == result.username) ...[
+              SizedBox(width: 10),
+              LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
             ],
-          ),
-          if (usernameBeingLoaded == result.username) ...[
-            SizedBox(width: 10),
-            LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
           ],
-        ],
+        ),
       ),
-      leading: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 26),
-      leadingSize: 50,
-      additionalInfo: CupertinoListTileChevron(),
-      onTap: () async {
-        setState(() {
-          usernameBeingLoaded = result.username;
-        });
-
-        final account = await network.getAccount(result.username);
-
-        setState(() {
-          usernameBeingLoaded = null;
-        });
-
-        if (account != null && mounted) {
-          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfilePage(account)));
-        }
-      },
     );
   }
 
@@ -153,18 +157,16 @@ class SearchPageState extends State<SearchPage> {
     final bool isShortQuery = searchBarController.text.length < 2;
 
     if (!isShortQuery) {
-      return Center(
-        child: isSearcing
-            ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
-            : Column(
-                mainAxisAlignment: .center,
-                children: [
-                  CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
-                  const SizedBox(height: 10),
-                  Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-                ],
-              ),
-      );
+      return isSearcing
+          ? Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14))
+          : Column(
+              mainAxisAlignment: .center,
+              children: [
+                CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
+                const SizedBox(height: 10),
+                Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
+              ],
+            );
     }
 
     return Column(
@@ -278,10 +280,16 @@ class SearchPageState extends State<SearchPage> {
       topBar: TopBar.sliver(title: "Recherche"),
       onRefresh: () async => await fetchNews(),
       field: Field(placeholder: "Rechercher un.e gymnasien.ne", controller: searchBarController, focusNode: searchBarFocusNode, onChanged: search),
-      body: searchBarFocusNode.hasFocus
+      body: searchBarFocusNode.hasFocus || searchResults.isNotEmpty
           ? searchResults.isNotEmpty
-                ? ListView.builder(itemCount: searchResults.length, itemBuilder: (context, index) => buildResult(searchResults[index]))
-                : buildDecoration()
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    padding: .only(top: 16),
+                    itemCount: searchResults.length,
+                    itemBuilder: (context, index) => buildResult(searchResults[index]),
+                  )
+                : Padding(padding: .only(top: 24), child: buildDecoration())
           : buildNews(),
     );
   }
