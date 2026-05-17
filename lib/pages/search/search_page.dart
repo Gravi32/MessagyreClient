@@ -203,39 +203,30 @@ class SearchPageState extends State<SearchPage> {
           Row(
             spacing: 8,
             children: [
-              Expanded(
-                child: Button(
-                  transparent: true,
-                  color: AppColors.secondaryBackground.adaptTo(context),
-                  onTap: () => openUrl("https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
-                  rawChild: Column(
-                    children: [
-                      SizedBox.square(dimension: 40, child: Image.asset("assets/icons/hermesII.png")),
-                      SizedBox(height: 16),
-                      Text("Hermes II", style: AppStyles.secondaryHeader(context)),
-                      Text("Ouvrir", style: AppStyles.tertiaryText(context)),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Button(
-                  transparent: true,
-                  color: AppColors.secondaryBackground.adaptTo(context),
-                  onTap: () => openUrl("https://teams.microsoft.com/v2/"),
-                  rawChild: Column(
-                    children: [
-                      SizedBox.square(dimension: 40, child: Image.asset("assets/icons/teams.png")),
-                      SizedBox(height: 16),
-                      Text("Teams", style: AppStyles.secondaryHeader(context)),
-                      Text("Ouvrir", style: AppStyles.tertiaryText(context)),
-                    ],
+              ...[
+                (name: "Hermes II", iconPath: "assets/icons/hermesII.png", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
+                (name: "Teams", iconPath: "assets/icons/teams.png", url: "https://teams.microsoft.com/v2/"),
+              ].map(
+                (shortcut) => Expanded(
+                  child: Button(
+                    transparent: true,
+                    color: AppColors.secondaryBackground.adaptTo(context),
+                    onTap: () => openUrl(shortcut.url),
+                    rawChild: Column(
+                      children: [
+                        SizedBox.square(dimension: 40, child: Image.asset(shortcut.iconPath)),
+                        SizedBox(height: 16),
+                        Text(shortcut.name, style: AppStyles.secondaryHeader(context)),
+                        Text("Ouvrir", style: AppStyles.tertiaryText(context)),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+
+          const SizedBox(height: 16),
 
           Padding(
             padding: .symmetric(horizontal: 10, vertical: 8),
