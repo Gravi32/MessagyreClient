@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:stac/stac.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 
@@ -40,22 +41,30 @@ class StacAppTextParser extends StacParser<StacAppTextModel> {
         break;
     }
 
-    return Text(model.data, style: style, textAlign: model.textAlign);
+    return Text(
+      model.data,
+      style: style.copyWith(color: model.color != null ? AppColors.fromName(model.color) : null, fontSize: model.fontSize),
+      textAlign: model.textAlign,
+    );
   }
 }
 
 class StacAppTextModel {
   final String data;
   final String? style;
+  final String? color;
   final TextAlign? textAlign;
+  final double? fontSize;
 
-  StacAppTextModel({required this.data, this.style, this.textAlign});
+  StacAppTextModel({required this.data, this.style, this.textAlign, this.color, this.fontSize});
 
   factory StacAppTextModel.fromJson(Map<String, dynamic> json) {
     return StacAppTextModel(
       data: json['data'] ?? '',
       style: json['style'],
       textAlign: TextAlign.values.firstWhere((e) => e.name == json['textAlign'], orElse: () => TextAlign.start),
+      color: json['color'],
+      fontSize: (json['fontSize'] as num?)?.toDouble(),
     );
   }
 }

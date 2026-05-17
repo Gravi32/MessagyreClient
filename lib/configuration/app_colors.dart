@@ -26,28 +26,62 @@ class AppColors {
 
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);
-  static const red = Color.fromRGBO(240, 100, 100, 1.0);
+  static const black = Color.fromRGBO(0, 0, 0, 1.0);
+  static const grey = Color.fromRGBO(142, 142, 147, 1.0);
+
+  static const red = Color.fromRGBO(255, 59, 48, 1.0);
   static const orange = Color.fromRGBO(255, 149, 0, 1.0);
   static const yellow = Color.fromRGBO(255, 204, 0, 1.0);
-  static const cyan = Color.fromRGBO(0, 183, 255, 1);
   static const green = Color.fromRGBO(52, 199, 89, 1.0);
-  static const grey = Color.fromRGBO(142, 142, 147, 1.0);
-  static const black = Color.fromRGBO(0, 0, 0, 1.0);
+  static const mint = Color.fromRGBO(0, 199, 190, 1.0);
+  static const teal = Color.fromRGBO(48, 176, 199, 1.0);
+  static const cyan = Color.fromRGBO(50, 173, 230, 1.0);
+  static const blue = Color.fromRGBO(0, 122, 255, 1.0);
+  static const indigo = Color.fromRGBO(88, 86, 214, 1.0);
+  static const purple = Color.fromRGBO(175, 82, 222, 1.0);
+  static const pink = Color.fromRGBO(255, 45, 85, 1.0);
+  static const brown = Color.fromRGBO(162, 132, 94, 1.0);
+
+  // Extra Vivid
+  static const lime = Color.fromRGBO(191, 255, 0, 1.0);
+  static const amber = Color.fromRGBO(255, 191, 0, 1.0);
+  static const deepOrange = Color.fromRGBO(255, 87, 34, 1.0);
+  static const magenta = Color.fromRGBO(255, 0, 255, 1.0);
+  static const violet = Color.fromRGBO(143, 0, 255, 1.0);
+  static const skyBlue = Color.fromRGBO(0, 191, 255, 1.0);
+  static const gold = Color.fromRGBO(255, 215, 0, 1.0);
+  static const silver = Color.fromRGBO(192, 192, 192, 1.0);
 
   // Special colors
   static const transparent = Color.fromRGBO(0, 0, 0, 0.0);
   static const inactive = AppColor(light: Color.fromRGBO(142, 142, 147, 1.0), dark: Color.fromRGBO(99, 99, 102, 1.0));
 
   // Getter
-  static Color? fromName(String? name, {BuildContext? context}) => switch (name) {
+  static Color? fromName(String? name, {BuildContext? context}) => switch (name?.toLowerCase()) {
     "white" => AppColors.white,
+    "black" => AppColors.black,
+    "grey" => AppColors.grey,
     "red" => AppColors.red,
     "orange" => AppColors.orange,
     "yellow" => AppColors.yellow,
     "green" => AppColors.green,
-    "grey" => AppColors.grey,
-    "black" => AppColors.black,
+    "mint" => AppColors.mint,
+    "teal" => AppColors.teal,
+    "cyan" => AppColors.cyan,
+    "blue" => AppColors.blue,
+    "indigo" => AppColors.indigo,
+    "purple" => AppColors.purple,
+    "pink" => AppColors.pink,
+    "brown" => AppColors.brown,
     "accent" => AppColors.accent,
+    "lime" => AppColors.lime,
+    "amber" => AppColors.amber,
+    "deeporange" => AppColors.deepOrange,
+    "magenta" => AppColors.magenta,
+    "violet" => AppColors.violet,
+    "skyblue" => AppColors.skyBlue,
+    "gold" => AppColors.gold,
+    "silver" => AppColors.silver,
     _ => null,
   };
 }
