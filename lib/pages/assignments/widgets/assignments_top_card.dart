@@ -50,52 +50,60 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
             final thisDaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(thisDay));
             final isToday = thisDay.isSameDayAs(today);
 
-            return RoundContainer(
-              padding: .all(2),
-              opacity: (thisDay.weekday + 1) % 7 < 2 ? .4 : 1,
-              child: Column(
-                mainAxisAlignment: .center,
-                crossAxisAlignment: .stretch,
-                children: [
-                  Spacer(),
-                  Text(
-                    DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
-                    textAlign: .center,
-                    overflow: .fade,
-                    maxLines: 1,
-                    style: isToday ? TextStyle(color: AppColors.accent, fontWeight: .w600) : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                  ),
-                  Text(
-                    thisDay.day.toString(),
-                    textAlign: .center,
-                    overflow: .fade,
-                    maxLines: 1,
-                    style: TextStyle(fontWeight: isToday ? .w700 : .w500, fontSize: 20),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Row(
-                      spacing: 2,
+            return Column(
+              mainAxisAlignment: .center,
+              crossAxisAlignment: .stretch,
+              children: [
+                Text(
+                  DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
+                  textAlign: .center,
+                  overflow: .fade,
+                  maxLines: 1,
+                  style: isToday ? TextStyle(color: AppColors.accent, fontWeight: .w600) : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                ),
+                Expanded(
+                  child: RoundContainer(
+                    padding: .all(2),
+                    opacity: (thisDay.weekday + 1) % 7 < 2 ? .4 : 1,
+                    child: Column(
                       mainAxisAlignment: .center,
-                      crossAxisAlignment: .center,
-                      children: List.generate(min(thisDaysAssignments.length, 3), (index) {
-                        final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
-                        if (thisDaysAssignment == null) return SizedBox.shrink();
+                      crossAxisAlignment: .stretch,
+                      children: [
+                        Spacer(),
+                        Text(
+                          thisDay.day.toString(),
+                          textAlign: .center,
+                          overflow: .fade,
+                          maxLines: 1,
+                          style: AppStyles.header(context).copyWith(fontWeight: isToday ? .w700 : .w500),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            spacing: 2,
+                            mainAxisAlignment: .center,
+                            crossAxisAlignment: .center,
+                            children: List.generate(min(thisDaysAssignments.length, 3), (index) {
+                              final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
+                              if (thisDaysAssignment == null) return SizedBox.shrink();
 
-                        final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
+                              final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
 
-                        return thisDaysAssignment.type == AssignmentType.leave
-                            ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
-                            : Container(
-                                width: 4,
-                                height: 4,
-                                decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: .circle),
-                              );
-                      }),
+                              return thisDaysAssignment.type == AssignmentType.leave
+                                  ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
+                                  : Container(
+                                      width: 4,
+                                      height: 4,
+                                      decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: .circle),
+                                    );
+                            }),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
