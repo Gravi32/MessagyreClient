@@ -397,21 +397,24 @@ void restartApp(BuildContext context) {
 }
 
 Future<void> openUrl(String url, {bool tryApp = false}) async {
-  String? appUrl;
+  final uri = Uri.parse(url);
 
   if (tryApp) {
-    if (url.contains("teams.microsoft.com")) {
-      appUrl = url.replaceFirst("https://", "msteams://");
-    } else if (url.contains("moodle.eduvaud.ch")) {
-      appUrl = url.replaceFirst("https://", "moodlemobile://");
+    String? appUrl;
+    if (url.contains("teams.microsoft.com")) appUrl = url.replaceFirst("https://", "msteams://");
+    if (url.contains("moodle.eduvaud.ch")) appUrl = "moodlemobile://link=$url";
+
+    if (appUrl != null) {
+      final appUri = Uri.parse(appUrl);
+      if (await canLaunchUrl(appUri)) {
+        await launchUrl(appUri, mode: LaunchMode.externalApplication);
+        return;
+      }
     }
+    if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
   }
 
-  if (appUrl != null) {
-    if (await launchUrl(Uri.parse(appUrl), mode: .externalApplication)) return;
-  }
-
-  await launchUrl(Uri.parse(url), mode: .inAppBrowserView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true));
+  await launchUrl(uri, mode: LaunchMode.inAppBrowserView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true));
 }
 
 // #endregion
