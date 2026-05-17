@@ -92,11 +92,7 @@ class Dialog extends StatelessWidget {
                         padding: .symmetric(horizontal: 10),
                         child: SingleChildScrollView(
                           // Content
-                          child: CustomText(
-                            content!.trim(),
-                            textAlign: .center,
-                            style: const TextStyle(fontSize: 19, fontWeight: .w400, height: 1.5),
-                          ),
+                          child: CustomText(content!.trim(), textAlign: .center, style: AppStyles.primaryText(context).copyWith(fontSize: 19, height: 1.5)),
                         ),
                       ),
               ),

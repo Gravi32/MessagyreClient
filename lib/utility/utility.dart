@@ -408,7 +408,7 @@ Future<void> openUrl(String url, {bool tryApp = false}) async {
   }
 
   if (appUrl != null) {
-    if (await launchUrl(Uri.parse(appUrl), mode: .externalNonBrowserApplication)) return;
+    if (await launchUrl(Uri.parse(appUrl), mode: .externalApplication)) return;
   }
 
   await launchUrl(Uri.parse(url), mode: .inAppBrowserView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true));
