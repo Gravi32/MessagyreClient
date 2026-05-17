@@ -256,7 +256,8 @@ class SearchPageState extends State<SearchPage> {
             final Map<String, dynamic>? pageWidget = tryJsonDecode(newsBox["PageWidget"] ?? "{}");
             final hasBackgroundImage = metadata?["BackgroundImageUrl"] != null;
             final hasAuthor = (newsBox["AuthorUsername"] ?? "") != "";
-            final backgroundColor = AppColors.fromName(metadata?["Color"]);
+            final backgroundColor = AppColors.fromName(metadata?["BackgroundColor"]);
+            final foregroundColor = AppColors.fromName(metadata?["ForegroundColor"]);
             final onTapUrl = metadata?["OnTapUrl"];
 
             if (coverWidget == null || pageWidget == null) return const SizedBox();
@@ -297,7 +298,13 @@ class SearchPageState extends State<SearchPage> {
                     Positioned(
                       bottom: 8,
                       right: 8,
-                      child: Button.icon(context, icon: HugeIcons.strokeRoundedArrowRight01, size: trailingButtonHeight, color: backgroundColor),
+                      child: Button.icon(
+                        context,
+                        icon: HugeIcons.strokeRoundedArrowRight01,
+                        size: trailingButtonHeight,
+                        color: backgroundColor,
+                        iconColor: foregroundColor,
+                      ),
                     ),
                 ],
               ),

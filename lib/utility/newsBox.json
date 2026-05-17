@@ -4,27 +4,15 @@
     "children": [
         {
             "type": "app_text",
-            "data": "Mise à jour Disponible !",
-            "style": "header"
-        },
-        {
-            "type": "container",
-            "height": 60,
-            "child": {
-                "type": "center",
-                "child": {
-                    "type": "app_text",
-                    "data": "3.71.971",
-                    "style": "header",
-                    "color": "cyan",
-                    "fontSize": 40
-                }
-            }
+            "data": "Messagyre est sur Instagram !",
+            "style": "header",
+            "color": "white"
         },
         {
             "type": "app_text",
-            "data": "Une nouvelle version est désormais disponible sur l'App Store et Google Play",
-            "style": "primaryText"
+            "data": "Abonnez-vous pour ne pas rater les coulisses du projet et nos prochaines nouveautés !",
+            "style": "primaryText",
+            "color": "white"
         }
     ]
 }
