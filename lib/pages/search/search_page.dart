@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/pages/search/subpages/ideas_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -308,37 +309,32 @@ class SearchPageState extends State<SearchPage> {
           }),
 
           Button(
+            margin: .only(bottom: 16),
             padding: .all(16),
             color: AppColors.secondaryBackground.adaptTo(context),
             transparent: true,
-            rawChild: Row(
+            rawChild: Column(
+              crossAxisAlignment: .stretch,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: .stretch,
-                    children: [
-                      Row(
-                        spacing: 2,
+                Row(
+                  spacing: 2,
 
-                        children: [
-                          Expanded(child: Text("Laisser un avis", style: AppStyles.header(context))),
-                          ...List.generate(
-                            5,
-                            (_) => HugeIcon(
-                              icon: HugeIcons.strokeRoundedStar,
-                              size: AppStyles.secondaryHeader(context).fontSize,
-                              color: AppColors.tertiaryText.adaptTo(context),
-                            ),
-                          ),
-                        ],
+                  children: [
+                    Expanded(child: Text("Laisser un avis", style: AppStyles.header(context))),
+                    ...List.generate(
+                      5,
+                      (_) => HugeIcon(
+                        icon: HugeIcons.strokeRoundedStar,
+                        size: AppStyles.secondaryHeader(context).fontSize,
+                        color: AppColors.tertiaryText.adaptTo(context),
                       ),
+                    ),
+                  ],
+                ),
 
-                      Text(
-                        "Soutenez Messagyre en laissant un avis sur ${Theme.of(context).platform == .android ? "Google Play" : "l'App Store"} !",
-                        style: AppStyles.tertiaryText(context),
-                      ),
-                    ],
-                  ),
+                Text(
+                  "Soutenez Messagyre en laissant un avis sur ${Theme.of(context).platform == .android ? "Google Play" : "l'App Store"} !",
+                  style: AppStyles.tertiaryText(context),
                 ),
               ],
             ),
@@ -355,6 +351,33 @@ class SearchPageState extends State<SearchPage> {
                 );
               }
             },
+          ),
+
+          Button(
+            margin: .only(bottom: 16),
+            padding: .zero,
+            color: AppColors.secondaryBackground.adaptTo(context),
+            transparent: true,
+            rawChild: Stack(
+              children: [
+                Padding(
+                  padding: .all(16),
+                  child: Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      Text("Boîte à idées", style: AppStyles.header(context)),
+                      Text("Votez per vos idées préférées !\nUne idée manque ? Proposez-la !", style: AppStyles.tertiaryText(context)),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Button.icon(context, icon: HugeIcons.strokeRoundedArrowRight01, size: 40, color: AppColors.secondaryBackground.adaptTo(context)),
+                ),
+              ],
+            ),
+            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => IdeasPage())),
           ),
 
           BottomSpacing(includeBottomBar: true),
