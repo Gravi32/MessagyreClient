@@ -136,12 +136,6 @@ class _SettingsListPageState extends State<SettingsListPage> {
                   restartApp(context);
                 }),
               ),
-              ListTile.simple(
-                context,
-                icon: HugeIcons.strokeRoundedGlobe02,
-                title: "Ouvrir Hermes II",
-                onTap: () => openUrl("https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
-              ),
             ],
           ),
 
