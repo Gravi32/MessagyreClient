@@ -62,6 +62,7 @@ class SearchPageState extends State<SearchPage> {
     final apiResponse = await network.get("/news/get");
     if (apiResponse.body.isEmpty) return;
     news.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
+    globals.persistent.setInt("SeenNewsCount", news.value.length);
   }
 
   void search(String query) async {
@@ -236,20 +237,57 @@ class SearchPageState extends State<SearchPage> {
             final Map<String, dynamic>? metadata = tryJsonDecode(box["Metadata"] ?? "{}");
             final Map<String, dynamic>? coverWidget = tryJsonDecode(box["CoverWidget"] ?? "{}");
             final Map<String, dynamic>? pageWidget = tryJsonDecode(box["PageWidget"] ?? "{}");
+            final hasBackgroundImage = metadata?["BackgroundImageUrl"] != null;
+            final hasAuthor = box["AuthorUsername"] != null;
+            final backgroundColor = AppColors.fromName(metadata?["Color"]);
+            final onTapUrl = metadata?["OnTapUrl"];
 
             if (coverWidget == null || pageWidget == null) return const SizedBox();
+            final isTappable = onTapUrl != null || pageWidget.isNotEmpty;
 
             return Button(
               margin: .only(bottom: 16),
-              color: AppColors.fromName(metadata?["Color"]) ?? AppColors.secondaryBackground.adaptTo(context),
-              rawChild: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
-              onTap: () => showCupertinoSheet(
-                context: context,
-                builder: (context) => Page(
-                  topBar: TopBar.tab(context),
-                  child: Stac.fromJson(pageWidget, context) ?? Center(child: Text("Une erreur s'est produite.")),
-                ),
+              padding: hasBackgroundImage ? .zero : null,
+              color: backgroundColor ?? AppColors.secondaryBackground.adaptTo(context),
+              rawChild: Stack(
+                children: [
+                  if (hasBackgroundImage)
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: .circular(22.5),
+                        child: Image.network(metadata?["BackgroundImageUrl"], fit: .cover),
+                      ),
+                    ),
+                  Container(
+                    padding: hasBackgroundImage ? .all(14) : .zero,
+                    margin: .only(bottom: 48),
+                    child: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
+                  ),
+                  if (hasAuthor)
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: SizedBox.square(dimension: 30, child: ProfilePictureDisplay(accountUsername: box["AuthorUsername"], includeBadge: false)),
+                    ),
+                  if (isTappable)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Button.icon(context, icon: HugeIcons.strokeRoundedArrowRight01, size: 40, color: backgroundColor),
+                    ),
+                ],
               ),
+              onTap: isTappable
+                  ? () => onTapUrl != null
+                        ? openUrl(onTapUrl)
+                        : showCupertinoSheet(
+                            context: context,
+                            builder: (context) => Page(
+                              topBar: TopBar.tab(context),
+                              child: Stac.fromJson(pageWidget, context) ?? Center(child: Text("Une erreur s'est produite.", style: AppStyles.error(context))),
+                            ),
+                          )
+                  : null,
             );
           }),
           BottomSpacing(includeBottomBar: true),

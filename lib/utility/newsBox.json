@@ -1,22 +1,16 @@
 {
-    "type": "row",
+    "type": "column",
+    "crossAxisAlignment": "stretch",
     "children": [
         {
-            "type": "expanded",
-            "child": {
-                "type": "app_text",
-                "data": "Fin des cours",
-                "style": "header"
-            }
+            "type": "app_text",
+            "data": "Messagyre est sur Instagram !",
+            "style": "header"
         },
         {
-            "type": "expanded",
-            "child": {
-                "type": "app_text",
-                "data": "22 mai",
-                "textAlign": "TextAlign.right",
-                "style": "header"
-            }
+            "type": "app_text",
+            "data": "Abonnez-vous pour ne pas rater les coulisses du projet et nos prochaines nouveautés !",
+            "style": "primaryText"
         }
     ]
 }

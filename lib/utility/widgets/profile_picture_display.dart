@@ -13,9 +13,18 @@ class ProfilePictureDisplay extends StatefulWidget {
   final String? picturePath;
   final String? pictureURL;
   final bool isBlocked;
+  final bool includeBadge;
   final double? radius;
 
-  const ProfilePictureDisplay({this.accountUsername, this.picturePath, this.pictureURL, super.key, this.isBlocked = false, this.radius});
+  const ProfilePictureDisplay({
+    this.accountUsername,
+    this.picturePath,
+    this.pictureURL,
+    super.key,
+    this.isBlocked = false,
+    this.includeBadge = true,
+    this.radius,
+  });
 
   @override
   State<StatefulWidget> createState() => _ProfilePictureDisplayState();
@@ -113,7 +122,7 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
           }
 
           final cutoutSize = clampDouble(diameter / 2.25, 0, diameter * 0.4);
-          final badge = getBadge();
+          final badge = widget.includeBadge ? getBadge() : null;
 
           return Container(
             foregroundDecoration: widget.isBlocked ? const BoxDecoration(color: AppColors.grey, backgroundBlendMode: BlendMode.saturation) : null,
