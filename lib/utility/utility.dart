@@ -399,10 +399,7 @@ void restartApp(BuildContext context) {
 Future<void> openUrl(String url, {bool tryApp = false}) async {
   Uri uri = Uri.parse(url);
 
-  if (tryApp) {
-    bool launched = await launchUrl(uri, mode: .externalApplication);
-    if (launched) return;
-  }
+  if (tryApp) if (await launchUrl(uri, mode: .externalNonBrowserApplication)) return;
 
   await launchUrl(uri, mode: .inAppBrowserView, webViewConfiguration: const WebViewConfiguration(enableJavaScript: true, enableDomStorage: true));
 }
