@@ -4,6 +4,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -62,6 +63,8 @@ class SearchPageState extends State<SearchPage> {
     final apiResponse = await network.get("/news/get");
     if (apiResponse.body.isEmpty) return;
     news.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
+    
+    App.pages[3].showBadge.value = globals.persistent.getInt("SeenNewsCount") != news.value.length;
     globals.persistent.setInt("SeenNewsCount", news.value.length);
   }
 
