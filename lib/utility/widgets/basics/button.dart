@@ -130,7 +130,9 @@ class _ButtonState extends State<Button> {
 
               if (!isIconOnly)
                 widget.isLoading
-                    ? LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)
+                    ? Expanded(
+                        child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
+                      )
                     : Expanded(
                         child: widget.rawChild != null
                             ? widget.rawChild!
