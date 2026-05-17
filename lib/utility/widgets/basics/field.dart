@@ -12,6 +12,7 @@ class Field extends StatefulWidget {
   final Function(String content)? onSubmitted;
   final Function(String content)? onChanged;
   final Function()? onTap;
+  final Function()? onClear;
   final String? suffix;
   final String? error;
   final TextEditingController? controller;
@@ -24,6 +25,7 @@ class Field extends StatefulWidget {
   final int? minLines;
   final bool thin;
   final bool isPassword;
+  final bool isSearch;
   final bool alwaysHidePassword;
   final bool enabled;
 
@@ -34,6 +36,7 @@ class Field extends StatefulWidget {
     this.onSubmitted,
     this.onChanged,
     this.onTap,
+    this.onClear,
     this.suffix,
     this.error,
     this.controller,
@@ -46,6 +49,7 @@ class Field extends StatefulWidget {
     this.minLines = 1,
     this.thin = false,
     this.isPassword = false,
+    this.isSearch = false,
     this.alwaysHidePassword = false,
     this.enabled = true,
   });
@@ -67,6 +71,24 @@ class Field extends StatefulWidget {
       isPassword: true,
       alwaysHidePassword: alwaysHidePassword,
       enabled: enabled,
+    );
+  }
+
+  factory Field.search({
+    String? placeholder,
+    Function(String content)? onChanged,
+    Function()? onClear,
+    TextEditingController? controller,
+    FocusNode? focusNode,
+  }) {
+    return Field(
+      placeholder: placeholder ?? "Rechercher",
+      icon: CupertinoIcons.search,
+      onChanged: onChanged,
+      onClear: onClear,
+      controller: controller,
+      focusNode: focusNode,
+      isSearch: true,
     );
   }
 
@@ -107,6 +129,11 @@ class _FieldState extends State<Field> {
                 child: Row(
                   crossAxisAlignment: .center,
                   children: [
+                    if (widget.icon != null)
+                      Padding(
+                        padding: .only(left: 16),
+                        child: Icon(widget.icon, color: color),
+                      ),
                     Expanded(
                       child: CupertinoTextField(
                         padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
@@ -130,10 +157,10 @@ class _FieldState extends State<Field> {
                       ),
                     ),
                     if (widget.suffix != null) Text(widget.suffix!),
-                    if (widget.icon != null) Icon(widget.icon),
                   ],
                 ),
               ),
+
               if (widget.isPassword && !widget.alwaysHidePassword)
                 Positioned(
                   right: 6,
@@ -141,8 +168,26 @@ class _FieldState extends State<Field> {
                   bottom: 6,
                   child: Button.icon(
                     context,
+                    color: color,
                     onTap: () => setState(() => _obscureText = !_obscureText),
                     icon: _obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
+                    enabled: widget.enabled,
+                  ),
+                ),
+
+              if (widget.isSearch && (widget.controller?.text.isNotEmpty ?? false))
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  bottom: 6,
+                  child: Button.icon(
+                    context,
+                    color: color,
+                    onTap: () {
+                      widget.onClear?.call();
+                      widget.controller?.clear();
+                    },
+                    icon: HugeIcons.strokeRoundedCancel01,
                     enabled: widget.enabled,
                   ),
                 ),

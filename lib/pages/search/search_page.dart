@@ -279,8 +279,14 @@ class SearchPageState extends State<SearchPage> {
     return Page.sliver(
       topBar: TopBar.sliver(title: "Recherche"),
       onRefresh: () async => await fetchNews(),
-      field: Field(placeholder: "Rechercher un.e gymnasien.ne", controller: searchBarController, focusNode: searchBarFocusNode, onChanged: search),
-      body: searchBarFocusNode.hasFocus || searchResults.isNotEmpty
+      field: Field.search(
+        placeholder: "Rechercher un.e gymnasien.ne",
+        controller: searchBarController,
+        focusNode: searchBarFocusNode,
+        onChanged: search,
+        onClear: () => setState(() => searchResults.clear()),
+      ),
+      body: searchBarFocusNode.hasFocus || searchResults.isNotEmpty && searchBarController.text.isNotEmpty
           ? searchResults.isNotEmpty
                 ? ListView.builder(
                     shrinkWrap: true,
