@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 3.71.961+961
+version: 3.71.973+973
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -76,6 +76,10 @@ version: 3.71.961+961
 # 3.69  Added news page
 # 3.70  Shortcut buttons in the search page to open HermesII and Microsoft Teams
 # 3.71  Implemented a clear search button in the search field
+# 3.72  Showing a notification badge on the bottom bar search button
+# 3.73  Added a "leave a rating" button in the news page
+# 3.74  Implemented Ideas page
+# 3.75  Idea boxes now have status tags
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
