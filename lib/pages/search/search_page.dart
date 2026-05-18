@@ -17,6 +17,7 @@ import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
@@ -224,7 +225,13 @@ class SearchPageState extends State<SearchPage> {
                     onTap: () => openUrl(shortcut.url, tryApp: true),
                     rawChild: Column(
                       children: [
-                        SizedBox.square(dimension: 48, child: Image.asset(shortcut.iconPath)),
+                        RoundContainer(
+                          height: 52,
+                          color: AppColors.tertiaryBackground.adaptTo(context),
+                          borderRadius: 14,
+                          padding: .all(2),
+                          child: Image.asset(shortcut.iconPath),
+                        ),
                         SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: .center,
