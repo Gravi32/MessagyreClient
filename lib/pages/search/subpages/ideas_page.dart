@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
@@ -123,7 +124,7 @@ class _IdeasPageState extends State<IdeasPage> {
               final statusTag = getStatusTag(idea["Status"]);
 
               if (idea["Type"] != (activeTypeFilter ?? idea["Type"])) return SizedBox();
-              if (idea["Status"] != (activeStatusFilter  ?? idea["Status"])) return SizedBox();
+              if (idea["Status"] != (activeStatusFilter ?? idea["Status"])) return SizedBox();
               if (id < 0) return SizedBox();
 
               return RoundContainer(
@@ -137,10 +138,24 @@ class _IdeasPageState extends State<IdeasPage> {
                       spacing: 4,
                       children: [
                         if (idea["AuthorUsername"] != null)
-                          Container(
-                            width: 24,
-                            margin: .only(right: 6),
-                            child: ProfilePictureDisplay(accountUsername: idea["AuthorUsername"], includeBadge: false),
+                          GestureDetector(
+                            onTap: () async {
+                              final account = await network.getAccount(idea["AuthorUsername"]);
+                              if (!context.mounted) return;
+                              if (account == null) {
+                                showCupertinoDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(title: "Compte introuvable"),
+                                );
+                                return;
+                              }
+                              showCupertinoSheet(context: context, builder: (_) => ProfilePage(account));
+                            },
+                            child: Container(
+                              width: 24,
+                              margin: .only(right: 6),
+                              child: ProfilePictureDisplay(accountUsername: idea["AuthorUsername"], includeBadge: false),
+                            ),
                           ),
                         if (typeTag != null) Tag(text: typeTag.$1, color: typeTag.$2),
                         if (statusTag != null) Tag(text: statusTag.$1, color: statusTag.$2),
