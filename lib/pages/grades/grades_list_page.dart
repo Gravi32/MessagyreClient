@@ -16,6 +16,7 @@ import 'package:messagyre_client/pages/grades/widgets/grades_top_card.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
@@ -32,9 +33,11 @@ class GradesListPage extends StatefulWidget {
 class _GradesListPageState extends State<GradesListPage> {
   static const double subjectTileMaxHeight = 106;
   final database = DatabaseService();
+  final network = NetworkService();
   final globals = GlobalsService();
 
   final lockNotifier = ValueNotifier(0);
+  int lastSentGradesCount = 0;
 
   Widget buildSubjectsGrid(List<Subject> subjects, List<CompositeSubject> compositeSubjects) {
     const double maxHeight = 250;
@@ -116,6 +119,11 @@ class _GradesListPageState extends State<GradesListPage> {
           // A list of all the subjects with at least 1 grade
           final List<Subject> allSubjects = database.subjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
           final List<CompositeSubject> allCompositeSubjects = database.compositeSubjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
+
+          if (lastSentGradesCount != allGrades.length) {
+            lastSentGradesCount = allGrades.length;
+            network.post("/analytics/upload-grades-count", {"Grades": allGrades.length});
+          }
 
           return SingleChildScrollView(
             child: Column(

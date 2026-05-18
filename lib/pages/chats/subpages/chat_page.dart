@@ -65,6 +65,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   Set<String> messagesIdToAnimate = {};
   bool isLoading = false;
   bool isEncryptionAvailable = true;
+  int lastSentMessagesCount = 0;
 
   void messagesListener(String senderUsername, Message newMessage) {
     if (senderUsername != chatData.username) return;
@@ -613,6 +614,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         // Loading the new chat data
         final latestChatData = snapshot.data;
         if (latestChatData != null) chatData = latestChatData;
+
+        final allMessagesCount = database.chats.getAll().length;
+        if (lastSentMessagesCount != allMessagesCount) {
+          lastSentMessagesCount = allMessagesCount;
+          network.post("/analytics/upload-messages-count", {"Messages": allMessagesCount});
+        }
 
         return ListView.builder(
           controller: chatScrollController,

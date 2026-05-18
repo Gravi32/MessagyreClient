@@ -8,6 +8,7 @@ import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.
 import 'package:messagyre_client/pages/assignments/widgets/assignments_top_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
@@ -26,8 +27,11 @@ class AssignmentsListPage extends StatefulWidget {
 }
 
 class AssignmentsListPageState extends State<AssignmentsListPage> {
+  final network = NetworkService();
   final database = DatabaseService();
   final globals = GlobalsService();
+
+  int lastSentAssignmentsCount = 0;
 
   Widget buildPlaceholder() {
     return Column(
@@ -96,6 +100,11 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           final todaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(today));
           final tomorrowsAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(tomorrow));
           final plannedAssignments = allAssignments.where((a) => a.dueDate.isAfter(tomorrow));
+
+          if (lastSentAssignmentsCount != allAssignments.length) {
+            lastSentAssignmentsCount = allAssignments.length;
+            network.post("/analytics/upload-assignments-count", {"Assignments": allAssignments.length});
+          }
 
           Widget buildSection(
             Iterable<Assignment> list,

@@ -37,6 +37,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
 
   final pageScrollController = ScrollController();
 
+  int lastSentChatsCount = 0;
   bool showThumbnailChats = false;
 
   final Map<String, String?> _mockPhotos = {
@@ -188,10 +189,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                 ),
                               ...CustomText.parseSpans(
                                 lastMessage.isDeleted ? "Message supprimé" : lastMessage.content.trim(),
-                                style: TextStyle(
-                                  fontWeight: hasUnreadMessages ? .w500 : .w400,
-                                  color: AppColors.secondaryText.adaptTo(context),
-                                ),
+                                style: TextStyle(fontWeight: hasUnreadMessages ? .w500 : .w400, color: AppColors.secondaryText.adaptTo(context)),
                               ),
                             ],
                           ),
@@ -310,8 +308,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
       body: StreamBuilder(
         stream: database.chats.watchAll(),
         builder: (context, snapshot) {
-          final list = allChats;
-          final hasUnread = list.any((chat) => chat.unreadMessages > 0);
+          final chats = snapshot.data ?? [];
+          final hasUnread = chats.any((chat) => chat.unreadMessages > 0);
+
+          if (lastSentChatsCount != chats.length) {
+            lastSentChatsCount = chats.length;
+            network.post("/analytics/upload-chats-count", {"Chats": chats.length});
+          }
 
           if (App.pages[2].showBadge.value != hasUnread) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -319,7 +322,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
             });
           }
 
-          return list.isEmpty
+          return chats.isEmpty
               ? Column(
                   mainAxisAlignment: .center,
                   spacing: 2,
@@ -351,9 +354,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
                 )
               : ListView.separated(
                   padding: .only(top: 8),
-                  itemCount: list.length,
+                  itemCount: chats.length,
                   itemBuilder: (context, index) {
-                    return buildChatBar(list[index]);
+                    return buildChatBar(chats[index]);
                   },
                   separatorBuilder: (context, _) => Divider(indent: 60, color: Theme.of(context).dividerColor.withAlpha(30)),
                 );
