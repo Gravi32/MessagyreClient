@@ -207,8 +207,8 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
           prefix: widget.prefix,
           suffix: widget.suffix,
           suffixMode: widget.suffixMode,
-          style: widget.style?.merge(AppStyles.placeholder(context)),
-          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
+          style: widget.style ?? AppStyles.primaryText(context),
+          placeholderStyle: widget.placeholderStyle ?? AppStyles.placeholder(context),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const .symmetric(horizontal: 8),
 

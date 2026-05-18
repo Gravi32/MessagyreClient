@@ -228,7 +228,7 @@ class _NewGradePageState extends State<NewGradePage> {
                         : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
 
                     suffixMode: .notEditing,
-                    style: TextStyle(fontSize: 26, fontWeight: .w500),
+                    style: AppStyles.header(context),
                     items: getPlannedGrades(),
                     header: Padding(padding: .only(left: 16, right: 10, top: 8, bottom: 8), child: Text("Depuis la page des devoirs :")),
                     itemBuilder: (assignment, query) {

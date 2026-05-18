@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
@@ -117,8 +118,8 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
           prefix: widget.prefix,
           suffix: widget.suffix,
           suffixMode: widget.suffixMode,
-          style: widget.style,
-          placeholderStyle: widget.placeholderStyle ?? TextStyle(color: AppColors.placeholderText.adaptTo(context)),
+          style: widget.style ?? AppStyles.primaryText(context),
+          placeholderStyle: widget.placeholderStyle ?? AppStyles.placeholder(context),
           decoration: widget.decoration ?? const BoxDecoration(),
           padding: widget.padding ?? const .symmetric(horizontal: 8),
           onSubmitted: (value) {
