@@ -11,6 +11,7 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
@@ -32,6 +33,9 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   final globals = GlobalsService();
 
   int lastSentAssignmentsCount = 0;
+  String? activeFilter;
+
+  final searchFieldFocusNode = FocusNode();
 
   Widget buildPlaceholder() {
     return Column(
@@ -75,6 +79,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
       globals.persistent.setInt("LastSeenAssignmentDueDate", DateTime.now().dateOnly().add(Duration(days: 1)).millisecondsSinceEpoch);
     });
 
+    searchFieldFocusNode.addListener(() => setState(() {}));
+
     final lastSeenDueDate = globals.persistent.getInt("LastSeenAssignmentDueDate") ?? 0;
     final tomorrowsAssignments = database.assignments.getAll().where((a) => a.dueDate.isSameDayAs(DateTime.now().dateOnly().add(const Duration(days: 1))));
 
@@ -87,11 +93,19 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   Widget build(BuildContext context) {
     return Page.sliver(
       topBar: TopBar.sliver(title: "Devoirs"),
-      onFloatingButtonTap: () => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(), enableDrag: false),
+      field: Field.search(
+        placeholder: "Chercher une branche...",
+        focusNode: searchFieldFocusNode,
+        onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase()),
+      ),
+      onFloatingButtonTap: !searchFieldFocusNode.hasFocus && activeFilter == null
+          ? () => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(), enableDrag: false)
+          : null,
       body: StreamBuilder(
         stream: database.assignments.watchAll(),
         builder: (context, snapshot) {
-          final allAssignments = snapshot.data ?? [];
+          final allAssignments =
+              snapshot.data?.where((s) => activeFilter != null ? ((s.title ?? "") + s.content).toLowerCase().contains(activeFilter!) : true) ?? [];
 
           final today = DateTime.now().dateOnly();
           final tomorrow = today.add(const Duration(days: 1));
@@ -131,7 +145,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           return ListView(
             padding: .zero,
             children: [
-              AssignmentsTopCard(),
+              if (!searchFieldFocusNode.hasFocus && activeFilter == null) AssignmentsTopCard(),
               if (todaysAssignments.isNotEmpty) buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
               if (tomorrowsAssignments.isNotEmpty) buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
               if (plannedAssignments.isNotEmpty) buildSection(plannedAssignments, "À venir"),
