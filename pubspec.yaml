@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 3.72.982+982
+version: 3.83.997+997
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -81,6 +81,12 @@ version: 3.72.982+982
 # 3.74  Implemented Ideas page
 # 3.75  Idea boxes now have status tags
 # 3.77  News boxes now support a foreground color
+# 3.78  Sending analytics to the server
+# 3.79  Added idea boxes filters
+# 3.80  Ideas authors pfps in the idea boxes can now be tapped to view their profile
+# 3.81  Added grades by subject search bar
+# 3.82  Added recent grades page search bar
+# 3.83  Added assignments list page search bar
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
