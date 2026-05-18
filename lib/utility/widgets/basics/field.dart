@@ -151,7 +151,7 @@ class _FieldState extends State<Field> {
                         focusNode: widget.focusNode,
                         scrollPhysics: widget.scrollPhysics,
                         textAlign: isNumeric ? .center : .start,
-                        style: AppStyles.primaryText(context).merge(widget.textStyle),
+                        style: AppStyles.primaryText(context).merge(widget.textStyle?.copyWith(inherit: true)),
                         onTapOutside: widget.focusNode == null && !(widget.isPassword && !widget.alwaysHidePassword)
                             ? (_) => FocusScope.of(context).unfocus()
                             : null,
