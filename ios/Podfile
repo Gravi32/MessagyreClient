@@ -27,13 +27,7 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-
-  # Firebase base
-  pod 'FirebaseCore'
-  pod 'FirebaseFirestore'
-  pod 'FirebaseAuth'
-
-  # Non serve aggiungere cloud_firestore qui: Flutter lo gestisce come plugin
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
@@ -47,40 +41,15 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
 
     target.build_configurations.each do |config|
-      # Forza iOS 15
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
-
-      # C++17 + libc++
-      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
-      config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
-
-      # Permetti header non modulari (risolve problema Firebase + plugin)
+      config.build_settings['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
-
-      # Fix TOOLCHAIN_DIR
-      xcconfig_path = config.base_configuration_reference.real_path
-      text = File.read(xcconfig_path)
-      text.gsub!("${DT_TOOLCHAIN_DIR}", "$(TOOLCHAIN_DIR)")
-      File.open(xcconfig_path, "w") { |file| file.puts text }
-    end
-
-    # Fix per BoringSSL-GRPC
-    if target.name == 'BoringSSL-GRPC'
-      target.source_build_phase.files.each do |file|
-        if file.settings && file.settings['COMPILER_FLAGS']
-          flags = file.settings['COMPILER_FLAGS'].split
-          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
-          file.settings['COMPILER_FLAGS'] = flags.join(' ')
-        end
-      end
-    end
-  end
-
-  # Forza header non modulari anche per il target Runner
-  installer.aggregate_targets.each do |agg|
-    agg.user_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      
+      if config.base_configuration_reference
+        xcconfig_path = config.base_configuration_reference.real_path
+        text = File.read(xcconfig_path)
+        text.gsub!("${DT_TOOLCHAIN_DIR}", "$(TOOLCHAIN_DIR)")
+        File.open(xcconfig_path, "w") { |file| file.puts text }
       end
     end
   end
