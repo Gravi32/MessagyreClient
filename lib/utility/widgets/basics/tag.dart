@@ -15,6 +15,9 @@ class Tag extends StatelessWidget {
       padding: .symmetric(horizontal: 8, vertical: 4),
       child: Text(
         text,
+        maxLines: 1,
+        softWrap: false,
+        overflow: .fade,
         style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
       ),
     );
