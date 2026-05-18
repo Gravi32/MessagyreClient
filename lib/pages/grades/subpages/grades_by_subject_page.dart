@@ -36,7 +36,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
           onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SubjectsListPage())),
         ),
       ),
-      field: Field(
+      field: Field.search(
         placeholder: "Chercher une branche...",
         onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase()),
       ),
