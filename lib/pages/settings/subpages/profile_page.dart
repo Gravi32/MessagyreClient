@@ -351,7 +351,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     spacing: 2,
                     crossAxisAlignment: .start,
                     children: [
-                      Text(account.displayName ?? account.defaultDisplayName, style: TextStyle(fontSize: 24, fontWeight: .w600)),
+                      Text(account.displayName ?? account.defaultDisplayName, style: AppStyles.header(context)),
 
                       Row(
                         spacing: 6,
@@ -368,16 +368,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
               CustomText(
                 profile["Bio"] ?? "Pas de biographie",
-                style: TextStyle(fontSize: 16, color: profile["Bio"] == null ? AppColors.secondaryText.adaptTo(context) : null),
+                style: AppStyles.primaryText(context).copyWith(fontStyle: profile["Bio"] == null ? .italic : null),
               ),
-              Text(
-                "Membre depuis :  ${formatDate(account.creationDate ?? DateTime.now())}.",
-                style: TextStyle(fontSize: 16, color: AppColors.tertiaryText.adaptTo(context)),
-              ),
+              Text("Membre depuis : ${formatDate(account.creationDate ?? DateTime.now())}.", style: AppStyles.footer(context)),
             ],
           ),
         ),
-
 
         if (isBlocked)
           ListSection(
