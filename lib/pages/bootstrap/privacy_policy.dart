@@ -89,7 +89,24 @@ En conséquence:
 - Messagyre et ses développeurs ne peuvent ni lire, ni intercepter, ni analyser les messages privés;
 - les messages reçus sont conservés uniquement en local sur l'appareil de l'utilisateur.
 
-*5. Contenus non chiffrés*
+*5. Données analytiques et d'utilisation*
+Messagyre collecte des données d'utilisation et de performance à des fins analytiques et d'amélioration du service.
+
+Ces données peuvent inclure notamment:
+- durée d'utilisation de l'application;
+- fréquence d'utilisation des fonctionnalités;
+- nombre de messages envoyés;
+- statistiques d'activité générale;
+- données techniques nécessaires à la stabilité du service.
+
+Ces données sont utilisées exclusivement pour:
+- améliorer les performances et la stabilité de l'application;
+- comprendre l'utilisation des fonctionnalités;
+- renforcer la sécurité et détecter les anomalies.
+
+Les messages privés et leur contenu restent exclus de toute analyse.
+
+*6. Contenus non chiffrés*
 Certains contenus visibles publiquement ou semi-publiquement ne sont pas chiffrés, notamment:
 - pseudonymes;
 - biographies;
@@ -98,31 +115,32 @@ Certains contenus visibles publiquement ou semi-publiquement ne sont pas chiffr�
 
 Ces contenus peuvent faire l'objet d'un filtrage automatique limité destiné à prévenir la diffusion de contenus manifestement illégaux, abusifs ou contraires aux règles de la plateforme, conformément au droit suisse.
 
-*6. Hébergement des données*
+*7. Hébergement des données*
 Les données personnelles traitées par le backend de Messagyre sont hébergées dans un data center situé à Milan, en Italie, chez le prestataire OVH. OVH s'engage à respecter le RGPD et garantit la sécurité physique et logique du data center.  
 Messagyre prend toutes les mesures nécessaires pour garantir la sécurité et la confidentialité des données stockées sur ce serveur, conformément au droit suisse et aux exigences de la nLPD.
 
-*7. Finalités du traitement*
+*8. Finalités du traitement*
 Les données personnelles sont traitées exclusivement afin de:
 - fournir, exploiter et maintenir le service Messagyre;
 - permettre la communication entre utilisateurs;
 - assurer la sécurité, la stabilité et le bon fonctionnement de l'application;
-- respecter les obligations légales applicables en Suisse.
+- respecter les obligations légales applicables en Suisse;
+- réaliser des analyses d'usage pour améliorer le service.
 
 Aucune donnée n'est vendue, louée ou utilisée à des fins commerciales ou publicitaires.
 
-*8. Partage des données*
+*9. Partage des données*
 Les données personnelles ne sont jamais transmises à des tiers, sauf:
 - en cas d'obligation légale prévue par le droit suisse;
 - sur demande légitime des autorités compétentes, dans le respect des procédures légales.
 
-*9. Conservation des données*
+*10. Conservation des données*
 Les données personnelles sont conservées uniquement pendant la durée nécessaire à la fourniture du service.
 En cas de suppression du compte utilisateur:
 - les données associées sont supprimées ou rendues anonymes dans un délai raisonnable;
 - les messages chiffrés demeurent définitivement inaccessibles à Messagyre.
 
-*10. Droits des utilisateurs*
+*11. Droits des utilisateurs*
 Conformément à la nLPD, chaque utilisateur dispose notamment des droits suivants:
 - droit d'accès à ses données personnelles;
 - droit de rectification des données inexactes;
@@ -131,14 +149,14 @@ Conformément à la nLPD, chaque utilisateur dispose notamment des droits suivan
 
 Les demandes relatives à l'exercice de ces droits peuvent être effectuées via les moyens de contact proposés dans l'application.
 
-*11. Sécurité des données*
+*12. Sécurité des données*
 Messagyre met en œuvre des mesures techniques et organisationnelles appropriées afin de protéger les données personnelles contre tout accès non autorisé, perte, altération ou divulgation.
 
-*12. Modification de la politique*
+*13. Modification de la politique*
 Messagyre se réserve le droit de modifier la présente politique de confidentialité afin d'assurer sa conformité au droit suisse ou d'améliorer la transparence.
 Toute modification substantielle sera communiquée aux utilisateurs via l'application.
 
-*13. Contact*
+*14. Contact*
 Pour toute question relative à la protection des données personnelles ou à la présente politique de confidentialité, l'utilisateur peut contacter Messagyre via l'application.
 
 *Messagyre* - *Pietro Gravina*""", style: AppStyles.primaryText(context).copyWith(fontWeight: .w300)),

@@ -72,7 +72,7 @@ L'utilisateur est seul responsable de l'ensemble des contenus qu'il partage. Tou
 Les messages prives echanges sur Messagyre sont chiffrés de bout en bout. En raison de ce chiffrement, les messages prives ne peuvent pas etre lus, filtres ou analyses par Messagyre. Par consequent, le filtrage automatique s'applique uniquement aux contenus non chiffrés tels que pseudonymes, biographies, images de profil, noms de groupes et autres informations publiques ou semi-publiques.
 
 *4. Systeme automatique de detection*
-Messagyre utilise un systeme automatique minimal de detection pour empecher la publication de contenus non chiffrés potentiellement offensants, illegaux ou contraires a ces conditions. Ce systeme vise uniquement a prevenir la diffusion de contenus manifestement problematiques et ne s'applique pas aux messages prives.
+Messagyre utilise un systeme automatique minimal de detection pour empecher la publication de contenus non chiffrés potentiellement offensants, illegaux ou contraires a ces conditions.
 
 *5. Signalement du contenu illicite ou abusif*
 Les utilisateurs disposent d'un mecanisme clair pour signaler tout contenu ou comportement problematique. Tout signalement est examine dans un delai maximal de 24 heures. En cas de violation averee, Messagyre peut supprimer le contenu, restreindre les functionalities ou suspendre le compte concerne.
@@ -93,8 +93,16 @@ Toute violation peut entrainer des mesures disciplinaires immediates, y compris 
 *8. Responsabilite*
 Messagyre ne peut etre tenu responsable des contenus generes par les utilisateurs. Toutefois, Messagyre s'engage a intervenir rapidement en cas de signalement et a supprimer tout contenu violant les presentes conditions.
 
-*9. Protection des donnees*
-Les donnees personnelles sont traitees conformement aux lois en vigueur et a la politique de confidentialite de Messagyre. Les contenus prives chiffrés ne sont jamais accessibles aux developpeurs ou a des tiers.
+*9. Protection des donnees et analyses*
+Messagyre collecte et traite certaines donnees techniques et d'utilisation a des fins analytiques, notamment pour comprendre l'utilisation de l'application, ameliorer les performances, la stabilite, la securite et l'experience utilisateur.
+
+Ces donnees analytiques peuvent inclure, de maniere non exhaustive:
+- duree de connexion et temps d'utilisation;
+- nombre de messages envoyes;
+- activite generale dans l'application;
+- statistiques d'utilisation des fonctionnalites.
+
+Les contenus des messages prives restent exclus de toute analyse.
 
 *10. Modification des conditions*
 Messagyre se reserve le droit de modifier les presentes conditions afin de respecter les obligations legales et les politiques des plateformes de distribution. Toute modification importante sera notifiee a l'utilisateur.
