@@ -310,7 +310,7 @@ class SearchPageState extends State<SearchPage> {
               ),
               onTap: isTappable
                   ? () => onTapUrl != null
-                        ? openUrl(onTapUrl)
+                        ? openUrl(onTapUrl, tryApp: true)
                         : showCupertinoSheet(
                             context: context,
                             builder: (context) => Page(
