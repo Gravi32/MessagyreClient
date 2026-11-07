@@ -372,6 +372,14 @@ dynamic tryJsonDecode(String source) {
   }
 }
 
+dynamic tryJsonEncode(dynamic object) {
+  try {
+    return jsonEncode(object);
+  } catch (_) {
+    return null;
+  }
+}
+
 // #endregion
 
 // #region -> Map

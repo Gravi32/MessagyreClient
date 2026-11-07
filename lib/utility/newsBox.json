@@ -1,18 +1,40 @@
 {
-    "type": "column",
-    "crossAxisAlignment": "stretch",
+    "type": "row",
+    "crossAxisAlignment": "center",
     "children": [
         {
-            "type": "app_text",
-            "data": "Messagyre est sur Instagram !",
-            "style": "header",
-            "color": "white"
+            "type": "expanded",
+            "child": {
+                "type": "column",
+                "mainAxisSize": "min",
+                "crossAxisAlignment": "start",
+                "children": [
+                    {
+                        "type": "app_text",
+                        "data": "Confidentialité avec FaceID",
+                        "style": "secondaryHeader"
+                    },
+                    {
+                        "type": "app_text",
+                        "data": "Activez le FaceID dans les Réglages > Confidentialité",
+                        "style": "primaryText"
+                    }
+                ]
+            }
         },
         {
-            "type": "app_text",
-            "data": "Abonnez-vous pour ne pas rater les coulisses du projet et nos prochaines nouveautés !",
-            "style": "primaryText",
-            "color": "white"
+            "type": "container",
+            "margin": {
+                "left": 12
+            },
+            "child": {
+                "type": "image",
+                "imageType": "network",
+                "src": "https://mir-s3-cdn-cf.behance.net/project_modules/max_632/8d252a92887655.5e56c03a28951.png",
+                "width": 60,
+                "height": 60,
+                "fit": "contain"
+            }
         }
     ]
 }

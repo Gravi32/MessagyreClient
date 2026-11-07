@@ -424,16 +424,16 @@ class NetworkService {
 
   Future<bool> uploadProfile(String? displayName, Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
     final uri = getBackendUri(route: "/accounts/me/upload-profile");
-    final request = http.MultipartRequest('POST', uri);
+    final request = http.MultipartRequest("POST", uri);
 
-    request.headers['Authorization'] = globals.token!;
-    request.fields['DisplayName'] = displayName ?? '';
-    request.fields['Profile'] = jsonEncode(profileObject);
+    request.headers["Authorization"] = globals.token!;
+    request.fields["DisplayName"] = displayName ?? "";
+    request.fields["Profile"] = tryJsonEncode(profileObject);
 
     if (imagePath != null) {
-      request.files.add(await http.MultipartFile.fromPath('Image', imagePath));
+      request.files.add(await http.MultipartFile.fromPath("Picture", imagePath));
     } else if (removeProfilePicture) {
-      request.fields['RemoveProfilePicture'] = 'true';
+      request.fields["RemoveProfilePicture"] = "true";
     }
 
     try {
@@ -447,14 +447,12 @@ class NetworkService {
         return false;
       }
 
-      // TODO Handle pfp uploading
+      final responseJson = tryJsonDecode(responseBody) ?? [];
+      final updatedPfpUrl = responseJson["ProfilePictureURL"];
 
-      // final responseJson = tryJsonDecode(responseBody) ?? [];
-      // final updatedPfpUrl = responseJson["ProfilePictureURL"];
-
-      // if (updatedPfpUrl != null && updatedPfpUrl is String) {
-      //   globals.pfpNotifiersCache[globals.username]?.value = updatedPfpUrl;
-      // }
+      if (updatedPfpUrl != null && updatedPfpUrl is String) {
+        globals.pfpNotifiersCache[globals.username]?.value = updatedPfpUrl;
+      }
 
       return true;
     } catch (e) {

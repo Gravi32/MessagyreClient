@@ -6,6 +6,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/assignments/subpages/notification_date_picker.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
+import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
@@ -32,6 +33,7 @@ class NewAssignmentPage extends StatefulWidget {
 }
 
 class _NewAssignmentPageState extends State<NewAssignmentPage> {
+  final network = NetworkService();
   final globals = GlobalsService();
   final database = DatabaseService();
   final notifications = NotificationsService();
@@ -67,12 +69,15 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
           : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? dueDate.add(const Duration(days: -1)).copyWith(hour: 17) : null));
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
+  late bool isShared = editMode ? widget.toEdit!.isShared : true;
 
   bool isMissingTitle = false;
   bool isMissingContent = false;
   bool isMissingSubject = false;
 
   bool get isNotificationPossible => dueDate.difference(DateTime.now()).inDays >= 0;
+
+  String? userClass;
 
   String formatAssignmentType(AssignmentType type) {
     return switch (type) {
@@ -101,6 +106,28 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         assignedGrade.subject.value = assignment.subject.value;
         await database.grades.save(assignedGrade);
       }
+    }
+
+    if (isShared && userClass != null && mounted) {
+      showCupertinoDialog(
+        context: context,
+        builder: (_) => Dialog.confirm(
+          content:
+              "Si un utilisateur de la $userClass décide d'accepter ce devoir, vous pourrez annuler le partage mais le devoir ne sera pas supprimé de son compte.",
+          onConfirm: () async {
+            final apiResponse = await network.post("/shared/assignments/add", {
+              "Title": assignment.title,
+              "Content": assignment.content,
+              "DueDate": assignment.dueDate,
+              "Type": assignment.type,
+            });
+
+            if (apiResponse.statusCode != 200 && mounted) {
+              showCupertinoDialog(context: context, builder: (_) => Dialog.networkError(apiResponse));
+            }
+          },
+        ),
+      );
     }
 
     await database.assignments.save(assignment);
@@ -190,6 +217,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     titleController.addListener(updateCanSubmit);
     contentController.addListener(updateCanSubmit);
 
+    if (globals.username != null) {
+      network.getAccount(globals.username!).then((account) {
+        userClass = account?.classOrRole;
+      });
+    }
+
     updateMode(mode);
   }
 
@@ -232,7 +265,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               margin: .only(top: 8),
               controller: titleController,
               focusNode: titleFocusNode,
-              placeholder: "Titre ${mode == AssignmentType.test ? "*" : ""}",
+              placeholder: "Titre ${mode == .test ? "*" : ""}",
               maxLines: 2,
               error: isMissingTitle ? "Entrez un titre" : null,
               onTap: () => setState(() => isMissingTitle = false),
@@ -247,7 +280,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               .test => "Déscription du test...",
               .leave => "Motif, période ou durée du congé...",
             },
-            minLines: mode == AssignmentType.test ? 3 : 5,
+            minLines: mode == .test ? 3 : 5,
             maxLines: 10,
             onTap: () => setState(() => isMissingContent = false),
           ),
@@ -256,7 +289,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
             margin: .only(top: 24),
             footer: mode == .leave ? null : "Merci de remplir les champs obligatoires *",
             children: [
-              if (mode != AssignmentType.leave)
+              if (mode != .leave)
                 ListTile(
                   onTap: () => subjectFocusNode.requestFocus(),
                   leading: const CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
@@ -296,6 +329,20 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               ),
             ],
           ),
+
+          if (userClass != null)
+            ListSection(
+              margin: .only(top: 24),
+              footer: "Ce devoir sera partagé avec tous les utilisateurs de la $userClass.",
+              children: [
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedCheckmarkBadge04,
+                  title: "Partager avec vôtre classe",
+                  trailing: CupertinoSwitch(value: isShared, onChanged: (value) => setState(() => isShared = value)),
+                ),
+              ],
+            ),
 
           ListSection(
             margin: .only(top: 24),

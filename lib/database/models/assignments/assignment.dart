@@ -12,6 +12,7 @@ class Assignment {
   String? title;
   String content = 'Exercices';
   bool isMarkedAsDone = false;
+  bool isShared = true;
 
   late DateTime dueDate;
   late DateTime? notificationDate;
