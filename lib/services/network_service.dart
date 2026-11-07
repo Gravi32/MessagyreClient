@@ -271,7 +271,7 @@ class NetworkService {
   void _handleCommunication(Map<String, dynamic> communicationData) async {
     // On message received
     void onMessageReceived(String senderUsername, Map<String, dynamic> messageData) {
-      _channel?.sink.add(jsonEncode({"CommunicationType:": "Acknowledgement", "Uuid": messageData.tryGetValue("Uuid")}));
+      _channel?.sink.add(jsonEncode({"CommunicationType": "Acknowledgement", "Uuid": messageData.tryGetValue("ID")}));
 
       var receivedMessage = Message.fromMessageData(messageData);
       var targetChat = database.chats.getByUsername(senderUsername);

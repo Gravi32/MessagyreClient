@@ -118,8 +118,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
             final apiResponse = await network.post("/shared/assignments/add", {
               "Title": assignment.title,
               "Content": assignment.content,
-              "DueDate": assignment.dueDate,
-              "Type": assignment.type,
+              // jsonEncode can't write a DateTime or an enum by itself
+              "DueDate": assignment.dueDate.toUtc().toIso8601String(),
+              "Type": assignment.type.name,
             });
 
             if (apiResponse.statusCode != 200 && mounted) {
