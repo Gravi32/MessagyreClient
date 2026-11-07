@@ -26,6 +26,7 @@ import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/segmented_control.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/made_by_gravi.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
@@ -328,6 +329,9 @@ class _SettingsListPageState extends State<SettingsListPage> {
               ),
             ],
           ),
+
+          const SizedBox(height: 24),
+          const MadeByGravi(),
 
           BottomSpacing(includeBottomBar: true),
         ],

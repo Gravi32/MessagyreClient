@@ -12,6 +12,7 @@ import 'package:messagyre_client/utility/graphics/messagyre_logo.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
+import 'package:messagyre_client/utility/widgets/made_by_gravi.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -202,6 +203,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage()));
           },
         ),
+
+        const SizedBox(height: 24),
+        const MadeByGravi(),
       ],
     );
   }
