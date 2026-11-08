@@ -11,16 +11,21 @@ class BiometricsService {
   final _auth = LocalAuthentication();
 
   Future<bool> canAuthenticate() async {
-    final List availableBiometrics = await _auth.getAvailableBiometrics();
-    final bool canAuthenticate = await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
-    return availableBiometrics.isNotEmpty && canAuthenticate;
+    try {
+      final List availableBiometrics = await _auth.getAvailableBiometrics();
+      final bool canAuthenticate = await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
+      return availableBiometrics.isNotEmpty && canAuthenticate;
+    } catch (e) {
+      debugPrint("[Biometrics] Unavailable: $e");
+      return false;
+    }
   }
 
   Future<bool> authenticate() async {
     try {
       if (!await canAuthenticate()) return false;
       return await _auth.authenticate(
-        localizedReason: "Veuillez vous authentifier per accéder à cette section",
+        localizedReason: "Veuillez vous authentifier pour accéder à cette section",
         authMessages: const [
           AndroidAuthMessages(signInTitle: "Vérifiez votre identité", signInHint: " ", cancelButton: "Annuler"),
           IOSAuthMessages(cancelButton: "Annuler", localizedFallbackTitle: "Utiliser le code"),

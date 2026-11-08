@@ -94,14 +94,20 @@ class _AdminPageState extends State<AdminPage> {
     super.dispose();
   }
 
+  /// One of the three figures at the top: same width and height for all three (labels of two short lines)
   Widget buildFigure(String value, String label) {
     return Expanded(
       child: RoundContainer(
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.m, horizontal: AppSpacing.s),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(value, style: AppStyles.largeTitle(context).copyWith(color: AppColors.accent)),
-            Text(label, textAlign: TextAlign.center, style: AppStyles.footnote(context)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(value, maxLines: 1, style: AppStyles.largeTitle(context).copyWith(color: AppColors.accent)),
+            ),
+            Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppStyles.footnote(context)),
           ],
         ),
       ),
@@ -150,9 +156,15 @@ class _AdminPageState extends State<AdminPage> {
                 reservedSize: 22,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  final isLast = index == series.length - 1;
-                  if (index < 0 || index >= series.length || (index % labelEvery != 0 && !isLast)) return const SizedBox.shrink();
-                  return SideTitleWidget(meta: meta, child: Text(bucketLabel(series[index].time), style: AppStyles.caption(context).copyWith(color: textColor)));
+                  final lastIndex = series.length - 1;
+                  // The last bucket always has its label: a regular one too close to it is left out (they overlapped)
+                  final isShown = index == lastIndex || (index % labelEvery == 0 && lastIndex - index >= min(labelEvery, 3));
+                  if (index < 0 || index > lastIndex || !isShown) return const SizedBox.shrink();
+                  return SideTitleWidget(
+                    meta: meta,
+                    fitInside: SideTitleFitInsideData.fromTitleMeta(meta), // the first and last labels stay inside the chart
+                    child: Text(bucketLabel(series[index].time), style: AppStyles.caption(context).copyWith(color: textColor)),
+                  );
                 },
               ),
             ),
@@ -190,6 +202,7 @@ class _AdminPageState extends State<AdminPage> {
   Widget build(BuildContext context) {
     final current = stats;
     final rangeName = switch (range) { "day" => "dernières 24 h", "week" => "7 derniers jours", _ => "30 derniers jours" };
+    final shortRangeName = switch (range) { "day" => "sur 24 h", "week" => "sur 7 jours", _ => "sur 30 jours" };
 
     return Page(
       topBar: TopBar.tab(context, title: "Administration"),
@@ -207,7 +220,7 @@ class _AdminPageState extends State<AdminPage> {
               spacing: AppSpacing.s,
               children: [
                 buildFigure(current.online.length.toString(), "en ligne\nmaintenant"),
-                buildFigure(current.activeUsers.toString(), "actifs\n$rangeName"),
+                buildFigure(current.activeUsers.toString(), "actifs\n$shortRangeName"),
                 buildFigure(current.totalAccounts.toString(), "comptes\nau total"),
               ],
             ),
@@ -235,7 +248,10 @@ class _AdminPageState extends State<AdminPage> {
                     child: Row(
                       spacing: AppSpacing.m,
                       children: [
-                        SizedBox.square(dimension: AppSizes.avatarSmall, child: ProfilePictureDisplay(accountUsername: user.username, includeBadge: false)),
+                        SizedBox.square(
+                          dimension: AppSizes.avatarSmall,
+                          child: ProfilePictureDisplay(accountUsername: user.username, includeBadge: false),
+                        ),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

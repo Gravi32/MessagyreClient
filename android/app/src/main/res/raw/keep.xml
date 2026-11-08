@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drawables only named from Dart (notifications): kept when the release build removes unused resources -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/ic_notification,@drawable/broadcast" />

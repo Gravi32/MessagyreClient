@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:flutter/services.dart';
@@ -58,7 +59,8 @@ class BootProcedure {
     return;
   }
 
-  /// Initializes Firebase and Notification services
+  /// Initializes Firebase and the notifications. Not awaited before the first frame: asking for the
+  /// permission and waiting for the push token can take seconds.
   static Future<void> setupNotificationSystems() async {
     try {
       await Firebase.initializeApp();
@@ -66,15 +68,11 @@ class BootProcedure {
     } catch (e) {
       debugPrint("Firebase could not be initialized: $e");
     }
-    return;
   }
 
   /// Initializes miscellaneous stuff
   static Future<void> setupMiscellaneous() async {
     await initializeDateFormatting('fr_CH', null);
-    tz.initializeTimeZones();
-
-    NotificationsService().resetBadge();
   }
 
   /// Sets native system UI colors
@@ -90,23 +88,23 @@ class BootProcedure {
   }
 }
 
-void main() async {
-  // (Way too verbose) FlutterError.onError = (details) => FlutterError.dumpErrorToConsole(details);
-  WidgetsFlutterBinding.ensureInitialized();
-
-  BootProcedure.overridePrintFunction();
-
-  await NetworkService().checkLocalhostAvailability();
-
-  Stac.initialize(parsers: [StacRoundContainerParser(), StacAppTextParser()]);
-
+void main() {
   runZonedGuarded(
     () async {
+      // Inside the zone, like runApp: otherwise Flutter complains about a "zone mismatch"
+      WidgetsFlutterBinding.ensureInitialized();
+      BootProcedure.overridePrintFunction();
+
+      Stac.initialize(parsers: [StacRoundContainerParser(), StacAppTextParser()]);
+
       try {
-        await BootProcedure.setupGlobals();
-        await BootProcedure.setupDatabase();
-        await BootProcedure.setupNotificationSystems();
-        await BootProcedure.setupMiscellaneous();
+        // Independent steps, run together (the development server is only looked for in debug builds)
+        await Future.wait([
+          if (kDebugMode) NetworkService().checkLocalhostAvailability(),
+          BootProcedure.setupGlobals(),
+          BootProcedure.setupDatabase(),
+          BootProcedure.setupMiscellaneous(),
+        ]);
 
         BootProcedure.setupSystemUI();
 
@@ -116,6 +114,14 @@ void main() async {
             builder: (context) => Phoenix(child: LifecycleService(child: App())),
           ),
         );
+
+        // Once the first page is on screen: the time zones only serve the assignments' notifications, and
+        // Firebase asks for the permission and waits for the push token
+        WidgetsBinding.instance.waitUntilFirstFrameRasterized.then((_) {
+          tz.initializeTimeZones();
+          BootProcedure.setupNotificationSystems();
+          NotificationsService().resetBadge();
+        });
       } catch (e, stack) {
         debugPrint("Error during initialization: $e");
         debugPrint(stack.toString());

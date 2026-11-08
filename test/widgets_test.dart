@@ -16,6 +16,7 @@ import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/utility/workarounds/field_header_delegate.dart';
 
@@ -183,5 +184,30 @@ void main() {
       expect(Attachment.tryParse("not json"), isNull);
       expect(Attachment.tryParse(jsonEncode({"Name": "x"})), isNull);
     });
+  });
+
+  // The in-app banner of a new message: a picture with a radius in a Row of a Column of unbounded height
+  // ("RenderAspectRatio has unbounded constraints", then a dozen layout errors at every message)
+  testWidgets("A profile picture with a radius sizes itself where nothing bounds it", (tester) async {
+    await tester.pumpWidget(
+      app(
+        const Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  ProfilePictureDisplay(radius: 30),
+                  Expanded(child: Text("Léa")),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.byType(ProfilePictureDisplay)), const Size(60, 60));
   });
 }

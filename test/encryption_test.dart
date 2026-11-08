@@ -6,6 +6,7 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:encrypt/encrypt.dart' as legacy;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:messagyre_client/services/api/firebase_api.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:pointycastle/export.dart';
 
@@ -73,5 +74,75 @@ void main() {
     final encrypted = await EncryptionService.encryptFile(Uint8List.fromList(utf8.encode("devoir de maths")));
     encrypted.bytes[3] ^= 0xFF;
     expect(() => EncryptionService.decryptFile(encrypted.bytes, encrypted.key, encrypted.iv), throwsA(anything));
+  });
+
+  group("Push notifications", () {
+    test("show the decrypted text and the sender's name without the server's emoji", () async {
+      final encrypted = EncryptionService().encryptMessage("Tu viens samedi ?", keys.publicKey);
+      final content = await NotificationContent.fromData({
+        "Title": "💬 Léa Martin",
+        "Body": "Nouveau message !",
+        "SenderUsername": "lea.martin",
+        "CipherText": encrypted["CipherText"],
+        "IV": encrypted["Iv"],
+        "EncryptedKey": encrypted["EncryptedKey"],
+      });
+      expect(content.body, "Tu viens samedi ?");
+      expect(content.senderName, "Léa Martin");
+      expect(content.senderUsername, "lea.martin");
+      expect(content.pictureUrl, isNull);
+    });
+
+    test("fall back on the server's text when the message can't be decrypted", () async {
+      final content = await NotificationContent.fromData({
+        "Title": "💬 Noah",
+        "Body": "Nouveau message !",
+        "CipherText": "AAAA",
+        "IV": "AAAA",
+        "EncryptedKey": "AAAA",
+      });
+      expect(content.body, "Nouveau message !");
+    });
+
+    test("of one conversation share the same id, different from the assignments' ones", () {
+      expect(notificationIdFor("lea.martin"), notificationIdFor("lea.martin"));
+      expect(notificationIdFor("lea.martin"), isNot(notificationIdFor("noah.dubois")));
+      expect(notificationIdFor("a"), greaterThanOrEqualTo(1000));
+    });
+
+    // The iOS extension (NotificationService.swift) reads this PEM from the keychain: iOS only accepts the PKCS#1
+    // key, which the extension takes out of the PKCS#8 envelope exactly like this
+    test("the stored private key is a PKCS#8 PEM whose PKCS#1 key the iOS extension can take out", () {
+      final pem = CryptoUtils.encodeRSAPrivateKeyToPem(keys.privateKey);
+      final lines = const LineSplitter().convert(pem);
+      expect(lines.first, "-----BEGIN PRIVATE KEY-----");
+      final der = base64.decode(lines.where((line) => !line.startsWith("-----")).join().trim());
+
+      var index = 0;
+      int? readLength() {
+        var length = der[index++];
+        if (length & 0x80 != 0) {
+          final count = length & 0x7f;
+          length = 0;
+          for (var i = 0; i < count; i++) {
+            length = (length << 8) | der[index++];
+          }
+        }
+        return length;
+      }
+
+      int? expectTag(int tag) => der[index] == tag ? (index++, readLength()).$2 : null;
+
+      expect(expectTag(0x30), isNotNull);
+      final versionLength = expectTag(0x02)!; // (not "index += expectTag(...)": index would be read before the call)
+      index += versionLength;
+      final algorithmLength = expectTag(0x30)!;
+      index += algorithmLength;
+      final keyLength = expectTag(0x04)!;
+      final pkcs1 = der.sublist(index, index + keyLength);
+
+      // What iOS gets (SecKeyCreateWithData): the same key, in PKCS#1
+      expect(CryptoUtils.rsaPrivateKeyFromDERBytesPkcs1(Uint8List.fromList(pkcs1)).modulus, keys.privateKey.modulus);
+    });
   });
 }

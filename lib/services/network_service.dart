@@ -66,7 +66,11 @@ class NetworkService {
   }
 
   Future<void> start() async {
-    globals.token = await secureStorage.read(key: "AccessToken");
+    try {
+      globals.token = await secureStorage.read(key: "AccessToken");
+    } catch (e) {
+      debugPrint("[NetworkService] The access token couldn't be read: $e");
+    }
 
     if (globals.token == null || globals.username == null) {
       debugPrint("[NetworkService] No token or username found in storage. Switching to LoginPage.");
@@ -74,7 +78,8 @@ class NetworkService {
       return;
     }
 
-    await uploadPublicKey();
+    // Not awaited: the connection doesn't need it (and a new key pair takes a few seconds to make)
+    uploadPublicKey();
 
     await connect();
   }
@@ -372,7 +377,8 @@ class NetworkService {
       return null;
     }
 
-    final result = json.decode(response.body) as String?;
+    final decoded = tryJsonDecode(response.body);
+    final result = decoded is String ? decoded : null;
     globals.pfpNotifiersCache[accountUsername]?.value = result;
     return result;
   }
@@ -385,9 +391,12 @@ class NetworkService {
       return null;
     }
 
-    final result = Account.fromJson(response.body);
-
-    return result;
+    try {
+      return Account.fromJson(response.body);
+    } catch (e) {
+      debugPrint("[Account Get Failed] Unreadable answer: $e");
+      return null;
+    }
   }
 
   Future<http.Response> refreshAccessToken() async {
@@ -435,7 +444,13 @@ class NetworkService {
   }
 
   Future<void> uploadPublicKey() async {
-    final stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await encryption.publicKey);
+    final String stringPublicKey;
+    try {
+      stringPublicKey = CryptoUtils.encodeRSAPublicKeyToPem(await encryption.publicKey);
+    } catch (e) {
+      debugPrint("[RSA] The public key couldn't be read: $e");
+      return;
+    }
     final response = await post("/accounts/me/upload-public-key", {"PublicKey": stringPublicKey});
 
     if (response.statusCode != 200) {

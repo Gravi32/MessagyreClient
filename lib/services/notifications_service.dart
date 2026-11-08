@@ -28,32 +28,44 @@ class NotificationsService {
   Future<bool> isNotificationScheduled(int id) async => (await getScheduledNotifications).any((n) => n.id == id);
 
   Future<void> initialize() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings();
     const initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
-    await plugin.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: (response) {
-        final String? payload = response.payload;
+    await plugin.initialize(initSettings, onDidReceiveNotificationResponse: (response) => _onTapped(response.payload));
 
-        if (payload != null && payload.isNotEmpty) {
-          final Map<String, dynamic>? data = tryJsonDecode(payload);
-
-          final username = data?["Username"];
-          final url = data?["Url"];
-
-          if (username != null) navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
-          if (url != null) openUrl(url);
-        }
-
-        resetBadge();
-      },
-    );
+    // The app was started by tapping one of our notifications (Android's message notifications, assignments)
+    try {
+      final launch = await plugin.getNotificationAppLaunchDetails();
+      if (launch?.didNotificationLaunchApp ?? false) _onTapped(launch!.notificationResponse?.payload);
+    } catch (e) {
+      debugPrint("[Notifications] Launch details unavailable: $e");
+    }
 
     await FirebaseApi().initialize();
 
     sendTokenToServer();
+  }
+
+  void _onTapped(String? payload) {
+    if (payload != null && payload.isNotEmpty) {
+      final data = tryJsonDecode(payload);
+      // Older notifications had the username alone as payload
+      final username = data is Map ? data["Username"] : (data == null ? payload : null);
+      final url = data is Map ? data["Url"] : null;
+
+      if (username is String && username.isNotEmpty) openChat(username);
+      if (url is String) openUrl(url);
+    }
+
+    resetBadge();
+  }
+
+  /// Opens a conversation (from a notification): once the app's first page is there
+  static void openChat(String username) {
+    void push() => navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
+    if (navigatorKey.currentState != null) return push();
+    WidgetsBinding.instance.addPostFrameCallback((_) => push());
   }
 
   Future<String> getImageFilePath(String assetName) async {
@@ -111,7 +123,11 @@ class NotificationsService {
   }
 
   Future<void> resetBadge() async {
-    if (await AppBadgePlus.isSupported()) AppBadgePlus.updateBadge(0);
+    try {
+      if (await AppBadgePlus.isSupported()) await AppBadgePlus.updateBadge(0);
+    } catch (e) {
+      debugPrint("[Notifications] The badge couldn't be reset: $e");
+    }
   }
 
   void sendTokenToServer() async {
@@ -123,6 +139,11 @@ class NotificationsService {
     }
 
     waitingForConnection = false;
+
+    // Firebase may still be waiting for the token (iOS)
+    for (var attempt = 0; attempt < 30 && globals.fcmToken == null; attempt++) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
 
     final token = globals.fcmToken;
     if (token == null) return;

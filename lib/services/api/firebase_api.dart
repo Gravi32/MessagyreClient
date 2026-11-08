@@ -1,15 +1,18 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/services/notifications_service.dart';
-import 'package:path_provider/path_provider.dart';
 
-import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 
 class FirebaseApi {
@@ -26,54 +29,49 @@ class FirebaseApi {
   Future<void> initialize() async {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    final settings = await firebaseMessaging.requestPermission(alert: true, badge: true, sound: true);
-
-    if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-      return;
-    }
-
-    if (Platform.isIOS) {
-      String? apnsToken;
-      while (apnsToken == null) {
-        apnsToken = await firebaseMessaging.getAPNSToken();
-        await Future.delayed(const Duration(seconds: 3));
-      }
-    }
-
-    globals.fcmToken = await firebaseMessaging.getToken();
-
+    // Listening first: nothing is missed while the permission and the token are awaited
     FirebaseMessaging.onMessage.listen(_onMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpened);
     firebaseMessaging.onTokenRefresh.listen(_onTokenRefresh);
 
-    return;
+    // The app was started by tapping a notification
+    final initialMessage = await firebaseMessaging.getInitialMessage();
+    if (initialMessage != null) _onMessageOpened(initialMessage);
+
+    final settings = await firebaseMessaging.requestPermission(alert: true, badge: true, sound: true);
+    if (settings.authorizationStatus != AuthorizationStatus.authorized && settings.authorizationStatus != AuthorizationStatus.provisional) return;
+
+    // iOS gives the Firebase token only once Apple's (APNs) is there: a few seconds at most
+    if (Platform.isIOS) {
+      for (var attempt = 0; attempt < 20 && await firebaseMessaging.getAPNSToken() == null; attempt++) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+
+    try {
+      globals.fcmToken = await firebaseMessaging.getToken();
+    } catch (e) {
+      debugPrint("[Firebase] No push token: $e");
+    }
   }
 
-  void _onMessage(RemoteMessage message) async {
-    final state = WidgetsBinding.instance.lifecycleState;
-    final data = message.data;
-
-    final title = data['Title'] ?? message.notification?.title ?? 'Notification';
-    final body = data['Body'] ?? message.notification?.body ?? '';
-    final sender = data['SenderUsername'];
-    final cipherText = data['CipherText'];
-    final iv = data['IV'];
-    final encryptedKey = data['EncryptedKey'];
-
-    final usingEncryption = cipherText != null && iv != null && encryptedKey != null;
-    final messageBody = usingEncryption ? await encryption.decryptMessage(cipherText, iv, encryptedKey) : body;
-
-    if (state == AppLifecycleState.resumed) {
-      if (usingEncryption) notificationOverlays.spawn(title, messageBody, sender);
-      notifications.resetBadge();
+  /// A push received while the app is open: a banner inside the app (unless that conversation is open)
+  Future<void> _onMessage(RemoteMessage message) async {
+    try {
+      final content = await NotificationContent.fromData(message.data, fallbackTitle: message.notification?.title, fallbackBody: message.notification?.body);
+      final sender = content.senderUsername;
+      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+        if (sender != null) notificationOverlays.spawn(content.senderName, content.body, sender);
+        notifications.resetBadge();
+      }
+    } catch (e) {
+      debugPrint("[Firebase] A push couldn't be shown: $e");
     }
   }
 
   void _onMessageOpened(RemoteMessage message) {
     final username = message.data['SenderUsername'];
-    if (username == null) return;
-
-    navigatorKey.currentState?.push(CupertinoPageRoute(builder: (_) => ChatPage(username: username)));
+    if (username is String) NotificationsService.openChat(username);
     notifications.resetBadge();
   }
 
@@ -83,51 +81,157 @@ class FirebaseApi {
   }
 }
 
+/// What a message notification shows, from the push's data (see the server's FirebaseService)
+class NotificationContent {
+  final String senderName;
+  final String? senderUsername;
+  final String body;
+  final String? pictureUrl;
+
+  NotificationContent(this.senderName, this.senderUsername, this.body, this.pictureUrl);
+
+  static Future<NotificationContent> fromData(Map<String, dynamic> data, {String? fallbackTitle, String? fallbackBody}) async {
+    final title = (data['Title'] ?? fallbackTitle ?? 'Messagyre').toString();
+    final cipherText = data['CipherText'], iv = data['IV'] ?? data['Iv'], encryptedKey = data['EncryptedKey'];
+
+    // The server only knows that a message arrived: the text is decrypted here
+    String body = (data['Body'] ?? fallbackBody ?? '').toString();
+    if (cipherText is String && iv is String && encryptedKey is String) {
+      try {
+        body = (await EncryptionService().decryptPayload(cipherText, iv, encryptedKey)).$1;
+      } catch (e) {
+        debugPrint("[Notifications] A message couldn't be decrypted: $e");
+      }
+    }
+
+    final picture = data['ProfilePictureURL'];
+    return NotificationContent(
+      title.replaceFirst(RegExp(r'^💬\s*'), ''), // the server adds it for the apps that show the title as it is
+      data['SenderUsername']?.toString(),
+      body,
+      picture is String && picture.isNotEmpty ? picture : null,
+    );
+  }
+}
+
+/// Android: pushes arriving while the app is in the background or closed (they only carry data: the
+/// notification is built here, with the decrypted text). iOS shows them itself (NotificationService.swift).
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  final data = message.data;
-  final title = data['Title'] ?? message.notification?.title ?? 'Messagyre';
-  final body = data['Body'] ?? message.notification?.body ?? '';
-  final sender = data['SenderUsername'];
-  final cipherText = data['CipherText'];
-  final iv = data['IV'];
-  final encryptedKey = data['EncryptedKey'];
-  final imageUrl = data['ProfilePictureURL'];
-
-  String finalBody = body;
-
-  if (cipherText != null && iv != null && encryptedKey != null) {
-    final encryption = EncryptionService();
-    finalBody = await encryption.decryptMessage(cipherText, iv, encryptedKey);
+  if (!Platform.isAndroid) return;
+  try {
+    await Firebase.initializeApp();
+    await showMessageNotification(message.data, initializePlugin: true);
+  } catch (e, s) {
+    debugPrint("[Notifications] A push couldn't be shown: $e\n$s");
   }
+}
 
-  final localNotifications = FlutterLocalNotificationsPlugin();
+const _channelId = 'messagyre_channel';
+const _maxMessagesPerNotification = 6;
 
-  NotificationDetails details;
+/// One notification per conversation: the sender's photo (with Messagyre's icon at the bottom right) and
+/// their latest messages
+///
+/// [initializePlugin] in the background isolate only: in the app, initializing again would replace the
+/// handler of the taps (NotificationsService.initialize)
+Future<void> showMessageNotification(Map<String, dynamic> data, {bool initializePlugin = false}) async {
+  final content = await NotificationContent.fromData(data);
+  final sender = content.senderUsername ?? content.senderName;
 
-  if (imageUrl != null && imageUrl.isNotEmpty) {
-    final response = await http.get(Uri.parse(imageUrl));
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/bg_notif_icon';
-    await File(path).writeAsBytes(response.bodyBytes);
+  final plugin = FlutterLocalNotificationsPlugin();
+  if (initializePlugin) await plugin.initialize(const InitializationSettings(android: AndroidInitializationSettings('ic_notification')));
+  final android = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
-    final person = Person(name: title, icon: BitmapFilePathAndroidIcon(path));
+  final id = notificationIdFor(sender);
+  final avatar = await _avatarWithBadge(content.pictureUrl, content.senderName);
+  final person = Person(key: sender, name: content.senderName, icon: avatar != null ? ByteArrayAndroidIcon(avatar) : null, important: true);
 
-    details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        'messagyre_channel',
-        'Messagyre',
-        importance: Importance.max,
-        priority: Priority.high,
-        styleInformation: MessagingStyleInformation(person, messages: [Message(finalBody, DateTime.now(), person)]),
-        largeIcon: FilePathAndroidBitmap(path),
+  // The messages already in this conversation's notification stay under the new one
+  List<Message> previous = const [];
+  try {
+    previous = (await android?.getActiveNotificationMessagingStyle(id))?.messages ?? const [];
+  } catch (_) {}
+  final messages = [...previous, Message(content.body, DateTime.now(), person)];
+
+  final details = NotificationDetails(
+    android: AndroidNotificationDetails(
+      _channelId,
+      'Messagyre',
+      channelDescription: 'Messages reçus',
+      importance: Importance.max,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.message,
+      icon: 'ic_notification',
+      color: const Color.fromRGBO(171, 12, 179, 1),
+      largeIcon: avatar != null ? ByteArrayAndroidBitmap(avatar) : null,
+      styleInformation: MessagingStyleInformation(
+        person,
+        conversationTitle: content.senderName,
+        groupConversation: false,
+        messages: messages.length > _maxMessagesPerNotification ? messages.sublist(messages.length - _maxMessagesPerNotification) : messages,
       ),
-    );
-  } else {
-    details = const NotificationDetails(
-      android: AndroidNotificationDetails('messagyre_channel', 'Messagyre', importance: Importance.max, priority: Priority.high),
-    );
-  }
+    ),
+  );
 
-  await localNotifications.show(0, title, finalBody, details, payload: sender);
+  await plugin.show(id, content.senderName, content.body, details, payload: jsonEncode({"Username": content.senderUsername}));
+}
+
+/// The same number for the same conversation, in any isolate (String.hashCode isn't guaranteed to be)
+int notificationIdFor(String username) {
+  var hash = 17;
+  for (final unit in username.codeUnits) {
+    hash = (hash * 31 + unit) & 0x3fffffff;
+  }
+  return hash + 1000; // below are the assignments' notifications
+}
+
+/// The sender's photo (or their initial) in a circle, with Messagyre's icon at the bottom right
+Future<Uint8List?> _avatarWithBadge(String? pictureUrl, String name) async {
+  try {
+    const size = 192;
+    final canvas = img.Image(width: size, height: size, numChannels: 4);
+
+    img.Image? photo;
+    if (pictureUrl != null) {
+      try {
+        final response = await http.get(Uri.parse(pictureUrl)).timeout(const Duration(seconds: 6));
+        // With an alpha channel (a JPEG has none): the rounded corners must be transparent, not black
+        if (response.statusCode == 200) photo = img.decodeImage(response.bodyBytes)?.convert(numChannels: 4);
+      } catch (_) {}
+    }
+
+    if (photo != null) {
+      img.compositeImage(canvas, img.copyResizeCropSquare(photo, size: size, radius: size / 2, antialias: true, interpolation: img.Interpolation.average));
+    } else {
+      img.fillCircle(canvas, x: size ~/ 2, y: size ~/ 2, radius: size ~/ 2, color: img.ColorRgba8(171, 12, 179, 255), antialias: true);
+      final initial = name.trim().isEmpty ? "?" : name.trim().characters.first.toUpperCase();
+      img.drawString(canvas, initial, font: img.arial48, x: size ~/ 2 - 14, y: size ~/ 2 - 26, color: img.ColorRgba8(255, 255, 255, 255));
+    }
+
+    // The badge, on a white ring so it stands apart from the photo
+    img.Image? badge;
+    try {
+      final badgeData = await rootBundle.load('assets/icons/notification_badge.png');
+      badge = img.decodePng(badgeData.buffer.asUint8List(badgeData.offsetInBytes, badgeData.lengthInBytes));
+    } catch (e) {
+      debugPrint("[Notifications] No badge: $e");
+    }
+    if (badge != null) {
+      const badgeSize = 72, ring = 6;
+      const centre = size - badgeSize ~/ 2 - 2;
+      img.fillCircle(canvas, x: centre, y: centre, radius: badgeSize ~/ 2 + ring, color: img.ColorRgba8(255, 255, 255, 255), antialias: true);
+      img.compositeImage(
+        canvas,
+        img.copyResize(badge, width: badgeSize, height: badgeSize, interpolation: img.Interpolation.cubic),
+        dstX: centre - badgeSize ~/ 2,
+        dstY: centre - badgeSize ~/ 2,
+      );
+    }
+
+    return img.encodePng(canvas);
+  } catch (e) {
+    debugPrint("[Notifications] The avatar couldn't be drawn: $e");
+    return null;
+  }
 }

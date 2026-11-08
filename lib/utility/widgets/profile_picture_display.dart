@@ -104,6 +104,13 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
 
   @override
   Widget build(BuildContext context) {
+    final picture = buildPicture(context);
+    // With a radius it sizes itself: alone in a Row or a Column its square would have no bounds
+    // (that crashed the in-app message banner)
+    return widget.radius != null ? SizedBox.square(dimension: widget.radius! * 2, child: picture) : picture;
+  }
+
+  Widget buildPicture(BuildContext context) {
     return AspectRatio(
       aspectRatio: 1,
       child: LayoutBuilder(

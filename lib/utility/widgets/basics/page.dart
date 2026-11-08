@@ -137,12 +137,13 @@ class _PageState extends State<Page> {
 
     if (widget.requireFaceId && MainPage.pageIndex.value == widget.pageIndex && !isUnlocked && !authInProgress && !authFailed) {
       authInProgress = true;
-      biometrics.authenticate().then(
-        (unlocked) => setState(() {
+      biometrics.authenticate().then((unlocked) {
+        if (!mounted) return;
+        setState(() {
           authInProgress = false;
           unlocked ? isUnlocked = true : authFailed = true;
-        }),
-      );
+        });
+      });
     }
 
     return PopScope(

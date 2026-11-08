@@ -108,7 +108,14 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                               Row(
                                 mainAxisAlignment: .spaceBetween,
                                 children: [
-                                  Text(widget.title, style: TextStyle(fontWeight: .w600, color: AppColors.text.adaptTo(context), fontSize: 18)),
+                                  Flexible(
+                                    child: Text(
+                                      widget.title,
+                                      maxLines: 1,
+                                      overflow: .ellipsis,
+                                      style: TextStyle(fontWeight: .w600, color: AppColors.text.adaptTo(context), fontSize: 18),
+                                    ),
+                                  ),
                                   if (unreadMessages != null && unreadMessages - 1 > 0)
                                     Container(
                                       margin: .only(top: 4),
@@ -123,7 +130,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                                 maxLines: 2,
                                 overflow: .fade,
                                 softWrap: true,
-                                style: TextStyle(fontWeight: .w400, fontSize: 16),
+                                style: TextStyle(fontWeight: .w400, fontSize: 16, color: AppColors.secondaryText.adaptTo(context)),
                               ),
                             ],
                           ),

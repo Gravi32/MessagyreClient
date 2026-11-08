@@ -18,74 +18,62 @@ class EncryptionService {
   EncryptionService._internal();
 
   final secureStorage = SecureStorageService();
-  // Do not instantiate NetworkService here: Stack overflow 
+  // Do not instantiate NetworkService here: Stack overflow
 
   AsymmetricKeyPair? _keyPairCache;
+  Future<AsymmetricKeyPair>? _loading;
 
-  Future<RSAPublicKey> get publicKey async {
-    if (_keyPairCache?.publicKey != null) {
-      return _keyPairCache!.publicKey as RSAPublicKey;
-    }
+  Future<RSAPublicKey> get publicKey async => (await _keyPair()).publicKey as RSAPublicKey;
 
+  Future<RSAPrivateKey> get privateKey async => (await _keyPair()).privateKey as RSAPrivateKey;
+
+  /// The stored key pair, or a new one. Calls made at the same time share the same work.
+  Future<AsymmetricKeyPair> _keyPair() {
+    final cached = _keyPairCache;
+    if (cached != null) return Future.value(cached);
+    return _loading ??= _loadOrGenerate().whenComplete(() => _loading = null);
+  }
+
+  Future<AsymmetricKeyPair> _loadOrGenerate() async {
     final storedPublic = await secureStorage.read(key: "RSAPublicKey");
     final storedPrivate = await secureStorage.read(key: "RSAPrivateKey");
 
     if (storedPublic != null && storedPublic.isNotEmpty && storedPrivate != null && storedPrivate.isNotEmpty) {
-      final newPublicKey = CryptoUtils.rsaPublicKeyFromPem(storedPublic);
-      final newPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(storedPrivate);
-      _keyPairCache = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(newPublicKey, newPrivateKey);
-      return newPublicKey;
+      final pair = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
+        CryptoUtils.rsaPublicKeyFromPem(storedPublic),
+        CryptoUtils.rsaPrivateKeyFromPem(storedPrivate),
+      );
+      return _keyPairCache = pair;
     }
 
-    return _generateRSAKeyPair().publicKey as RSAPublicKey;
-  }
-
-  Future<RSAPrivateKey> get privateKey async {
-    if (_keyPairCache?.privateKey != null) {
-      return _keyPairCache!.privateKey as RSAPrivateKey;
-    }
-
-    final storedPublic = await secureStorage.read(key: "RSAPublicKey");
-    final storedPrivate = await secureStorage.read(key: "RSAPrivateKey");
-
-    if (storedPublic != null && storedPublic.isNotEmpty && storedPrivate != null && storedPrivate.isNotEmpty) {
-      final newPublicKey = CryptoUtils.rsaPublicKeyFromPem(storedPublic);
-      final newPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(storedPrivate);
-      _keyPairCache = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(newPublicKey, newPrivateKey);
-      return newPrivateKey;
-    }
-
-    return _generateRSAKeyPair().privateKey as RSAPrivateKey;
-  }
-
-  AsymmetricKeyPair _generateRSAKeyPair({int bitLength = 2048}) {
     debugPrint("[RSA] Generating new RSA key pair...");
 
-    final keyGenerator =
-        RSAKeyGenerator()..init(
-          ParametersWithRandom(
-            RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
-            SecureRandom("Fortuna")..seed(KeyParameter(Uint8List.fromList(List<int>.generate(32, (_) => Random.secure().nextInt(256))))),
-          ),
-        );
+    // A 2048-bit key takes seconds: in a background isolate, the app stays responsive
+    final (publicPem, privatePem) = await compute(_generatePems, 2048);
 
-    final pair = keyGenerator.generateKeyPair();
-    final publicKey = pair.publicKey as RSAPublicKey;
-    final privateKey = pair.privateKey as RSAPrivateKey;
-    final result = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(publicKey, privateKey);
+    await secureStorage.write(key: "RSAPublicKey", value: publicPem);
+    await secureStorage.write(key: "RSAPrivateKey", value: privatePem);
 
-    _keyPairCache = result;
-
-    final publicPem = CryptoUtils.encodeRSAPublicKeyToPem(publicKey);
-    final privatePem = CryptoUtils.encodeRSAPrivateKeyToPem(privateKey);
-
-    secureStorage.write(key: "RSAPublicKey", value: publicPem);
-    secureStorage.write(key: "RSAPrivateKey", value: privatePem);
+    final pair = AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(CryptoUtils.rsaPublicKeyFromPem(publicPem), CryptoUtils.rsaPrivateKeyFromPem(privatePem));
+    _keyPairCache = pair;
 
     debugPrint("[RSA] New key pair generated and saved");
     NetworkService().uploadPublicKey();
 
-    return result;
+    return pair;
+  }
+
+  static (String, String) _generatePems(int bitLength) {
+    final keyGenerator = RSAKeyGenerator()
+      ..init(
+        ParametersWithRandom(
+          RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
+          SecureRandom("Fortuna")..seed(KeyParameter(Uint8List.fromList(List<int>.generate(32, (_) => Random.secure().nextInt(256))))),
+        ),
+      );
+
+    final pair = keyGenerator.generateKeyPair();
+    return (CryptoUtils.encodeRSAPublicKeyToPem(pair.publicKey as RSAPublicKey), CryptoUtils.encodeRSAPrivateKeyToPem(pair.privateKey as RSAPrivateKey));
   }
 
   // #region -> Messages
