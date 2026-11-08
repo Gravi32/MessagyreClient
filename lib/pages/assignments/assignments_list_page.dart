@@ -115,9 +115,10 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
 
     return ListSection(
       title: title,
-      useLargeTitle: true,
       margin: const .only(top: AppSpacing.section),
-      children: sorted.map((assignment) => AssignmentTile(key: ValueKey(assignment.id), assignment: assignment, showDate: tilesShowDate, dim: dimTiles)).toList(),
+      children: sorted
+          .map((assignment) => AssignmentTile(key: ValueKey(assignment.id), assignment: assignment, showDate: tilesShowDate, dim: dimTiles))
+          .toList(),
     );
   }
 
@@ -159,11 +160,11 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
           return Column(
             crossAxisAlignment: .stretch,
             children: [
+              const SizedBox(height: AppSpacing.s),
               if (!isSearching) const AssignmentsTopCard(),
               if (shared.isNotEmpty)
                 ListSection(
                   title: AppStrings.sectionShared,
-                  useLargeTitle: true,
                   margin: const .only(top: AppSpacing.section),
                   children: shared.map((assignment) => SharedAssignmentTile(key: ValueKey("shared-${assignment.id}"), assignment: assignment)).toList(),
                 ),
@@ -185,7 +186,11 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
               if (sharedAssignmentsNotice != null && !isSearching)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.l, AppSpacing.xl, AppSpacing.l, 0),
-                  child: CustomText(sharedAssignmentsNotice!, textAlign: .center, style: AppStyles.footer(context).copyWith(color: AppColors.tertiaryText.adaptTo(context))),
+                  child: CustomText(
+                    sharedAssignmentsNotice!,
+                    textAlign: .center,
+                    style: AppStyles.footer(context).copyWith(color: AppColors.tertiaryText.adaptTo(context)),
+                  ),
                 ),
               const BottomSpacing(includeBottomBar: true),
             ],

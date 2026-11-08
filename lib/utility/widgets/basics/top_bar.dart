@@ -3,10 +3,10 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
-import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class TopBar extends StatefulWidget {
@@ -49,16 +49,12 @@ class TopBar extends StatefulWidget {
           showCupertinoDialog(
             context: context,
             builder: (context) {
-              return Dialog.confirm(
-                content: AppStrings.confirmCancel,
-                isDestructive: true,
-                onConfirm: () => onCloseConfirmed.call(),
-              );
+              return Dialog.confirm(content: AppStrings.confirmCancel, isDestructive: true, onConfirm: () => onCloseConfirmed.call());
             },
           );
         },
       ),
-      middle: title != null ? Text(title, style: AppStyles.header(context), textAlign: .center) : null,
+      middle: title != null ? Text(title, style: AppStyles.barTitle(context), textAlign: .center, maxLines: 1, overflow: .ellipsis) : null,
       trailing: trailing,
     );
   }
@@ -69,22 +65,16 @@ class TopBar extends StatefulWidget {
       middle: title != null
           ? Padding(
               padding: .symmetric(horizontal: 8),
-              child: Text(title, style: AppStyles.header(context), textAlign: .center),
+              child: Text(title, style: AppStyles.barTitle(context), textAlign: .center, maxLines: 1, overflow: .ellipsis),
             )
           : null,
     );
   }
 
-  /// The bar of the main tabs: a large title signed with the app icon's shape
+  /// The bar of the main tabs: a large title that shrinks on scroll
   factory TopBar.sliver({required String title, Widget? leading, Widget? trailing, Field? field}) {
     return TopBar(
-      middle: Row(
-        mainAxisSize: .min,
-        children: [
-          const Padding(padding: .only(right: 10, top: 2), child: GymnaseMark(size: 28)),
-          Flexible(child: Text(title, maxLines: 1, overflow: .ellipsis)),
-        ],
-      ),
+      middle: Text(title, maxLines: 1, overflow: .ellipsis),
       collapsedMiddle: Text(title),
       leading: leading,
       trailing: trailing,
@@ -125,18 +115,20 @@ class _TopBarState extends State<TopBar> {
         trailing: widget.trailing,
         transitionBetweenRoutes: widget.transitionBetweenRoutes,
         backgroundColor: AppColors.background.adaptTo(context),
+        border: null,
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: AppSpacing.page - 4),
         bottom: widget.field != null
             ? PreferredSize(
                 preferredSize: const .fromHeight(60),
-                child: Padding(padding: .symmetric(horizontal: 8).add(.only(bottom: 8)), child: widget.field!),
+                child: Padding(padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, AppSpacing.s), child: widget.field!),
               )
             : null,
       );
     }
 
     return Container(
-      padding: .symmetric(vertical: 8),
-      height: 60,
+      padding: const .symmetric(vertical: AppSpacing.s),
+      height: AppSizes.topBar,
       child: Row(
         children: [
           if ((widget.leading ?? widget.trailing) != null) widget.leading ?? AspectRatio(aspectRatio: 1),

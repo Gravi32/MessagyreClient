@@ -40,7 +40,16 @@ class MessageBubble extends StatelessWidget {
   /// In a class chat: who wrote it, above the first bubble of their messages
   final String? senderName;
 
-  const MessageBubble({super.key, required this.message, this.joinsPrevious = false, this.joinsNext = false, this.onLongPress, this.onTap, this.bubbleKey, this.senderName});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    this.joinsPrevious = false,
+    this.joinsNext = false,
+    this.onLongPress,
+    this.onTap,
+    this.bubbleKey,
+    this.senderName,
+  });
 
   /// The same color for the same person in every class chat
   static Color colorOf(String username) {
@@ -112,7 +121,10 @@ class MessageBubble extends StatelessWidget {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(left: AppSpacing.m, bottom: AppSpacing.xxs),
-                        child: Text(senderName!, style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: colorOf(sender))),
+                        child: Text(
+                          senderName!,
+                          style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: colorOf(sender)),
+                        ),
                       ),
                       bubble,
                     ],
@@ -155,7 +167,9 @@ class _TextContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = AppStyles.primaryText(context).copyWith(color: message.isDeleted ? colors.secondary : colors.text, fontStyle: message.isDeleted ? FontStyle.italic : null);
+    final style = AppStyles.primaryText(
+      context,
+    ).copyWith(color: message.isDeleted ? colors.secondary : colors.text, fontStyle: message.isDeleted ? FontStyle.italic : null);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.m, AppSpacing.s - 1, AppSpacing.s + 2, AppSpacing.s - 2),
@@ -194,7 +208,9 @@ class _TransferIndicator extends StatelessWidget {
                 dimension: size - 6,
                 child: progress == null || progress <= 0
                     ? CupertinoActivityIndicator(color: color, radius: size / 4)
-                    : CustomPaint(painter: _RingPainter(progress: progress, color: color)),
+                    : CustomPaint(
+                        painter: _RingPainter(progress: progress, color: color),
+                      ),
               ),
             ],
           ),
@@ -316,7 +332,11 @@ class _ImageContent extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.m, AppSpacing.s - 2, AppSpacing.s + 2, AppSpacing.s - 2),
               child: TextChatBubbleWithTimeStamp(
-                content: Text.rich(TextSpan(children: CustomText.parseSpans(caption, style: AppStyles.primaryText(context).copyWith(color: colors.text)))),
+                content: Text.rich(
+                  TextSpan(
+                    children: CustomText.parseSpans(caption, style: AppStyles.primaryText(context).copyWith(color: colors.text)),
+                  ),
+                ),
                 timestamp: Padding(
                   padding: const EdgeInsets.only(left: AppSpacing.m),
                   child: MessageFooter(message: message, color: colors.secondary),
@@ -365,14 +385,21 @@ class _FileContent extends StatelessWidget {
                 height: AppSizes.compactControl,
                 decoration: BoxDecoration(color: colors.text.withTransparency(.12), borderRadius: BorderRadius.circular(AppRadius.s)),
                 alignment: Alignment.center,
-                child: showsState ? _TransferIndicator(message: message, color: colors.text, size: 32) : HugeIcon(icon: attachment.icon, color: colors.text, size: AppSizes.icon),
+                child: showsState
+                    ? _TransferIndicator(message: message, color: colors.text, size: 32)
+                    : HugeIcon(icon: attachment.icon, color: colors.text, size: AppSizes.icon),
               ),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(attachment.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context).copyWith(color: colors.text, fontSize: 16)),
+                    Text(
+                      attachment.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppStyles.strongText(context).copyWith(color: colors.text, fontSize: AppStyles.sizeSubheadline),
+                    ),
                     Text(_stateText(), style: AppStyles.footnote(context).copyWith(color: colors.secondary)),
                   ],
                 ),
@@ -384,7 +411,11 @@ class _FileContent extends StatelessWidget {
               padding: const EdgeInsets.only(top: AppSpacing.s, left: AppSpacing.xs),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text.rich(TextSpan(children: CustomText.parseSpans(caption, style: AppStyles.primaryText(context).copyWith(color: colors.text)))),
+                child: Text.rich(
+                  TextSpan(
+                    children: CustomText.parseSpans(caption, style: AppStyles.primaryText(context).copyWith(color: colors.text)),
+                  ),
+                ),
               ),
             ),
           const SizedBox(height: AppSpacing.xxs),

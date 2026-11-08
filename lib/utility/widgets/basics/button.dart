@@ -89,13 +89,7 @@ class Button extends StatefulWidget {
   }
 
   factory Button.destructive(BuildContext context, {required String text, Function()? onTap}) {
-    return Button(
-      text: text,
-      color: AppColors.red,
-      transparent: true,
-      icon: HugeIcons.strokeRoundedDelete01,
-      onTap: onTap,
-    );
+    return Button(text: text, color: AppColors.red, transparent: true, icon: HugeIcons.strokeRoundedDelete01, onTap: onTap);
   }
 
   @override
@@ -131,7 +125,6 @@ class _ButtonState extends State<Button> {
         child: RoundContainer(
           transparent: widget.transparent,
           blur: widget.blur,
-          gradient: !widget.transparent && widget.enabled && widget.color == null ? AppColors.accentGradient : null,
           enabled: widget.enabled,
           padding: widget.padding ?? const .all(12),
           margin: widget.margin,

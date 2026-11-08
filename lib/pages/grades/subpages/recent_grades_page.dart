@@ -5,12 +5,13 @@ import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
-import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
-import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class RecentGradesPage extends StatefulWidget {
   const RecentGradesPage({super.key});
@@ -25,7 +26,7 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
   String? activeFilter;
 
   void showNewGradePopup(Grade toEdit) async {
-    await showCupertinoModalBottomSheet<Grade?>(
+    await showCupertinoSheet<Grade?>(
       context: context,
       enableDrag: false,
       builder: (context) => NewGradePage(toEdit: toEdit),
@@ -49,25 +50,36 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
 
     return Page.sliver(
       topBar: TopBar.sliverWithChevron(context, title: "Toutes les notes"),
-      field: Field.search(placeholder: "Chercher une note...", onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase())),
+      field: Field.search(
+        placeholder: "Chercher une note...",
+        onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase()),
+      ),
       body: ListView(
-        padding: .zero,
-        children: grouped.entries.map((entry) {
-          final start = entry.key;
-          final end = start.add(const Duration(days: 6));
-
-          return ListSection(
-            title: "${formatDate(start).capitalize()} - ${formatDate(end)}",
-            margin: .only(top: 16),
-            children: entry.value.map((grade) {
-              return ListTile(
-                buildChevron: false,
-                padding: .symmetric(horizontal: 12, vertical: 8),
-                child: GradeBar(gradeData: grade, onTap: () => showNewGradePopup(grade), showSubject: true),
-              );
-            }).toList(),
-          );
-        }).toList(),
+        padding: const .only(top: AppSpacing.m),
+        children: [
+          for (final entry in grouped.entries)
+            Padding(
+              padding: const .only(bottom: AppSpacing.xl),
+              child: Column(
+                crossAxisAlignment: .stretch,
+                children: [
+                  // The week
+                  Padding(
+                    padding: const .only(left: 4, bottom: AppSpacing.s),
+                    child: Text(
+                      "${formatDate(entry.key).capitalize()} – ${formatDate(entry.key.add(const Duration(days: 6)))}",
+                      style: AppStyles.footnote(context).copyWith(fontWeight: .w600),
+                    ),
+                  ),
+                  CardGroup(
+                    separatorInset: GradeBar.separatorInset,
+                    children: [for (final grade in entry.value) GradeBar(gradeData: grade, onTap: () => showNewGradePopup(grade), showSubject: true)],
+                  ),
+                ],
+              ),
+            ),
+          const BottomSpacing(),
+        ],
       ),
     );
   }

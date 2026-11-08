@@ -75,10 +75,10 @@ class Dialog extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 300),
         margin: .all(40),
-        padding: .all(16).add(.only(top: 10)),
+        padding: const .fromLTRB(AppSpacing.l, AppSpacing.xl, AppSpacing.l, AppSpacing.l),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
-          borderRadius: .circular(AppRadius.xl),
+          borderRadius: .circular(AppRadius.l + 4),
           border: .all(color: AppColors.outline.adaptTo(context)),
           boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: .18), blurRadius: 40, offset: const Offset(0, 12))],
         ),
@@ -87,7 +87,7 @@ class Dialog extends StatelessWidget {
           mainAxisSize: .min,
           children: [
             // Title
-            if (title != null) Text(title!, textAlign: .center, style: AppStyles.secondaryHeader(context).copyWith(fontSize: 21)),
+            if (title != null) Text(title!, textAlign: .center, style: AppStyles.secondaryHeader(context)),
 
             if ((content ?? field) != null)
               ConstrainedAspectRatio(
@@ -98,7 +98,7 @@ class Dialog extends StatelessWidget {
                         padding: .symmetric(horizontal: 10),
                         child: SingleChildScrollView(
                           // Content
-                          child: CustomText(content!.trim(), textAlign: .center, style: AppStyles.primaryText(context).copyWith(height: 1.45, color: AppColors.secondaryText.adaptTo(context))),
+                          child: CustomText(content!.trim(), textAlign: .center, style: AppStyles.subheadline(context).copyWith(height: 1.45)),
                         ),
                       ),
               ),
@@ -111,7 +111,8 @@ class Dialog extends StatelessWidget {
               children: (options ?? {AppStrings.ok: () => {}}).entries.map((option) {
                 Widget button = Button(
                   text: option.key,
-                  transparent: true,
+                  // Cancel is grey, the action is the accent (red when it destroys something)
+                  transparent: option.key == AppStrings.cancel,
                   color: option.key == AppStrings.cancel ? AppColors.tertiaryBackground.adaptTo(context) : (isDestructive ? AppColors.red : null),
                   onTap: () {
                     Navigator.of(context).pop();

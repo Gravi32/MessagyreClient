@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:flutter/material.dart' hide Page;
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -143,21 +145,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       context,
       canPop: false,
       children: [
-        const Center(child: Padding(padding: .only(top: 20), child: AppIconTile(size: 84))),
-
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.xxl),
+        const Center(child: AppIconTile(size: 76)),
+        const SizedBox(height: AppSpacing.xl),
         Text("Bienvenue sur Messagyre", textAlign: .center, style: AppStyles.header(context)),
-        const SizedBox(height: 6),
-        Text("connectez-vous pour continuer", textAlign: .center, style: AppStyles.secondaryText(context)),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.s),
+        Text("Connectez-vous pour continuer", textAlign: .center, style: AppStyles.subheadline(context)),
 
-        Text(
-          "Les comptes de Messagyre ne sont pas liés au gymnase ! Vous devez créer un compte à part si vous ne l'avez pas déjà fait !",
-          textAlign: .center,
-          style: AppStyles.tertiaryText(context),
-        ),
-
-        const SizedBox(height: 40),
+        const SizedBox(height: AppSpacing.xxl),
         Field(
           placeholder: "Nom d'utilisateur",
           error: usernameError,
@@ -167,45 +162,52 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             usernameController.value = TextEditingValue(text: newText.toLowerCase().replaceAll(' ', '').split('@')[0], selection: usernameController.selection);
           },
         ),
-
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.m),
         Field.password(error: passwordError, controller: passwordController, enabled: !isWaitingForResponse, onChanged: (_) => setState(() {})),
 
-        const SizedBox(height: 36),
+        const SizedBox(height: AppSpacing.xl),
         Button(text: "Connexion", enabled: !fieldsAreEmpty && !isWaitingForResponse, isLoading: isWaitingForResponse, onTap: tryToLogin),
 
-        if (wasPasswordWrong && usernameController.text.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Button(
-            onTap: (!isWaitingForResponse) ? tryToResetPassword : null,
-            text: "J'ai oublié mon mot de passe...",
-            isLoading: isWaitingForResponse,
-            transparent: true,
-            color: AppColors.secondaryButton.adaptTo(context),
+        if (wasPasswordWrong && usernameController.text.isNotEmpty)
+          CupertinoButton(
+            padding: const .only(top: AppSpacing.l),
+            minimumSize: .zero,
+            onPressed: !isWaitingForResponse ? tryToResetPassword : null,
+            child: Text(
+              "Mot de passe oublié ?",
+              style: AppStyles.subheadline(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: .w500),
+            ),
           ),
-        ],
 
-        const SizedBox(height: 30),
-
-        Row(
-          children: [
-            Expanded(child: Divider(color: AppColors.separator.adaptTo(context), indent: 30, endIndent: 10)),
-            Text("ou", style: TextStyle(color: AppColors.separator.adaptTo(context).withAlpha(100), fontSize: 12)),
-            Expanded(child: Divider(color: AppColors.separator.adaptTo(context), indent: 10, endIndent: 30)),
-          ],
+        const SizedBox(height: AppSpacing.xxl),
+        // An account of the app, not of the school
+        Container(
+          padding: const .all(AppSpacing.l),
+          decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(AppRadius.m)),
+          child: Row(
+            crossAxisAlignment: .start,
+            spacing: AppSpacing.m,
+            children: [
+              HugeIcon(icon: AppIcons.info, size: 20, color: AppColors.secondaryText.adaptTo(context)),
+              Expanded(
+                child: Text(
+                  "Votre compte Messagyre n'est pas celui du gymnase : créez-en un si ce n'est pas déjà fait.",
+                  style: AppStyles.footnote(context).copyWith(color: AppColors.secondaryText.adaptTo(context), height: 1.4),
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 30),
-
+        const SizedBox(height: AppSpacing.m),
         Button(
           text: "Créer un compte",
           transparent: true,
+          color: AppColors.secondaryButton.adaptTo(context),
           enabled: !isWaitingForResponse,
-          onTap: () async {
-            Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage()));
-          },
+          onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RegistrationPage())),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xxl),
         const MadeByGravi(),
       ],
     );

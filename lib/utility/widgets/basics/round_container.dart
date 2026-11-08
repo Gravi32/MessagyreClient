@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 
 /// A rounded surface, the base of the cards, buttons and fields.
@@ -46,7 +47,7 @@ class RoundContainer extends StatelessWidget {
     this.width,
     this.opacity = 1,
     this.blurAmount = 15,
-    this.borderRadius = 24,
+    this.borderRadius = AppRadius.card,
   });
 
   /// Greys and the app's surfaces (barely tinted) are neutral; red, the accent, a subject's color are vivid
@@ -89,12 +90,15 @@ class RoundContainer extends StatelessWidget {
       padding: padding ?? const .all(16),
       // What is inside follows the rounded corners (the rows of a list, a picture, a decoration)
       clipBehavior: child != null ? .antiAlias : .none,
-      decoration: BoxDecoration(
-        borderRadius: .circular(borderRadius),
-        color: fill,
-        gradient: hasGradient ? gradient : null,
-        border: .all(width: 1, color: outlined ? AppColors.outline.adaptTo(context) : AppColors.transparent),
-      ),
+      decoration: BoxDecoration(borderRadius: .circular(borderRadius), color: fill, gradient: hasGradient ? gradient : null),
+      // The hairline is painted over the content, with the same corners: the rows of a list fill the card up to its
+      // edge and would otherwise cover it in the corners
+      foregroundDecoration: outlined
+          ? BoxDecoration(
+              borderRadius: .circular(borderRadius),
+              border: .all(width: 1, color: AppColors.outline.adaptTo(context)),
+            )
+          : null,
       child: child,
     );
 

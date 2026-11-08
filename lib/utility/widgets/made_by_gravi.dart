@@ -33,7 +33,7 @@ class MadeByGravi extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Kept in English: it is the signature
-              Text("made by", style: AppStyles.secondaryText(context).copyWith(fontSize: 15)),
+              Text("made by", style: AppStyles.subheadline(context)),
               const SizedBox(width: 8),
               SizedBox(width: 21, height: 22, child: CustomPaint(painter: _GraviCubePainter(context))),
               const SizedBox(width: 5),
@@ -71,7 +71,9 @@ class _GraviCubePainter extends CustomPainter {
     final opaqueBody = Color.alphaBlend(body, background);
     final colors = [opaqueBody, top, side, front];
     for (var i = 0; i < _layers.length; i++) {
-      final paint = Paint()..color = colors[i]..isAntiAlias = true;
+      final paint = Paint()
+        ..color = colors[i]
+        ..isAntiAlias = true;
       for (final path in _layers[i]) {
         canvas.drawPath(path, paint);
       }

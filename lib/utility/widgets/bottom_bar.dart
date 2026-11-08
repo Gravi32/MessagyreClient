@@ -6,7 +6,7 @@ import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/main.dart';
 
-/// The tabs, in a floating dock: the selected one looks like the app icon (a rounded square with its gradient).
+/// The tabs, in a floating dock: the selected one sits on a soft grey pill.
 /// Opaque, so it needs no blur over the content scrolling under it.
 class BottomBar extends StatelessWidget {
   const BottomBar({super.key});
@@ -26,7 +26,12 @@ class BottomBar extends StatelessWidget {
       padding: .only(bottom: bottomPadding > 0 ? bottomPadding : AppSpacing.m, left: AppSpacing.m, right: AppSpacing.m),
       // The content fades out under the dock
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [background.withValues(alpha: 0), background.withValues(alpha: .92)], stops: const [0, .55]),
+        gradient: LinearGradient(
+          begin: .topCenter,
+          end: .bottomCenter,
+          colors: [background.withValues(alpha: 0), background.withValues(alpha: .92)],
+          stops: const [0, .55],
+        ),
       ),
       child: Container(
         height: dockHeight,
@@ -34,12 +39,24 @@ class BottomBar extends StatelessWidget {
           color: AppColors.secondaryBackground.adaptTo(context),
           borderRadius: .circular(AppRadius.l),
           border: .all(color: AppColors.outline.adaptTo(context)),
-          boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: isDark ? .35 : .06), blurRadius: 18, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: isDark ? .35 : .06),
+              blurRadius: 18,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: ValueListenableBuilder<int>(
           valueListenable: MainPage.pageIndex,
           builder: (context, currentIndex, _) => Row(
-            children: App.pages.mapIndexed((index, page) => Expanded(child: _Tab(page: page, isSelected: index == currentIndex, onTap: () => MainPage.pageIndex.value = index))).toList(),
+            children: App.pages
+                .mapIndexed(
+                  (index, page) => Expanded(
+                    child: _Tab(page: page, isSelected: index == currentIndex, onTap: () => MainPage.pageIndex.value = index),
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),
@@ -56,7 +73,8 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final idle = AppColors.secondaryText.adaptTo(context);
+    final idle = AppColors.tertiaryText.adaptTo(context);
+    final active = AppColors.text.adaptTo(context);
 
     return CupertinoButton(
       padding: .zero,
@@ -73,15 +91,14 @@ class _Tab extends StatelessWidget {
               AnimatedContainer(
                 duration: AppDurations.normal,
                 curve: Curves.easeOutCubic,
-                width: 40,
-                height: 32,
+                width: 48,
+                height: 30,
                 decoration: BoxDecoration(
-                  borderRadius: .circular(11),
-                  gradient: isSelected ? AppColors.accentGradient : null,
-                  boxShadow: isSelected ? [BoxShadow(color: AppColors.accent.withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 3))] : null,
+                  borderRadius: .circular(15),
+                  color: isSelected ? AppColors.tertiaryBackground.adaptTo(context) : AppColors.tertiaryBackground.adaptTo(context).withValues(alpha: 0),
                 ),
                 alignment: .center,
-                child: HugeIcon(icon: page.icon, size: 21, color: isSelected ? AppColors.white : idle),
+                child: HugeIcon(icon: page.icon, size: 21, color: isSelected ? active : idle),
               ),
               // A dot for something new in that tab
               ValueListenableBuilder(
@@ -89,14 +106,14 @@ class _Tab extends StatelessWidget {
                 builder: (context, showBadge, _) => !showBadge
                     ? const SizedBox.shrink()
                     : Positioned(
-                        top: -3,
-                        right: -3,
+                        top: -2,
+                        right: 2,
                         child: Container(
                           width: 11,
                           height: 11,
                           decoration: BoxDecoration(
                             shape: .circle,
-                            color: isSelected ? AppColors.white : AppColors.accent,
+                            color: AppColors.accent,
                             border: .all(color: AppColors.secondaryBackground.adaptTo(context), width: 2),
                           ),
                         ),
@@ -112,11 +129,7 @@ class _Tab extends StatelessWidget {
               child: Text(
                 page.name,
                 maxLines: 1,
-                style: AppStyles.caption(context).copyWith(
-                  fontSize: 10.5,
-                  fontWeight: isSelected ? .w600 : .w500,
-                  color: isSelected ? AppColors.tint.adaptTo(context) : idle,
-                ),
+                style: AppStyles.caption(context).copyWith(fontWeight: isSelected ? .w600 : .w500, color: isSelected ? active : idle),
               ),
             ),
           ),

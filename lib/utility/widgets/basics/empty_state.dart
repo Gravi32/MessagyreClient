@@ -3,7 +3,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
-import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
 /// What a page or a list shows when it has nothing to show: an icon, a title, a sentence and an optional action.
 class EmptyState extends StatelessWidget {
@@ -34,22 +33,19 @@ class EmptyState extends StatelessWidget {
         mainAxisSize: .min,
         mainAxisAlignment: .center,
         children: [
-          // The icon on the Gymnase's shape, faint
-          SizedBox.square(
-            dimension: 104,
-            child: Stack(
-              alignment: .center,
-              children: [
-                GymnaseMark(size: 104, color: AppColors.accentSoft.adaptTo(context)),
-                HugeIcon(icon: icon, strokeWidth: 1.5, size: 44, color: AppColors.tint.adaptTo(context)),
-              ],
-            ),
+          // The icon in a soft grey circle
+          Container(
+            width: 84,
+            height: 84,
+            alignment: .center,
+            decoration: BoxDecoration(shape: .circle, color: AppColors.tertiaryBackground.adaptTo(context)),
+            child: HugeIcon(icon: icon, strokeWidth: 1.5, size: 36, color: AppColors.secondaryText.adaptTo(context)),
           ),
-          const SizedBox(height: AppSpacing.m),
+          const SizedBox(height: AppSpacing.l),
           Text(title, textAlign: .center, style: AppStyles.secondaryHeader(context)),
           if (subtitle != null) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(subtitle!, textAlign: .center, style: AppStyles.secondaryText(context).copyWith(fontSize: 16)),
+            const SizedBox(height: AppSpacing.s),
+            Text(subtitle!, textAlign: .center, style: AppStyles.subheadline(context).copyWith(height: 1.4)),
           ],
           if (actionText != null && onAction != null)
             CupertinoButton(

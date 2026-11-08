@@ -51,22 +51,27 @@ class _AssignmentTileState extends State<AssignmentTile> {
 
   @override
   Widget build(BuildContext context) {
-    final tag = assignmentTypeTag(assignment.type);
     final subject = assignment.subject.value;
+    final isTest = assignment.type == AssignmentType.test;
 
     final details = assignment.type == AssignmentType.leave
         ? "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}"
-        : [?subject?.name, if (widget.showDate) formatDate(assignment.dueDate)].join("  •  ");
+        : [?subject?.name, if (widget.showDate) formatDate(assignment.dueDate)].join(" · ");
 
     return ListTile(
       key: ValueKey(assignment.id),
       enabled: widget.enabled,
-      buildChevron: widget.enabled,
-      padding: widget.padding,
-      onTap: () => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false),
-      trailing: assignment.type == AssignmentType.assignment
+      buildChevron: false,
+      padding: widget.padding ?? const .fromLTRB(AppSpacing.l, AppSpacing.m + 2, AppSpacing.l, AppSpacing.m + 2),
+      onTap: () => showCupertinoSheet(
+        context: context,
+        builder: (context) => NewAssignmentPage(toEdit: assignment),
+        enableDrag: false,
+      ),
+      // A circle to tick for an assignment, a coloured mark for a test or a leave
+      leading: assignment.type == AssignmentType.assignment
           ? CupertinoButton(
-              padding: const .all(AppSpacing.xs),
+              padding: .zero,
               minimumSize: .zero,
               onPressed: widget.enabled
                   ? () async {
@@ -74,67 +79,80 @@ class _AssignmentTileState extends State<AssignmentTile> {
                       await database.assignments.markDone(assignment, isDone);
                     }
                   : null,
-              // A circle to tick: empty with an outline, then filled in green
               child: AnimatedContainer(
                 duration: AppDurations.normal,
                 curve: Curves.easeOutCubic,
-                width: 30,
-                height: 30,
+                width: 26,
+                height: 26,
                 alignment: .center,
                 decoration: BoxDecoration(
                   shape: .circle,
                   color: isDone ? AppColors.green : AppColors.transparent,
-                  border: .all(color: isDone ? AppColors.green : AppColors.tertiaryText.adaptTo(context), width: 2),
+                  border: .all(color: isDone ? AppColors.green : AppColors.quaternaryText.adaptTo(context), width: 1.8),
                 ),
                 child: AnimatedOpacity(
                   duration: AppDurations.fast,
                   opacity: isDone ? 1 : 0,
-                  child: const HugeIcon(icon: AppIcons.done, color: AppColors.white, size: 18, strokeWidth: 2.5),
+                  child: const HugeIcon(icon: AppIcons.done, color: AppColors.white, size: 16, strokeWidth: 2.5),
                 ),
               ),
             )
-          : null,
+          : Container(
+              width: 26,
+              height: 26,
+              alignment: .center,
+              decoration: BoxDecoration(
+                shape: .circle,
+                color: (isTest ? AppColors.red : AppColors.orange).withValues(alpha: AppColors.isDark(context) ? .22 : .14),
+              ),
+              child: HugeIcon(
+                icon: isTest ? HugeIcons.strokeRoundedAlert02 : HugeIcons.strokeRoundedSun03,
+                size: 15,
+                strokeWidth: 2,
+                color: isTest ? AppColors.red : AppColors.orange,
+              ),
+            ),
       child: Opacity(
-        opacity: widget.dim ? .6 : 1,
+        opacity: widget.dim ? .55 : 1,
         child: Column(
           crossAxisAlignment: .start,
-          spacing: AppSpacing.xs + 2,
+          spacing: 3,
           children: [
-            Row(
-              spacing: AppSpacing.s + 2,
-              children: [
-                ?tag,
-                Expanded(
-                  child: AnimatedLineThrough(
-                    isCrossed: switch (assignment.type) {
-                      AssignmentType.assignment => isDone,
-                      AssignmentType.test => widget.dim,
-                      AssignmentType.leave => false,
-                    },
-                    color: AppColors.text.adaptTo(context),
-                    duration: animationDuration,
-                    child: Text(
-                      assignment.type == AssignmentType.test ? (assignment.title ?? AppStrings.untitledTest) : assignment.content,
-                      style: AppStyles.strongText(context).copyWith(fontSize: 18, color: assignment.type == AssignmentType.test ? AppColors.red : null),
-                      softWrap: true,
-                      maxLines: 2,
-                      overflow: .ellipsis,
-                    ),
-                  ),
-                ),
-              ],
+            if (isTest)
+              Text(
+                AppStrings.tagTest.toUpperCase(),
+                style: AppStyles.caption(context).copyWith(color: AppColors.red, fontWeight: .w700, letterSpacing: .6),
+              ),
+            AnimatedLineThrough(
+              isCrossed: switch (assignment.type) {
+                AssignmentType.assignment => isDone,
+                AssignmentType.test => widget.dim,
+                AssignmentType.leave => false,
+              },
+              color: AppColors.tertiaryText.adaptTo(context),
+              duration: animationDuration,
+              child: Text(
+                isTest ? (assignment.title ?? AppStrings.untitledTest) : assignment.content,
+                style: AppStyles.strongText(context).copyWith(color: isDone ? AppColors.tertiaryText.adaptTo(context) : null),
+                softWrap: true,
+                maxLines: 2,
+                overflow: .ellipsis,
+              ),
             ),
-
-            if (assignment.type == AssignmentType.test && assignment.content.isNotEmpty)
-              Text(assignment.content, style: AppStyles.primaryText(context), softWrap: true, maxLines: 5, overflow: .ellipsis),
-
+            if (isTest && assignment.content.isNotEmpty)
+              Text(assignment.content, style: AppStyles.subheadline(context), softWrap: true, maxLines: 3, overflow: .ellipsis),
             if (details.isNotEmpty)
-              Row(
-                spacing: AppSpacing.s,
-                children: [
-                  if (subject != null) SubjectBadge(subject: subject, size: 20),
-                  Expanded(child: Text(details, style: AppStyles.subheadline(context))),
-                ],
+              Padding(
+                padding: const .only(top: 2),
+                child: Row(
+                  spacing: AppSpacing.s - 2,
+                  children: [
+                    if (subject != null) SubjectBadge(subject: subject, size: 16),
+                    Expanded(
+                      child: Text(details, maxLines: 1, overflow: .ellipsis, style: AppStyles.footnote(context)),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -171,21 +189,15 @@ class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
             children: [
               ?tag,
               Expanded(
-                child: Text(
-                  assignment.displayTitle,
-                  style: AppStyles.strongText(context).copyWith(fontSize: 18, color: assignment.type == AssignmentType.test ? AppColors.red : null),
-                  softWrap: true,
-                  maxLines: 2,
-                  overflow: .ellipsis,
-                ),
+                child: Text(assignment.displayTitle, style: AppStyles.strongText(context), softWrap: true, maxLines: 2, overflow: .ellipsis),
               ),
             ],
           ),
           if (assignment.type == AssignmentType.test && assignment.content.isNotEmpty)
-            Text(assignment.content, style: AppStyles.primaryText(context), softWrap: true, maxLines: 5, overflow: .ellipsis),
+            Text(assignment.content, style: AppStyles.subheadline(context), softWrap: true, maxLines: 3, overflow: .ellipsis),
           Text(
-            [formatDate(assignment.dueDate), if (author != null && author.isNotEmpty) AppStrings.sharedBy(Account.getDefaultDisplayName(author))].join("  •  "),
-            style: AppStyles.secondaryText(context),
+            [formatDate(assignment.dueDate), if (author != null && author.isNotEmpty) AppStrings.sharedBy(Account.getDefaultDisplayName(author))].join(" · "),
+            style: AppStyles.footnote(context),
           ),
         ],
       ),

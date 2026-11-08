@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 
 /// The shape of Messagyre's icon: the Gymnase de Renens seen from above, with rounded corners (two blocks, the
 /// paths of assets/icons/purple.svg). Drawn rather than loaded: it takes any color, at any size, without a package.
@@ -51,11 +52,7 @@ class AppIconTile extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * .23),
-        gradient: AppColors.accentGradient,
-        boxShadow: AppColors.isDark(context) ? null : [BoxShadow(color: AppColors.accent.withValues(alpha: .3), blurRadius: size * .3, offset: Offset(0, size * .1))],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(size * .23), gradient: AppColors.accentGradient),
       alignment: Alignment.center,
       child: GymnaseMark(size: size * .66, color: AppColors.white),
     );
@@ -73,18 +70,21 @@ class BrandCard extends StatelessWidget {
   /// Size of the decoration, relative to the card's height
   final double markScale;
 
-  const BrandCard({super.key, required this.child, this.height, this.padding = const EdgeInsets.all(16), this.borderRadius = 24, this.markScale = 1.25});
+  const BrandCard({
+    super.key,
+    required this.child,
+    this.height,
+    this.padding = const EdgeInsets.all(16),
+    this.borderRadius = AppRadius.card,
+    this.markScale = 1.25,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height,
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        gradient: AppColors.accentGradient,
-        boxShadow: AppColors.isDark(context) ? null : [BoxShadow(color: AppColors.accent.withValues(alpha: .22), blurRadius: 18, offset: const Offset(0, 6))],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(borderRadius), gradient: AppColors.accentGradient),
       child: Stack(
         children: [
           Positioned.fill(
@@ -93,7 +93,13 @@ class BrandCard extends StatelessWidget {
                 final size = constraints.maxHeight * markScale;
                 return Stack(
                   clipBehavior: Clip.hardEdge,
-                  children: [Positioned(right: -size * .16, bottom: -size * .3, child: GymnaseMark(size: size, color: AppColors.white.withValues(alpha: .12)))],
+                  children: [
+                    Positioned(
+                      right: -size * .16,
+                      bottom: -size * .3,
+                      child: GymnaseMark(size: size, color: AppColors.white.withValues(alpha: .12)),
+                    ),
+                  ],
                 );
               },
             ),
@@ -129,7 +135,7 @@ class _GymnaseLoaderState extends State<GymnaseLoader> with SingleTickerProvider
     return RepaintBoundary(
       child: SizedBox.square(
         dimension: widget.size,
-        child: CustomPaint(painter: _GymnasePainter(widget.color ?? GymnaseMark.defaultColor(context), null, progress: controller)),
+        child: CustomPaint(painter: _GymnasePainter(widget.color ?? AppColors.tertiaryText.adaptTo(context), null, progress: controller)),
       ),
     );
   }

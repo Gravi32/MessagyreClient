@@ -12,7 +12,7 @@ class SectionHeader extends StatelessWidget {
   final VoidCallback? onAction;
   final EdgeInsets padding;
 
-  const SectionHeader(this.title, {super.key, this.onAction, this.actionText = "Tout voir", this.padding = const .only(left: 6, top: AppSpacing.s)});
+  const SectionHeader(this.title, {super.key, this.onAction, this.actionText = "Tout voir", this.padding = const .only(left: 4, bottom: AppSpacing.s)});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +20,12 @@ class SectionHeader extends StatelessWidget {
     return Padding(
       padding: padding,
       child: SizedBox(
-        height: 36,
+        height: 32,
         child: Row(
           children: [
-            Expanded(child: Text(title, maxLines: 1, overflow: .ellipsis, style: AppStyles.section(context))),
+            Expanded(
+              child: Text(title, maxLines: 1, overflow: .ellipsis, style: AppStyles.section(context)),
+            ),
             if (onAction != null)
               CupertinoButton(
                 padding: const .symmetric(horizontal: AppSpacing.s),
@@ -33,7 +35,10 @@ class SectionHeader extends StatelessWidget {
                   mainAxisSize: .min,
                   spacing: 2,
                   children: [
-                    Text(actionText, style: AppStyles.callout(context).copyWith(color: tint, fontWeight: .w600)),
+                    Text(
+                      actionText,
+                      style: AppStyles.subheadline(context).copyWith(color: tint, fontWeight: .w500),
+                    ),
                     HugeIcon(icon: AppIcons.chevronRight, size: 16, color: tint, strokeWidth: 2),
                   ],
                 ),

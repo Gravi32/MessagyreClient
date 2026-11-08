@@ -1,19 +1,21 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/presets.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
-import 'package:messagyre_client/utility/widgets/paged_card.dart';
 import 'package:messagyre_client/utility/widgets/progress_bar.dart';
-import 'package:text_gradiate/text_gradiate.dart';
 
+/// The top of the assignments page: the week (swipe for the next one), each day with a dot per assignment, then the
+/// countdown to the next holidays
 class AssignmentsTopCard extends StatefulWidget {
   const AssignmentsTopCard({super.key});
 
@@ -23,147 +25,18 @@ class AssignmentsTopCard extends StatefulWidget {
 
 class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   final database = DatabaseService();
+  final weekController = PageController();
+  int week = 0;
 
   late final today = DateTime.now().dateOnly();
   late final monday = today.weekday >= DateTime.saturday
       ? today.add(Duration(days: 8 - today.weekday))
       : today.subtract(Duration(days: today.weekday - DateTime.monday));
 
-  // Null when the holidays calendar (presets.dart) has no date after today: the tab is then hidden
+  // Null when the holidays calendar (presets.dart) has no date after today: the card is then hidden
   String? nextHolidayName;
   DateTime? nextHolidayDate;
   DateTime? lastHolidayDate;
-
-  Widget buildWeekPeek(List<Assignment> allAssignments, {required DateTime weekStart, required String title}) {
-    return Column(
-      crossAxisAlignment: .stretch,
-      spacing: 10,
-      children: [
-        Text(title, style: AppStyles.secondaryHeader(context)),
-
-        GridView.builder(
-          padding: .zero,
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, crossAxisSpacing: 2, mainAxisExtent: 70),
-          itemCount: 7,
-          itemBuilder: (context, index) {
-            final thisDay = weekStart.add(Duration(days: index));
-            final thisDaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(thisDay));
-            final isToday = thisDay.isSameDayAs(today);
-
-            return Column(
-              mainAxisAlignment: .center,
-              crossAxisAlignment: .stretch,
-              children: [
-                Text(
-                  DateFormat("EEE", 'fr_CH').format(thisDay).replaceAll('.', ''),
-                  textAlign: .center,
-                  overflow: .fade,
-                  maxLines: 1,
-                  style: AppStyles.footnote(context).copyWith(
-                    fontSize: 14,
-                    color: (isToday ? AppColors.tint : AppColors.secondaryText).adaptTo(context),
-                    fontWeight: isToday ? .w700 : .w500,
-                  ),
-                ),
-                Expanded(
-                  // Today looks like the app icon
-                  child: RoundContainer(
-                    padding: .all(2),
-                    borderRadius: 16,
-                    color: AppColors.tertiaryBackground.adaptTo(context),
-                    gradient: isToday ? AppColors.accentGradient : null,
-                    opacity: (thisDay.weekday + 1) % 7 < 2 ? .45 : 1,
-                    child: Column(
-                      mainAxisAlignment: .center,
-                      crossAxisAlignment: .stretch,
-                      children: [
-                        Spacer(),
-                        Text(
-                          thisDay.day.toString(),
-                          textAlign: .center,
-                          overflow: .fade,
-                          maxLines: 1,
-                          style: AppStyles.header(context).copyWith(fontSize: 22, fontWeight: isToday ? .w700 : .w600, color: isToday ? AppColors.white : null),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Row(
-                            spacing: 2,
-                            mainAxisAlignment: .center,
-                            crossAxisAlignment: .center,
-                            children: List.generate(min(thisDaysAssignments.length, 3), (index) {
-                              final thisDaysAssignment = thisDaysAssignments.elementAtOrNull(index);
-                              if (thisDaysAssignment == null) return SizedBox.shrink();
-
-                              final thisDaysAssignmentSubject = thisDaysAssignment.subject.value;
-
-                              return thisDaysAssignment.type == AssignmentType.leave
-                                  ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
-                                  : Container(
-                                      width: 5,
-                                      height: 5,
-                                      decoration: BoxDecoration(color: isToday ? AppColors.white : thisDaysAssignmentSubject?.color, shape: .circle),
-                                    );
-                            }),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget buildNextHolidaysTab(String nextHolidayName, DateTime nextHolidayDate) {
-    // Before the first holidays of the calendar, the countdown starts with the school year
-    final start = lastHolidayDate ?? DateTime(today.month >= 8 ? today.year : today.year - 1, 8, 18);
-    final daysDistance = nextHolidayDate.difference(start).inDays.clamp(1, 1000);
-    final daysLeft = nextHolidayDate.difference(today).inDays;
-
-    return Column(
-      crossAxisAlignment: .stretch,
-      spacing: 6,
-      children: [
-        Text(AppStrings.nextHolidays, style: AppStyles.secondaryHeader(context)),
-
-        Spacer(),
-
-        Row(
-          crossAxisAlignment: .baseline,
-          textBaseline: .alphabetic,
-          spacing: 6,
-          children: [
-            Expanded(
-              child: TextGradiate(
-                text: Text(nextHolidayName, style: AppStyles.header(context), maxLines: 1, overflow: .ellipsis),
-                colors: [AppColors.orange.withBrightness(.1), AppColors.yellow],
-                begin: .bottomLeft,
-                end: .topRight,
-              ),
-            ),
-            Text(daysLeft.toString(), style: AppStyles.header(context)),
-            Text(AppStrings.daysLeft, style: AppStyles.primaryText(context)),
-          ],
-        ),
-
-        // Progress bar
-        ProgressBar(
-          progress: (1 - daysLeft / daysDistance).clamp(0.0, 1.0),
-          height: 6,
-          gradient: LinearGradient(colors: [AppColors.orange, AppColors.yellow]),
-        ),
-
-        Spacer(),
-      ],
-    );
-  }
 
   @override
   void initState() {
@@ -179,17 +52,152 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   }
 
   @override
+  void dispose() {
+    weekController.dispose();
+    super.dispose();
+  }
+
+  Widget buildWeek(List<Assignment> allAssignments, DateTime weekStart) {
+    return Row(
+      children: [
+        for (var index = 0; index < 7; index++)
+          Expanded(
+            child: () {
+              final day = weekStart.add(Duration(days: index));
+              final dayAssignments = allAssignments.where((assignment) => assignment.dueDate.isSameDayAs(day)).toList();
+              final isToday = day.isSameDayAs(today);
+              final isWeekend = day.weekday >= DateTime.saturday;
+              final text = AppColors.text.adaptTo(context);
+
+              return Opacity(
+                opacity: isWeekend ? .45 : 1,
+                child: Column(
+                  spacing: AppSpacing.s - 2,
+                  children: [
+                    Text(
+                      DateFormat("EEE", 'fr_CH').format(day).replaceAll('.', '').substring(0, 1).toUpperCase(),
+                      style: AppStyles.caption(context).copyWith(fontWeight: .w600),
+                    ),
+                    // Today: filled
+                    Container(
+                      width: 36,
+                      height: 36,
+                      alignment: .center,
+                      decoration: BoxDecoration(shape: .circle, color: isToday ? text : null),
+                      child: Text(
+                        day.day.toString(),
+                        style: AppStyles.strongText(context).copyWith(color: isToday ? AppColors.secondaryBackground.adaptTo(context) : null),
+                      ),
+                    ),
+                    // A dot per assignment (a star for a leave), in its subject's color
+                    SizedBox(
+                      height: 6,
+                      child: Row(
+                        mainAxisAlignment: .center,
+                        spacing: 3,
+                        children: [
+                          for (final assignment in dayAssignments.take(min(dayAssignments.length, 3)))
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                shape: .circle,
+                                color: assignment.type == AssignmentType.leave ? AppColors.orange : (assignment.subject.value?.color ?? AppColors.grey),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }(),
+          ),
+      ],
+    );
+  }
+
+  Widget buildWeekCard(List<Assignment> allAssignments) {
+    return RoundContainer(
+      padding: const .fromLTRB(AppSpacing.s, AppSpacing.l, AppSpacing.s, AppSpacing.m),
+      child: Column(
+        crossAxisAlignment: .stretch,
+        spacing: AppSpacing.m,
+        children: [
+          Padding(
+            padding: const .symmetric(horizontal: AppSpacing.s),
+            child: Row(
+              children: [
+                Expanded(child: Text(week == 0 ? AppStrings.thisWeek : AppStrings.nextWeek, style: AppStyles.strongText(context))),
+                Text(DateFormat("MMMM", 'fr_CH').format(monday.add(Duration(days: week * 7))).capitalize(), style: AppStyles.subheadline(context)),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 70,
+            child: PageView(
+              controller: weekController,
+              onPageChanged: (page) => setState(() => week = page),
+              children: [buildWeek(allAssignments, monday), buildWeek(allAssignments, monday.add(const Duration(days: 7)))],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildHolidaysCard(String name, DateTime date) {
+    // Before the first holidays of the calendar, the countdown starts with the school year
+    final start = lastHolidayDate ?? DateTime(today.month >= 8 ? today.year : today.year - 1, 8, 18);
+    final span = date.difference(start).inDays.clamp(1, 1000);
+    final daysLeft = date.difference(today).inDays;
+
+    return RoundContainer(
+      padding: const .all(AppSpacing.l),
+      child: Row(
+        spacing: AppSpacing.m,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            alignment: .center,
+            decoration: BoxDecoration(
+              color: AppColors.orange.withValues(alpha: AppColors.isDark(context) ? .2 : .14),
+              borderRadius: .circular(10),
+            ),
+            child: const HugeIcon(icon: HugeIcons.strokeRoundedSun03, size: 20, color: AppColors.orange),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: .stretch,
+              spacing: AppSpacing.s - 2,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(name, maxLines: 1, overflow: .ellipsis, style: AppStyles.strongText(context)),
+                    ),
+                    Text(daysLeft == 1 ? "demain" : "dans $daysLeft jours", style: AppStyles.subheadline(context)),
+                  ],
+                ),
+                ProgressBar(progress: (1 - daysLeft / span).clamp(0.0, 1.0), height: 5, color: AppColors.orange),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final allAssignments = database.assignments.getAll();
     final holidayName = nextHolidayName, holidayDate = nextHolidayDate;
 
-    return PagedCard(
-      height: 110,
-      pages: [
-        buildWeekPeek(allAssignments, weekStart: monday, title: AppStrings.thisWeek),
-        buildWeekPeek(allAssignments, weekStart: monday.add(Duration(days: 7)), title: AppStrings.nextWeek),
-        if (holidayName != null && holidayDate != null) buildNextHolidaysTab(holidayName, holidayDate),
-      ],
+    return Column(
+      crossAxisAlignment: .stretch,
+      spacing: AppSpacing.m,
+      children: [buildWeekCard(allAssignments), if (holidayName != null && holidayDate != null) buildHolidaysCard(holidayName, holidayDate)],
     );
   }
 }

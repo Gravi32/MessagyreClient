@@ -1,7 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
+import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
@@ -29,7 +31,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
     return Page.sliver(
       topBar: TopBar.sliverWithChevron(
         context,
-        title: "Notes par branche",
+        title: "Branches",
         trailing: Button.icon(
           context,
           icon: HugeIcons.strokeRoundedSettings05,
@@ -58,7 +60,9 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
           final List<Subject> allActiveSubjects = [];
           for (final grade in allGrades) {
             // A locked subject is listed with the locked ones only, even with grades left this year
-            if (grade.subject.value != null && !grade.subject.value!.isLocked && !allActiveSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
+            if (grade.subject.value != null &&
+                !grade.subject.value!.isLocked &&
+                !allActiveSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
               allActiveSubjects.add(grade.subject.value!);
             }
           }
@@ -78,74 +82,31 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
           }
           allLockedSubjects.sort((subjectA, subjectB) => subjectA.name.compareTo(subjectB.name));
 
-          return SingleChildScrollView(
-            padding: .only(top: 16),
+          Widget group(String? title, List<Widget> rows) => Padding(
+            padding: const .only(bottom: AppSpacing.section),
             child: Column(
-              spacing: 10,
               crossAxisAlignment: .stretch,
               children: [
-                if (allCompositeSubjects.isNotEmpty || allActiveSubjects.isNotEmpty)
-                  GridView.builder(
-                    padding: .only(bottom: 16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      mainAxisExtent: 110,
-                    ),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: allCompositeSubjects.length + allActiveSubjects.length,
-                    itemBuilder: (context, index) {
-                      final compositeSubject = allCompositeSubjects.elementAtOrNull(index);
-                      final subject = compositeSubject == null ? allActiveSubjects.elementAt(index - allCompositeSubjects.length) : null;
-                      return SubjectCard(subject: subject, compositeSubject: compositeSubject, wasPushedFromGradesBySubjectPage: true);
-                    },
-                  ),
-
-                if (allLockedSubjects.isNotEmpty) ...[
-                  Text("Branches bloquées", style: AppStyles.section(context)),
-                  GridView.builder(
-                    padding: .only(bottom: 16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      mainAxisExtent: 100,
-                    ),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: allLockedSubjects.length,
-                    itemBuilder: (context, index) {
-                      final subject = allLockedSubjects[index];
-                      return SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true);
-                    },
-                  ),
-                ],
-
-                if (allInactiveSubjects.isNotEmpty) ...[
-                  Text("Branches sans notes", style: AppStyles.section(context)),
-                  GridView.builder(
-                    padding: .only(bottom: 16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      mainAxisExtent: 90,
-                    ),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: allInactiveSubjects.length,
-                    itemBuilder: (context, index) {
-                      final subject = allInactiveSubjects[index];
-                      return SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true);
-                    },
-                  ),
-                ],
-
-                BottomSpacing(),
+                if (title != null) SectionHeader(title),
+                CardGroup(separatorInset: SubjectCard.separatorInset, children: rows),
               ],
             ),
+          );
+
+          return ListView(
+            padding: const .only(top: AppSpacing.m),
+            children: [
+              if (allCompositeSubjects.isNotEmpty || allActiveSubjects.isNotEmpty)
+                group(null, [
+                  for (final subject in allActiveSubjects) SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true),
+                  for (final composite in allCompositeSubjects) SubjectCard(compositeSubject: composite, wasPushedFromGradesBySubjectPage: true),
+                ]),
+              if (allLockedSubjects.isNotEmpty)
+                group("Bloquées", [for (final subject in allLockedSubjects) SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true)]),
+              if (allInactiveSubjects.isNotEmpty)
+                group("Sans notes", [for (final subject in allInactiveSubjects) SubjectCard(subject: subject, wasPushedFromGradesBySubjectPage: true)]),
+              const BottomSpacing(),
+            ],
           );
         },
       ),

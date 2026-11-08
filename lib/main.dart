@@ -4,6 +4,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -143,7 +144,11 @@ class App extends StatelessWidget {
 
   static List<AppPage> pages = [
     AppPage(name: AppStrings.tabGrades, icon: AppIcons.grades, build: () => GradesListPage()),
-    AppPage(name: AppStrings.tabAssignments, icon: AppIcons.assignments, build: () => AssignmentsListPage(key: assignmentListPageKey)),
+    AppPage(
+      name: AppStrings.tabAssignments,
+      icon: AppIcons.assignments,
+      build: () => AssignmentsListPage(key: assignmentListPageKey),
+    ),
     AppPage(name: AppStrings.tabChats, icon: AppIcons.chats, build: () => ChatsListPage()),
     AppPage(name: AppStrings.tabSearch, icon: AppIcons.search, build: () => SearchPage()),
     AppPage(name: AppStrings.tabSettings, icon: AppIcons.settings, build: () => SettingsListPage()),
@@ -162,16 +167,7 @@ class App extends StatelessWidget {
 
       //locale: DevicePreview.locale(context),
       //builder: DevicePreview.appBuilder,
-      theme: CupertinoThemeData(
-        brightness: brightness,
-        primaryColor: AppColors.accent,
-        textTheme: CupertinoTextThemeData(
-          primaryColor: AppColors.accent,
-          textStyle: TextStyle(color: AppColors.text.adaptTo(context), fontSize: 17),
-        ),
-        scaffoldBackgroundColor: AppColors.background.adaptTo(context),
-        barBackgroundColor: AppColors.background.adaptTo(context),
-      ),
+      theme: appTheme(context, brightness),
       localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
       supportedLocales: const [Locale('fr'), Locale('fr', 'CH')],
       locale: Locale('fr', 'CH'),
@@ -258,10 +254,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       // the "Vos branches" sheet then isn't needed. Without a connection the start doesn't wait for it.
       await network.waitForSignIn();
       ClassService().load();
-      await Future.wait([
-        BackupService().sync().timeout(const Duration(seconds: 8), onTimeout: () {}),
-        ClassService().refresh(),
-      ]);
+      await Future.wait([BackupService().sync().timeout(const Duration(seconds: 8), onTimeout: () {}), ClassService().refresh()]);
 
       final mountedContext = context;
       if (!context.mounted) return;
@@ -326,4 +319,21 @@ class _KeepAliveWrapperState extends State<KeepAliveWrapper> with AutomaticKeepA
     super.build(context);
     return widget.child;
   }
+}
+
+/// The app's Cupertino theme (also used by the screenshot tests)
+CupertinoThemeData appTheme(BuildContext context, Brightness? brightness) {
+  final tint = CupertinoDynamicColor.withBrightness(color: AppColors.tint.light, darkColor: AppColors.tint.dark);
+  return CupertinoThemeData(
+    brightness: brightness,
+    primaryColor: tint,
+    textTheme: CupertinoTextThemeData(
+      primaryColor: tint,
+      textStyle: AppStyles.primaryText(context),
+      navLargeTitleTextStyle: AppStyles.largeTitle(context),
+      navTitleTextStyle: AppStyles.barTitle(context),
+    ),
+    scaffoldBackgroundColor: AppColors.background.adaptTo(context),
+    barBackgroundColor: AppColors.background.adaptTo(context),
+  );
 }

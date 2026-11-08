@@ -10,17 +10,23 @@ class AppSpacing {
   static const double xxl = 32;
 
   /// Horizontal margin of the pages' content
-  static const double page = 10;
+  static const double page = 16;
 
   /// Space between two sections of a page
-  static const double section = 24;
+  static const double section = 32;
+
+  /// Inside a card
+  static const double card = 18;
 }
 
 class AppRadius {
   static const double s = 12;
-  static const double m = 18;
-  static const double l = 24;
-  static const double xl = 32;
+  static const double m = 16;
+  static const double l = 22;
+  static const double xl = 28;
+
+  /// The cards and list sections
+  static const double card = 22;
 
   /// Chat bubbles
   static const double bubble = 22;

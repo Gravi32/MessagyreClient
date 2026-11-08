@@ -9,13 +9,13 @@ class CustomIcon extends StatelessWidget {
   final double? size;
   final double? strokeWidth;
 
-  const CustomIcon({super.key, required this.icon, this.color = AppColors.accent, this.size = 24.0, this.strokeWidth = 1});
+  const CustomIcon({super.key, required this.icon, this.color, this.size = 24.0, this.strokeWidth = 1});
 
   @override
   Widget build(BuildContext context) {
     return Opacity(
       opacity: color?.a ?? 1,
-      child: HugeIcon(key: super.key, icon: icon, color: color?.withTransparency(1) ?? AppColors.accent, size: size, strokeWidth: strokeWidth),
+      child: HugeIcon(key: super.key, icon: icon, color: color?.withTransparency(1) ?? AppColors.text.adaptTo(context), size: size, strokeWidth: strokeWidth),
     );
   }
 }

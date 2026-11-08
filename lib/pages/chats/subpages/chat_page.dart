@@ -25,6 +25,7 @@ import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -190,7 +191,10 @@ class _ChatPageState extends State<ChatPage> {
 
   void showError(String message) {
     if (!mounted) return;
-    showCupertinoDialog(context: context, builder: (_) => Dialog(title: AppStrings.errorTitle, content: message));
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => Dialog(title: AppStrings.errorTitle, content: message),
+    );
   }
 
   Future<void> showAttachmentMenu() async {
@@ -201,16 +205,13 @@ class _ChatPageState extends State<ChatPage> {
       return;
     }
 
-    final choice = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          _sheetAction(context, AppStrings.attachPhoto, AppIcons.photo, "gallery"),
-          _sheetAction(context, AppStrings.attachCamera, AppIcons.camera, "camera"),
-          _sheetAction(context, AppStrings.attachFile, AppIcons.file, "file"),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text(AppStrings.cancel)),
-      ),
+    final choice = await ActionSheet.show<String>(
+      context,
+      actions: const [
+        SheetAction(AppStrings.attachPhoto, icon: AppIcons.photo, value: "gallery"),
+        SheetAction(AppStrings.attachCamera, icon: AppIcons.camera, value: "camera"),
+        SheetAction(AppStrings.attachFile, icon: AppIcons.file, value: "file"),
+      ],
     );
     if (choice == null || !mounted) return;
 
@@ -257,21 +258,6 @@ class _ChatPageState extends State<ChatPage> {
 
   static bool _isImageName(String name) => RegExp(r'\.(jpe?g|png|webp|gif)$', caseSensitive: false).hasMatch(name);
 
-  Widget _sheetAction(BuildContext context, String text, List<List<dynamic>> icon, String value, {bool isDestructive = false}) {
-    final color = isDestructive ? AppColors.red : AppColors.accent;
-    return CupertinoActionSheetAction(
-      isDestructiveAction: isDestructive,
-      onPressed: () => Navigator.pop(context, value),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(text, style: TextStyle(color: color)),
-          HugeIcon(icon: icon, size: 22, color: color),
-        ],
-      ),
-    );
-  }
-
   Future<void> showMessageMenu(Message message) async {
     if (message.uuid == _supportWelcomeUuid) return;
     HapticFeedback.mediumImpact();
@@ -280,21 +266,16 @@ class _ChatPageState extends State<ChatPage> {
     final text = message.displayText.trim();
     final hasFile = message.hasAttachment && message.localPath != null && message.transfer == TransferState.ready;
 
-    final choice = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        message: message.isDeleted
-            ? null
-            : Text(text.isNotEmpty ? text : message.content, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15)),
-        actions: [
-          if (message.isOwned && message.isFailed) _sheetAction(context, AppStrings.retry, AppIcons.retry, "retry"),
-          if (!message.isDeleted && text.isNotEmpty) _sheetAction(context, AppStrings.copy, AppIcons.copy, "copy"),
-          if (!message.isDeleted && hasFile) _sheetAction(context, AppStrings.saveToDevice, AppIcons.save, "save"),
-          _sheetAction(context, AppStrings.delete, AppIcons.delete, "delete", isDestructive: true),
-          if (!message.isOwned && !message.isDeleted) _sheetAction(context, AppStrings.report, AppIcons.report, "report", isDestructive: true),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text(AppStrings.cancel)),
-      ),
+    final choice = await ActionSheet.show<String>(
+      context,
+      message: message.isDeleted ? null : (text.isNotEmpty ? text : message.content),
+      actions: [
+        if (message.isOwned && message.isFailed) const SheetAction(AppStrings.retry, icon: AppIcons.retry, value: "retry"),
+        if (!message.isDeleted && text.isNotEmpty) const SheetAction(AppStrings.copy, icon: AppIcons.copy, value: "copy"),
+        if (!message.isDeleted && hasFile) const SheetAction(AppStrings.saveToDevice, icon: AppIcons.save, value: "save"),
+        const SheetAction(AppStrings.delete, icon: AppIcons.delete, value: "delete", isDestructive: true),
+        if (!message.isOwned && !message.isDeleted) const SheetAction(AppStrings.report, icon: AppIcons.report, value: "report", isDestructive: true),
+      ],
     );
     if (!mounted) return;
 
@@ -332,17 +313,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> showReportSheet(Message message) async {
-    final choice = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: const Text(AppStrings.reportTitle, style: TextStyle(fontSize: 14)),
-        message: const Text(AppStrings.reportContent, style: TextStyle(fontSize: 14)),
-        actions: [
-          _sheetAction(context, AppStrings.report, AppIcons.report, "report", isDestructive: true),
-          _sheetAction(context, AppStrings.reportAndBlock(message.senderUsername ?? username), AppIcons.block, "block", isDestructive: true),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text(AppStrings.cancel)),
-      ),
+    final choice = await ActionSheet.show<String>(
+      context,
+      title: AppStrings.reportTitle,
+      message: AppStrings.reportContent,
+      actions: [
+        const SheetAction(AppStrings.report, icon: AppIcons.report, value: "report", isDestructive: true),
+        SheetAction(AppStrings.reportAndBlock(message.senderUsername ?? username), icon: AppIcons.block, value: "block", isDestructive: true),
+      ],
     );
     if (choice == null) return;
 
@@ -415,7 +393,9 @@ class _ChatPageState extends State<ChatPage> {
                       spacing: AppSpacing.xs + 2,
                       children: [
                         if (isBlocked) HugeIcon(icon: AppIcons.blocked, size: 16, color: AppColors.secondaryText.adaptTo(context)),
-                        Flexible(child: Text(displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context).copyWith(fontSize: 18))),
+                        Flexible(
+                          child: Text(displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context)),
+                        ),
                       ],
                     ),
                     Text(isClassChat ? classSubtitle : username, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.footnote(context)),
@@ -479,7 +459,10 @@ class _ChatPageState extends State<ChatPage> {
           padding: const EdgeInsets.all(AppSpacing.l),
           child: Column(
             children: [
-              SizedBox(height: AppSizes.avatarLarge, child: ProfilePictureDisplay(accountUsername: username)),
+              SizedBox(
+                height: AppSizes.avatarLarge,
+                child: ProfilePictureDisplay(accountUsername: username),
+              ),
               const SizedBox(height: AppSpacing.s),
               Text(displayName, textAlign: TextAlign.center, style: AppStyles.header(context)),
               Text(username, style: AppStyles.secondaryText(context)),
@@ -498,7 +481,11 @@ class _ChatPageState extends State<ChatPage> {
             margin: const EdgeInsets.only(bottom: AppSpacing.l),
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
             child: switch (state) {
-              EncryptionState.available => _Notice(icon: AppIcons.encrypted, text: AppStrings.encryptionOn(displayName), color: AppColors.tertiaryText.adaptTo(context)),
+              EncryptionState.available => _Notice(
+                icon: AppIcons.encrypted,
+                text: AppStrings.encryptionOn(displayName),
+                color: AppColors.tertiaryText.adaptTo(context),
+              ),
               EncryptionState.unavailable => _Notice(icon: AppIcons.notEncrypted, text: AppStrings.encryptionOff, color: AppColors.orange),
               EncryptionState.unknown => _Notice(icon: AppIcons.encrypted, text: AppStrings.encryptionUnknown, color: AppColors.tertiaryText.adaptTo(context)),
             },
@@ -521,7 +508,10 @@ class _ChatPageState extends State<ChatPage> {
         margin: const EdgeInsets.only(top: AppSpacing.l, bottom: AppSpacing.m),
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs + 1, horizontal: AppSpacing.m),
         borderRadius: AppRadius.s,
-        child: Text(text, style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: AppColors.secondaryText.adaptTo(context))),
+        child: Text(
+          text,
+          style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: AppColors.secondaryText.adaptTo(context)),
+        ),
       ),
     );
   }
@@ -552,7 +542,8 @@ class _ChatPageState extends State<ChatPage> {
 
             final startsDay = older == null || !older.sentAt.isSameDayAs(message.sentAt);
             final joinsPrevious = older != null && !startsDay && older.isOwned == message.isOwned && older.senderUsername == message.senderUsername;
-            final joinsNext = newer != null && newer.sentAt.isSameDayAs(message.sentAt) && newer.isOwned == message.isOwned && newer.senderUsername == message.senderUsername;
+            final joinsNext =
+                newer != null && newer.sentAt.isSameDayAs(message.sentAt) && newer.isOwned == message.isOwned && newer.senderUsername == message.senderUsername;
             final sender = message.senderUsername;
 
             Widget bubble = MessageBubble(
@@ -584,14 +575,20 @@ class _ChatPageState extends State<ChatPage> {
       return Container(
         width: double.infinity,
         padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.l, AppSpacing.page, bottomPadding + AppSpacing.l),
-        decoration: BoxDecoration(color: surface, border: Border(top: separator)),
+        decoration: BoxDecoration(
+          color: surface,
+          border: Border(top: separator),
+        ),
         child: Text(AppStrings.classChatReadOnly, textAlign: TextAlign.center, style: AppStyles.footnote(context)),
       );
     }
 
     return Container(
       padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.s, AppSpacing.page, bottomPadding + AppSpacing.s),
-      decoration: BoxDecoration(color: surface, border: Border(top: separator)),
+      decoration: BoxDecoration(
+        color: surface,
+        border: Border(top: separator),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -709,7 +706,10 @@ class _ChatPageState extends State<ChatPage> {
                 child: AnimatedOpacity(
                   opacity: showScrollDownButton ? 1 : 0,
                   duration: AppDurations.normal,
-                  child: SizedBox.square(dimension: AppSizes.iconButton, child: Button.icon(context, icon: AppIcons.scrollDown, onTap: scrollDown)),
+                  child: SizedBox.square(
+                    dimension: AppSizes.iconButton,
+                    child: Button.icon(context, icon: AppIcons.scrollDown, onTap: scrollDown),
+                  ),
                 ),
               ),
             ),
@@ -734,7 +734,10 @@ class _Notice extends StatelessWidget {
         children: [
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: Padding(padding: const EdgeInsets.only(right: AppSpacing.xs + 2), child: HugeIcon(icon: icon, size: 16, color: color)),
+            child: Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.xs + 2),
+              child: HugeIcon(icon: icon, size: 16, color: color),
+            ),
           ),
           ...CustomText.parseSpans(text, style: style),
         ],
@@ -817,13 +820,18 @@ class _ClassMembersSheet extends StatelessWidget {
                       child: Row(
                         spacing: AppSpacing.m,
                         children: [
-                          SizedBox.square(dimension: AppSizes.avatarSmall, child: ProfilePictureDisplay(accountUsername: member.username, pictureURL: member.pictureUrl)),
+                          SizedBox.square(
+                            dimension: AppSizes.avatarSmall,
+                            child: ProfilePictureDisplay(accountUsername: member.username, pictureURL: member.pictureUrl),
+                          ),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  member.username == globals.username ? "${classes.displayNameOf(member.username)} (vous)" : classes.displayNameOf(member.username),
+                                  member.username == globals.username
+                                      ? "${classes.displayNameOf(member.username)} (vous)"
+                                      : classes.displayNameOf(member.username),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppStyles.primaryText(context),

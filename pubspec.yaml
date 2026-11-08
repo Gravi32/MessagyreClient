@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.96.1008+1008
+version: 4.97.1009+1009
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -100,6 +100,7 @@ version: 4.96.1008+1008
 # 4.94  Class chosen at sign-up (asked again every school year) and class group chats
 # 4.95  Personal look: the Gymnase of the app icon in titles, tabs, empty states and loaders; lighter (no needless blur)
 # 4.96  Full redesign: one palette tinted with the icon's purple in light and dark, solid cards, floating tab dock, tonal buttons, unified sections, clipped brand cards
+# 4.97  Pages rebuilt: neutral greys with the purple kept for the main actions, one type scale, more spacing, grouped rows, new grade rings, one style for the menus that rise from the bottom
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
@@ -125,7 +126,6 @@ dependencies:
   firebase_messaging: ^14.7.10
   firebase_auth: ^4.7.0
   package_info_plus: ^9.0.0
-  modal_bottom_sheet: ^3.0.0
   uuid: ^4.5.1
   flutter_keyboard_visibility: ^6.0.0
   fl_chart: ^1.1.1

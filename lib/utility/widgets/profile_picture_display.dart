@@ -39,12 +39,14 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
     final firstLetter = widget.accountUsername == null || widget.accountUsername!.isEmpty ? '?' : widget.accountUsername![0];
     final color = Colors.primaries[firstLetter.toLowerCase().codeUnitAt(0) % Colors.primaries.length];
 
+    // A soft wash of the letter's color, the letter in its color: calm next to the photos
+    final isDark = AppColors.isDark(context);
     return CircleAvatar(
       radius: getRadius(diameter),
-      backgroundColor: color,
+      backgroundColor: Color.alphaBlend(color.withValues(alpha: isDark ? .28 : .18), AppColors.secondaryBackground.adaptTo(context)),
       child: Text(
         firstLetter.toUpperCase(),
-        style: TextStyle(fontSize: diameter / 3, color: color.shade900),
+        style: TextStyle(fontSize: diameter * .4, fontWeight: .w600, color: isDark ? color.shade200 : color.shade700),
       ),
     );
   }

@@ -4,6 +4,8 @@ import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
 import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -87,57 +89,51 @@ class _SettingsListPageState extends State<SettingsListPage> {
     });
   }
 
-  /// Who is signed in, on the app icon's gradient with the Gymnase in the corner
+  /// Who is signed in: a card like the rows, with the photo
   Widget buildProfileCard(BuildContext context) {
-    final white = AppColors.white;
     final schoolClass = ClassService().current.value?.name;
     final isLoading = account == null || globals.username == null;
 
     return Padding(
-      padding: const .only(top: AppSpacing.l),
+      padding: const .only(top: AppSpacing.s),
       child: CupertinoButton(
         padding: .zero,
         minimumSize: .zero,
-        pressedOpacity: .8,
+        pressedOpacity: .6,
         onPressed: isLoading ? null : openProfile,
-        child: BrandCard(
-          height: 112,
+        child: RoundContainer(
+          height: 96,
+          padding: const .symmetric(horizontal: AppSpacing.l),
           child: isLoading
-                    ? Center(child: GymnaseLoader(size: 22, color: white))
-                    : Row(
-                        spacing: AppSpacing.l,
+              ? const Center(child: GymnaseLoader(size: 22))
+              : Row(
+                  spacing: AppSpacing.l,
+                  children: [
+                    SizedBox.square(dimension: 60, child: ProfilePictureDisplay(accountUsername: globals.username!)),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: .center,
+                        crossAxisAlignment: .start,
+                        spacing: 2,
                         children: [
-                          Container(
-                            padding: const .all(2),
-                            decoration: BoxDecoration(shape: .circle, color: white.withValues(alpha: .35)),
-                            child: SizedBox.square(dimension: 64, child: ProfilePictureDisplay(accountUsername: globals.username!)),
+                          Text(
+                            account!.displayName ?? account!.defaultDisplayName,
+                            maxLines: 1,
+                            overflow: .ellipsis,
+                            style: AppStyles.secondaryHeader(context),
                           ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: .center,
-                              crossAxisAlignment: .start,
-                              children: [
-                                Text(
-                                  account!.displayName ?? account!.defaultDisplayName,
-                                  maxLines: 1,
-                                  overflow: .ellipsis,
-                                  style: AppStyles.header(context).copyWith(color: white),
-                                ),
-                                Text(globals.username!, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context).copyWith(color: white.withValues(alpha: .8))),
-                                if (schoolClass != null) ...[
-                                  const SizedBox(height: AppSpacing.xs + 2),
-                                  Container(
-                                    padding: const .symmetric(horizontal: AppSpacing.s, vertical: AppSpacing.xxs),
-                                    decoration: BoxDecoration(borderRadius: .circular(AppRadius.s), color: white.withValues(alpha: .2)),
-                                    child: Text("Classe $schoolClass", style: AppStyles.badge(context)),
-                                  ),
-                                ],
-                              ],
-                            ),
+                          Text(
+                            [globals.username!, if (schoolClass != null) "Classe $schoolClass"].join(" · "),
+                            maxLines: 1,
+                            overflow: .ellipsis,
+                            style: AppStyles.subheadline(context),
                           ),
-                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: white.withValues(alpha: .8), size: AppSizes.smallIcon),
                         ],
                       ),
+                    ),
+                    HugeIcon(icon: AppIcons.chevronRight, color: AppColors.quaternaryText.adaptTo(context), size: AppSizes.smallIcon),
+                  ],
+                ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -25,7 +26,6 @@ import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class NewGradePage extends StatefulWidget {
   final Grade? toEdit;
@@ -62,8 +62,6 @@ class _NewGradePageState extends State<NewGradePage> {
 
   late bool isInGroup = groupName != null;
 
-  bool isValuePickerExpanded = false;
-  bool isReferenceTileExpanded = false;
   bool isMissingTitle = false;
   bool isMissingSubject = false;
   late Assignment? referencedAssignment = database.assignments.getAll().firstWhereOrNull((assignment) => assignment.referenceId == widget.toEdit?.referenceId);
@@ -164,15 +162,62 @@ class _NewGradePageState extends State<NewGradePage> {
     return resultList;
   }
 
-  Widget buildWeightButton(double value, double selectedWeight, String label, VoidCallback onTap) => IntrinsicWidth(
-    child: Button(
-      onTap: onTap,
-      padding: .symmetric(horizontal: 16, vertical: 12),
-      transparent: true,
-      // The chosen weight in the accent, the others sunken in the card
-      color: value == selectedWeight ? AppColors.accent : AppColors.tertiaryBackground.adaptTo(context),
-      text: label,
-    ),
+  /// The usual weights; any other one goes through "Autre"
+  static const commonWeights = [2.0, 1.5, 1.0, .75, .5, .25];
+
+  static String weightLabel(double value) => value >= 1 ? "×${value.removeTrailingZero()}" : (fractions[value] ?? "${(value * 100).round()}%");
+
+  /// A weight to choose: all the same size, the chosen one filled
+  Widget buildWeightChip(String label, bool isSelected, VoidCallback onTap) {
+    final text = AppColors.text.adaptTo(context);
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      pressedOpacity: .6,
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: AppDurations.fast,
+        height: 40,
+        alignment: .center,
+        decoration: BoxDecoration(color: isSelected ? text : AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(AppRadius.s)),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: AppStyles.subheadline(context).copyWith(fontWeight: .w600, color: isSelected ? AppColors.secondaryBackground.adaptTo(context) : text),
+        ),
+      ),
+    );
+  }
+
+  void chooseCustomWeight() {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) {
+        final controller = TextEditingController(text: customWeight?.removeTrailingZero());
+        return Dialog.entry(
+          title: "Autre valeur",
+          placeholder: "Ex. 0.4 ou 3",
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onConfirm: () {
+            final newValue = double.tryParse(controller.text.trim().replaceAll(',', '.'));
+            if (newValue == null || newValue <= 0) return;
+            setState(() {
+              customWeight = newValue;
+              weight = newValue;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Widget sectionTitle(String title) => Padding(
+    padding: const .only(left: 4, bottom: AppSpacing.s, top: AppSpacing.xl),
+    child: Text(title, style: AppStyles.section(context)),
   );
 
   @override
@@ -197,10 +242,10 @@ class _NewGradePageState extends State<NewGradePage> {
     allAssignments = database.assignments.getAll();
 
     if (referencedAssignment == null) referenceId = null;
+    final isCustomWeight = !commonWeights.contains(weight);
 
     return Page.scrollable(
       context,
-      spacing: 10,
       topBar: TopBar.form(
         context,
         title: "${editMode ? "Modifier la" : "Nouvelle"} note",
@@ -208,349 +253,232 @@ class _NewGradePageState extends State<NewGradePage> {
       ),
 
       children: [
-        Row(
-          spacing: 14,
-          children: [
-            GradeDisplay(grade: grade, size: 50, weight: weight),
-            Expanded(
-              child: RoundContainer(
-                height: 50,
-                padding: .symmetric(horizontal: 16),
-                child: Center(
-                  child: AutocompleteField(
-                    controller: titleController,
-                    focusNode: titleFocusNode,
-                    decoration: BoxDecoration(),
-                    padding: .zero,
-                    placeholder: "Titre*",
-                    placeholderStyle: TextStyle(color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context)),
-                    forceValid: false,
-                    suffix: isMissingTitle
-                        ? HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18)
-                        : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
-
-                    suffixMode: .notEditing,
-                    style: AppStyles.header(context),
-                    items: getPlannedGrades(),
-                    header: Padding(padding: .only(left: 16, right: 10, top: 8, bottom: 8), child: Text("Depuis la page des devoirs :")),
-                    itemBuilder: (assignment, query) {
-                      if (assignment is! Assignment) return SizedBox.shrink();
-                      return AssignmentTile(assignment: assignment, enabled: false, padding: .zero);
-                    },
-                    onSelected: (assignment) {
-                      if (assignment is! Assignment) return;
-                      referenceAssignment(assignment);
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ],
+        // The grade, big, and the wheel to choose it
+        RoundContainer(
+          padding: const .fromLTRB(0, AppSpacing.xl, 0, AppSpacing.l),
+          child: Column(
+            spacing: AppSpacing.l,
+            children: [
+              GradeDisplay(grade: grade, size: 92, weight: weight),
+              GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
+            ],
+          ),
         ),
 
-        if (referenceId != null)
-          ListSection(
-            margin: .only(top: 10),
+        sectionTitle("Infos"),
+        RoundContainer(
+          padding: .zero,
+          child: Column(
+            crossAxisAlignment: .stretch,
             children: [
-              ListTile.simple(
-                context,
-                onTap: () => setState(() => isReferenceTileExpanded = !isReferenceTileExpanded),
-                icon: HugeIcons.strokeRoundedLink04,
-                title: "Cette note est associée à un test.",
-                trailing: CustomIcon(
-                  icon: isReferenceTileExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                  color: AppColors.secondaryText.adaptTo(context),
-                ),
-              ),
-              if (isReferenceTileExpanded) ...[
-                ListTile(
-                  buildChevron: false,
-                  padding: .symmetric(horizontal: 8, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: .stretch,
+              // Title (can pick a past test from the assignments)
+              Padding(
+                padding: const .fromLTRB(AppSpacing.l, 0, AppSpacing.s, 0),
+                child: SizedBox(
+                  height: 54,
+                  child: Row(
+                    spacing: AppSpacing.m + 2,
                     children: [
-                      // Preview Assignment Tile
-                      RoundContainer(
-                        padding: .zero,
-                        child: AssignmentTile(assignment: referencedAssignment!, enabled: false),
-                      ),
-
-                      const SizedBox(height: 10),
-                      Text(
-                        "Le titre que vous avez entré correspond à celui de ce test, donc cette note va le représenter.\nVous pouvez changer le titre de la note sans la dissocier.",
-                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                      ListTile.iconTile(context, icon: HugeIcons.strokeRoundedTextFont, color: isMissingTitle ? AppColors.red : null),
+                      Expanded(
+                        child: AutocompleteField(
+                          controller: titleController,
+                          focusNode: titleFocusNode,
+                          decoration: const BoxDecoration(),
+                          padding: .zero,
+                          placeholder: "Titre",
+                          placeholderStyle: AppStyles.placeholder(context).copyWith(color: isMissingTitle ? AppColors.red : null),
+                          forceValid: false,
+                          suffix: isMissingTitle ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
+                          suffixMode: .notEditing,
+                          style: AppStyles.primaryText(context),
+                          items: getPlannedGrades(),
+                          header: Padding(
+                            padding: const .fromLTRB(AppSpacing.l, AppSpacing.s, AppSpacing.m, AppSpacing.s),
+                            child: Text("Tests passés", style: AppStyles.footnote(context).copyWith(fontWeight: .w600)),
+                          ),
+                          itemBuilder: (assignment, query) {
+                            if (assignment is! Assignment) return const SizedBox.shrink();
+                            return AssignmentTile(assignment: assignment, enabled: false, padding: .zero);
+                          },
+                          onSelected: (assignment) {
+                            if (assignment is! Assignment) return;
+                            referenceAssignment(assignment);
+                          },
+                        ),
                       ),
                     ],
                   ),
                 ),
+              ),
+              Container(height: .5, margin: const .only(left: 62), color: AppColors.separator.adaptTo(context)),
+
+              // Subject
+              ListTile(
+                onTap: () => subjectFocusNode.requestFocus(),
+                leading: ListTile.iconTile(
+                  context,
+                  icon: HugeIcons.strokeRoundedBookBookmark02,
+                  color: referenceId != null ? AppColors.inactive.adaptTo(context) : (isMissingSubject ? AppColors.red : null),
+                ),
+                trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : const SizedBox.shrink(),
+                enabled: referenceId == null,
+                child: SubjectAutocomplete(
+                  controller: subjectController,
+                  focusNode: subjectFocusNode,
+                  padding: .zero,
+                  placeholder: "Branche",
+                  placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
+                  onSubjectSelected: (selectedSubject) {
+                    subjectFocusNode.unfocus();
+                    setState(() {
+                      subject = selectedSubject;
+                      isMissingSubject = false;
+                    });
+                  },
+                  forceValid: true,
+                  enabled: referenceId == null,
+                ),
+              ),
+              Container(height: .5, margin: const .only(left: 62), color: AppColors.separator.adaptTo(context)),
+
+              // Date
+              ListTile.simple(context, icon: HugeIcons.strokeRoundedCalendar04, title: "Reçu ${formatDate(date, includeArticle: true)}", onTap: showDatePicker),
+            ],
+          ),
+        ),
+        if (referenceId != null)
+          Padding(
+            padding: const .only(left: 4, top: AppSpacing.s),
+            child: Text("La branche vient du test associé.", style: AppStyles.footer(context)),
+          ),
+
+        // The test it comes from
+        if (referenceId != null && referencedAssignment != null) ...[
+          sectionTitle("Test associé"),
+          RoundContainer(
+            padding: .zero,
+            child: Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                AssignmentTile(assignment: referencedAssignment!, enabled: false),
+                Container(height: .5, color: AppColors.separator.adaptTo(context)),
                 ListTile.simple(
                   context,
-                  title: "Dissocier",
+                  title: "Dissocier du test",
                   icon: HugeIcons.strokeRoundedUnlink04,
                   isDestructive: true,
                   buildChevron: false,
-                  onTap: () {
-                    showCupertinoDialog(
-                      context: context,
-                      builder: (_) => Dialog.confirm(
-                        content: "Dissocier la note du test ?\nVous pourrez la réassocier plus tard.",
-                        onConfirm: () {
-                          setState(() {
-                            referenceId = null;
-                            isReferenceTileExpanded = false;
-                          });
-                          referencedAssignment = null;
-                        },
-                        isDestructive: true,
-                      ),
-                    );
-                  },
+                  onTap: () => showCupertinoDialog(
+                    context: context,
+                    builder: (_) => Dialog.confirm(
+                      content: "Dissocier la note du test ?\nVous pourrez la réassocier plus tard.",
+                      isDestructive: true,
+                      onConfirm: () {
+                        setState(() => referenceId = null);
+                        referencedAssignment = null;
+                      },
+                    ),
+                  ),
                 ),
               ],
+            ),
+          ),
+        ],
+
+        // Weight
+        sectionTitle("Valeur"),
+        RoundContainer(
+          padding: const .all(AppSpacing.l),
+          child: Column(
+            crossAxisAlignment: .stretch,
+            spacing: AppSpacing.s,
+            children: [
+              for (final row in [
+                commonWeights.sublist(0, 4),
+                [...commonWeights.sublist(4), null],
+              ])
+                Row(
+                  spacing: AppSpacing.s,
+                  children: [
+                    for (final value in row)
+                      Expanded(
+                        child: value == null
+                            ? buildWeightChip(isCustomWeight ? weightLabel(weight) : "Autre", isCustomWeight, chooseCustomWeight)
+                            : buildWeightChip(weightLabel(value), weight == value, () => setState(() => weight = value)),
+                      ),
+                    // The second row has one chip less: the same width as the first
+                    if (row.length < 4) const Expanded(child: SizedBox()),
+                  ],
+                ),
             ],
           ),
-
-        ListSection(
-          margin: .only(top: 10),
-          children: [
-            ListTile(
-              buildChevron: false,
-              padding: .symmetric(horizontal: 16, vertical: 14),
-              child: GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
-            ),
-            ListTile(
-              buildChevron: false,
-              padding: .symmetric(horizontal: 16, vertical: 14),
-              child: Column(
-                crossAxisAlignment: .stretch,
-                children: [
-                  Text("Valeur", style: AppStyles.secondaryHeader(context)),
-
-                  SingleChildScrollView(
-                    scrollDirection: .horizontal,
-                    padding: .only(top: 6),
-                    child: Row(
-                      mainAxisAlignment: .center,
-                      spacing: 6,
-                      children: [
-                        ...fractions.keys
-                            .map((key) {
-                              return buildWeightButton(key, weight, fractions[key] ?? "?", () {
-                                setState(() => weight = key);
-                                HapticFeedback.selectionClick();
-                              });
-                            })
-                            .toList()
-                            .reversed,
-                      ],
-                    ),
-                  ),
-
-                  AnimatedSize(
-                    duration: Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    child: isValuePickerExpanded
-                        ? Column(
-                            crossAxisAlignment: .stretch,
-                            children: [
-                              SingleChildScrollView(
-                                scrollDirection: .horizontal,
-                                padding: .symmetric(vertical: 6),
-                                child: Row(
-                                  mainAxisAlignment: .center,
-                                  spacing: 6,
-                                  children: [
-                                    for (var value = 0.05; value < 1.0; value += 0.05)
-                                      if (!fractions.keys.contains(value))
-                                        buildWeightButton(value, weight, "${(value * 100).round()}%", () {
-                                          setState(() => weight = value);
-                                          HapticFeedback.selectionClick();
-                                        }),
-                                  ],
-                                ),
-                              ),
-
-                              Button(
-                                onTap: () => showCupertinoDialog(
-                                  context: context,
-                                  builder: (_) {
-                                    final controller = TextEditingController(text: customWeight?.removeTrailingZero());
-                                    return Dialog.entry(
-                                      title: "Valeur personnalisée",
-                                      placeholder: "x${weight.toStringAsFixed(2)}",
-                                      controller: controller,
-                                      keyboardType: .number,
-                                      onConfirm: () {
-                                        final newValue = double.tryParse(controller.text.trim().replaceAll(',', '.'));
-
-                                        setState(() {
-                                          customWeight = newValue;
-                                          weight = newValue ?? 1;
-                                        });
-                                      },
-                                    );
-                                  },
-                                ),
-                                color: (weight == customWeight ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
-                                padding: const .symmetric(horizontal: 16, vertical: 12),
-                                transparent: true,
-                                rawChild: Row(
-                                  spacing: 10,
-                                  mainAxisAlignment: .spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Valeur personnalisée",
-                                      style: weight == customWeight ? AppStyles.primaryText(context) : AppStyles.tertiaryText(context),
-                                    ),
-
-                                    Text(
-                                      customWeight == null ? "Ajouter" : "x${customWeight?.removeTrailingZero()}",
-                                      style: weight == customWeight ? AppStyles.secondaryHeader(context) : AppStyles.tertiaryText(context),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          )
-                        : SizedBox.shrink(),
-                  ),
-
-                  GestureDetector(
-                    onTap: () => setState(() => isValuePickerExpanded = !isValuePickerExpanded),
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      margin: .only(top: 12),
-                      child: Row(
-                        mainAxisAlignment: .center,
-                        spacing: 2,
-                        children: [
-                          Text(isValuePickerExpanded ? "Voir moins" : "Voir plus", style: AppStyles.footer(context)),
-                          CustomIcon(
-                            icon: isValuePickerExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                            color: AppColors.tertiaryText.adaptTo(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        ),
+        Padding(
+          padding: const .only(left: 4, top: AppSpacing.s),
+          child: Text("Combien la note compte dans la moyenne (×1 : une note normale).", style: AppStyles.footer(context)),
         ),
 
-        ListSection(
-          footer: referenceId != null
-              ? "La branche ne peut pas etre changé parce que cette note est associé à un test."
-              : "Merci de remplir les champs obligatoires *",
-          children: [
-            ListTile(
-              onTap: () => subjectFocusNode.requestFocus(),
-              leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
-              trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
-              enabled: referenceId == null,
-              child: SubjectAutocomplete(
-                controller: subjectController,
-                focusNode: subjectFocusNode,
-                padding: .zero,
-                placeholder: "Entrez une branche *",
-                placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
-                onSubjectSelected: (selectedSubject) {
-                  subjectFocusNode.unfocus();
-                  setState(() {
-                    subject = selectedSubject;
-                    isMissingSubject = false;
-                  });
-                },
-                forceValid: true,
-                enabled: referenceId == null,
-              ),
-            ),
-          ],
-        ),
-
-        if (subject != null)
+        // Group
+        if (subject != null) ...[
+          sectionTitle("Groupe"),
           ListSection(
-            title: "Groupe",
-            margin: .only(top: 16),
-            footer: isInGroup ? null : "Toutes les notes d'un même groupe seront considérées et calculées comme une seule note.",
-
+            footer: isInGroup ? null : "Les notes d'un même groupe comptent ensemble comme une seule note.",
             children: [
               ListTile.simple(
                 context,
-                icon: HugeIcons.strokeRoundedSelect01,
+                icon: HugeIcons.strokeRoundedLayers01,
                 title: "Fait partie d'un groupe",
-                trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
+                trailing: CupertinoSwitch(
+                  activeTrackColor: AppColors.accent,
                   value: isInGroup,
-                  onChanged: (value) {
-                    setState(() {
-                      isInGroup = value;
-                      if (!value) {
-                        groupName = null;
-                      }
-                    });
-                  },
+                  onChanged: (value) => setState(() {
+                    isInGroup = value;
+                    if (!value) groupName = null;
+                  }),
                 ),
               ),
               if (isInGroup) ...[
-                ...getGroups().map((existingGroupName) {
-                  return ListTile.simple(
-                    context,
-                    icon: groupName == existingGroupName ? HugeIcons.strokeRoundedTick02 : null,
-                    title: existingGroupName,
+                for (final existingGroupName in getGroups())
+                  ListTile(
                     buildChevron: false,
-                    onTap: () => setState(() {
-                      groupName = existingGroupName;
-                    }),
-                  );
-                }),
-                ListTile.simple(
-                  context,
-                  title: "Créer un nouveau groupe",
-                  onTap: () {
-                    showCupertinoDialog(
-                      context: context,
-                      builder: (_) {
-                        final controller = TextEditingController();
-
-                        return Dialog.entry(
-                          title: "Nouveau groupe",
-                          placeholder: "Nom du groupe (TP, Vocs, ...)",
-                          controller: controller,
-                          onConfirm: () {
-                            final newName = controller.text.trim();
-                            try {
-                              if (newName.isNotEmpty) setState(() => groupName = newName);
-                            } catch (e) {
-                              debugPrint("Error adding group: $e");
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
+                    onTap: () => setState(() => groupName = existingGroupName),
+                    leading: const SizedBox(width: 32),
+                    trailing: groupName == existingGroupName
+                        ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 20, color: AppColors.tint.adaptTo(context))
+                        : null,
+                    child: Text(existingGroupName, style: AppStyles.primaryText(context)),
+                  ),
+                ListTile(
+                  buildChevron: false,
+                  leading: const SizedBox(width: 32),
+                  onTap: () => showCupertinoDialog(
+                    context: context,
+                    builder: (_) {
+                      final controller = TextEditingController();
+                      return Dialog.entry(
+                        title: "Nouveau groupe",
+                        placeholder: "Nom du groupe (TP, Vocs, ...)",
+                        controller: controller,
+                        onConfirm: () {
+                          final newName = controller.text.trim();
+                          if (newName.isNotEmpty) setState(() => groupName = newName);
+                        },
+                      );
+                    },
+                  ),
+                  child: Text("Nouveau groupe…", style: AppStyles.primaryText(context).copyWith(color: AppColors.tint.adaptTo(context))),
                 ),
               ],
             ],
           ),
+        ],
 
-        ListSection(
-          title: "Autres",
-          margin: .only(top: 16),
-          children: [
-            ListTile.simple(
-              context,
-              icon: HugeIcons.strokeRoundedCalendar04,
-              trailing: CupertinoListTileChevron(),
-              title: "Reçu ${formatDate(date, includeArticle: true)}",
-              onTap: showDatePicker,
-            ),
-          ],
-        ),
+        sectionTitle("Remarques"),
+        Field(placeholder: "Ce qui compte pour cette note…", controller: detailsController, minLines: 3, maxLines: 5),
 
-        Field(placeholder: "Notes supplémentaires...", controller: detailsController, minLines: 3, maxLines: 5),
-
-        if (editMode)
+        if (editMode) ...[
+          const SizedBox(height: AppSpacing.section),
           ListSection(
             children: [
               ListTile.simple(
@@ -558,23 +486,24 @@ class _NewGradePageState extends State<NewGradePage> {
                 icon: HugeIcons.strokeRoundedDelete04,
                 title: "Supprimer la note",
                 isDestructive: true,
-                onTap: () {
-                  showCupertinoDialog(
-                    context: context,
-                    builder: (_) => Dialog.confirm(
-                      content: "Êtes-vous sûr de vouloir supprimer cette note ?",
-                      onConfirm: () {
-                        allGrades.remove(widget.toEdit);
-                        database.grades.delete(widget.toEdit!);
-                        Navigator.of(context).pop(widget.toEdit);
-                      },
-                      isDestructive: true,
-                    ),
-                  );
-                },
+                buildChevron: false,
+                onTap: () => showCupertinoDialog(
+                  context: context,
+                  builder: (_) => Dialog.confirm(
+                    content: "Êtes-vous sûr de vouloir supprimer cette note ?",
+                    isDestructive: true,
+                    onConfirm: () {
+                      allGrades.remove(widget.toEdit);
+                      database.grades.delete(widget.toEdit!);
+                      Navigator.of(context).pop(widget.toEdit);
+                    },
+                  ),
+                ),
               ),
             ],
           ),
+        ],
+        const SizedBox(height: AppSpacing.xxl),
       ],
     );
   }

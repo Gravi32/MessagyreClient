@@ -1,11 +1,8 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
-import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/grades_by_subject_page.dart';
@@ -17,6 +14,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
 import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
@@ -31,58 +29,12 @@ class GradesListPage extends StatefulWidget {
 }
 
 class _GradesListPageState extends State<GradesListPage> {
-  static const double subjectTileMaxHeight = 106;
   final database = DatabaseService();
   final network = NetworkService();
   final globals = GlobalsService();
 
   final lockNotifier = ValueNotifier(0);
   int lastSentGradesCount = 0;
-
-  Widget buildSubjectsGrid(List<Subject> subjects, List<CompositeSubject> compositeSubjects) {
-    const double maxHeight = 250;
-
-    final rows = (subjects.length / 2).ceil();
-    final totalHeight = rows * subjectTileMaxHeight + (rows - 1) * 8; // mainAxisSpacing
-
-    final bool shouldFade = totalHeight > maxHeight;
-
-    Widget grid = GridView.builder(
-      padding: .zero,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        mainAxisExtent: subjectTileMaxHeight,
-      ),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: subjects.length + compositeSubjects.length,
-      itemBuilder: (context, index) {
-        final subject = subjects.elementAtOrNull(index);
-        final compositeSubject = subject == null ? compositeSubjects.elementAt(index - subjects.length) : null;
-        return SubjectCard(subject: subject, compositeSubject: compositeSubject);
-      },
-    );
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: maxHeight),
-      child: shouldFade
-          ? ShaderMask(
-              shaderCallback: (Rect rect) {
-                return const LinearGradient(
-                  begin: .topCenter,
-                  end: Alignment(0, 1.1),
-                  colors: [AppColors.black, AppColors.black, AppColors.transparent],
-                  stops: [0, 0.6, 1.0],
-                ).createShader(rect);
-              },
-              blendMode: BlendMode.dstIn,
-              child: grid,
-            )
-          : grid,
-    );
-  }
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
     await showCupertinoSheet(
@@ -113,66 +65,58 @@ class _GradesListPageState extends State<GradesListPage> {
       body: StreamBuilder(
         stream: database.grades.watchAll(),
         builder: (context, _) {
-          // All the grades
-          final allGrades = database.grades.getAll().sortedBy((grade) => grade.date).reversed;
+          final allGrades = database.grades.getAll().sortedBy((grade) => grade.date).reversed.toList();
 
-          // A list of all the subjects with at least 1 grade
-          final List<Subject> allSubjects = database.subjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
-          final List<CompositeSubject> allCompositeSubjects = database.compositeSubjects.getAll().sorted((a, b) => a.name.compareTo(b.name));
+          // The subjects that have something to show: grades, or a locked average
+          final gradedCodes = allGrades.map((grade) => grade.subject.value?.code).toSet();
+          bool hasSomething(Subject subject) => subject.isLocked || gradedCodes.contains(subject.code);
+          final subjects = database.subjects.getAll().where(hasSomething).sorted((a, b) => a.name.compareTo(b.name));
+          final compositeSubjects = database.compositeSubjects
+              .getAll()
+              .where((composite) => composite.subjects.any(hasSomething))
+              .sorted((a, b) => a.name.compareTo(b.name));
 
           if (lastSentGradesCount != allGrades.length) {
             lastSentGradesCount = allGrades.length;
             network.post("/analytics/upload-grades-count", {"Grades": allGrades.length});
           }
 
-          return SingleChildScrollView(
-            child: Column(
-              spacing: 10,
-              crossAxisAlignment: .stretch,
-              children: [
-                GradesTopCard(),
+          return ListView(
+            padding: .zero,
+            children: [
+              const SizedBox(height: AppSpacing.s),
+              const GradesTopCard(),
 
-                SectionHeader("Par branche", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => GradesBySubjectPage()))),
-                buildSubjectsGrid(allSubjects, allCompositeSubjects),
-
-                if (allGrades.isNotEmpty) ...[
-                  SectionHeader("Récentes", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage()))),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 350),
-                    child: ShaderMask(
-                      shaderCallback: (Rect rect) {
-                        return const LinearGradient(
-                          begin: .topCenter,
-                          end: .bottomCenter,
-                          colors: [AppColors.black, AppColors.black, AppColors.transparent],
-                          stops: [0.0, 0.6, 1.0],
-                        ).createShader(rect);
-                      },
-                      blendMode: .dstIn,
-                      child: ListView.separated(
-                        padding: .zero,
-                        itemCount: min(4, allGrades.length),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final grade = allGrades.elementAtOrNull(index);
-                          return grade == null
-                              ? const SizedBox.shrink()
-                              : GradeBar(
-                                  gradeData: grade,
-                                  showSubject: true,
-                                  onTap: () => showNewGradePopup(toEdit: grade),
-                                );
-                        },
-                        separatorBuilder: (_, _) => SizedBox(height: 8),
-                      ),
-                    ),
-                  ),
-                ],
-
-                BottomSpacing(includeBottomBar: true),
+              if (subjects.isNotEmpty || compositeSubjects.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.section),
+                SectionHeader("Branches", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const GradesBySubjectPage()))),
+                CardGroup(
+                  separatorInset: SubjectCard.separatorInset,
+                  children: [
+                    for (final subject in subjects) SubjectCard(subject: subject),
+                    for (final composite in compositeSubjects) SubjectCard(compositeSubject: composite),
+                  ],
+                ),
               ],
-            ),
+
+              if (allGrades.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.section),
+                SectionHeader("Récentes", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const RecentGradesPage()))),
+                CardGroup(
+                  separatorInset: GradeBar.separatorInset,
+                  children: [
+                    for (final grade in allGrades.take(4))
+                      GradeBar(
+                        gradeData: grade,
+                        showSubject: true,
+                        onTap: () => showNewGradePopup(toEdit: grade),
+                      ),
+                  ],
+                ),
+              ],
+
+              const BottomSpacing(includeBottomBar: true),
+            ],
           );
         },
       ),

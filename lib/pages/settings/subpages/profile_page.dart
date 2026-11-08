@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
-import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,7 +11,9 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
@@ -21,7 +22,6 @@ import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class ProfilePage extends StatefulWidget {
   final Account account;
@@ -50,7 +50,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool isUploading = false;
   String? chosenPicturePath;
 
-  void changeProfilePicture() {
+  Future<void> changeProfilePicture() async {
     void pickImage(ImageSource source) async {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: source);
@@ -70,66 +70,29 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     }
 
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.of(context).pop();
-              pickImage(ImageSource.camera);
-            },
-            child: Row(
-              spacing: 8,
-              children: [
-                Padding(
-                  padding: .symmetric(horizontal: 8),
-                  child: CustomIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppColors.text.adaptTo(context)),
-                ),
-                Text("Prendre une photo", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.of(context).pop();
-              pickImage(ImageSource.gallery);
-            },
-            child: Row(
-              spacing: 8,
-              children: [
-                Padding(
-                  padding: .symmetric(horizontal: 8),
-                  child: CustomIcon(icon: HugeIcons.strokeRoundedAlbum02, color: AppColors.text.adaptTo(context)),
-                ),
-                Text("Choisir une photo de la galérie", style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                chosenPicturePath = null;
-                changesMade = true;
-                globals.pfpNotifiersCache[account.username]?.value = null;
-              });
-            },
-            child: Row(
-              spacing: 8,
-              children: [
-                Padding(
-                  padding: .symmetric(horizontal: 8),
-                  child: CustomIcon(icon: HugeIcons.strokeRoundedDelete04, color: AppColors.red),
-                ),
-                Text("Supprimer la photo", style: TextStyle(fontSize: 20)),
-              ],
-            ),
-          ),
-        ],
-      ),
+    final choice = await ActionSheet.show<String>(
+      context,
+      title: "Photo de profil",
+      actions: [
+        SheetAction("Prendre une photo", icon: HugeIcons.strokeRoundedCamera01, value: "camera"),
+        SheetAction("Choisir dans la galerie", icon: HugeIcons.strokeRoundedAlbum02, value: "gallery"),
+        SheetAction("Supprimer la photo", icon: HugeIcons.strokeRoundedDelete04, value: "delete", isDestructive: true),
+      ],
     );
+    if (!mounted) return;
+
+    switch (choice) {
+      case "camera":
+        pickImage(ImageSource.camera);
+      case "gallery":
+        pickImage(ImageSource.gallery);
+      case "delete":
+        setState(() {
+          chosenPicturePath = null;
+          changesMade = true;
+          globals.pfpNotifiersCache[account.username]?.value = null;
+        });
+    }
   }
 
   void changeProfile() {
@@ -171,7 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 CustomText(
                   "Ces informations seront visibles par tous les utilisateurs de Messagyre.",
-                  style: AppStyles.secondaryText(context).copyWith(fontSize: 17),
+                  style: AppStyles.secondaryText(context),
                   padding: .symmetric(horizontal: 20),
                 ),
               ],
@@ -324,58 +287,77 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Page.scrollable(
       context,
-      spacing: 16,
+      spacing: AppSpacing.xl,
       topBar: editMode
           ? TopBar.form(context, title: "Votre profil", onCloseConfirmed: changesMade ? () => Navigator.pop(context) : null, trailing: buildTrailing())
           : TopBar.tab(context, title: account.username),
 
       children: [
-        // The person, on the app icon's gradient (like the profile card of the settings)
-        BrandCard(
-          padding: const .all(AppSpacing.l + 2),
-          markScale: .9,
-          child: Column(
-            crossAxisAlignment: .start,
-            spacing: AppSpacing.m,
-            children: [
-              Row(
-                spacing: AppSpacing.l,
+        // The person: the photo (touch it to change yours), the names, the bio
+        Column(
+          spacing: AppSpacing.xs,
+          children: [
+            CupertinoButton(
+              padding: .zero,
+              minimumSize: .zero,
+              onPressed: editMode ? changeProfilePicture : null,
+              child: Stack(
+                clipBehavior: .none,
                 children: [
-                  Container(
-                    padding: const .all(2),
-                    decoration: BoxDecoration(shape: .circle, color: AppColors.white.withValues(alpha: .35)),
-                    child: SizedBox.square(
-                      dimension: 68,
-                      child: ProfilePictureDisplay(
-                        accountUsername: chosenPicturePath != null ? null : account.username,
-                        picturePath: chosenPicturePath,
-                        isBlocked: isBlocked,
+                  SizedBox.square(
+                    dimension: 96,
+                    child: ProfilePictureDisplay(
+                      accountUsername: chosenPicturePath != null ? null : account.username,
+                      picturePath: chosenPicturePath,
+                      isBlocked: isBlocked,
+                    ),
+                  ),
+                  if (editMode)
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        alignment: .center,
+                        decoration: BoxDecoration(
+                          shape: .circle,
+                          color: AppColors.secondaryBackground.adaptTo(context),
+                          border: .all(color: AppColors.background.adaptTo(context), width: 3),
+                        ),
+                        child: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, size: 16, color: AppColors.text.adaptTo(context)),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      spacing: 2,
-                      crossAxisAlignment: .start,
-                      children: [
-                        Text(account.displayName ?? account.defaultDisplayName, maxLines: 2, overflow: .ellipsis, style: AppStyles.header(context).copyWith(color: AppColors.white)),
-                        Text(account.username, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context).copyWith(color: AppColors.white.withValues(alpha: .8))),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Container(
-                          padding: const .symmetric(horizontal: AppSpacing.s, vertical: AppSpacing.xxs),
-                          decoration: BoxDecoration(borderRadius: .circular(AppRadius.s), color: AppColors.white.withValues(alpha: .2)),
-                          child: Text(account.classOrRole ?? "Nouveau compte", style: AppStyles.badge(context)),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
+            ),
+            const SizedBox(height: AppSpacing.s),
+            Text(account.displayName ?? account.defaultDisplayName, textAlign: .center, maxLines: 2, overflow: .ellipsis, style: AppStyles.header(context)),
+            Text(
+              [account.username, account.classOrRole ?? "Nouveau compte"].join(" · "),
+              textAlign: .center,
+              maxLines: 1,
+              overflow: .ellipsis,
+              style: AppStyles.subheadline(context),
+            ),
+          ],
+        ),
+
+        RoundContainer(
+          padding: const .all(AppSpacing.card),
+          child: Column(
+            crossAxisAlignment: .stretch,
+            spacing: AppSpacing.s,
+            children: [
+              Text("BIO", style: AppStyles.overline(context)),
               CustomText(
-                profile["Bio"] ?? "Pas de biographie",
-                style: AppStyles.primaryText(context).copyWith(color: AppColors.white, fontStyle: profile["Bio"] == null ? .italic : null),
+                (profile["Bio"] ?? "").toString().trim().isEmpty ? "Pas de biographie" : profile["Bio"],
+                style: AppStyles.primaryText(
+                  context,
+                ).copyWith(color: (profile["Bio"] ?? "").toString().trim().isEmpty ? AppColors.tertiaryText.adaptTo(context) : null, height: 1.4),
               ),
-              Text("Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}", style: AppStyles.footnote(context).copyWith(color: AppColors.white.withValues(alpha: .75))),
+              const SizedBox(height: AppSpacing.xs),
+              Text("Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}", style: AppStyles.footnote(context)),
             ],
           ),
         ),
@@ -452,8 +434,8 @@ class _ProfilePageState extends State<ProfilePage> {
         if (account.username == globals.username) ...[
           ListSection(
             children: [
-              ListTile.simple(context, title: "Modifier le profil", icon: HugeIcons.strokeRoundedPencilEdit02, onTap: () => changeProfile()),
-              ListTile.simple(context, title: "Changer de photo de profil", icon: HugeIcons.strokeRoundedUserCircle, onTap: () => changeProfilePicture()),
+              ListTile.simple(context, title: "Modifier le nom et la bio", icon: HugeIcons.strokeRoundedPencilEdit02, onTap: () => changeProfile()),
+              ListTile.simple(context, title: "Changer de photo", icon: HugeIcons.strokeRoundedUserCircle, onTap: () => changeProfilePicture()),
             ],
           ),
 

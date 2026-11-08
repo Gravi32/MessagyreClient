@@ -175,7 +175,7 @@ class _FieldState extends State<Field> {
     final textField = CupertinoTextField(
       padding: .only(left: widget.icon != null ? AppSpacing.s : AppSpacing.l, right: AppSpacing.l, top: verticalPadding, bottom: verticalPadding),
       placeholder: widget.placeholder,
-      placeholderStyle: AppStyles.placeholder(context).copyWith(fontSize: isNumeric ? 20 : null),
+      placeholderStyle: AppStyles.placeholder(context).copyWith(fontSize: isNumeric ? AppStyles.sizeSection : null),
       minLines: widget.minLines,
       maxLines: widget.maxLines,
       expands: false,
@@ -208,7 +208,7 @@ class _FieldState extends State<Field> {
           color: showingError
               ? AppColors.red
               : _hasFocus
-              ? AppColors.tint.adaptTo(context).withValues(alpha: .7)
+              ? AppColors.text.adaptTo(context).withValues(alpha: .35)
               : widget.sunken
               ? AppColors.transparent
               : AppColors.separator.adaptTo(context),

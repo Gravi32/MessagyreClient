@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 
 class GradePicker extends StatelessWidget {
   final double grade;
@@ -16,21 +16,25 @@ class GradePicker extends StatelessWidget {
     final controller = FixedExtentScrollController(initialItem: grades.indexOf(grade));
 
     return SizedBox(
-      height: 60,
+      height: 52,
       child: Stack(
         alignment: .center,
         children: [
           IgnorePointer(
             child: Align(
               alignment: .center,
-              child: RoundContainer(width: 60, height: 80, borderRadius: AppRadius.m, color: AppColors.accentSoft.adaptTo(context)),
+              child: Container(
+                width: 56,
+                height: 48,
+                decoration: BoxDecoration(borderRadius: .circular(AppRadius.s), color: AppColors.tertiaryBackground.adaptTo(context)),
+              ),
             ),
           ),
           RotatedBox(
             quarterTurns: -1,
             child: ListWheelScrollView.useDelegate(
               controller: controller,
-              itemExtent: 60,
+              itemExtent: 58,
               diameterRatio: 2,
               physics: const FixedExtentScrollPhysics(),
               onSelectedItemChanged: (index) {
@@ -52,10 +56,8 @@ class GradePicker extends StatelessWidget {
                       child: Center(
                         child: Text(
                           display,
-                          style: TextStyle(
-                            fontSize: isSelected ? 28 : 22,
-                            color: isSelected ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
-                            fontWeight: .w500,
+                          style: (isSelected ? AppStyles.secondaryHeader(context).copyWith(fontWeight: .w700) : AppStyles.primaryText(context)).copyWith(
+                            color: isSelected ? null : AppColors.tertiaryText.adaptTo(context),
                           ),
                         ),
                       ),

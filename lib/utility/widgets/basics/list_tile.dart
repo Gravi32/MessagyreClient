@@ -38,7 +38,9 @@ class ListTile extends StatefulWidget {
     bool enabled = true,
   }) {
     return ListTile(
-      leading: icon != null ? ListTile.iconTile(context, icon: icon, color: enabled ? (isDestructive ? AppColors.red : null) : AppColors.inactive.adaptTo(context)) : null,
+      leading: icon != null
+          ? ListTile.iconTile(context, icon: icon, color: enabled ? (isDestructive ? AppColors.red : null) : AppColors.inactive.adaptTo(context))
+          : null,
       onTap: onTap,
       trailing: trailing,
       isLoading: isLoading,
@@ -53,18 +55,17 @@ class ListTile extends StatefulWidget {
     );
   }
 
-  /// A row's icon, in a small rounded square tinted with its color (the accent by default), like the app icon
+  /// A row's icon, in a small rounded square: grey, or washed with its color when it has one (red to delete)
   static Widget iconTile(BuildContext context, {required List<List> icon, Color? color}) {
-    final foreground = color ?? AppColors.tint.adaptTo(context);
     return Container(
       width: 32,
       height: 32,
       alignment: .center,
       decoration: BoxDecoration(
-        borderRadius: .circular(10),
-        color: color == null ? AppColors.accentSoft.adaptTo(context) : color.withValues(alpha: AppColors.isDark(context) ? .2 : .12),
+        borderRadius: .circular(9),
+        color: color == null ? AppColors.tertiaryBackground.adaptTo(context) : color.withValues(alpha: AppColors.isDark(context) ? .2 : .12),
       ),
-      child: HugeIcon(icon: icon, size: 19, color: foreground),
+      child: HugeIcon(icon: icon, size: 18, color: color ?? AppColors.text.adaptTo(context)),
     );
   }
 
@@ -81,15 +82,11 @@ class _ListTileState extends State<ListTile> {
       onPressed: widget.enabled ? widget.onTap : null,
       child: Container(
         color: AppColors.secondaryBackground.adaptTo(context),
-        padding: widget.padding ?? .symmetric(horizontal: 16, vertical: 12),
+        padding: widget.padding ?? .symmetric(horizontal: 16, vertical: 13),
         child: Row(
           spacing: 14,
           children: widget.isLoading
-              ? [
-                  Expanded(
-                    child: Center(child: GymnaseLoader(size: 22)),
-                  ),
-                ]
+              ? [Expanded(child: Center(child: GymnaseLoader(size: 22)))]
               : [
                   if (widget.leading != null) widget.leading!,
                   Expanded(child: widget.child ?? SizedBox()),

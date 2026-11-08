@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
@@ -14,7 +15,6 @@ import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class RegistrationPage extends StatefulWidget {
   final String? registrationTokenOverride;
@@ -180,19 +180,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
   }
 
+  /// The top of a step: its icon in a grey circle and its title
+  Widget stepTitle(List<List<dynamic>> icon, String title) => Column(
+    spacing: AppSpacing.l,
+    children: [
+      Container(
+        width: 64,
+        height: 64,
+        alignment: .center,
+        decoration: BoxDecoration(shape: .circle, color: AppColors.tertiaryBackground.adaptTo(context)),
+        child: HugeIcon(icon: icon, size: 28, color: AppColors.text.adaptTo(context)),
+      ),
+      Padding(
+        padding: const .only(bottom: AppSpacing.s),
+        child: Text(title, style: AppStyles.header(context), textAlign: .center),
+      ),
+    ],
+  );
+
   Widget emailPage() {
     return Column(
       mainAxisAlignment: .center,
       crossAxisAlignment: .stretch,
       children: [
         Spacer(flex: 3),
-        Text(
-          "Adresse e-mail",
-          style: AppStyles.header(context).copyWith(color: AppColors.tint.adaptTo(context)),
-          textAlign: .center,
-        ),
-        SizedBox(height: 12),
-        CustomText("Veuillez entrer *votre adresse e-mail officiel*.", textAlign: .center, padding: .symmetric(horizontal: 20)),
+        stepTitle(HugeIcons.strokeRoundedMail01, "Adresse e-mail"),
+        CustomText("Entrez *votre adresse e-mail du gymnase*.", textAlign: .center, padding: .symmetric(horizontal: 20), style: AppStyles.subheadline(context)),
         Spacer(),
 
         Field(
@@ -221,10 +234,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(),
 
         CustomText(
-          "Messagyre *vous envoyera un code de vérification* par e-mail pour confirmer votre identité.",
+          "Messagyre *vous enverra un code* par e-mail pour confirmer que c'est bien vous.",
           textAlign: .center,
           padding: .symmetric(horizontal: 20),
-          style: AppStyles.tertiaryText(context),
+          style: AppStyles.footnote(context),
         ),
 
         Spacer(flex: 4),
@@ -245,17 +258,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       crossAxisAlignment: .stretch,
       children: [
         Spacer(flex: 3),
-        Text(
-          "Code de vérification",
-          style: AppStyles.header(context).copyWith(color: AppColors.tint.adaptTo(context)),
-          textAlign: .center,
-        ),
-        SizedBox(height: 12),
+        stepTitle(HugeIcons.strokeRoundedSmsCode, "Code de vérification"),
 
         CustomText(
-          "Veuillez entrer le *code envoyé* à l'adresse '*${emailController.text}@eduvaud.ch*'",
+          "Entrez le *code envoyé* à *${emailController.text}@eduvaud.ch*.",
           textAlign: .center,
           padding: .symmetric(horizontal: 20),
+          style: AppStyles.subheadline(context),
         ),
 
         Spacer(),
@@ -266,7 +275,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           error: codeError,
           keyboardType: .number,
           enabled: !isWaitingForResponse,
-          textStyle: .new(letterSpacing: 4, fontSize: 24),
+          textStyle: .new(letterSpacing: 8, fontSize: AppStyles.sizeTitle, fontWeight: .w600),
           onChanged: (input) {
             final selection = codeController.selection;
             final newText = input.trim();
@@ -285,7 +294,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(flex: 5),
 
         Column(
-          spacing: 10,
+          spacing: AppSpacing.s,
           children: [
             Button(enabled: isCodeValid && !isWaitingForResponse, onTap: () => sendCode(), isLoading: isWaitingForResponse, text: "Vérifier"),
 
@@ -293,6 +302,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               enabled: canResendCode && !isWaitingForResponse,
               onTap: () => sendEmail(),
               transparent: true,
+              color: AppColors.secondaryButton.adaptTo(context),
               text: canResendCode ? "Renvoyer le code" : "Renvoyer le code ${resendSecondsLeft}s",
             ),
 
@@ -301,7 +311,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 enabled: !isWaitingForResponse,
                 onTap: () => goToPage(0),
                 transparent: true,
-                color: AppColors.secondaryButton.adaptTo(context),
+                color: AppColors.transparent,
+                textColor: AppColors.secondaryText.adaptTo(context),
                 text: "Changer d'adresse e-mail",
               ),
           ],
@@ -316,16 +327,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
       crossAxisAlignment: .stretch,
       children: [
         Spacer(),
-        Text(
-          "Mot de passe",
-          style: AppStyles.header(context).copyWith(color: AppColors.tint.adaptTo(context)),
-          textAlign: .center,
-        ),
-        SizedBox(height: 12),
+        stepTitle(HugeIcons.strokeRoundedSquareLock02, "Mot de passe"),
         CustomText(
           "*Vérification réussie!*\n${widget.isInPasswordResetMode ? "Entrez votre *nouveau mot de passe*. *Ne l'oubliez pas cette fois* !" : "*Créez un nouveau mot de passe* pour accéder à votre compte. Ne l'oubliez pas !"}",
           textAlign: .center,
           padding: .symmetric(horizontal: 20),
+          style: AppStyles.subheadline(context),
         ),
 
         Spacer(),
@@ -350,7 +357,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           },
         ),
 
-        SizedBox(height: 20),
+        SizedBox(height: AppSpacing.m),
 
         Field.password(
           error: confirmPasswordError,
@@ -441,19 +448,25 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: .center,
-            spacing: 20,
-            children: [
-              if (!widget.isInPasswordResetMode)
-                currentPage == 0
-                    ? CustomIcon(icon: HugeIcons.strokeRoundedMailAdd01)
-                    : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-              currentPage == 1 ? CustomIcon(icon: HugeIcons.strokeRoundedSmsCode) : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-              currentPage == 2
-                  ? CustomIcon(icon: HugeIcons.strokeRoundedPasswordValidation)
-                  : CustomIcon(icon: HugeIcons.strokeRoundedCircle, strokeWidth: 4, size: 8),
-            ],
+          // The steps, as bars filling up
+          Padding(
+            padding: const .symmetric(horizontal: AppSpacing.s, vertical: AppSpacing.s),
+            child: Row(
+              spacing: AppSpacing.s - 2,
+              children: [
+                for (var step = widget.isInPasswordResetMode ? 1 : 0; step < 3; step++)
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: AppDurations.normal,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        borderRadius: .circular(2),
+                        color: step <= currentPage ? AppColors.text.adaptTo(context) : AppColors.tertiaryBackground.adaptTo(context),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           Expanded(
             child: PageView(

@@ -58,11 +58,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   bool isMissingThirdSubject = false;
 
   bool get canBeConfirmed =>
-      titleController.text.isNotEmpty &&
-      firstSubject != null &&
-      secondSubject != null &&
-      (!hasThirdSubject || thirdSubject != null) &&
-      _distinctSubjects;
+      titleController.text.isNotEmpty && firstSubject != null && secondSubject != null && (!hasThirdSubject || thirdSubject != null) && _distinctSubjects;
 
   /// The same subject can't be used twice
   bool get _distinctSubjects {
@@ -169,7 +165,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                   controller: subjectFieldController,
                   focusNode: subjectFieldFocusNode,
                   onSubjectSelected: onSubjectSelected,
-                  style: const TextStyle(fontSize: 20, fontWeight: .w700),
+                  style: AppStyles.section(context),
                   placeholderStyle: TextStyle(color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context), fontWeight: .w400),
                 ),
               ),

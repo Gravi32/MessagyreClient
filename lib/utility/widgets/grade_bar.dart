@@ -1,17 +1,16 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/cupertino_pressable.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
+/// A grade as a row of a [CardGroup]: its ring, its title, then its subject or its date
 class GradeBar extends StatelessWidget {
   final Grade gradeData;
   final bool showSubject;
@@ -30,100 +29,66 @@ class GradeBar extends StatelessWidget {
     this.isPlanned = false,
   });
 
+  /// Where the separators between two rows start: under the title
+  static const double separatorInset = AppSpacing.l + 46 + AppSpacing.m + 2;
+
   @override
   Widget build(BuildContext context) {
     final daysDistance = DateTime.now().difference(gradeData.date).inDays;
+    final subject = gradeData.subject.value;
+    final hasDetails = !isGradeUnknown && (gradeData.details ?? "").trim().isNotEmpty;
 
-    // A card per grade, like the rest of the app's lists
-    return CupertinoPressable(
-      onTap: onTap,
-      child: Container(
-        padding: const .fromLTRB(AppSpacing.m, AppSpacing.s + 2, AppSpacing.m, AppSpacing.s),
-        decoration: BoxDecoration(
-          color: AppColors.secondaryBackground.adaptTo(context),
-          borderRadius: .circular(AppRadius.m),
-          border: .all(color: AppColors.outline.adaptTo(context)),
-        ),
+    final String subtitle = isGradeUnknown
+        ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)}${isIncoming && daysDistance > 1 ? " · il y a $daysDistance jours" : ""}"
+        : showSubject
+        ? "${subject?.name ?? "Pas de branche"} · ${formatDate(gradeData.date)}"
+        : "Reçu ${formatDate(gradeData.date, includeArticle: true)}";
+
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      pressedOpacity: .55,
+      onPressed: onTap,
+      child: Padding(
+        padding: const .fromLTRB(AppSpacing.l, AppSpacing.m, AppSpacing.m, AppSpacing.m),
         child: Row(
-        spacing: 6,
-        children: [
-          // Grade Display
-          GradeDisplay(
-            grade: isGradeUnknown ? 0 : gradeData.grade,
-            weight: isGradeUnknown ? 1 : gradeData.weight,
-            isIncoming: isIncoming,
-            isPlanned: isPlanned,
-          ),
-
-          SizedBox(),
-
-          // Content
-          Expanded(
-            child: Column(
-              mainAxisAlignment: .center,
-              crossAxisAlignment: .stretch,
-              spacing: 4,
-              children: [
-                // Title
-                Padding(
-                  padding: .only(right: 20),
-                  child: CustomText(
-                    gradeData.title,
-                    style: AppStyles.strongText(context),
-                    overflow: .ellipsis,
-                  ),
-                ),
-
-                // Description
-                if (!isGradeUnknown && gradeData.details != null && gradeData.details!.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsetsGeometry.only(right: 20),
-                    child: CustomText(
-                      gradeData.details!,
-                      style: AppStyles.subheadline(context),
-                      maxLines: 2,
-                      overflow: .ellipsis,
-                    ),
-                  ),
-
-                // Subject / Date
-                showSubject
-                    ? Row(
-                        spacing: 6,
-                        children: [
-                          if (gradeData.subject.value != null) SubjectBadge(subject: gradeData.subject.value!, size: 20),
-                          Expanded(
-                            child: Text(
-                              "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
-                              style: AppStyles.subheadline(context),
-                              maxLines: 1,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Text(
-                        isGradeUnknown
-                            ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)} ${isIncoming && daysDistance > 1 ? "(il y a $daysDistance jours)" : ""}"
-                            : "Reçu ${formatDate(gradeData.date, includeArticle: true)}",
-                        maxLines: 2,
-                        overflow: .fade,
-                        softWrap: true,
-                        style: AppStyles.subheadline(context),
+          spacing: AppSpacing.m + 2,
+          children: [
+            GradeDisplay(
+              grade: isGradeUnknown ? 0 : gradeData.grade,
+              size: 46,
+              weight: isGradeUnknown ? 1 : gradeData.weight,
+              isIncoming: isIncoming,
+              isPlanned: isPlanned,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                spacing: 3,
+                children: [
+                  CustomText(gradeData.title, style: AppStyles.strongText(context), maxLines: 1, overflow: .ellipsis),
+                  Row(
+                    spacing: 6,
+                    children: [
+                      if (showSubject && subject != null && !isGradeUnknown) SubjectBadge(subject: subject, size: 16),
+                      Expanded(
+                        child: Text(subtitle, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context)),
                       ),
-              ],
+                    ],
+                  ),
+                  if (hasDetails) CustomText(gradeData.details!, style: AppStyles.footnote(context), maxLines: 2, overflow: .ellipsis),
+                ],
+              ),
             ),
-          ),
-
-          // Trailing
-          if (!showSubject && isGradeUnknown)
-            CustomIcon(
-              icon: isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01,
-              size: 20,
-              color: AppColors.tertiaryText.adaptTo(context),
-            ),
-          HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
-        ],
-      ),
+            if (isGradeUnknown)
+              HugeIcon(
+                icon: isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01,
+                size: 20,
+                color: AppColors.tertiaryText.adaptTo(context),
+              ),
+            HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+          ],
+        ),
       ),
     );
   }

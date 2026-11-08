@@ -11,6 +11,9 @@ import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
+import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
+import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/search/subpages/ideas_page.dart';
@@ -122,55 +125,56 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget buildResult(SearchResult result) {
-    return SizedBox(
-      width: .infinity,
-      height: 60,
-      child: CupertinoButton(
-        minimumSize: .zero,
-        padding: .symmetric(vertical: 6, horizontal: 10),
-        onPressed: () async {
-          setState(() {
-            usernameBeingLoaded = result.username;
-          });
+    return CupertinoButton(
+      minimumSize: .zero,
+      pressedOpacity: .55,
+      padding: const .symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
+      onPressed: () async {
+        setState(() => usernameBeingLoaded = result.username);
+        final account = await network.getAccount(result.username);
+        setState(() => usernameBeingLoaded = null);
 
-          final account = await network.getAccount(result.username);
-
-          setState(() {
-            usernameBeingLoaded = null;
-          });
-
-          if (account != null && mounted) {
-            Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfilePage(account)));
-          }
-        },
-        child: Row(
-          children: [
-            ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 26),
-            const SizedBox(width: 16),
-            Column(
+        if (account != null && mounted) {
+          Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (context) => ProfilePage(account)));
+        }
+      },
+      child: Row(
+        spacing: AppSpacing.m + 2,
+        children: [
+          SizedBox.square(
+            dimension: 44,
+            child: ProfilePictureDisplay(accountUsername: result.username, pictureURL: result.profilePictureURL, radius: 22),
+          ),
+          Expanded(
+            child: Column(
               crossAxisAlignment: .start,
+              spacing: 2,
               children: [
-                Text(result.displayName ?? Account.getDefaultDisplayName(result.username), style: AppStyles.secondaryHeader(context)),
-                Row(
-                  spacing: 6,
-                  crossAxisAlignment: .baseline,
-                  textBaseline: .alphabetic,
-                  children: [
-                    Text.rich(TextSpan(children: highlightSearchMatch(result.username, searchBarController.text), style: AppStyles.primaryText(context))),
-                    if (result.classOrRole != null)
-                      Text.rich(
-                        TextSpan(children: highlightSearchMatch(result.classOrRole ?? "", searchBarController.text), style: AppStyles.secondaryText(context)),
-                      ),
-                  ],
+                Text(
+                  result.displayName ?? Account.getDefaultDisplayName(result.username),
+                  maxLines: 1,
+                  overflow: .ellipsis,
+                  style: AppStyles.strongText(context),
+                ),
+                Text.rich(
+                  TextSpan(
+                    style: AppStyles.subheadline(context),
+                    children: [
+                      ...highlightSearchMatch(result.username, searchBarController.text),
+                      if (result.classOrRole != null) ...[
+                        const TextSpan(text: " · "),
+                        ...highlightSearchMatch(result.classOrRole ?? "", searchBarController.text),
+                      ],
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: .ellipsis,
                 ),
               ],
             ),
-            if (usernameBeingLoaded == result.username) ...[
-              SizedBox(width: 10),
-              GymnaseLoader(size: 18),
-            ],
-          ],
-        ),
+          ),
+          if (usernameBeingLoaded == result.username) const GymnaseLoader(size: 18),
+        ],
       ),
     );
   }
@@ -181,71 +185,76 @@ class SearchPageState extends State<SearchPage> {
     if (!isShortQuery) {
       return isSearching
           ? Center(child: GymnaseLoader(size: 18))
-          : const EmptyState(icon: AppIcons.noResults, title: AppStrings.searchNoResults, padding: EdgeInsets.only(top: AppSpacing.xl));
+          : const EmptyState(
+              icon: AppIcons.noResults,
+              title: AppStrings.searchNoResults,
+              padding: EdgeInsets.only(top: AppSpacing.xl),
+            );
     }
 
-    return const EmptyState(icon: AppIcons.search, title: AppStrings.searchEmptyTitle, subtitle: AppStrings.searchEmptySubtitle, padding: EdgeInsets.only(top: AppSpacing.xl));
+    return const EmptyState(
+      icon: AppIcons.search,
+      title: AppStrings.searchEmptyTitle,
+      subtitle: AppStrings.searchEmptySubtitle,
+      padding: EdgeInsets.only(top: AppSpacing.xl),
+    );
   }
 
   Widget buildNews() {
     return ValueListenableBuilder(
       valueListenable: newsNotifier,
       builder: (context, newsContent, _) => ListView(
-        padding: .only(top: 8),
+        padding: .zero,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         children: [
-          Padding(
-            padding: .symmetric(horizontal: 10, vertical: 8),
-            child: Text(AppStrings.shortcuts, style: AppStyles.section(context)),
-          ),
-          Row(
-            spacing: 8,
-            children: [
-              ...[
-                (name: "Hermes II", iconPath: "assets/icons/hermesII.webp", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
-                (name: "Teams", iconPath: "assets/icons/teams.webp", url: "https://teams.microsoft.com/v2/"),
-                (name: "Moodle", iconPath: "assets/icons/moodle.webp", url: "https://moodle.eduvaud.ch/my/"),
-              ].map(
-                (shortcut) => Expanded(
-                  child: Button(
-                    transparent: true,
-                    color: AppColors.secondaryBackground.adaptTo(context),
-                    onTap: () => openUrl(shortcut.url, tryApp: true),
-                    rawChild: Column(
-                      children: [
-                        RoundContainer(
-                          height: 52,
-                          color: AppColors.tertiaryBackground.adaptTo(context),
-                          borderRadius: 14,
-                          padding: .all(2),
-                          child: Image.asset(shortcut.iconPath),
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: .center,
-                          spacing: 2,
-                          children: [
-                            Expanded(
-                              child: Text(shortcut.name, maxLines: 1, softWrap: false, overflow: .fade, style: AppStyles.strongText(context)),
+          const SizedBox(height: AppSpacing.s),
+          SectionHeader(AppStrings.shortcuts),
+          // The school's apps, like on a home screen
+          RoundContainer(
+            padding: const .symmetric(vertical: AppSpacing.l, horizontal: AppSpacing.s),
+            child: Row(
+              children: [
+                for (final shortcut in [
+                  (name: "Hermes II", iconPath: "assets/icons/hermesII.webp", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
+                  (name: "Teams", iconPath: "assets/icons/teams.webp", url: "https://teams.microsoft.com/v2/"),
+                  (name: "Moodle", iconPath: "assets/icons/moodle.webp", url: "https://moodle.eduvaud.ch/my/"),
+                ])
+                  Expanded(
+                    child: CupertinoButton(
+                      padding: .zero,
+                      minimumSize: .zero,
+                      pressedOpacity: .55,
+                      onPressed: () => openUrl(shortcut.url, tryApp: true),
+                      child: Column(
+                        spacing: AppSpacing.s,
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            clipBehavior: .antiAlias,
+                            padding: const .all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: .circular(15),
+                              border: .all(color: AppColors.separator.adaptTo(context)),
                             ),
-                            HugeIcon(icon: AppIcons.chevronRight, size: AppStyles.tertiaryText(context).fontSize, color: AppColors.tertiaryText.adaptTo(context)),
-                          ],
-                        ),
-                      ],
+                            child: Image.asset(shortcut.iconPath),
+                          ),
+                          Text(
+                            shortcut.name,
+                            maxLines: 1,
+                            style: AppStyles.footnote(context).copyWith(color: AppColors.text.adaptTo(context), fontWeight: .w500),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
 
-          const SizedBox(height: 16),
-
-          Padding(
-            padding: .symmetric(horizontal: 10, vertical: 8),
-            child: Text(AppStrings.announcements, style: AppStyles.section(context)),
-          ),
+          if (newsContent.isNotEmpty) ...[const SizedBox(height: AppSpacing.section), SectionHeader(AppStrings.announcements)],
           ...newsContent.map((newsBox) {
             final Map<String, dynamic>? metadata = tryJsonDecode(newsBox["Metadata"] ?? "{}");
             final Map<String, dynamic>? coverWidget = tryJsonDecode(newsBox["CoverWidget"] ?? "{}");
@@ -263,7 +272,7 @@ class SearchPageState extends State<SearchPage> {
             final double bottomPadding = max((hasAuthor ? authorPictureHeight + 8 : 0), (isTappable ? trailingButtonHeight + 8 : 0));
 
             return Button(
-              margin: .only(bottom: 16),
+              margin: .only(bottom: AppSpacing.m),
               transparent: true,
               padding: .zero,
               color: backgroundColor ?? AppColors.secondaryBackground.adaptTo(context),
@@ -272,12 +281,12 @@ class SearchPageState extends State<SearchPage> {
                   if (hasBackgroundImage)
                     Positioned.fill(
                       child: ClipRRect(
-                        borderRadius: .circular(22.5),
+                        borderRadius: .circular(AppRadius.card),
                         child: Image.network(metadata?["BackgroundImageUrl"], fit: .cover),
                       ),
                     ),
                   Container(
-                    padding: .all(14),
+                    padding: .all(AppSpacing.card),
                     margin: .only(bottom: bottomPadding),
                     child: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
                   ),
@@ -318,65 +327,47 @@ class SearchPageState extends State<SearchPage> {
             );
           }),
 
-          Button(
-            margin: .only(bottom: 16),
-            padding: .all(16),
-            color: AppColors.secondaryBackground.adaptTo(context),
-            transparent: true,
-            rawChild: Row(
-              spacing: AppSpacing.m + 2,
-              children: [
-                ListTile.iconTile(context, icon: HugeIcons.strokeRoundedStar, color: AppColors.orange),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: .stretch,
-                    spacing: 2,
-                    children: [
-                      Text(AppStrings.leaveReview, style: AppStyles.strongText(context).copyWith(fontSize: 18)),
-                      Text(AppStrings.leaveReviewContent(Theme.of(context).platform == .android), style: AppStyles.subheadline(context)),
-                    ],
-                  ),
+          const SizedBox(height: AppSpacing.section),
+          ListSection(
+            title: "Messagyre",
+            children: [
+              ListTile(
+                leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedIdea01),
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => const IdeasPage())),
+                child: Column(
+                  crossAxisAlignment: .start,
+                  spacing: 2,
+                  children: [
+                    Text(AppStrings.ideasBox, style: AppStyles.primaryText(context)),
+                    Text(AppStrings.ideasBoxContent, style: AppStyles.footnote(context)),
+                  ],
                 ),
-              ],
-            ),
-            onTap: () async {
-              if (await InAppReview.instance.isAvailable()) {
-                await InAppReview.instance.requestReview();
-              } else {
-                await InAppReview.instance.openStoreListing(appStoreId: "6752887226");
-              }
-              if (context.mounted) {
-                showCupertinoDialog(
-                  context: context,
-                  builder: (_) => Dialog(title: AppStrings.thanks, options: {AppStrings.close: () {}}),
-                );
-              }
-            },
-          ),
-
-          Button(
-            margin: .only(bottom: 16),
-            padding: .all(16),
-            color: AppColors.secondaryBackground.adaptTo(context),
-            transparent: true,
-            rawChild: Row(
-              spacing: AppSpacing.m + 2,
-              children: [
-                ListTile.iconTile(context, icon: HugeIcons.strokeRoundedIdea01),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: .stretch,
-                    spacing: 2,
-                    children: [
-                      Text(AppStrings.ideasBox, style: AppStyles.strongText(context).copyWith(fontSize: 18)),
-                      Text(AppStrings.ideasBoxContent, style: AppStyles.subheadline(context)),
-                    ],
-                  ),
+              ),
+              ListTile(
+                leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedStar, color: AppColors.orange),
+                onTap: () async {
+                  if (await InAppReview.instance.isAvailable()) {
+                    await InAppReview.instance.requestReview();
+                  } else {
+                    await InAppReview.instance.openStoreListing(appStoreId: "6752887226");
+                  }
+                  if (context.mounted) {
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (_) => Dialog(title: AppStrings.thanks, options: {AppStrings.close: () {}}),
+                    );
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: .start,
+                  spacing: 2,
+                  children: [
+                    Text(AppStrings.leaveReview, style: AppStyles.primaryText(context)),
+                    Text(AppStrings.leaveReviewContent(Theme.of(context).platform == .android), style: AppStyles.footnote(context)),
+                  ],
                 ),
-                HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
-              ],
-            ),
-            onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => IdeasPage())),
+              ),
+            ],
           ),
 
           BottomSpacing(includeBottomBar: true),
@@ -406,12 +397,9 @@ class SearchPageState extends State<SearchPage> {
       ),
       body: searchBarFocusNode.hasFocus || searchResults.isNotEmpty && searchBarController.text.isNotEmpty
           ? searchResults.isNotEmpty
-                ? ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    padding: .only(top: 16),
-                    itemCount: searchResults.length,
-                    itemBuilder: (context, index) => buildResult(searchResults[index]),
+                ? Padding(
+                    padding: const .only(top: AppSpacing.s),
+                    child: CardGroup(separatorInset: AppSpacing.l + 44 + AppSpacing.m + 2, children: [for (final result in searchResults) buildResult(result)]),
                   )
                 : Padding(padding: .only(top: 24), child: buildDecoration())
           : buildNews(),

@@ -19,6 +19,7 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
@@ -81,23 +82,13 @@ class _ChatsListPageState extends State<ChatsListPage> {
     HapticFeedback.mediumImpact();
     final name = chat.displayUsername ?? Account.getDefaultDisplayName(chat.username);
 
-    final choice = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(name),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context, "pin"),
-            child: _ActionRow(text: chat.isPinned ? AppStrings.unpinChat : AppStrings.pinChat, icon: chat.isPinned ? AppIcons.unpin : AppIcons.pin),
-          ),
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(context, "delete"),
-            child: const _ActionRow(text: AppStrings.deleteChat, icon: AppIcons.delete, color: AppColors.red),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text(AppStrings.cancel)),
-      ),
+    final choice = await ActionSheet.show<String>(
+      context,
+      title: name,
+      actions: [
+        SheetAction(chat.isPinned ? AppStrings.unpinChat : AppStrings.pinChat, icon: chat.isPinned ? AppIcons.unpin : AppIcons.pin, value: "pin"),
+        const SheetAction(AppStrings.deleteChat, icon: AppIcons.delete, value: "delete", isDestructive: true),
+      ],
     );
     if (!mounted) return;
 
@@ -135,15 +126,19 @@ class _ChatsListPageState extends State<ChatsListPage> {
     return GestureDetector(
       onLongPress: () => showChatMenu(chat),
       child: CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s - 2, vertical: AppSpacing.s),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2),
         minimumSize: Size.zero,
+        pressedOpacity: .55,
         onPressed: () => openChat(chat.username),
         child: Row(
-          spacing: AppSpacing.l - 2,
+          spacing: AppSpacing.m + 2,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox.square(
               dimension: AppSizes.avatar,
-              child: ClassService.isClassChat(chat.username) ? const ClassAvatar(size: AppSizes.avatar) : ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked),
+              child: ClassService.isClassChat(chat.username)
+                  ? const ClassAvatar(size: AppSizes.avatar)
+                  : ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked),
             ),
             Expanded(
               child: Column(
@@ -159,14 +154,14 @@ class _ChatsListPageState extends State<ChatsListPage> {
                           chat.displayUsername ?? Account.getDefaultDisplayName(chat.username),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppStyles.strongText(context).copyWith(fontSize: 18),
+                          style: AppStyles.strongText(context),
                         ),
                       ),
                       if (lastMessage != null)
                         Text(
                           lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
-                          style: AppStyles.subheadline(context).copyWith(
-                            color: hasUnread ? AppColors.tint.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
+                          style: AppStyles.footnote(context).copyWith(
+                            color: hasUnread ? AppColors.text.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
                             fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
@@ -178,7 +173,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     children: [
                       Expanded(
                         child: lastMessage == null
-                            ? Text(AppStrings.chatsNoMessage, style: AppStyles.callout(context).copyWith(fontStyle: FontStyle.italic, color: AppColors.tertiaryText.adaptTo(context)))
+                            ? Text(
+                                AppStrings.chatsNoMessage,
+                                style: AppStyles.callout(context).copyWith(fontStyle: FontStyle.italic, color: AppColors.tertiaryText.adaptTo(context)),
+                              )
                             : Text.rich(
                                 TextSpan(
                                   children: [
@@ -187,13 +185,20 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                         alignment: PlaceholderAlignment.middle,
                                         child: Padding(
                                           padding: const EdgeInsets.only(right: AppSpacing.xs),
-                                          child: HugeIcon(icon: getStatusIcon(lastMessage.status).icon, size: 16, color: getStatusIcon(lastMessage.status).color),
+                                          child: HugeIcon(
+                                            icon: getStatusIcon(lastMessage.status).icon,
+                                            size: 16,
+                                            color: getStatusIcon(lastMessage.status).color,
+                                          ),
                                         ),
                                       ),
                                     if (previewIcon != null)
                                       WidgetSpan(
                                         alignment: PlaceholderAlignment.middle,
-                                        child: Padding(padding: const EdgeInsets.only(right: AppSpacing.xs), child: HugeIcon(icon: previewIcon, size: 16, color: secondary)),
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(right: AppSpacing.xs),
+                                          child: HugeIcon(icon: previewIcon, size: 16, color: secondary),
+                                        ),
                                       ),
                                     ...CustomText.parseSpans(
                                       previewOf(lastMessage),
@@ -209,13 +214,21 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                       ),
-                      if (chat.isPinned) Padding(padding: const EdgeInsets.only(top: 2), child: HugeIcon(icon: AppIcons.pin, size: 16, color: secondary)),
+                      if (chat.isPinned)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: HugeIcon(icon: AppIcons.pin, size: 16, color: secondary),
+                        ),
                       if (hasUnread)
                         Container(
                           constraints: const BoxConstraints(minWidth: 22),
                           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s - 2, vertical: AppSpacing.xxs),
-                          decoration: BoxDecoration(gradient: AppColors.accentGradient, borderRadius: BorderRadius.circular(AppRadius.s)),
-                          child: Text(chat.unreadMessages > 99 ? "99+" : chat.unreadMessages.toString(), textAlign: TextAlign.center, style: AppStyles.badge(context)),
+                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(AppRadius.s)),
+                          child: Text(
+                            chat.unreadMessages > 99 ? "99+" : chat.unreadMessages.toString(),
+                            textAlign: TextAlign.center,
+                            style: AppStyles.badge(context),
+                          ),
                         ),
                     ],
                   ),
@@ -269,31 +282,17 @@ class _ChatsListPageState extends State<ChatsListPage> {
               padding: const EdgeInsets.only(top: AppSpacing.s),
               itemCount: entries.length + 1,
               itemBuilder: (context, index) => index == entries.length ? const BottomSpacing(includeBottomBar: true) : buildChatTile(entries[index]),
-              separatorBuilder: (context, index) =>
-                  index == entries.length - 1 ? const SizedBox.shrink() : Container(height: .5, margin: const EdgeInsets.only(left: AppSizes.avatar + AppSpacing.xl), color: AppColors.separator.adaptTo(context)),
+              separatorBuilder: (context, index) => index == entries.length - 1
+                  ? const SizedBox.shrink()
+                  : Container(
+                      height: .5,
+                      margin: const EdgeInsets.only(left: AppSizes.avatar + AppSpacing.m + 2),
+                      color: AppColors.separator.adaptTo(context),
+                    ),
             );
           },
         ),
       ),
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  final String text;
-  final List<List<dynamic>> icon;
-  final Color? color;
-  const _ActionRow({required this.text, required this.icon, this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = this.color ?? AppColors.tint.adaptTo(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(text, style: TextStyle(color: color)),
-        HugeIcon(icon: icon, size: 22, color: color),
-      ],
     );
   }
 }

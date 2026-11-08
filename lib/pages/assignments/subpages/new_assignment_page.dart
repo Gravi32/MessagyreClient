@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
@@ -222,6 +224,11 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     super.dispose();
   }
 
+  Widget sectionTitle(String title) => Padding(
+    padding: const .only(left: 4, top: AppSpacing.xl, bottom: AppSpacing.s),
+    child: Text(title, style: AppStyles.section(context)),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Page(
@@ -240,52 +247,48 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         ),
       ),
       child: ListView(
+        padding: const .only(top: AppSpacing.s, bottom: AppSpacing.xxl),
         children: [
           SegmentedControl<AssignmentType>(options: {"Devoir": .assignment, "Test": .test, "Congé": .leave}, onTap: updateMode, defaultIndex: mode.index),
 
-          const SizedBox(height: 8),
-
+          sectionTitle(mode == .test ? "Test" : (mode == .leave ? "Congé" : "À faire")),
           if (mode == .test)
             Field(
-              margin: .only(top: 8),
+              margin: const .only(bottom: AppSpacing.m),
               controller: titleController,
               focusNode: titleFocusNode,
-              placeholder: "Titre ${mode == .test ? "*" : ""}",
+              placeholder: "Titre du test",
               maxLines: 2,
               error: isMissingTitle ? "Entrez un titre" : null,
               onTap: () => setState(() => isMissingTitle = false),
             ),
-
           Field(
-            margin: .only(top: 8),
             controller: contentController,
             focusNode: contentFocusNode,
             placeholder: switch (mode) {
-              .assignment => "Ce que vous devez faire... *",
-              .test => "Déscription du test...",
-              .leave => "Motif, période ou durée du congé...",
+              .assignment => "Ce que vous devez faire…",
+              .test => "Chapitres, pages, remarques… (facultatif)",
+              .leave => "Motif, période ou durée du congé…",
             },
-            minLines: mode == .test ? 3 : 5,
+            minLines: mode == .test ? 3 : 4,
             maxLines: 10,
             onTap: () => setState(() => isMissingContent = false),
           ),
 
+          sectionTitle("Quand"),
           ListSection(
-            margin: .only(top: 24),
-            footer: mode == .leave ? null : "Merci de remplir les champs obligatoires *",
             children: [
               if (mode != .leave)
                 ListTile(
                   onTap: () => subjectFocusNode.requestFocus(),
-                  leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02),
-                  trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
-
+                  leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02, color: isMissingSubject ? AppColors.red : null),
+                  trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : const SizedBox.shrink(),
                   child: SubjectAutocomplete(
                     controller: subjectController,
                     focusNode: subjectFocusNode,
                     decoration: const BoxDecoration(),
                     padding: .zero,
-                    placeholder: "Entrez une branche *",
+                    placeholder: "Branche",
                     placeholderStyle: isMissingSubject ? const TextStyle(color: AppColors.red) : null,
                     onSubjectSelected: (selectedSubject) {
                       setState(() {
@@ -297,47 +300,38 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     forceValid: true,
                   ),
                 ),
-
               ListTile.simple(
                 context,
-                icon: HugeIcons.strokeRoundedWorkHistory,
+                icon: HugeIcons.strokeRoundedCalendar04,
+                title: switch (mode) {
+                  .assignment => "Pour",
+                  .test => "Le",
+                  .leave => "Le",
+                },
                 trailing: Row(
                   mainAxisSize: .min,
-                  children: [Text(formatDate(dueDate, includeArticle: true), style: TextStyle(color: AppColors.secondaryText.adaptTo(context)))],
+                  spacing: 6,
+                  children: [
+                    Text(formatDate(dueDate, includeArticle: true), style: AppStyles.secondaryText(context)),
+                    HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                  ],
                 ),
-                title: switch (mode) {
-                  .assignment => "Délai du devoir",
-                  .test => "Date du test",
-                  .leave => "Date du congé",
-                },
                 onTap: showDatePicker,
               ),
             ],
           ),
 
-          if (userClass != null)
-            ListSection(
-              margin: .only(top: 24),
-              footer: "Ce devoir sera partagé avec tous les utilisateurs de la $userClass.",
-              children: [
-                ListTile.simple(
-                  context,
-                  icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                  title: "Partager avec vôtre classe",
-                  trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: isShared, onChanged: (value) => setState(() => isShared = value)),
-                ),
-              ],
-            ),
-
+          sectionTitle("Options"),
           ListSection(
-            margin: .only(top: 24),
-            footer: isNotificationPossible ? null : "Ce devoir est situé dans le passé",
+            footer: !isNotificationPossible
+                ? "La date est passée : pas d'alerte possible."
+                : (userClass != null && isShared ? "Visible par tous les utilisateurs de la $userClass." : null),
             children: [
               ListTile.simple(
                 context,
                 icon: HugeIcons.strokeRoundedNotification01,
-                title: notificationDate == null ? "Planifier une alerte" : "Alerte",
-
+                title: "Alerte",
+                enabled: isNotificationPossible,
                 onTap: () => showCupertinoModalPopup(
                   context: context,
                   builder: (context) => NotificationDatePicker(
@@ -347,43 +341,51 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                     onNotificationDateChanged: (newDate) => setState(() => notificationDate = newDate),
                   ),
                 ),
-                trailing: isNotificationPossible
-                    ? Row(
-                        mainAxisSize: .min,
-                        children: [
-                          Text(
-                            notificationDate == null
-                                ? "Non"
-                                : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, à ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour.toString().padLeft(2, "0")}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute}"} ",
-                            style: TextStyle(color: AppColors.secondaryText.adaptTo(context)),
-                          ),
-                          CupertinoListTileChevron(),
-                        ],
-                      )
-                    : null,
+                trailing: Row(
+                  mainAxisSize: .min,
+                  spacing: 6,
+                  children: [
+                    Text(
+                      notificationDate == null
+                          ? "Aucune"
+                          : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour.toString().padLeft(2, "0")}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute.toString().padLeft(2, "0")}"}",
+                      style: AppStyles.secondaryText(context),
+                    ),
+                    HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                  ],
+                ),
               ),
-
+              if (userClass != null)
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  title: "Partager avec la classe",
+                  trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: isShared, onChanged: (value) => setState(() => isShared = value)),
+                ),
               if (mode == AssignmentType.test)
                 ListTile.simple(
                   context,
                   icon: HugeIcons.strokeRoundedCheckmarkBadge04,
-                  title: "Suggérer dans la page des notes",
-                  trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
+                  title: "Proposer dans les notes",
+                  trailing: CupertinoSwitch(
+                    activeTrackColor: AppColors.accent,
+                    value: addingToGradesPage,
+                    onChanged: (value) => setState(() => addingToGradesPage = value),
+                  ),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
 
-          if (widget.toEdit != null)
+          if (widget.toEdit != null) ...[
+            const SizedBox(height: AppSpacing.section),
             ListSection(
-              title: "Supprimer",
-              margin: .zero,
               children: [
                 ListTile.simple(
                   context,
                   icon: HugeIcons.strokeRoundedDelete04,
                   title: "Supprimer ce ${formatAssignmentType(mode)}",
                   isDestructive: true,
+                  buildChevron: false,
                   onTap: () {
                     showCupertinoDialog(
                       context: context,
@@ -403,7 +405,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 ),
               ],
             ),
-          const SizedBox(height: 10),
+          ],
         ],
       ),
     );

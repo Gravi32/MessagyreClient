@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
@@ -103,7 +104,9 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                   children: [
                     Row(
                       children: [
-                        widget.senderUsername.startsWith("#") ? const ClassAvatar(size: 48) : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 24),
+                        widget.senderUsername.startsWith("#")
+                            ? const ClassAvatar(size: 48)
+                            : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 24),
                         SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -114,29 +117,18 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                                 mainAxisAlignment: .spaceBetween,
                                 children: [
                                   Flexible(
-                                    child: Text(
-                                      widget.title,
-                                      maxLines: 1,
-                                      overflow: .ellipsis,
-                                      style: TextStyle(fontWeight: .w600, color: AppColors.text.adaptTo(context), fontSize: 18),
-                                    ),
+                                    child: Text(widget.title, maxLines: 1, overflow: .ellipsis, style: AppStyles.strongText(context)),
                                   ),
                                   if (unreadMessages != null && unreadMessages - 1 > 0)
                                     Container(
                                       margin: .only(top: 4),
                                       padding: .symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(gradient: AppColors.accentGradient, borderRadius: .circular(12)),
-                                      child: Text("${unreadMessages - 1}", style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: .w500)),
+                                      decoration: BoxDecoration(color: AppColors.accent, borderRadius: .circular(12)),
+                                      child: Text("${unreadMessages - 1}", style: AppStyles.badge(context)),
                                     ),
                                 ],
                               ),
-                              CustomText(
-                                widget.messageContent.trim(),
-                                maxLines: 2,
-                                overflow: .fade,
-                                softWrap: true,
-                                style: TextStyle(fontWeight: .w400, fontSize: 16, color: AppColors.secondaryText.adaptTo(context)),
-                              ),
+                              CustomText(widget.messageContent.trim(), maxLines: 2, overflow: .fade, softWrap: true, style: AppStyles.subheadline(context)),
                             ],
                           ),
                         ),

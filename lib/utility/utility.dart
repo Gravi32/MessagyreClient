@@ -353,7 +353,7 @@ String? getFractionString(double value) {
   MessageStatus.Sending => (icon: AppIcons.statusSending, color: AppColors.grey),
   MessageStatus.Sent => (icon: AppIcons.statusSent, color: AppColors.grey),
   MessageStatus.Delivered => (icon: AppIcons.statusDelivered, color: AppColors.grey),
-  MessageStatus.Read => (icon: AppIcons.statusDelivered, color: AppColors.accent),
+  MessageStatus.Read => (icon: AppIcons.statusDelivered, color: AppColors.blue),
 };
 // #endregion
 

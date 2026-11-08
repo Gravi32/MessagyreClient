@@ -3,22 +3,21 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/pages/grades/subpages/report_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
-import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/chart.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/paged_card.dart';
 
+/// The top of the grades page: the general average with its curve and a few figures, then the report card's summary
 class GradesTopCard extends StatefulWidget {
   const GradesTopCard({super.key});
 
@@ -30,257 +29,194 @@ class _GradesTopCardState extends State<GradesTopCard> {
   final database = DatabaseService();
   final report = ReportService();
 
-  List<Grade> grades = [];
-
-  Widget buildGeneralAverageTab() {
-    final generalAverage = calculateAverage(grades.toList());
-    final color = getGradeColor(generalAverage, defaultColor: AppColors.tint.adaptTo(context));
-
-    grades.sort((a, b) => a.date.compareTo(b.date));
-
-    double sum = 0;
-    int count = 0;
-
-    double minAverage = double.infinity;
-    double maxAverage = -double.infinity;
-
-    final allAverages = <double>[];
-
-    for (final grade in grades) {
-      sum += grade.grade;
-      count++;
-
-      final average = sum / count;
-
-      allAverages.add(average);
-
-      if (average < minAverage) minAverage = average;
-      if (average > maxAverage) maxAverage = average;
-    }
-
-    return Column(
-      mainAxisSize: .max,
-      mainAxisAlignment: .center,
-      crossAxisAlignment: .center,
-      spacing: 10,
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              Padding(
-                padding: .only(top: 15, bottom: 15, left: 55),
-                child: Chart(
-                  color: color,
-                  showTitles: true,
-                  min: max(minAverage.floor().toDouble(), 1),
-                  max: min(maxAverage.ceil().toDouble(), 6),
-                  spots: allAverages.mapIndexed((index, average) => FlSpot(index / allAverages.length, average)).toList(),
-                ),
-              ),
-
-              // The card's color under the ring hides the start of the chart
-              Container(
-                decoration: BoxDecoration(shape: .circle, color: AppColors.secondaryBackground.adaptTo(context)),
-                child: Center(
-                  child: GradeDisplay(
-                    grade: generalAverage,
-                    size: 100,
-                    strokeWidth: 5,
-                    roundGrade: false,
-                    textBelow: "${grades.length} note${grades.length > 1 ? 's' : ''}",
-                  ),
-                ),
-              ).withAspectRatio(1),
-            ],
-          ),
-        ),
-        Text("Moyenne générale", style: AppStyles.secondaryHeader(context)),
-      ],
-    );
-  }
-
-  Widget buildReportCardTab() {
-    Widget buildReportStat(String title, String value, Color? valueColor) {
-      return Padding(
-        padding: .symmetric(horizontal: 12),
-        child: Row(
-          mainAxisAlignment: .spaceBetween,
+  Widget buildAverageCard(List<Grade> grades) {
+    if (grades.isEmpty) {
+      return RoundContainer(
+        padding: const .all(AppSpacing.card),
+        child: Column(
+          crossAxisAlignment: .start,
+          spacing: AppSpacing.xs,
           children: [
-            Text(title, style: AppStyles.primaryText(context)),
-            Text(value, style: AppStyles.secondaryHeader(context).copyWith(color: valueColor)),
+            Text("MOYENNE GÉNÉRALE", style: AppStyles.overline(context)),
+            Text("Pas encore de notes", style: AppStyles.header(context)),
+            Text("Ajoutez votre première note avec le bouton +.", style: AppStyles.subheadline(context)),
           ],
         ),
       );
     }
 
-    final stats = [
-      buildReportStat(
-        "Points totaux",
-        report.totalPoints.removeTrailingZero(),
-        getGradeColor(report.totalPoints / report.maxTotalPoints * 6, defaultColor: AppColors.green),
+    final generalAverage = calculateAverage(grades.toList());
+    final chronological = grades.sorted((a, b) => a.date.compareTo(b.date));
+
+    // The running average, grade after grade (the curve)
+    double sum = 0;
+    final runningAverages = <double>[];
+    for (final (index, grade) in chronological.indexed) {
+      sum += grade.grade;
+      runningAverages.add(sum / (index + 1));
+    }
+    final low = runningAverages.reduce(min), high = runningAverages.reduce(max);
+
+    final values = grades.map((grade) => grade.grade).toList();
+    final recent = chronological.reversed.take(3).map((grade) => grade.grade).toList();
+    final recentAverage = recent.reduce((a, b) => a + b) / recent.length;
+    final best = values.reduce(max);
+    final aboveFive = (values.where((value) => value >= 5).length / values.length * 100).round();
+    final isFailing = generalAverage < 4;
+
+    return RoundContainer(
+      padding: .zero,
+      child: Column(
+        crossAxisAlignment: .stretch,
+        children: [
+          Padding(
+            padding: const .fromLTRB(AppSpacing.card, AppSpacing.card, AppSpacing.card, AppSpacing.l),
+            child: Row(
+              crossAxisAlignment: .end,
+              spacing: AppSpacing.xl,
+              children: [
+                Column(
+                  crossAxisAlignment: .start,
+                  children: [
+                    Text("MOYENNE GÉNÉRALE", style: AppStyles.overline(context)),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      GradeDisplay.format(generalAverage, round: false),
+                      style: AppStyles.display(
+                        context,
+                      ).copyWith(color: isFailing ? getGradeColor(generalAverage) : null, fontFeatures: const [FontFeature.tabularFigures()]),
+                    ),
+                    Text("${grades.length} note${grades.length > 1 ? "s" : ""}", style: AppStyles.subheadline(context)),
+                  ],
+                ),
+                Expanded(
+                  child: SizedBox(
+                    height: 72,
+                    child: Chart(
+                      color: isFailing ? getGradeColor(generalAverage) : AppColors.text.adaptTo(context).withValues(alpha: .75),
+                      showLines: false,
+                      min: max(low.floorToDouble() - .5, 1),
+                      max: min(high.ceilToDouble(), 6),
+                      spots: runningAverages.mapIndexed((index, average) => FlSpot(index.toDouble(), average)).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(height: .5, color: AppColors.separator.adaptTo(context)),
+          Padding(
+            padding: const .symmetric(vertical: AppSpacing.m + 2),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _Figure(label: "3 dernières", value: GradeDisplay.format(recentAverage, round: false)),
+                  ),
+                  _divider(context),
+                  Expanded(
+                    child: _Figure(label: "Meilleure", value: GradeDisplay.format(best)),
+                  ),
+                  _divider(context),
+                  Expanded(
+                    child: _Figure(label: "5 ou plus", value: "$aboveFive %"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _divider(BuildContext context) => Container(width: .5, margin: const .symmetric(vertical: 4), color: AppColors.separator.adaptTo(context));
+
+  Widget buildReportCard() {
+    final failingColor = report.failingGrades <= 0
+        ? AppColors.green
+        : report.failingGrades <= report.maxFailingGrades
+        ? AppColors.orange
+        : AppColors.red;
+
+    final figures = <Widget>[
+      _Figure(label: "Points", value: report.totalPoints.removeTrailingZero(), alignment: .start),
       if (report.maxFailingGrades > 0)
-        buildReportStat(
-          "Branches sous la moyenne",
-          report.failingGrades.toString(),
-          report.failingGrades <= 0
-              ? AppColors.green
-              : report.failingGrades <= report.maxFailingGrades
-              ? AppColors.orange
-              : AppColors.red,
-        ),
-      if (report.usingRestrictedGroup)
-        buildReportStat(
-          "Points du groupe restreint",
-          report.restrictedGroupPoints.removeTrailingZero(),
-          getGradeColor(6 - report.restrictedGroupPoints / report.maxRestrictedGroupPoints * 6, defaultColor: AppColors.green),
-        ),
+        _Figure(label: "Insuffisantes", value: "${report.failingGrades} / ${report.maxFailingGrades}", valueColor: failingColor, alignment: .start),
+      if (report.usingRestrictedGroup) _Figure(label: "Groupe restreint", value: report.restrictedGroupPoints.removeTrailingZero(), alignment: .start),
       if (report.usingDoubleCompensation)
-        buildReportStat(
-          "Double compensation",
-          report.doubleCompensation.removeTrailingZero(),
-          report.doubleCompensation >= 0 ? AppColors.green : AppColors.red,
+        _Figure(
+          label: "Compensation",
+          value: report.doubleCompensation.removeTrailingZero(),
+          valueColor: report.doubleCompensation >= 0 ? AppColors.green : AppColors.red,
+          alignment: .start,
         ),
     ];
 
-    return Column(
-      crossAxisAlignment: .start,
-      spacing: 8,
-      children: [
-        Row(
-          mainAxisAlignment: .spaceBetween,
-          crossAxisAlignment: .center,
-          children: [
-            Text("Bulletin", style: AppStyles.secondaryHeader(context)),
-            Button.icon(
-              context,
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              color: AppColors.tertiaryBackground.adaptTo(context),
-              onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())).then((_) {
-                if (mounted) setState(() {});
-              }),
-              size: 40,
-            ),
-          ],
-        ),
-
-        Expanded(
-          child: RoundContainer(
-            padding: .zero,
-            borderRadius: 18,
-            color: AppColors.tertiaryBackground.adaptTo(context),
-            child: ListView.separated(
-              padding: .symmetric(vertical: 8),
-              physics: ClampingScrollPhysics(),
-              itemCount: stats.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) => stats[index],
-              separatorBuilder: (context, index) => Divider(height: 16, color: AppColors.separator.adaptTo(context)),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildStatsTab() {
-    Widget buildBox(String title, String value) {
-      return RoundContainer(
-        margin: const .all(4),
-        borderRadius: 16,
-        padding: const .symmetric(vertical: 10, horizontal: 6),
-        color: AppColors.tertiaryBackground.adaptTo(context),
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      pressedOpacity: .6,
+      onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const ReportCardPage())).then((_) {
+        if (mounted) setState(() {});
+      }),
+      child: RoundContainer(
+        padding: const .all(AppSpacing.card),
         child: Column(
-          mainAxisAlignment: .center,
           crossAxisAlignment: .stretch,
-          spacing: 4,
+          spacing: AppSpacing.l,
           children: [
-            Expanded(
-              child: Text(title, style: AppStyles.subheadline(context), textAlign: .center),
+            Row(
+              spacing: AppSpacing.m,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: .center,
+                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(9)),
+                  child: HugeIcon(icon: HugeIcons.strokeRoundedFile02, size: 18, color: AppColors.text.adaptTo(context)),
+                ),
+                Expanded(child: Text("Bulletin", style: AppStyles.strongText(context))),
+                HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+              ],
             ),
-            Expanded(
-              flex: 2,
-              child: Text(value, style: AppStyles.secondaryHeader(context).copyWith(fontSize: 22), textAlign: .center),
-            ),
+            Row(children: [for (final figure in figures.take(3)) Expanded(child: figure)]),
           ],
         ),
-      );
-    }
-
-    final total = grades.length;
-
-    // Extract grade values and sort them
-    final values = grades.map((g) => g.grade).toList()..sort();
-
-    // Threshold percentage
-    final threshold = 5.0;
-    final aboveThreshold = (values.where((v) => v >= threshold).length / total * 100).round();
-
-    // Average
-    final average = values.reduce((a, b) => a + b) / total;
-
-    // Median
-    final mid = total ~/ 2;
-    final median = total.isOdd ? values[mid] : (values[mid - 1] + values[mid]) / 2;
-
-    // Minimum and maximum
-    final minGrade = values.first;
-    final maxGrade = values.last;
-
-    // Range
-    final range = maxGrade - minGrade;
-
-    // Stability = standard deviation
-    final variance = values.map((v) => pow(v - average, 2)).reduce((a, b) => a + b) / total;
-    final stdDev = sqrt(variance);
-
-    // Recent trend = average of last 3 grades
-    final recentCount = min(3, total);
-    final recentGrades = grades..sort((a, b) => b.date.compareTo(a.date));
-    final recentAverage = recentGrades.take(recentCount).map((g) => g.grade).reduce((a, b) => a + b) / recentCount;
-
-    // Build the grid of statistics
-    return Column(
-      crossAxisAlignment: .start,
-      spacing: 4,
-      children: [
-        Row(
-          crossAxisAlignment: .center,
-          children: [
-            Text("Statistiques", style: AppStyles.secondaryHeader(context)),
-            SizedBox(height: 40),
-          ],
-        ),
-
-        Expanded(
-          child: GridView.count(
-            padding: .zero,
-            crossAxisCount: 3,
-            childAspectRatio: 1.3,
-            children: [
-              buildBox("Notes", "$total"),
-              buildBox("≥ $threshold", "$aboveThreshold %"),
-              buildBox("Stabilité", stdDev.toStringAsFixed(2)),
-              buildBox("Moyenne", average.toStringAsFixed(2)),
-              buildBox("Médiane", median.toStringAsFixed(2)),
-              buildBox("Maximum", maxGrade.toStringAsFixed(2)),
-              buildBox("Minimum", minGrade.toStringAsFixed(2)),
-              buildBox("Étendue", range.toStringAsFixed(2)),
-              buildBox("Récente", recentAverage.toStringAsFixed(2)),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    grades = database.grades.getAll();
+    final grades = database.grades.getAll();
 
-    return Padding(
-      padding: const .only(top: 6),
-      child: PagedCard(height: 160, pages: grades.isEmpty ? [buildReportCardTab()] : [buildGeneralAverageTab(), buildReportCardTab(), buildStatsTab()]),
+    return Column(crossAxisAlignment: .stretch, spacing: AppSpacing.m, children: [buildAverageCard(grades), buildReportCard()]);
+  }
+}
+
+/// A figure and its label, small
+class _Figure extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final CrossAxisAlignment alignment;
+
+  const _Figure({required this.label, required this.value, this.valueColor, this.alignment = .center});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: alignment,
+      spacing: 2,
+      children: [
+        Text(
+          value,
+          maxLines: 1,
+          style: AppStyles.secondaryHeader(context).copyWith(fontWeight: .w700, color: valueColor, fontFeatures: const [FontFeature.tabularFigures()]),
+        ),
+        Text(label, maxLines: 1, overflow: .ellipsis, style: AppStyles.footnote(context)),
+      ],
     );
   }
 }

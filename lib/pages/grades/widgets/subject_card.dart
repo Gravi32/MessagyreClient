@@ -5,12 +5,13 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/grades/subpages/subject_page.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
-import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/modal_popup.dart';
@@ -74,62 +75,25 @@ class SubjectCard extends StatelessWidget {
               onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => NewCompositeSubjectPage(toEdit: compositeSubject))),
             ),
           ),
-          decorations: [Text("Appuyez pour voir les notes", style: AppStyles.footer(context))],
+          decorations: [Text("Touchez une partie pour voir ses notes", style: AppStyles.footer(context))],
           child: Column(
             mainAxisSize: .min,
             spacing: 16,
             children: [
-              CustomText(
-                "\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.",
-                style: AppStyles.primaryText(context).copyWith(fontSize: 17),
-              ),
-              SizedBox(
-                height: 110,
-                child: Row(
-                  crossAxisAlignment: .stretch,
-                  spacing: 8,
-                  children: [
-                    for (final subSubject in subSubjects) Expanded(child: SubjectCard(subject: subSubject)),
-                  ],
-                ),
+              CustomText("\"*${compositeSubject?.name}*\" est une *branche composée*, elle n'a pas de notes propres.", style: AppStyles.primaryText(context)),
+              CardGroup(
+                separatorInset: SubjectCard.separatorInset,
+                children: [for (final subSubject in subSubjects) SubjectCard(subject: subSubject)],
               ),
             ],
           ),
         ),
-
-        // CupertinoActionSheetAction(
-        //   onPressed: () => pushPage(context, firstSubject, dialogContext: dialogContext),
-        //   child: Row(
-        //     spacing: 8,
-        //     children: [
-        //       Padding(
-        //         padding: .symmetric(horizontal: 8),
-        //         child: SubjectBadge(subject: firstSubject),
-        //       ),
-        //       Text(firstSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-        //       Spacer(),
-        //       CupertinoListTileChevron(),
-        //     ],
-        //   ),
-        // ),
-        // CupertinoActionSheetAction(
-        //   onPressed: () => pushPage(context, secondSubject, dialogContext: dialogContext),
-        //   child: Row(
-        //     spacing: 8,
-        //     children: [
-        //       Padding(
-        //         padding: .symmetric(horizontal: 8),
-        //         child: SubjectBadge(subject: secondSubject),
-        //       ),
-        //       Text(secondSubject.name, style: TextStyle(fontSize: 20, color: AppColors.text.adaptTo(context))),
-        //       Spacer(),
-        //       CupertinoListTileChevron(),
-        //     ],
-        //   ),
-        // ),
       );
     }
   }
+
+  /// Where the separators between two rows start: under the name
+  static const double separatorInset = AppSpacing.l + 36 + AppSpacing.m;
 
   @override
   Widget build(BuildContext context) {
@@ -144,77 +108,81 @@ class SubjectCard extends StatelessWidget {
         .toList();
 
     final isSubjectLocked = subject?.isLocked ?? false;
-    final isSubjectEmpty = subjectGrades.isEmpty;
 
     final average =
         subject?.lockedGrade ??
         (compositeSubjectMode ? calculateCompositeSubjectAverage(compositeSubject!, round: true) : calculateAverage(subjectGrades, round: true));
+    final hasAverage = (average ?? 0) != 0;
+    final color = subject?.color ?? compositeSubject?.firstSubject.value?.color ?? AppColors.grey;
 
-    return Button(
-      color: (isSubjectLocked ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
-      transparent: true,
-      padding: .all(10).copyWith(bottom: 8),
-      onTap: () => onTap(context, isSubjectLocked, compositeSubjectMode),
-      rawChild: Column(
-        mainAxisSize: .max,
-        mainAxisAlignment: .spaceBetween,
-        crossAxisAlignment: .stretch,
-        spacing: 6,
-        children: [
-          // Badge + Average
-          SizedBox(
-            height: 30,
-            child: Row(
-              mainAxisAlignment: .spaceBetween,
-              spacing: 10,
-              children: [
-                // Subject badge
-                if (subject != null) SubjectBadge(subject: subject!).withAspectRatio(1),
-                if (compositeSubject != null) CompositeSubjectBadge(compositeSubject: compositeSubject!).withAspectRatio(1),
+    final String subtitle = isSubjectLocked
+        ? "Bloquée"
+        : compositeSubjectMode
+        ? "Branche composée · ${compositeSubject!.subjects.length} parties"
+        : subjectGrades.isEmpty
+        ? "Aucune note"
+        : "${subjectGrades.length} note${subjectGrades.length > 1 ? "s" : ""}";
 
-                Expanded(
-                  child: Text(subject?.name ?? compositeSubject?.name ?? "-", style: AppStyles.secondaryHeader(context), overflow: .ellipsis, maxLines: 1),
-                ),
-
-                // Average label
-                if ((average ?? 0) != 0)
-                  Text(
-                    average!.removeTrailingZero(),
-                    style: AppStyles.header(context).copyWith(color: getGradeColor(average, defaultColor: AppColors.text.adaptTo(context))),
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      pressedOpacity: .55,
+      onPressed: () => onTap(context, isSubjectLocked, compositeSubjectMode),
+      child: Padding(
+        padding: const .fromLTRB(AppSpacing.l, AppSpacing.m, AppSpacing.m, AppSpacing.m),
+        child: Row(
+          spacing: AppSpacing.m,
+          children: [
+            if (subject != null) SubjectBadge(subject: subject!, size: 36),
+            if (compositeSubject != null && subject == null) SizedBox.square(dimension: 36, child: CompositeSubjectBadge(compositeSubject: compositeSubject!)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                spacing: 2,
+                children: [
+                  Text(subject?.name ?? compositeSubject?.name ?? "-", style: AppStyles.strongText(context), overflow: .ellipsis, maxLines: 1),
+                  Row(
+                    spacing: 4,
+                    children: [
+                      if (isSubjectLocked) HugeIcon(icon: AppIcons.locked, size: 13, color: AppColors.tertiaryText.adaptTo(context)),
+                      Flexible(
+                        child: Text(subtitle, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context)),
+                      ),
+                    ],
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          Expanded(
-            child: () {
-              if (!isSubjectLocked && (average ?? 0) != 0) {
-                return Chart(
-                  padding: .symmetric(vertical: 3),
-                  backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
-                  color: subject?.color ?? compositeSubject?.firstSubject.value?.color ?? AppColors.accent,
+            // The grades' curve, in the subject's color
+            if (!isSubjectLocked && subjectGrades.length >= 2)
+              SizedBox(
+                width: 52,
+                height: 26,
+                child: Chart(
+                  color: color,
                   showLines: false,
                   showDots: false,
+                  showArea: false,
                   spots: subjectGrades.mapIndexed((index, grade) => FlSpot(index / subjectGrades.length, grade.grade)).toList(),
-                );
-              }
+                ),
+              ),
 
-              if (isSubjectLocked) {
-                return Align(
-                  alignment: .bottomRight,
-                  child: HugeIcon(icon: AppIcons.locked, size: AppStyles.primaryText(context).fontSize, color: AppColors.text.adaptTo(context)),
-                );
-              }
-              if (isSubjectEmpty && !isSubjectLocked && compositeSubject == null) {
-                return Align(
-                  alignment: .bottomRight,
-                  child: Text("+ Ajouter une note", softWrap: false, style: AppStyles.tertiaryText(context), overflow: .fade),
-                );
-              }
-              return SizedBox();
-            }(),
-          ),
-        ],
+            SizedBox(
+              width: 44,
+              child: Text(
+                hasAverage ? average!.removeTrailingZero() : "–",
+                textAlign: .right,
+                style: AppStyles.secondaryHeader(context).copyWith(
+                  fontWeight: .w700,
+                  color: hasAverage ? getGradeColor(average!, defaultColor: AppColors.text.adaptTo(context)) : AppColors.quaternaryText.adaptTo(context),
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+          ],
+        ),
       ),
     );
   }

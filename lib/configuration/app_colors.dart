@@ -1,61 +1,62 @@
 import 'package:flutter/material.dart';
 
-/// The app's palette. Every neutral is a shade of the icon's purple (barely tinted), so that light and dark mode look
-/// like the same app; the [accent] fills, the [tint] colors text and icons (lighter in dark mode, to stay readable).
+/// The app's palette: quiet neutral greys (in light and dark mode alike) and the icon's purple kept for the few
+/// things that matter (the main button, the sent bubbles, what is unread or selected). The [accent] fills, the [tint]
+/// colors text and icons (lighter in dark mode, to stay readable).
 class AppColors {
   // Accent
-  /// The brand's purple, for filled surfaces with white on top (buttons, sent bubbles, badges)
-  static const accent = Color.fromRGBO(171, 12, 179, 1.0);
+  /// The brand's purple, for filled surfaces with white on top (main buttons, sent bubbles, badges)
+  static const accent = Color.fromRGBO(160, 20, 170, 1.0);
 
   /// The accent for text and icons on the app's backgrounds: readable in both modes
-  static const tint = AppColor(light: Color.fromRGBO(150, 8, 160, 1.0), dark: Color.fromRGBO(226, 136, 240, 1.0));
+  static const tint = AppColor(light: Color.fromRGBO(146, 22, 156, 1.0), dark: Color.fromRGBO(218, 140, 232, 1.0));
 
-  /// A faint wash of the accent, behind a tinted icon or a selected item
-  static const accentSoft = AppColor(light: Color.fromRGBO(171, 12, 179, .09), dark: Color.fromRGBO(190, 60, 205, .22));
+  /// A faint wash of the accent, behind a selected item
+  static const accentSoft = AppColor(light: Color.fromRGBO(160, 20, 170, .08), dark: Color.fromRGBO(200, 110, 215, .16));
 
-  /// The app icon's background (sampled from assets/icons/full.png): the brand's color for the surfaces that carry
-  /// the Gymnase's shape, the main buttons and the selected tab
+  /// The app icon's background (sampled from assets/icons/full.png): only for the surfaces that carry the Gymnase's
+  /// shape (the profile card, the class card)
   static const accentGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color.fromRGBO(175, 0, 184, 1.0), Color.fromRGBO(99, 25, 104, 1.0)],
+    colors: [Color.fromRGBO(170, 10, 180, 1.0), Color.fromRGBO(99, 25, 104, 1.0)],
   );
 
-  /// The sent bubbles: the icon's gradient, softened so a long message stays easy to read
+  /// The sent bubbles: the accent, barely shaded so a long message stays easy to read
   static const sentGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color.fromRGBO(178, 22, 187, 1.0), Color.fromRGBO(132, 18, 143, 1.0)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color.fromRGBO(140, 34, 152, 1.0), Color.fromRGBO(126, 30, 138, 1.0)],
   );
 
   // Backgrounds
   /// The pages
-  static const background = AppColor(light: Color.fromRGBO(245, 243, 248, 1.0), dark: Color.fromRGBO(15, 12, 20, 1.0));
+  static const background = AppColor(light: Color.fromRGBO(244, 244, 246, 1.0), dark: Color.fromRGBO(10, 10, 12, 1.0));
 
   /// The cards, lists and controls laid on a page (lighter than it, in both modes)
-  static const secondaryBackground = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(29, 25, 36, 1.0));
+  static const secondaryBackground = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(27, 27, 30, 1.0));
 
   /// What sits inside a card: fields, the track of a switch, a selected segment
-  static const tertiaryBackground = AppColor(light: Color.fromRGBO(238, 234, 243, 1.0), dark: Color.fromRGBO(43, 37, 52, 1.0));
-  static const separator = AppColor(light: Color.fromRGBO(30, 16, 40, .11), dark: Color.fromRGBO(255, 255, 255, .09));
+  static const tertiaryBackground = AppColor(light: Color.fromRGBO(239, 239, 242, 1.0), dark: Color.fromRGBO(42, 42, 46, 1.0));
+  static const separator = AppColor(light: Color.fromRGBO(20, 20, 30, .1), dark: Color.fromRGBO(255, 255, 255, .09));
 
   /// The hairline around a card, so it stands out from the page
-  static const outline = AppColor(light: Color.fromRGBO(30, 16, 40, .07), dark: Color.fromRGBO(255, 255, 255, .06));
+  static const outline = AppColor(light: Color.fromRGBO(20, 20, 30, .07), dark: Color.fromRGBO(255, 255, 255, .07));
 
   // Text
-  static const text = AppColor(light: Color.fromRGBO(28, 22, 34, 1.0), dark: Color.fromRGBO(244, 240, 248, 1.0));
-  static const secondaryText = AppColor(light: Color.fromRGBO(28, 22, 34, .64), dark: Color.fromRGBO(244, 240, 248, .66));
-  static const tertiaryText = AppColor(light: Color.fromRGBO(28, 22, 34, .44), dark: Color.fromRGBO(244, 240, 248, .44));
-  static const quaternaryText = AppColor(light: Color.fromRGBO(28, 22, 34, .3), dark: Color.fromRGBO(244, 240, 248, .3));
-  static const placeholderText = AppColor(light: Color.fromRGBO(28, 22, 34, .38), dark: Color.fromRGBO(244, 240, 248, .38));
+  static const text = AppColor(light: Color.fromRGBO(22, 22, 26, 1.0), dark: Color.fromRGBO(244, 244, 246, 1.0));
+  static const secondaryText = AppColor(light: Color.fromRGBO(22, 22, 26, .62), dark: Color.fromRGBO(244, 244, 246, .64));
+  static const tertiaryText = AppColor(light: Color.fromRGBO(22, 22, 26, .42), dark: Color.fromRGBO(244, 244, 246, .42));
+  static const quaternaryText = AppColor(light: Color.fromRGBO(22, 22, 26, .26), dark: Color.fromRGBO(244, 244, 246, .26));
+  static const placeholderText = AppColor(light: Color.fromRGBO(22, 22, 26, .36), dark: Color.fromRGBO(244, 244, 246, .36));
 
   // Buttons
-  static const secondaryButton = AppColor(light: Color.fromRGBO(229, 223, 235, 1.0), dark: Color.fromRGBO(54, 47, 64, 1.0));
+  static const secondaryButton = AppColor(light: Color.fromRGBO(232, 232, 236, 1.0), dark: Color.fromRGBO(50, 50, 55, 1.0));
 
   // Chat bubbles
   // Sent: white text on the accent; received: the normal text color on the cards' color (readable in both modes)
-  static const sentBubble = AppColor(light: Color.fromRGBO(162, 16, 170, 1.0), dark: Color.fromRGBO(140, 22, 156, 1.0));
-  static const receivedBubble = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(40, 34, 49, 1.0));
+  static const sentBubble = AppColor(light: Color.fromRGBO(134, 32, 146, 1.0), dark: Color.fromRGBO(118, 30, 130, 1.0));
+  static const receivedBubble = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(38, 38, 42, 1.0));
 
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);
@@ -87,7 +88,7 @@ class AppColors {
 
   // Special colors
   static const transparent = Color.fromRGBO(0, 0, 0, 0.0);
-  static const inactive = AppColor(light: Color.fromRGBO(160, 154, 167, 1.0), dark: Color.fromRGBO(94, 87, 102, 1.0));
+  static const inactive = AppColor(light: Color.fromRGBO(160, 160, 166, 1.0), dark: Color.fromRGBO(92, 92, 98, 1.0));
 
   static bool isDark(BuildContext context) => MediaQuery.maybePlatformBrightnessOf(context) == .dark;
 

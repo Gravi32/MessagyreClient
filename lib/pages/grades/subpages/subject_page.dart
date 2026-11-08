@@ -24,7 +24,9 @@ import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/chart.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
-import 'package:messagyre_client/utility/widgets/paged_card.dart';
+import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
+import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class GradesSubjectPage extends StatefulWidget {
@@ -45,115 +47,126 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   List<Grade> get thisSubjectGrades => database.grades.getAll().where((grade) => grade.subject.value?.code == widget.subject.code).toList();
   late final allAssignments = database.assignments.getAll();
 
-  Widget buildGroupBar(String groupName) {
+  /// A group of grades (several tests counting as one grade), as a row of a card
+  Widget buildGroupRow(String groupName) {
     final gradesInGroup = thisSubjectGrades.where((grade) => grade.groupName == groupName).toList();
 
-    return Column(
-      children: [
-        CupertinoButton(
-          padding: .zero,
-          child: IntrinsicHeight(
-            child: Column(
-              spacing: 6,
-              children: [
-                Row(
-                  children: [
-                    GradeDisplay(grade: calculateAverage(gradesInGroup), isGroup: true),
-
-                    SizedBox(width: 12),
-
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: .start,
-                              crossAxisAlignment: .start,
-                              spacing: 4,
-                              children: [
-                                Row(
-                                  spacing: 6,
-                                  crossAxisAlignment: .baseline,
-                                  textBaseline: .alphabetic,
-                                  children: [
-                                    Text(groupName, style: AppStyles.secondaryHeader(context)),
-
-                                    Text(
-                                      "contient ${gradesInGroup.length} note${gradesInGroup.length > 1 ? "s" : ""}",
-                                      maxLines: 2,
-                                      overflow: .ellipsis,
-                                      style: AppStyles.tertiaryText(context),
-                                    ),
-                                  ],
-                                ),
-
-                                gradesInGroup.map((data) => data.title).isNotEmpty
-                                    ? Text(
-                                        gradesInGroup.map((data) => "• ${data.title}").join("\n"),
-                                        maxLines: 2,
-                                        overflow: .fade,
-                                        style: AppStyles.tertiaryText(context),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ],
-                            ),
-                          ),
-                          CupertinoListTileChevron(),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      pressedOpacity: .55,
+      onPressed: () => Navigator.of(context, rootNavigator: true)
+          .push(
+            CupertinoPageRoute(
+              builder: (context) => GradeGroupPage(groupName: groupName, groupSubject: widget.subject),
             ),
-          ),
-          onPressed: () {
-            Navigator.of(context, rootNavigator: true)
-                .push(
-                  CupertinoPageRoute(
-                    builder: (context) => GradeGroupPage(groupName: groupName, groupSubject: widget.subject),
-                  ),
-                )
-                .then((_) => setState(() {}));
-          },
+          )
+          .then((_) => setState(() {})),
+      child: Padding(
+        padding: const .fromLTRB(AppSpacing.l, AppSpacing.m, AppSpacing.m, AppSpacing.m),
+        child: Row(
+          spacing: AppSpacing.m + 2,
+          children: [
+            GradeDisplay(grade: calculateAverage(gradesInGroup), size: 46, isGroup: true),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                spacing: 3,
+                children: [
+                  Text(groupName, maxLines: 1, overflow: .ellipsis, style: AppStyles.strongText(context)),
+                  Text(gradesInGroup.map((grade) => grade.title).join(" · "), maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context)),
+                ],
+              ),
+            ),
+            HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget buildTopCard() {
-    final average = calculateAverage(thisSubjectGrades);
-    final (toPass, toMaintain, toBoost) = calculateGoalGrades(thisSubjectGrades, 1); //TODO: let the user choose the weight
+  /// The average, big, with its curve
+  Widget buildAverageCard() {
+    final grades = thisSubjectGrades.sorted((a, b) => a.date.compareTo(b.date));
+    final average = calculateAverage(grades);
+    final color = average < 4 ? getGradeColor(average) : widget.subject.color;
 
-    String formatGrade(double grade) {
-      return grade < 1
-          ? "< 1"
-          : grade > 6
-          ? "> 6"
-          : grade.removeTrailingZero();
-    }
-
-    Widget buildGoalBox({required List<List<dynamic>> icon, required String title, required String neededGrade, String? goalGrade, Color? gradeColor, bool dim = false}) {
-      return Opacity(
-        opacity: dim ? .4 : 1,
-        child: Row(
-          spacing: 8,
-          children: [
-            HugeIcon(icon: icon, color: AppColors.tertiaryText.adaptTo(context)),
-            RoundContainer(
-              margin: const .symmetric(vertical: 4),
-              padding: const .symmetric(vertical: 4, horizontal: 10),
-              color: AppColors.tertiaryBackground.adaptTo(context),
-              child: Text(neededGrade, style: AppStyles.header(context)),
-            ),
-
-            Expanded(
-              child: Row(
-                spacing: 8,
+    return RoundContainer(
+      padding: const .all(AppSpacing.card),
+      child: Row(
+        crossAxisAlignment: .end,
+        spacing: AppSpacing.xl,
+        children: [
+          Column(
+            crossAxisAlignment: .start,
+            children: [
+              Row(
+                spacing: AppSpacing.s,
                 children: [
-                  Text(title),
-                  if (goalGrade != null) Text(goalGrade, style: AppStyles.header(context).copyWith(color: gradeColor)),
+                  SubjectBadge(subject: widget.subject, size: 18),
+                  Text("MOYENNE", style: AppStyles.overline(context)),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                grades.isEmpty ? "–" : average.toStringAsFixed(2),
+                style: AppStyles.display(context).copyWith(color: average < 4 && grades.isNotEmpty ? color : null),
+              ),
+              Text(grades.isEmpty ? "Aucune note" : "${grades.length} note${grades.length > 1 ? "s" : ""}", style: AppStyles.subheadline(context)),
+            ],
+          ),
+          if (grades.isNotEmpty)
+            Expanded(
+              child: SizedBox(
+                height: 72,
+                child: Chart(
+                  color: color,
+                  showLines: false,
+                  showDots: true,
+                  spots: grades
+                      .mapIndexed(
+                        (index, grade) => FlSpot(index.toDouble(), calculateAverage(grades.where((other) => other.date.compareTo(grade.date) <= 0).toList())),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// The grade needed at the next test (weight 1) to keep, raise or reach the average
+  Widget buildGoals() {
+    final average = calculateAverage(thisSubjectGrades);
+    final (toPass, toMaintain, toBoost) = calculateGoalGrades(thisSubjectGrades, 1);
+
+    String formatGrade(double grade) => grade < 1
+        ? "< 1"
+        : grade > 6
+        ? "> 6"
+        : grade.removeTrailingZero();
+
+    Widget goal({required List<List<dynamic>> icon, required String title, required double needed}) {
+      final impossible = needed > 6;
+      final certain = needed < 1;
+      return Padding(
+        padding: const .symmetric(horizontal: AppSpacing.l, vertical: AppSpacing.m + 1),
+        child: Row(
+          spacing: AppSpacing.m,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              alignment: .center,
+              decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(9)),
+              child: HugeIcon(icon: icon, size: 18, color: AppColors.text.adaptTo(context)),
+            ),
+            Expanded(child: Text(title, style: AppStyles.primaryText(context))),
+            Text(
+              impossible ? "Impossible" : (certain ? "Assuré" : formatGrade(needed)),
+              style: (impossible || certain ? AppStyles.subheadline(context) : AppStyles.secondaryHeader(context).copyWith(fontWeight: .w700)).copyWith(
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ],
@@ -161,121 +174,22 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
       );
     }
 
-    return PagedCard(
-      height: 200,
-      pages: [
-        Column(
-          crossAxisAlignment: .stretch,
+    return Column(
+      crossAxisAlignment: .stretch,
+      children: [
+        const SectionHeader("Objectifs"),
+        CardGroup(
+          separatorInset: AppSpacing.l + 32 + AppSpacing.m,
           children: [
-            Row(
-              spacing: 8,
-              children: [
-                SubjectBadge(subject: widget.subject, size: 24),
-                Text("Moyenne", style: AppStyles.secondaryHeader(context)),
-                Spacer(),
-                Text(average.toStringAsFixed(2), style: AppStyles.header(context).copyWith(color: widget.subject.color)),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: .only(top: 10),
-                child: Chart(
-                  color: widget.subject.color,
-                  spots: thisSubjectGrades
-                      .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
-                      .mapIndexed(
-                        (index, grade) => FlSpot(
-                          index / thisSubjectGrades.length,
-                          calculateAverage(thisSubjectGrades.where((element) => element.date.compareTo(grade.date) <= 0).toList()),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ),
+            if (average < 3.75) goal(icon: AppIcons.goalPass, title: "Avoir la moyenne", needed: toPass),
+            if (average < 5.75) goal(icon: AppIcons.goalUp, title: "Monter à ${(average.roundToHalves() + .5).removeTrailingZero()}", needed: toBoost),
+            goal(icon: AppIcons.goalKeep, title: "Rester à ${average.roundToHalves().removeTrailingZero()}", needed: toMaintain),
+            if (average >= 4.25) goal(icon: AppIcons.goalDown, title: "Garder la moyenne", needed: toPass),
           ],
         ),
-
-        Column(
-          crossAxisAlignment: .stretch,
-          children: [
-            Text("Évolution des notes", style: AppStyles.secondaryHeader(context)),
-            Expanded(
-              child: Padding(
-                padding: .only(top: 10, bottom: 8, left: 4),
-                child: Chart(
-                  color: widget.subject.color,
-                  showDots: true,
-                  showTitles: true,
-                  spots: thisSubjectGrades
-                      .sorted((gradeA, gradeB) => gradeA.date.compareTo(gradeB.date))
-                      .mapIndexed((index, grade) => FlSpot(index / thisSubjectGrades.length, grade.grade))
-                      .toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        Column(
-          crossAxisAlignment: .stretch,
-          spacing: 6,
-          children: [
-            Row(
-              spacing: 8,
-              children: [
-                Text("Objectifs", style: AppStyles.secondaryHeader(context)),
-                Spacer(),
-                Text(average.toStringAsFixed(2), style: AppStyles.header(context).copyWith(color: widget.subject.color)),
-              ],
-            ),
-            Expanded(
-              child: ListView(
-                padding: .zero,
-                physics: ClampingScrollPhysics(),
-                children: [
-                  if (average < 3.75)
-                    buildGoalBox(icon: AppIcons.goalPass, title: "pour avoir la moyenne", neededGrade: formatGrade(toPass), dim: toPass < 1 || toPass > 6),
-                  if (average < 5.75)
-                    buildGoalBox(
-                      icon: AppIcons.goalUp,
-                      title: "pour monter à",
-                      goalGrade: (average.roundToHalves() + .5).removeTrailingZero(),
-                      neededGrade: formatGrade(toBoost),
-                      gradeColor: getGradeColor(average + .5, defaultColor: widget.subject.color),
-                      dim: toBoost < 1 || toBoost > 6,
-                    ),
-                  buildGoalBox(
-                    icon: AppIcons.goalKeep,
-                    title: "pour maintenir",
-                    goalGrade: average.roundToHalves().removeTrailingZero(),
-                    neededGrade: formatGrade(toMaintain),
-                    gradeColor: getGradeColor(average, defaultColor: widget.subject.color),
-                    dim: toMaintain < 1 || toMaintain > 6,
-                  ),
-                  if (average >= 4.25)
-                    buildGoalBox(
-                      icon: AppIcons.goalDown,
-                      title: "pour avoir la moyenne",
-                      neededGrade: formatGrade(toPass),
-                      dim: toPass < 1 || toPass > 6,
-                    ),
-                ],
-              ),
-            ),
-            Row(
-              spacing: 8,
-              children: [
-                RoundContainer(
-                  padding: const .symmetric(vertical: 4, horizontal: 10),
-                  color: AppColors.tertiaryBackground.adaptTo(context),
-                  child: Text("Note nécessaire", style: AppStyles.tertiaryText(context)),
-                ),
-
-                Expanded(child: Text("pour atteindre l'objectif", style: AppStyles.tertiaryText(context))),
-              ],
-            ),
-          ],
+        Padding(
+          padding: const .only(left: 4, top: AppSpacing.s),
+          child: Text("La note à obtenir au prochain test (poids 1).", style: AppStyles.footer(context)),
         ),
       ],
     );
@@ -323,67 +237,87 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             groups.putIfAbsent(grade.groupName!, () => []).add(grade);
           }
 
-          final listContent = [
-            buildTopCard(),
+          final ungrouped = thisSubjectGrades.where((grade) => grade.groupName == null).sorted((a, b) => b.date.compareTo(a.date));
 
-            // All grades
-            if (thisSubjectGrades.isNotEmpty) const SectionHeader("Notes"),
-            ...thisSubjectGrades
-                .where((grade) => grade.groupName == null)
-                .toList()
-                .sorted((gradeA, gradeB) {
-                  return gradeB.date.compareTo(gradeA.date);
-                })
-                .map(
-                  (grade) => GradeBar(
-                    gradeData: grade,
-                    onTap: () => showNewGradePopup(toEdit: grade),
+          Widget section(Widget child) => Padding(
+            padding: const .only(top: AppSpacing.section),
+            child: child,
+          );
+
+          return ListView(
+            padding: const .only(top: AppSpacing.s),
+            children: [
+              buildAverageCard(),
+
+              if (thisSubjectGrades.isNotEmpty) section(buildGoals()),
+
+              if (ungrouped.isNotEmpty)
+                section(
+                  Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      const SectionHeader("Notes"),
+                      CardGroup(
+                        separatorInset: GradeBar.separatorInset,
+                        children: [
+                          for (final grade in ungrouped)
+                            GradeBar(
+                              gradeData: grade,
+                              onTap: () => showNewGradePopup(toEdit: grade),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 
-            // Groups
-            if (groups.isNotEmpty) ...[
-              const SectionHeader("Groupes"),
-              ...groups.keys.map((groupName) => buildGroupBar(groupName)),
+              if (groups.isNotEmpty)
+                section(
+                  Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      const SectionHeader("Groupes"),
+                      CardGroup(separatorInset: GradeBar.separatorInset, children: [for (final groupName in groups.keys) buildGroupRow(groupName)]),
+                    ],
+                  ),
+                ),
+
+              if (incomingGrades.isNotEmpty)
+                section(
+                  Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      const SectionHeader("Prévues"),
+                      CardGroup(
+                        separatorInset: GradeBar.separatorInset,
+                        children: [
+                          for (final assignment in incomingGrades)
+                            GradeBar(
+                              gradeData: Grade()
+                                ..title = assignment.title ?? assignment.content
+                                ..grade = 0
+                                ..date = assignment.dueDate,
+                              onTap: () {
+                                if (assignment.dueDate.isBefore(DateTime.now())) {
+                                  showNewGradePopup(toReference: assignment);
+                                  return;
+                                }
+                                if (widget.wasPushedFromGradesBySubjectPage) Navigator.pop(context);
+                                Navigator.pop(context);
+                                MainPage.pageIndex.value = 1;
+                              },
+                              isGradeUnknown: true,
+                              isIncoming: assignment.dueDate.isBefore(DateTime.now()),
+                              isPlanned: assignment.dueDate.isAfter(DateTime.now()),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+              const BottomSpacing(),
             ],
-
-            // Incoming grades
-            if (incomingGrades.isNotEmpty) ...[
-              const SectionHeader("Notes prévues"),
-              ...incomingGrades.map((assignment) {
-                final grade = Grade()
-                  ..title = assignment.title ?? assignment.content
-                  ..grade = 0
-                  ..date = assignment.dueDate;
-                final isIncoming = assignment.dueDate.isBefore(DateTime.now());
-                final isPlanned = assignment.dueDate.isAfter(DateTime.now());
-
-                return GradeBar(
-                  gradeData: grade,
-                  onTap: () {
-                    if (isIncoming) {
-                      showNewGradePopup(toReference: assignment);
-                      return;
-                    }
-                    if (widget.wasPushedFromGradesBySubjectPage) Navigator.pop(context);
-                    Navigator.pop(context);
-                    MainPage.pageIndex.value = 1;
-                    //assignmentListPageKey.currentState?.showAssignment(assignment);
-                  },
-                  isGradeUnknown: true,
-                  isIncoming: isIncoming,
-                  isPlanned: isPlanned,
-                );
-              }),
-            ],
-          ];
-
-          return ListView.separated(
-            shrinkWrap: true,
-            padding: .only(top: 8),
-            itemCount: listContent.length,
-            itemBuilder: (context, index) => listContent[index],
-            separatorBuilder: (_, _) => SizedBox(height: 8),
           );
         },
       ),

@@ -17,8 +17,12 @@ class ProgressBar extends StatelessWidget {
       decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(24)),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          if (progress == 0) return const SizedBox.shrink();
           if (!centered) {
-            return Align(alignment: .centerLeft, child: FractionallySizedBox(widthFactor: progress.clamp(0.0, 1.0), child: buildBar(context)));
+            return Align(
+              alignment: .centerLeft,
+              child: FractionallySizedBox(widthFactor: progress.clamp(0.0, 1.0), child: buildBar(context)),
+            );
           }
 
           final width = constraints.maxWidth;
@@ -29,7 +33,9 @@ class ProgressBar extends StatelessWidget {
 
           final left = clampedProgress >= 0 ? center : center - barWidth;
 
-          return Stack(children: [Positioned(left: left, width: barWidth, top: 0, bottom: 0, child: buildBar(context))]);
+          return Stack(
+            children: [Positioned(left: left, width: barWidth, top: 0, bottom: 0, child: buildBar(context))],
+          );
         },
       ),
     );

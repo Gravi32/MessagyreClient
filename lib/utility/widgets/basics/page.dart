@@ -184,13 +184,34 @@ class _PageState extends State<Page> {
                       ],
                     ),
                   ),
+            // The main action of the tab: a round accent button over the dock
             if (widget.onFloatingButtonTap != null)
               Positioned(
-                bottom: MediaQuery.viewPaddingOf(context).bottom + AppSizes.bottomBar + AppSpacing.s,
-                right: AppSpacing.page + 3,
-                child: SizedBox(
-                  height: AppSizes.control,
-                  child: Button.icon(context, icon: AppIcons.add, blur: true, onTap: () => widget.onFloatingButtonTap!()),
+                // Over the dock in the main tabs, near the bottom in a pushed page
+                bottom: MediaQuery.viewPaddingOf(context).bottom + (widget.pageIndex != null ? AppSizes.bottomBar : 0) + AppSpacing.m,
+                right: AppSpacing.page + 2,
+                child: CupertinoButton(
+                  padding: .zero,
+                  minimumSize: .zero,
+                  pressedOpacity: .7,
+                  onPressed: widget.onFloatingButtonTap,
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    alignment: .center,
+                    decoration: BoxDecoration(
+                      shape: .circle,
+                      color: AppColors.accent,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.black.withValues(alpha: AppColors.isDark(context) ? .5 : .18),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: HugeIcon(icon: AppIcons.add, size: 26, strokeWidth: 2, color: AppColors.white),
+                  ),
                 ),
               ),
 
@@ -216,11 +237,7 @@ class _PageState extends State<Page> {
 
                                 const SizedBox(height: 16),
 
-                                Text(
-                                  AppStrings.lockedContent,
-                                  style: AppStyles.primaryText(context),
-                                  textAlign: .center,
-                                ),
+                                Text(AppStrings.lockedContent, style: AppStyles.primaryText(context), textAlign: .center),
                                 Text(AppStrings.lockedHint, style: AppStyles.tertiaryText(context), textAlign: .center),
 
                                 const SizedBox(height: 16),

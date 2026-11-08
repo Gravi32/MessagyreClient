@@ -105,7 +105,12 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
     );
   }
 
-  Widget buildWheel({required FixedExtentScrollController controller, required int count, required Widget Function(int index) itemBuilder, required void Function(int index) onChanged}) {
+  Widget buildWheel({
+    required FixedExtentScrollController controller,
+    required int count,
+    required Widget Function(int index) itemBuilder,
+    required void Function(int index) onChanged,
+  }) {
     return CupertinoPicker(
       scrollController: controller,
       itemExtent: 40,
@@ -129,26 +134,36 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
         padding: const EdgeInsets.all(AppSpacing.l),
         markScale: 1.1,
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Gymnase de Renens", style: AppStyles.subheadline(context).copyWith(color: AppColors.white.withValues(alpha: .8), fontWeight: FontWeight.w600)),
-              AnimatedSwitcher(
-                duration: AppDurations.fast,
-                child: Text(schoolClass.name, key: ValueKey(schoolClass.name), style: AppStyles.largeTitle(context).copyWith(color: AppColors.white, fontSize: 48, height: 1.1)),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Gymnase de Renens",
+              style: AppStyles.subheadline(context).copyWith(color: AppColors.white.withValues(alpha: .8), fontWeight: FontWeight.w600),
+            ),
+            AnimatedSwitcher(
+              duration: AppDurations.fast,
+              child: Text(
+                schoolClass.name,
+                key: ValueKey(schoolClass.name),
+                style: AppStyles.display(context).copyWith(color: AppColors.white),
               ),
-              Text("${schoolClass.yearName} · ${SchoolClass.schools[schoolClass.school]}", style: AppStyles.subheadline(context).copyWith(color: AppColors.white)),
-              const SizedBox(height: AppSpacing.s),
-              Text(
-                counts == null
-                    ? " "
-                    : count == 0
-                    ? "Personne n'a encore choisi cette classe"
-                    : count == 1
-                    ? "1 personne a déjà choisi cette classe"
-                    : "$count personnes ont déjà choisi cette classe",
-                style: AppStyles.footnote(context).copyWith(color: AppColors.white.withValues(alpha: .85)),
-              ),
-            ],
+            ),
+            Text(
+              "${schoolClass.yearName} · ${SchoolClass.schools[schoolClass.school]}",
+              style: AppStyles.subheadline(context).copyWith(color: AppColors.white),
+            ),
+            const SizedBox(height: AppSpacing.s),
+            Text(
+              counts == null
+                  ? " "
+                  : count == 0
+                  ? "Personne n'a encore choisi cette classe"
+                  : count == 1
+                  ? "1 personne a déjà choisi cette classe"
+                  : "$count personnes ont déjà choisi cette classe",
+              style: AppStyles.footnote(context).copyWith(color: AppColors.white.withValues(alpha: .85)),
+            ),
+          ],
         ),
       ),
     );
@@ -187,56 +202,64 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Container(height: 40, decoration: BoxDecoration(color: AppColors.accentSoft.adaptTo(context), borderRadius: BorderRadius.circular(AppRadius.s))),
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(AppRadius.s)),
+                ),
                 Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: buildWheel(
-                    controller: yearController,
-                    count: SchoolClass.years.length,
-                    itemBuilder: (index) => Text(index == 0 ? "1re" : "${index + 1}e", style: text),
-                    onChanged: (index) => year = SchoolClass.years[index],
-                  ),
-                ),
-                Expanded(
-                  flex: 4,
-                  child: buildWheel(
-                    controller: schoolController,
-                    count: schoolCodes.length,
-                    itemBuilder: (index) => Text(const ["Maturité", "Commerce", "Culture g."][index], style: text),
-                    onChanged: (index) => schoolIndex = index,
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: buildWheel(
-                    controller: sectionController,
-                    count: SchoolClass.maxSection,
-                    // A dot next to the classes that already have members
-                    itemBuilder: (index) {
-                      final schoolClass = SchoolClass(year, schoolCodes[schoolIndex], index + 1);
-                      final count = countOf(schoolClass);
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: AppSpacing.xs,
-                        children: [
-                          Text(schoolClass.school == "M" ? (index + 1).toString().padLeft(2, "0") : "${index + 1}", style: text),
-                          if (count > 0) Text("· $count", style: AppStyles.footnote(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: FontWeight.w600)),
-                        ],
-                      );
-                    },
-                    onChanged: (index) => section = index + 1,
-                  ),
-                ),
-              ],
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: buildWheel(
+                        controller: yearController,
+                        count: SchoolClass.years.length,
+                        itemBuilder: (index) => Text(index == 0 ? "1re" : "${index + 1}e", style: text),
+                        onChanged: (index) => year = SchoolClass.years[index],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: buildWheel(
+                        controller: schoolController,
+                        count: schoolCodes.length,
+                        itemBuilder: (index) => Text(const ["Maturité", "Commerce", "Culture g."][index], style: text),
+                        onChanged: (index) => schoolIndex = index,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: buildWheel(
+                        controller: sectionController,
+                        count: SchoolClass.maxSection,
+                        // A dot next to the classes that already have members
+                        itemBuilder: (index) {
+                          final schoolClass = SchoolClass(year, schoolCodes[schoolIndex], index + 1);
+                          final count = countOf(schoolClass);
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: AppSpacing.xs,
+                            children: [
+                              Text(schoolClass.school == "M" ? (index + 1).toString().padLeft(2, "0") : "${index + 1}", style: text),
+                              if (count > 0)
+                                Text(
+                                  "· $count",
+                                  style: AppStyles.footnote(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: FontWeight.w600),
+                                ),
+                            ],
+                          );
+                        },
+                        onChanged: (index) => section = index + 1,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           ListSection(
             margin: const EdgeInsets.only(top: AppSpacing.m),
-            footer: "Le Gymnase ne publie pas la liste des classes : n'importe qui peut choisir une classe. Ne partagez rien de privé dans la conversation de classe.",
+            footer:
+                "Le Gymnase ne publie pas la liste des classes : n'importe qui peut choisir une classe. Ne partagez rien de privé dans la conversation de classe.",
             children: [ListTile.simple(context, title: "Je ne suis pas au Gymnase de Renens", icon: HugeIcons.strokeRoundedSchool01, onTap: confirmOutside)],
           ),
           const BottomSpacing(),

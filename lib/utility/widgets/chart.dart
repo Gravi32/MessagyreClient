@@ -9,6 +9,9 @@ class Chart extends StatelessWidget {
   final bool showDots;
   final bool showTitles;
   final bool showLines;
+
+  /// The soft fill under the line
+  final bool showArea;
   final double min;
   final double max;
   final EdgeInsets? padding;
@@ -21,6 +24,7 @@ class Chart extends StatelessWidget {
     this.showDots = false,
     this.showTitles = false,
     this.showLines = true,
+    this.showArea = true,
     this.min = 1,
     this.max = 6,
     this.padding,
@@ -47,14 +51,14 @@ class Chart extends StatelessWidget {
               LineChartBarData(
                 color: color,
                 isCurved: true,
-                barWidth: 3,
+                barWidth: showArea ? 3 : 2,
                 preventCurveOverShooting: true,
                 isStrokeCapRound: true,
                 isStrokeJoinRound: true,
                 dotData: FlDotData(show: showDots),
                 belowBarData: BarAreaData(
-                  show: true,
-                  gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [color.withTransparency(.4), color.withTransparency(0)]),
+                  show: showArea,
+                  gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [color.withTransparency(.22), color.withTransparency(0)]),
                 ),
                 spots: spots,
               ),

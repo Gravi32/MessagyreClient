@@ -30,6 +30,10 @@ import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
+import 'package:messagyre_client/main.dart' show appTheme;
+import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
+import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/preferences_settings_page.dart';
@@ -70,7 +74,16 @@ class _TemporaryPaths extends Fake with MockPlatformInterfaceMixin implements Pa
 
 Future<void> _loadFonts() async {
   Future<ByteData> font(String name) async => ByteData.sublistView(await File("C:/Windows/Fonts/$name").readAsBytes());
-  for (final family in ["FlutterTest", "Roboto", "CupertinoSystemText", "CupertinoSystemDisplay", ".SF Pro Text", ".SF Pro Display", ".SF UI Text", ".SF UI Display"]) {
+  for (final family in [
+    "FlutterTest",
+    "Roboto",
+    "CupertinoSystemText",
+    "CupertinoSystemDisplay",
+    ".SF Pro Text",
+    ".SF Pro Display",
+    ".SF UI Text",
+    ".SF UI Display",
+  ]) {
     final loader = FontLoader(family);
     for (final file in ["segoeui.ttf", "seguisb.ttf", "segoeuib.ttf", "segoeuii.ttf"]) {
       loader.addFont(font(file));
@@ -102,7 +115,16 @@ Future<void> _seed(Isar isar, String root) async {
   await File(photoPath).writeAsBytes(img.encodeJpg(photo));
   final thumbnail = base64.encode(img.encodeJpg(img.copyResize(photo, width: 32), quality: 60));
 
-  Message m(String chat, String text, bool owned, int minutesAgo, {MessageStatus? status, Attachment? attachment, TransferState transfer = TransferState.none, String? localPath}) => Message.custom(
+  Message m(
+    String chat,
+    String text,
+    bool owned,
+    int minutesAgo, {
+    MessageStatus? status,
+    Attachment? attachment,
+    TransferState transfer = TransferState.none,
+    String? localPath,
+  }) => Message.custom(
     chatUsername: chat,
     content: attachment?.previewText ?? text,
     sentAt: ago(minutesAgo),
@@ -117,20 +139,65 @@ Future<void> _seed(Isar isar, String root) async {
     m("lea.martin", "Salut ! Tu as compris l'exercice 4 de maths ?", false, 60 * 26),
     m("lea.martin", "Pas vraiment 😅 on regarde ensemble demain ?", true, 60 * 26 - 3),
     m("lea.martin", "Ok ! Voilà la photo du tableau", false, 42),
-    m("lea.martin", "", false, 41,
-        attachment: Attachment(kind: AttachmentKind.image, fileId: "a" * 32, key: "k", iv: "i", name: "tableau.jpg", mimeType: "image/jpeg", size: 380000, width: 1200, height: 900, thumbnail: thumbnail),
-        transfer: TransferState.ready,
-        localPath: photoPath),
+    m(
+      "lea.martin",
+      "",
+      false,
+      41,
+      attachment: Attachment(
+        kind: AttachmentKind.image,
+        fileId: "a" * 32,
+        key: "k",
+        iv: "i",
+        name: "tableau.jpg",
+        mimeType: "image/jpeg",
+        size: 380000,
+        width: 1200,
+        height: 900,
+        thumbnail: thumbnail,
+      ),
+      transfer: TransferState.ready,
+      localPath: photoPath,
+    ),
     m("lea.martin", "Merci beaucoup !! Et le résumé du cours ?", true, 30),
-    m("lea.martin", "", false, 12,
-        attachment: Attachment(kind: AttachmentKind.file, fileId: "b" * 32, key: "k", iv: "i", name: "Résumé chapitre 4 - Fonctions.pdf", mimeType: "application/pdf", size: 2400000),
-        transfer: TransferState.pending),
+    m(
+      "lea.martin",
+      "",
+      false,
+      12,
+      attachment: Attachment(
+        kind: AttachmentKind.file,
+        fileId: "b" * 32,
+        key: "k",
+        iv: "i",
+        name: "Résumé chapitre 4 - Fonctions.pdf",
+        mimeType: "application/pdf",
+        size: 2400000,
+      ),
+      transfer: TransferState.pending,
+    ),
     m("lea.martin", "Parfait, à demain 👋", true, 2, status: MessageStatus.Delivered),
     m("lea.martin", "J'arrive dans 5 minutes", true, 1, status: MessageStatus.Sending),
     m("noah.dubois", "Tu viens au match samedi ?", false, 60 * 5),
     m("support.messagyre", "Bonjour, merci pour votre retour !", false, 60 * 24 * 3),
-    m("emma.rossi", "", true, 60 * 2,
-        attachment: Attachment(kind: AttachmentKind.image, fileId: "c" * 32, key: "k", iv: "i", name: "IMG_2041.jpg", mimeType: "image/jpeg", size: 300000, width: 900, height: 1200, thumbnail: thumbnail)),
+    m(
+      "emma.rossi",
+      "",
+      true,
+      60 * 2,
+      attachment: Attachment(
+        kind: AttachmentKind.image,
+        fileId: "c" * 32,
+        key: "k",
+        iv: "i",
+        name: "IMG_2041.jpg",
+        mimeType: "image/jpeg",
+        size: 300000,
+        width: 900,
+        height: 1200,
+        thumbnail: thumbnail,
+      ),
+    ),
   ];
 
   await isar.writeTxn(() async {
@@ -195,16 +262,25 @@ Future<void> _seed(Isar isar, String root) async {
 
 Widget _app(Widget page, Brightness brightness) => MediaQuery(
   data: MediaQueryData(size: const Size(390, 844), devicePixelRatio: 2, platformBrightness: brightness, padding: const EdgeInsets.only(top: 47, bottom: 34)),
-  child: CupertinoApp(
-    debugShowCheckedModeBanner: false,
-    theme: CupertinoThemeData(brightness: brightness, primaryColor: AppColors.accent),
-    home: Stack(children: [page, const Positioned(left: 0, right: 0, bottom: 0, child: BottomBar())]),
+  child: Builder(
+    builder: (context) => CupertinoApp(
+      debugShowCheckedModeBanner: false,
+      theme: appTheme(context, brightness),
+      home: Stack(
+        children: [
+          page,
+          const Positioned(left: 0, right: 0, bottom: 0, child: BottomBar()),
+        ],
+      ),
+    ),
   ),
 );
 
 Widget _plain(Widget page, Brightness brightness) => MediaQuery(
   data: MediaQueryData(size: const Size(390, 844), devicePixelRatio: 2, platformBrightness: brightness, padding: const EdgeInsets.only(top: 47, bottom: 34)),
-  child: CupertinoApp(debugShowCheckedModeBanner: false, theme: CupertinoThemeData(brightness: brightness, primaryColor: AppColors.accent), home: page),
+  child: Builder(
+    builder: (context) => CupertinoApp(debugShowCheckedModeBanner: false, theme: appTheme(context, brightness), home: page),
+  ),
 );
 
 void main() {
@@ -380,6 +456,34 @@ void main() {
       "preferences": () => _plain(PreferencesSettingsPage(), brightness),
       "by_subject": () => _plain(const GradesBySubjectPage(), brightness),
       "recent": () => _plain(const RecentGradesPage(), brightness),
+      "profile": () => _plain(
+        ProfilePage(
+          Account.fromMap({
+            "Username": "lea.martin",
+            "DisplayName": "Léa Martin",
+            "ClassOrRole": "2M05",
+            "CreationDate": "2025-09-01T10:00:00",
+            "Profile": {"Bio": "En 2M05, fan de bio et de volley."},
+          })!,
+        ),
+        brightness,
+      ),
+      "action_sheet": () => _plain(
+        CupertinoPageScaffold(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: ActionSheet<String>(
+              title: "Photo de profil",
+              actions: const [
+                SheetAction("Prendre une photo", icon: HugeIcons.strokeRoundedCamera01, value: "camera"),
+                SheetAction("Choisir dans la galerie", icon: HugeIcons.strokeRoundedAlbum02, value: "gallery"),
+                SheetAction("Supprimer la photo", icon: HugeIcons.strokeRoundedDelete04, value: "delete", isDestructive: true),
+              ],
+            ),
+          ),
+        ),
+        brightness,
+      ),
       "dialog": () => _plain(Dialog.confirm(content: "Voulez-vous vraiment supprimer cette note ?", isDestructive: true), brightness),
     };
     for (final MapEntry(key: name, value: build) in pages.entries) {
