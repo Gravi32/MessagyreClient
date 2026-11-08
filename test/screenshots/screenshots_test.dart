@@ -90,6 +90,15 @@ Future<void> _loadFonts() async {
     }
     await loader.load();
   }
+
+  // The app's own fonts (see pubspec.yaml)
+  for (final family in [AppStyles.fontFamily, AppStyles.titleFontFamily]) {
+    final loader = FontLoader(family);
+    for (final file in Directory("assets/fonts").listSync().whereType<File>().where((f) => f.path.contains(family) && f.path.endsWith(".ttf"))) {
+      loader.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+    }
+    await loader.load();
+  }
 }
 
 Future<void> _seed(Isar isar, String root) async {
@@ -290,7 +299,6 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
     await initializeDateFormatting('fr_CH');
     await _loadFonts();
-    AppStyles.fontFamily = "Roboto";
 
     SharedPreferences.setMockInitialValues({"MessagesHaveChatUsername": true, "DefaultPage": 2});
     FlutterSecureStorage.setMockInitialValues({});

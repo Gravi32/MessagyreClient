@@ -87,25 +87,48 @@ class BrandCard extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(borderRadius), gradient: AppColors.accentGradient),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final size = constraints.maxHeight * markScale;
-                return Stack(
-                  clipBehavior: Clip.hardEdge,
-                  children: [
-                    Positioned(
-                      right: -size * .16,
-                      bottom: -size * .3,
-                      child: GymnaseMark(size: size, color: AppColors.white.withValues(alpha: .12)),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
+          MarkWatermark(scale: markScale, color: AppColors.white.withValues(alpha: .12)),
           Padding(padding: padding, child: child),
         ],
+      ),
+    );
+  }
+}
+
+/// The Gymnase, large and faint, in the bottom right corner of a card: put it first in a Stack that fills the card
+/// (the card must clip its content). It says "Messagyre" without taking any room.
+class MarkWatermark extends StatelessWidget {
+  /// Size relative to the card's height
+  final double scale;
+
+  /// By default a faint wash of the accent
+  final Color? color;
+
+  const MarkWatermark({super.key, this.scale = .9, this.color});
+
+  /// The default color: barely visible on a card, in both modes
+  static Color faint(BuildContext context) =>
+      AppColors.isDark(context) ? const Color.fromRGBO(203, 70, 218, .1) : const Color.fromRGBO(160, 20, 170, .055);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final size = constraints.maxHeight * scale;
+            return Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                Positioned(
+                  right: -size * .16,
+                  bottom: -size * .3,
+                  child: GymnaseMark(size: size, color: color ?? faint(context)),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

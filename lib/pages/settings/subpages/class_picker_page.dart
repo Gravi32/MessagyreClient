@@ -81,16 +81,16 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
     if (isSaving) return;
     setState(() => isSaving = true);
 
-    final saved = await classes.choose(value);
+    final error = await classes.choose(value);
     if (!mounted) return;
     setState(() => isSaving = false);
 
-    if (saved) {
+    if (error == null) {
       Navigator.of(context).pop(true);
     } else {
       showCupertinoDialog(
         context: context,
-        builder: (_) => const Dialog(title: "Erreur", content: "La classe n'a pas pu être enregistrée. Vérifiez votre connexion et réessayez."),
+        builder: (_) => Dialog(title: "Classe non enregistrée", content: error),
       );
     }
   }

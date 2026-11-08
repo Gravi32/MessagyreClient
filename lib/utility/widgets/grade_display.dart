@@ -23,6 +23,9 @@ class GradeDisplay extends StatelessWidget {
   final bool isGroup;
   final bool roundGrade;
 
+  /// Drawn in white, for a card on the icon's gradient
+  final bool onAccent;
+
   const GradeDisplay({
     super.key,
     required this.grade,
@@ -34,6 +37,7 @@ class GradeDisplay extends StatelessWidget {
     this.isPlanned = false,
     this.isGroup = false,
     this.roundGrade = true,
+    this.onAccent = false,
   });
 
   /// Room under the ring for the weight's pill
@@ -45,8 +49,11 @@ class GradeDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final stroke = strokeWidth ?? max(4.0, size * .085);
     final isHidden = grade == 0;
-    final track = AppColors.tertiaryBackground.adaptTo(context);
-    final color = getGradeColor(grade, defaultColor: AppColors.text.adaptTo(context));
+    final track = onAccent ? AppColors.white.withValues(alpha: .2) : AppColors.tertiaryBackground.adaptTo(context);
+    final textColor = onAccent ? AppColors.white : AppColors.text.adaptTo(context);
+    final color = onAccent
+        ? (grade >= 4 ? AppColors.white : (grade > 3.75 ? const Color.fromRGBO(255, 190, 90, 1) : const Color.fromRGBO(255, 130, 120, 1)))
+        : getGradeColor(grade, defaultColor: textColor);
 
     final List<List<dynamic>>? badge = isIncoming
         ? HugeIcons.strokeRoundedClock01
@@ -100,10 +107,10 @@ class GradeDisplay extends StatelessWidget {
                                 textScaler: .noScaling,
                                 style: AppStyles.strongText(context).copyWith(
                                   fontSize: size * .36,
-                                  fontWeight: .w700,
+                                  fontFamily: AppStyles.titleFontFamily,
+                                  fontWeight: .w600,
                                   height: 1.05,
-                                  letterSpacing: -.5,
-                                  color: grade < 4 ? color : AppColors.text.adaptTo(context),
+                                  color: grade < 4 ? color : textColor,
                                   fontFeatures: const [FontFeature.tabularFigures()],
                                 ),
                               ),

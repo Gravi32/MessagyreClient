@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
 /// What a page or a list shows when it has nothing to show: an icon, a title, a sentence and an optional action.
 class EmptyState extends StatelessWidget {
@@ -33,13 +34,28 @@ class EmptyState extends StatelessWidget {
         mainAxisSize: .min,
         mainAxisAlignment: .center,
         children: [
-          // The icon in a soft grey circle
-          Container(
-            width: 84,
-            height: 84,
-            alignment: .center,
-            decoration: BoxDecoration(shape: .circle, color: AppColors.tertiaryBackground.adaptTo(context)),
-            child: HugeIcon(icon: icon, strokeWidth: 1.5, size: 36, color: AppColors.secondaryText.adaptTo(context)),
+          // The icon on a soft purple disc, over the app's Gymnase drawn large and faint
+          SizedBox(
+            width: 150,
+            height: 110,
+            child: Stack(
+              alignment: .center,
+              children: [
+                GymnaseMark(size: 130, color: MarkWatermark.faint(context)),
+                Container(
+                  width: 80,
+                  height: 80,
+                  alignment: .center,
+                  decoration: BoxDecoration(
+                    shape: .circle,
+                    color: AppColors.secondaryBackground.adaptTo(context),
+                    border: .all(color: AppColors.outline.adaptTo(context)),
+                    boxShadow: [BoxShadow(color: AppColors.cardLip.adaptTo(context), offset: const Offset(0, 3))],
+                  ),
+                  child: HugeIcon(icon: icon, strokeWidth: 1.8, size: 36, color: AppColors.tint.adaptTo(context)),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.l),
           Text(title, textAlign: .center, style: AppStyles.secondaryHeader(context)),

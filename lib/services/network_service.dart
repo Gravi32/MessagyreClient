@@ -7,6 +7,7 @@ import 'dart:typed_data' show BytesBuilder, Uint8List;
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:http/http.dart' as http;
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/services/backup_service.dart';
 import 'package:messagyre_client/services/class_service.dart';
@@ -349,7 +350,8 @@ class NetworkService {
 
   // HTTP Requests
 
-  Future<bool> uploadProfile(String? displayName, Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
+  /// Sends the profile; returns why it failed, in words (null when it worked)
+  Future<String?> uploadProfile(String? displayName, Map<String, dynamic> profileObject, {String? imagePath, bool removeProfilePicture = false}) async {
     final uri = getBackendUri(route: "/accounts/me/upload-profile");
     final request = http.MultipartRequest("POST", uri);
 
@@ -371,7 +373,7 @@ class NetworkService {
 
       if (response.statusCode != 200) {
         debugPrint("[ProfileUpload Failed] (${response.statusCode})");
-        return false;
+        return AppStrings.errorFor(http.Response(responseBody, response.statusCode));
       }
 
       final responseJson = tryJsonDecode(responseBody) ?? [];
@@ -381,10 +383,10 @@ class NetworkService {
         globals.pfpNotifiersCache[globals.username]?.value = updatedPfpUrl;
       }
 
-      return true;
+      return null;
     } catch (e) {
       debugPrint("[ProfileUpload Failed] $e");
-      return false;
+      return AppStrings.describe(e);
     }
   }
 

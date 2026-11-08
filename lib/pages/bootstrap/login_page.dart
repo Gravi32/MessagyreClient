@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
@@ -72,7 +73,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               wasPasswordWrong = true;
               break;
             default:
-              usernameError = "Une erreur s'est produite, veuillez reéssayer.";
+              usernameError = AppStrings.errorFor(response);
               break;
           }
         });

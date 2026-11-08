@@ -247,10 +247,10 @@ class _ChatPageState extends State<ChatPage> {
       showError(e.message);
     } on PlatformException catch (e) {
       debugPrint("[Chat] Picking an attachment failed: $e");
-      showError(e.code.contains("denied") || e.code.contains("access") ? AppStrings.permissionDenied : AppStrings.genericError);
+      showError(AppStrings.describe(e));
     } catch (e) {
       debugPrint("[Chat] Sending an attachment failed: $e");
-      showError(AppStrings.genericError);
+      showError(AppStrings.describe(e));
     } finally {
       if (mounted) setState(() => isPickingAttachment = false);
     }

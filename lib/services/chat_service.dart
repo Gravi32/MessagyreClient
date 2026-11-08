@@ -318,7 +318,7 @@ class ChatService {
     try {
       if (encryptedBytes == null) {
         final localPath = message.localPath;
-        if (localPath == null || !await File(localPath).exists()) throw const AttachmentException(AppStrings.genericError);
+        if (localPath == null || !await File(localPath).exists()) throw const AttachmentException(AppStrings.fileMissing);
         encryptedBytes = (await EncryptionService.encryptFile(await File(localPath).readAsBytes(), key: attachment.key, iv: attachment.iv)).bytes;
       }
 

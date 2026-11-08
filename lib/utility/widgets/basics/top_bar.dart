@@ -7,6 +7,7 @@ import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class TopBar extends StatefulWidget {
@@ -74,7 +75,14 @@ class TopBar extends StatefulWidget {
   /// The bar of the main tabs: a large title that shrinks on scroll
   factory TopBar.sliver({required String title, Widget? leading, Widget? trailing, Field? field}) {
     return TopBar(
-      middle: Text(title, maxLines: 1, overflow: .ellipsis),
+      // The app's Gymnase before the title of each tab: you always know where you are
+      middle: Row(
+        spacing: 10,
+        children: [
+          const _TitleMark(),
+          Flexible(child: Text(title, maxLines: 1, overflow: .ellipsis)),
+        ],
+      ),
       collapsedMiddle: Text(title),
       leading: leading,
       trailing: trailing,
@@ -138,4 +146,15 @@ class _TopBarState extends State<TopBar> {
       ),
     );
   }
+}
+
+/// The Gymnase in the icon's gradient, at the size of a large title
+class _TitleMark extends StatelessWidget {
+  const _TitleMark();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.only(top: 2),
+    child: GymnaseMark(size: 30, gradient: AppColors.accentGradient),
+  );
 }

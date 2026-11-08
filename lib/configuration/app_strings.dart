@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 /// The app's texts (in French). Shared wording lives here so that the same action is named the same way
@@ -26,21 +30,44 @@ class AppStrings {
 
   // #region -> Errors
   static const errorTitle = "Oups !";
-  static const genericError = "Une erreur est survenue. Veuillez réessayer.";
   static const offlineError = "Impossible de joindre le serveur. Vérifiez votre connexion internet.";
   static const timeoutError = "Le serveur met trop de temps à répondre. Réessayez dans un instant.";
   static const serverError = "Le serveur a rencontré un problème. Réessayez plus tard.";
   static const sessionExpired = "Votre session a expiré. Reconnectez-vous.";
-  static const pageError = "Une erreur s'est produite.";
+  static const pageError = "Cette page n'a pas pu être affichée : le contenu envoyé par le serveur est illisible.";
+  static const fileMissing = "Le fichier n'est plus sur ce téléphone (il a peut-être été supprimé ou déplacé). Choisissez-le à nouveau.";
 
-  /// A sentence for the user explaining a failed request (never the raw server answer).
-  static String errorFor(http.Response response) => switch (response.statusCode) {
-    408 => timeoutError,
-    401 || 403 => sessionExpired,
-    429 => "Trop de tentatives. Patientez quelques minutes.",
-    507 => "Le serveur est plein pour le moment. Réessayez plus tard.",
-    >= 500 => response.body == "Internal error" ? offlineError : serverError,
-    _ => genericError,
+  /// A sentence for the user explaining a failed request. Never a vague "something went wrong": always what
+  /// happened (and the code, so that a screenshot tells the developer what to look at).
+  static String errorFor(http.Response response) {
+    final code = response.statusCode;
+    final body = response.body.trim();
+    // A short, plain answer of the server is a reason ("NoClass", "TooLong"): worth showing
+    final reason = body.isNotEmpty && body.length <= 60 && !body.contains("<") ? body.replaceAll('"', '') : null;
+    final withReason = reason != null ? " : $reason" : "";
+
+    return switch (code) {
+      408 => timeoutError,
+      401 || 403 => sessionExpired,
+      404 => "Le serveur ne trouve pas ce qui est demandé (erreur 404$withReason).",
+      405 || 501 => "Cette version de Messagyre et le serveur ne se comprennent pas (erreur $code). Mettez l'application à jour.",
+      413 => "C'est trop lourd pour le serveur (erreur 413). Choisissez un fichier plus petit.",
+      429 => "Trop de tentatives. Patientez quelques minutes.",
+      507 => "Le serveur est plein pour le moment. Réessayez plus tard.",
+      >= 500 => body == "Internal error" ? offlineError : "$serverError (erreur $code)",
+      _ => "Le serveur a refusé la demande (erreur $code$withReason).",
+    };
+  }
+
+  /// A sentence for the user explaining an exception: what failed, in words, with the system's own message
+  static String describe(Object error) => switch (error) {
+    SocketException() || http.ClientException() => offlineError,
+    TimeoutException() => timeoutError,
+    FileSystemException(:final message, :final osError) => "Le fichier n'a pas pu être lu ou enregistré sur ce téléphone (${osError?.message ?? message}).",
+    PlatformException(:final code, :final message) =>
+      code.contains("denied") || code.contains("access") ? permissionDenied : "Le téléphone a refusé l'opération : ${message ?? code}.",
+    FormatException(:final message) => "Des données sont illisibles : $message.",
+    _ => "Problème inattendu : $error",
   };
   // #endregion
 

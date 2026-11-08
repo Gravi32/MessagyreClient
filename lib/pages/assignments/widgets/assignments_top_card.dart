@@ -78,15 +78,15 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                       DateFormat("EEE", 'fr_CH').format(day).replaceAll('.', '').substring(0, 1).toUpperCase(),
                       style: AppStyles.caption(context).copyWith(fontWeight: .w600),
                     ),
-                    // Today: filled
+                    // Today: on the icon's gradient
                     Container(
                       width: 36,
                       height: 36,
                       alignment: .center,
-                      decoration: BoxDecoration(shape: .circle, color: isToday ? text : null),
+                      decoration: BoxDecoration(shape: .circle, gradient: isToday ? AppColors.accentGradient : null),
                       child: Text(
                         day.day.toString(),
-                        style: AppStyles.strongText(context).copyWith(color: isToday ? AppColors.secondaryBackground.adaptTo(context) : null),
+                        style: AppStyles.strongText(context).copyWith(fontFamily: AppStyles.titleFontFamily, fontWeight: .w600, color: isToday ? AppColors.white : text),
                       ),
                     ),
                     // A dot per assignment (a star for a leave), in its subject's color
@@ -119,6 +119,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
 
   Widget buildWeekCard(List<Assignment> allAssignments) {
     return RoundContainer(
+      watermark: true,
       padding: const .fromLTRB(AppSpacing.s, AppSpacing.l, AppSpacing.s, AppSpacing.m),
       child: Column(
         crossAxisAlignment: .stretch,

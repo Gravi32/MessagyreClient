@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/graphics/blurred_container.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
 /// A rounded surface, the base of the cards, buttons and fields.
 ///
@@ -30,6 +31,9 @@ class RoundContainer extends StatelessWidget {
   final double blurAmount;
   final double borderRadius;
 
+  /// The Gymnase, large and faint, in the corner (see [MarkWatermark])
+  final bool watermark;
+
   const RoundContainer({
     super.key,
     this.transparent = true,
@@ -48,6 +52,7 @@ class RoundContainer extends StatelessWidget {
     this.opacity = 1,
     this.blurAmount = 15,
     this.borderRadius = AppRadius.card,
+    this.watermark = false,
   });
 
   /// Greys and the app's surfaces (barely tinted) are neutral; red, the accent, a subject's color are vivid
@@ -83,14 +88,28 @@ class RoundContainer extends StatelessWidget {
     // Only the cards get the hairline: a filled or tonal surface stands out by itself
     final outlined = !hasGradient && !blurOnly && transparent && neutral && (base.a == 1 || borderOnly);
 
+    // A solid lip under the cards and the filled buttons (no blur): the app's slightly cartoonish, stuck-on look
+    final isCard = outlined && !borderOnly && base == AppColors.secondaryBackground.adaptTo(context);
+    final isFilledButton = !transparent && !hasGradient && !neutral && enabled && base.a == 1;
+    final lip = isCard
+        ? AppColors.cardLip.adaptTo(context)
+        : isFilledButton
+        ? Color.lerp(base, AppColors.black, .32)!
+        : null;
+
     final Widget surface = Container(
       height: height,
       width: width,
       constraints: constraints,
-      padding: padding ?? const .all(16),
+      padding: watermark ? .zero : padding ?? const .all(16),
       // What is inside follows the rounded corners (the rows of a list, a picture, a decoration)
       clipBehavior: child != null ? .antiAlias : .none,
-      decoration: BoxDecoration(borderRadius: .circular(borderRadius), color: fill, gradient: hasGradient ? gradient : null),
+      decoration: BoxDecoration(
+        borderRadius: .circular(borderRadius),
+        color: fill,
+        gradient: hasGradient ? gradient : null,
+        boxShadow: lip != null && opacity == 1 ? [BoxShadow(color: lip, offset: Offset(0, isCard ? 3 : 4))] : null,
+      ),
       // The hairline is painted over the content, with the same corners: the rows of a list fill the card up to its
       // edge and would otherwise cover it in the corners
       foregroundDecoration: outlined
@@ -99,7 +118,14 @@ class RoundContainer extends StatelessWidget {
               border: .all(width: 1, color: AppColors.outline.adaptTo(context)),
             )
           : null,
-      child: child,
+      child: watermark && child != null
+          ? Stack(
+              children: [
+                const MarkWatermark(),
+                Padding(padding: padding ?? const .all(16), child: child),
+              ],
+            )
+          : child,
     );
 
     final content = opacity < 1 ? Opacity(opacity: opacity, child: surface) : surface;

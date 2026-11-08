@@ -132,6 +132,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
         onChanged: (content) => setState(() => activeFilter = content.trim().isEmpty ? null : content.trim().toLowerCase()),
       ),
       onRefresh: fetchSharedAssignments,
+      // Without it the + is placed for a pushed page, hidden under the dock
+      pageIndex: 1,
       onFloatingButtonTap: isSearching ? null : openNewAssignmentPage,
       body: StreamBuilder(
         stream: database.assignments.watchAll(),

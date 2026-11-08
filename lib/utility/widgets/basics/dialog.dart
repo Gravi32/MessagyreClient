@@ -37,7 +37,7 @@ class Dialog extends StatelessWidget {
 
   factory Dialog.error(Object e) {
     debugPrint("[Error] $e");
-    return Dialog(title: AppStrings.errorTitle, content: AppStrings.genericError, options: {AppStrings.close: () {}});
+    return Dialog(title: AppStrings.errorTitle, content: AppStrings.describe(e), options: {AppStrings.close: () {}});
   }
 
   factory Dialog.confirm({String? content, void Function()? onConfirm, bool isDestructive = false}) {

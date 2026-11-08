@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:basic_utils/basic_utils.dart' show CryptoUtils;
 import 'package:flutter/foundation.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/database/models/chats/chat.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -147,18 +148,19 @@ class ClassService {
 
   /// Chooses a class ([SchoolClass.name]) or [SchoolClass.outside]. Returns false when the server refused or
   /// couldn't be reached.
-  Future<bool> choose(String value) async {
+  /// Returns why it failed, in words (null when it worked)
+  Future<String?> choose(String value) async {
     try {
       final response = await network.post("/classes/choose", {"Class": value, "Year": SchoolClass.yearLabel(DateTime.now())});
-      if (response.statusCode != 200) return false;
+      if (response.statusCode != 200) return AppStrings.errorFor(response);
       final data = jsonDecode(response.body);
       await _save(value, data is Map ? data["Year"]?.toString() : SchoolClass.yearLabel(DateTime.now()));
       await globals.persistent.remove(_postponedKey);
       if (current.value != null) unawaited(loadMembers(force: true));
-      return true;
+      return null;
     } catch (e) {
       debugPrint("[Class] Choosing the class failed: $e");
-      return false;
+      return AppStrings.describe(e);
     }
   }
 

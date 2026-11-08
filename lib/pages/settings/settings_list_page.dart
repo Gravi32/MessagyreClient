@@ -5,7 +5,6 @@ import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart'
 import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
-import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -101,15 +100,22 @@ class _SettingsListPageState extends State<SettingsListPage> {
         minimumSize: .zero,
         pressedOpacity: .6,
         onPressed: isLoading ? null : openProfile,
-        child: RoundContainer(
-          height: 96,
+        // On the icon's gradient with its Gymnase: the card that says whose Messagyre this is
+        child: BrandCard(
+          height: 112,
           padding: const .symmetric(horizontal: AppSpacing.l),
           child: isLoading
-              ? const Center(child: GymnaseLoader(size: 22))
+              ? const Center(child: GymnaseLoader(size: 22, color: AppColors.white))
               : Row(
                   spacing: AppSpacing.l,
                   children: [
-                    SizedBox.square(dimension: 60, child: ProfilePictureDisplay(accountUsername: globals.username!)),
+                    Container(
+                      width: 64,
+                      height: 64,
+                      padding: const .all(2.5),
+                      decoration: BoxDecoration(shape: .circle, color: AppColors.white.withValues(alpha: .9)),
+                      child: ProfilePictureDisplay(accountUsername: globals.username!),
+                    ),
                     Expanded(
                       child: Column(
                         mainAxisAlignment: .center,
@@ -120,18 +126,26 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             account!.displayName ?? account!.defaultDisplayName,
                             maxLines: 1,
                             overflow: .ellipsis,
-                            style: AppStyles.secondaryHeader(context),
+                            style: AppStyles.header(context).copyWith(color: AppColors.white),
                           ),
                           Text(
-                            [globals.username!, if (schoolClass != null) "Classe $schoolClass"].join(" · "),
+                            globals.username!,
                             maxLines: 1,
                             overflow: .ellipsis,
-                            style: AppStyles.subheadline(context),
+                            style: AppStyles.subheadline(context).copyWith(color: AppColors.white.withValues(alpha: .8)),
                           ),
+                          if (schoolClass != null) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Container(
+                              padding: const .symmetric(horizontal: AppSpacing.s, vertical: AppSpacing.xxs),
+                              decoration: BoxDecoration(borderRadius: .circular(AppRadius.s), color: AppColors.white.withValues(alpha: .2)),
+                              child: Text("Classe $schoolClass", style: AppStyles.badge(context)),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-                    HugeIcon(icon: AppIcons.chevronRight, color: AppColors.quaternaryText.adaptTo(context), size: AppSizes.smallIcon),
+                    HugeIcon(icon: AppIcons.chevronRight, color: AppColors.white.withValues(alpha: .7), size: AppSizes.smallIcon),
                   ],
                 ),
         ),

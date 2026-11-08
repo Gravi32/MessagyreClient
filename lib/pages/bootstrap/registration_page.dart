@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -75,7 +77,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     setState(() => isWaitingForResponse = false);
 
-    final responseData = jsonDecode(response.body);
+    final responseData = tryJsonDecode(response.body);
     final solutions = {
       "WrongFormat": "L'adresse e-mail doit respecter le format suivant : '*prénom*.*nom*' !",
       "WrongDomain": "L'adresse doit terminer en '@*eduvaud.ch*' !",
@@ -85,7 +87,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     };
 
     if (response.statusCode != 200) {
-      emailError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
+      emailError = solutions[responseData] ?? AppStrings.errorFor(response);
     } else {
       registrationToken = jsonDecode(response.body)["RegistrationToken"];
 
@@ -116,7 +118,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (response.statusCode == 401) {
       goToPage(0);
     } else if (response.statusCode != 200) {
-      codeError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
+      codeError = solutions[responseData] ?? AppStrings.errorFor(response);
     } else {
       globals.persistent.setInt("Page", 2);
       goToPage(2);
@@ -130,13 +132,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     setState(() => isWaitingForResponse = false);
 
-    final responseData = jsonDecode(response.body);
+    final responseData = tryJsonDecode(response.body);
     final solutions = {"TooShort": "Le mot de passe doit contenir au moins 8 caractères."};
 
     if (response.statusCode == 401) {
       goToPage(0);
     } else if (response.statusCode != 200) {
-      codeError = solutions[responseData] ?? "Une erreur s'est produite, veuillez reéssayer.";
+      codeError = solutions[responseData] ?? AppStrings.errorFor(response);
     } else {
       final accessToken = responseData["AccessToken"];
       final refreshToken = responseData["RefreshToken"];

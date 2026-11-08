@@ -32,6 +32,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
   Widget buildAverageCard(List<Grade> grades) {
     if (grades.isEmpty) {
       return RoundContainer(
+        watermark: true,
         padding: const .all(AppSpacing.card),
         child: Column(
           crossAxisAlignment: .start,
@@ -65,6 +66,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
     final isFailing = generalAverage < 4;
 
     return RoundContainer(
+      watermark: true,
       padding: .zero,
       child: Column(
         crossAxisAlignment: .stretch,

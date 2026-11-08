@@ -24,7 +24,9 @@ import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/grade_display.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
 
 class NewGradePage extends StatefulWidget {
@@ -167,8 +169,18 @@ class _NewGradePageState extends State<NewGradePage> {
 
   static String weightLabel(double value) => value >= 1 ? "×${value.removeTrailingZero()}" : (fractions[value] ?? "${(value * 100).round()}%");
 
-  /// A weight to choose: all the same size, the chosen one filled
-  Widget buildWeightChip(String label, bool isSelected, VoidCallback onTap) {
+  /// The word under each usual weight
+  static final weightNames = <double, String>{2.0: "Double", 1.5: "Une et demie", 1.0: "Normale", .75: "Trois quarts", .5: "Moitié", .25: "Quart"};
+
+  /// What the chosen weight means, in a sentence (`*bold*` for CustomText)
+  static String weightSentence(double value) {
+    if (value == 1) return "Une note normale : elle compte *une fois* dans la moyenne.";
+    if (value > 1) return "Elle compte *${value.removeTrailingZero()} fois* plus qu'une note normale.";
+    return "Elle compte pour *${fractions[value] ?? "${(value * 100).round()}%"}* d'une note normale.";
+  }
+
+  /// A weight to choose: all the same size, the chosen one filled with the accent
+  Widget buildWeightChip(String label, String? name, bool isSelected, VoidCallback onTap) {
     final text = AppColors.text.adaptTo(context);
     return CupertinoButton(
       padding: .zero,
@@ -180,13 +192,35 @@ class _NewGradePageState extends State<NewGradePage> {
       },
       child: AnimatedContainer(
         duration: AppDurations.fast,
-        height: 40,
-        alignment: .center,
-        decoration: BoxDecoration(color: isSelected ? text : AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(AppRadius.s)),
-        child: Text(
-          label,
-          maxLines: 1,
-          style: AppStyles.subheadline(context).copyWith(fontWeight: .w600, color: isSelected ? AppColors.secondaryBackground.adaptTo(context) : text),
+        height: 58,
+        width: double.infinity,
+        padding: const .symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.accent : AppColors.tertiaryBackground.adaptTo(context),
+          borderRadius: .circular(AppRadius.s),
+          boxShadow: isSelected ? const [BoxShadow(color: Color.fromRGBO(90, 10, 98, 1), offset: Offset(0, 3))] : null,
+        ),
+        child: Column(
+          mainAxisAlignment: .center,
+          children: [
+            Text(
+              label,
+              maxLines: 1,
+              style: AppStyles.strongText(context).copyWith(fontFamily: AppStyles.titleFontFamily, fontWeight: .w600, color: isSelected ? AppColors.white : text),
+            ),
+            if (name != null)
+              FittedBox(
+                fit: .scaleDown,
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  style: AppStyles.caption(context).copyWith(
+                    fontWeight: .w700,
+                    color: isSelected ? AppColors.white.withValues(alpha: .85) : AppColors.secondaryText.adaptTo(context),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -253,14 +287,15 @@ class _NewGradePageState extends State<NewGradePage> {
       ),
 
       children: [
-        // The grade, big, and the wheel to choose it
-        RoundContainer(
-          padding: const .fromLTRB(0, AppSpacing.xl, 0, AppSpacing.l),
+        // The grade, big, and the ruler to choose it, on the icon's gradient with its Gymnase
+        BrandCard(
+          padding: const .fromLTRB(AppSpacing.l, AppSpacing.xl, AppSpacing.l, AppSpacing.m),
+          markScale: .95,
           child: Column(
             spacing: AppSpacing.l,
             children: [
-              GradeDisplay(grade: grade, size: 92, weight: weight),
-              GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
+              GradeDisplay(grade: grade, size: 96, weight: weight, onAccent: true),
+              GradePicker(grade: grade, onAccent: true, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
             ],
           ),
         ),
@@ -387,7 +422,7 @@ class _NewGradePageState extends State<NewGradePage> {
         ],
 
         // Weight
-        sectionTitle("Valeur"),
+        sectionTitle("Combien elle compte"),
         RoundContainer(
           padding: const .all(AppSpacing.l),
           child: Column(
@@ -404,8 +439,8 @@ class _NewGradePageState extends State<NewGradePage> {
                     for (final value in row)
                       Expanded(
                         child: value == null
-                            ? buildWeightChip(isCustomWeight ? weightLabel(weight) : "Autre", isCustomWeight, chooseCustomWeight)
-                            : buildWeightChip(weightLabel(value), weight == value, () => setState(() => weight = value)),
+                            ? buildWeightChip(isCustomWeight ? weightLabel(weight) : "Autre", isCustomWeight ? "Autre" : "…", isCustomWeight, chooseCustomWeight)
+                            : buildWeightChip(weightLabel(value), weightNames[value], weight == value, () => setState(() => weight = value)),
                       ),
                     // The second row has one chip less: the same width as the first
                     if (row.length < 4) const Expanded(child: SizedBox()),
@@ -416,7 +451,7 @@ class _NewGradePageState extends State<NewGradePage> {
         ),
         Padding(
           padding: const .only(left: 4, top: AppSpacing.s),
-          child: Text("Combien la note compte dans la moyenne (×1 : une note normale).", style: AppStyles.footer(context)),
+          child: CustomText(weightSentence(weight), style: AppStyles.footer(context).copyWith(color: AppColors.secondaryText.adaptTo(context))),
         ),
 
         // Group

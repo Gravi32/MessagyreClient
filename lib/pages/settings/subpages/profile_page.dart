@@ -198,7 +198,8 @@ class _ProfilePageState extends State<ProfilePage> {
             color: AppColors.accent,
             onTap: () async {
               setState(() => isUploading = true);
-              bool success = await network.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
+              final error = await network.uploadProfile(account.displayName, profile, imagePath: chosenPicturePath);
+              final success = error == null;
               setState(() => isUploading = false);
 
               if (!context.mounted) return;
@@ -208,7 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 context: mountedContext,
                 builder: (_) => Dialog(
                   title: success ? "Profil actualisé!" : "Erreur",
-                  content: success ? "Le profil a été mis a jour avec succès!" : "Une erreur s'est produite, veuillez reéssayer.\n\n(POST Multipart)",
+                  content: success ? "Le profil a été mis a jour avec succès!" : "Le profil n'a pas été enregistré. $error",
                   options: success ? {"OK": () => Navigator.pop(context)} : null,
                 ),
               );
