@@ -14,50 +14,75 @@ class ChatRepository {
   Future<void> save(Chat chat) async {
     await isar.writeTxn(() async {
       await isar.chats.put(chat);
-      await chat.messages.save();
     });
-    return;
   }
 
-  Future<void> addMessage(Chat chat, Message message) async {
+  /// Saves a message in its conversation (created if needed). Returns false when the message was already
+  /// there (the server can deliver a message twice): it is then left untouched.
+  Future<bool> addMessage(Chat chat, Message message, {bool countAsUnread = false}) async {
+    var added = false;
     await isar.writeTxn(() async {
+      if (await isar.messages.filter().uuidEqualTo(message.uuid).isEmpty() == false) return;
+
+      message.chatUsername = chat.username;
+      if (countAsUnread) chat.unreadMessages++;
+
       await isar.messages.put(message);
       await isar.chats.put(chat);
-
-      chat.messages.add(message);
-      await chat.messages.save();
+      added = true;
     });
+    return added;
   }
 
-  Future<void> incrementUnread(Chat chat) async {
+  Future<void> setPinned(Chat chat, bool isPinned) async {
     await isar.writeTxn(() async {
-      chat.unreadMessages++;
+      chat.isPinned = isPinned;
       await isar.chats.put(chat);
     });
-    return;
   }
 
   Future<void> resetUnread(Chat chat) async {
+    if (chat.unreadMessages == 0) return;
     await isar.writeTxn(() async {
       chat.unreadMessages = 0;
       await isar.chats.put(chat);
     });
-    return;
   }
 
   Stream<List<Chat>> watchAll() {
     return isar.chats.where().watch(fireImmediately: true);
   }
 
+  Stream<void> watchAllLazy() => isar.chats.watchLazy(fireImmediately: true);
+
   Stream<Chat?> watchChat(String username) {
     return isar.chats.filter().usernameEqualTo(username).watch(fireImmediately: true).map((chats) => chats.isNotEmpty ? chats.first : null);
   }
 
+  /// Removes the conversation and all its messages from this device
   Future<void> deleteChat(Chat? chat) async {
     if (chat == null) return;
     await isar.writeTxn(() async {
+      await isar.messages.where().chatUsernameEqualToAnySentAt(chat.username).deleteAll();
       await isar.chats.delete(chat.id);
     });
-    return;
+  }
+
+  /// Before 4.0 messages were only linked to their chat (IsarLinks, without order): gives them their chatUsername
+  Future<int> migrateLinkedMessages() async {
+    var migrated = 0;
+    final chats = getAll();
+    await isar.writeTxn(() async {
+      for (final chat in chats) {
+        await chat.messages.load();
+        final toFix = chat.messages.where((m) => m.chatUsername == null).toList();
+        for (final message in toFix) {
+          message.chatUsername = chat.username;
+        }
+        await isar.messages.putAll(toFix);
+        migrated += toFix.length;
+      }
+    });
+    return migrated;
   }
 }

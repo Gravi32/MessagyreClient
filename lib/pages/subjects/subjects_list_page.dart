@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' hide Dialog, Page, ListTile;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
@@ -80,7 +81,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                         spacing: 6,
                         children: [
                           Text(subject.name, style: AppStyles.secondaryHeader(context)),
-                          if (subject.isLocked) Icon(CupertinoIcons.lock_fill, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                          if (subject.isLocked) HugeIcon(icon: AppIcons.locked, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
                         ],
                       ),
                       onTap: () => showCupertinoSheet(

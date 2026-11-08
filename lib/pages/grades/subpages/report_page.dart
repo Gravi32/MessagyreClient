@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Divider;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -54,7 +55,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
             child: Text(subjectName, style: AppStyles.primaryText(context), overflow: .ellipsis),
           ),
 
-          if (isLocked) Icon(CupertinoIcons.lock_fill, size: 14, color: AppColors.text.adaptTo(context)),
+          if (isLocked) HugeIcon(icon: AppIcons.locked, size: 14, color: AppColors.text.adaptTo(context)),
 
           Column(
             mainAxisAlignment: .center,

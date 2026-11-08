@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -224,7 +225,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     placeholderStyle: TextStyle(color: isMissingTitle ? AppColors.red : AppColors.placeholderText.adaptTo(context)),
                     forceValid: false,
                     suffix: isMissingTitle
-                        ? Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18)
+                        ? HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18)
                         : CustomIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: AppColors.placeholderText.adaptTo(context), strokeWidth: 1),
 
                     suffixMode: .notEditing,
@@ -445,7 +446,7 @@ class _NewGradePageState extends State<NewGradePage> {
             ListTile(
               onTap: () => subjectFocusNode.requestFocus(),
               leading: CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
-              trailing: isMissingSubject ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18) : null,
+              trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
               enabled: referenceId == null,
               child: SubjectAutocomplete(
                 controller: subjectController,

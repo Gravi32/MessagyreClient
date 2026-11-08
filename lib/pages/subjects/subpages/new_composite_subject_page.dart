@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -142,7 +143,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                   placeholderStyle: TextStyle(color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context), fontWeight: .w400),
                 ),
               ),
-              if (isMissingInfo) const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18),
+              if (isMissingInfo) const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18),
             ],
           ),
         ),

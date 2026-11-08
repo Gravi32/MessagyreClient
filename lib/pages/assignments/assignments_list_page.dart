@@ -1,9 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/assignments/shared_assignment.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
 import 'package:messagyre_client/pages/assignments/widgets/assignments_top_card.dart';
@@ -12,15 +15,13 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/assignment_tile.dart';
-import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
-import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
-import 'package:messagyre_client/utility/widgets/basics/tag.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
+import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 final assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
 
@@ -36,221 +37,160 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   final database = DatabaseService();
   final globals = GlobalsService();
 
-  final sharedAssignmentsNotifier = ValueNotifier<List<Map<String, dynamic>>>([]);
-
-  int lastSentAssignmentsCount = 0;
-  String? activeFilter;
-
   final searchFieldFocusNode = FocusNode();
 
-  Widget buildPlaceholder() {
-    return Column(
-      mainAxisAlignment: .center,
-      spacing: 2,
-      children: [
-        const SizedBox(height: 60),
-        CustomIcon(icon: HugeIcons.strokeRoundedDashedLine02, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
-        const SizedBox(height: 8),
-        Text(
-          "Rien pour le moment...",
-          style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
-        ),
-        Text(
-          "Vos devoirs s'afficheront ici",
-          style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context)),
-        ),
-        CupertinoButton(
-          onPressed: () => Navigator.push(context, CupertinoSheetRoute(builder: (context) => NewAssignmentPage(), enableDrag: false)),
-          padding: .only(top: 40),
-          child: Row(
-            mainAxisAlignment: .center,
-            spacing: 6,
-            children: [
-              Text("Ajouter un devoir", style: TextStyle(fontWeight: .w400)),
-              CustomIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  List<SharedAssignment> sharedAssignments = [];
+
+  /// Why the shared assignments are missing, shown under the list (null when they loaded)
+  String? sharedAssignmentsNotice;
+
+  int lastSentAssignmentsCount = -1;
+  String? activeFilter;
+
+  bool get isSearching => searchFieldFocusNode.hasFocus || activeFilter != null;
+
+  void openNewAssignmentPage() => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(), enableDrag: false);
 
   Future<void> fetchSharedAssignments() async {
-    final apiResponse = await network.get("/shared/assignments/get");
-    if (apiResponse.statusCode != 200 && mounted) {
-      showCupertinoDialog(context: context, builder: (_) => Dialog.networkError(apiResponse));
-      return;
-    }
-    sharedAssignmentsNotifier.value = List<Map<String, dynamic>>.from(tryJsonDecode(apiResponse.body) ?? []);
+    final response = await network.get("/shared/assignments/get");
+    if (!mounted) return;
+
+    setState(() {
+      if (response.statusCode == 200) {
+        sharedAssignments = SharedAssignment.parseList(tryJsonDecode(response.body));
+        sharedAssignmentsNotice = null;
+      } else if (response.statusCode == 400 && response.body.contains("NoClass")) {
+        sharedAssignments = [];
+        sharedAssignmentsNotice = AppStrings.sharedNoClass;
+      } else {
+        // The ones already shown stay: only the next refresh can tell if they changed
+        sharedAssignmentsNotice = AppStrings.errorFor(response);
+      }
+    });
   }
+
+  void onPageChanged() {
+    if (MainPage.pageIndex.value != 1) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[1].showBadge.value = false);
+    globals.persistent.setInt("LastSeenAssignmentDueDate", DateTime.now().dateOnly().add(const Duration(days: 1)).millisecondsSinceEpoch);
+  }
+
+  void onSearchFocusChanged() => setState(() {});
 
   @override
   void initState() {
     super.initState();
 
-    MainPage.pageIndex.addListener(() async {
-      if (MainPage.pageIndex.value != 1) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[1].showBadge.value = false);
-      globals.persistent.setInt("LastSeenAssignmentDueDate", DateTime.now().dateOnly().add(Duration(days: 1)).millisecondsSinceEpoch);
-    });
+    MainPage.pageIndex.addListener(onPageChanged);
+    searchFieldFocusNode.addListener(onSearchFocusChanged);
 
-    searchFieldFocusNode.addListener(() => setState(() {}));
-
+    final tomorrow = DateTime.now().dateOnly().add(const Duration(days: 1));
     final lastSeenDueDate = globals.persistent.getInt("LastSeenAssignmentDueDate") ?? 0;
-    final tomorrowsAssignments = database.assignments.getAll().where((a) => a.dueDate.isSameDayAs(DateTime.now().dateOnly().add(const Duration(days: 1))));
+    final hasAssignmentsForTomorrow = database.assignments.getAll().any((a) => a.dueDate.isSameDayAs(tomorrow));
 
-    if (tomorrowsAssignments.isNotEmpty && lastSeenDueDate < DateTime.now().dateOnly().add(Duration(days: 1)).millisecondsSinceEpoch) {
+    if (hasAssignmentsForTomorrow && lastSeenDueDate < tomorrow.millisecondsSinceEpoch) {
       WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[1].showBadge.value = true);
     }
+
+    fetchSharedAssignments();
+  }
+
+  @override
+  void dispose() {
+    MainPage.pageIndex.removeListener(onPageChanged);
+    searchFieldFocusNode.removeListener(onSearchFocusChanged);
+    searchFieldFocusNode.dispose();
+    super.dispose();
+  }
+
+  bool matchesFilter(Assignment assignment) {
+    final filter = activeFilter;
+    if (filter == null) return true;
+    return "${assignment.title ?? ""} ${assignment.content} ${assignment.subject.value?.name ?? ""}".toLowerCase().contains(filter);
+  }
+
+  Widget buildSection(Iterable<Assignment> list, String title, {bool tilesShowDate = true, bool dimTiles = false, bool newestFirst = false}) {
+    var sorted = list.sorted((a, b) => a.dueDate.compareTo(b.dueDate));
+    if (newestFirst) sorted = sorted.reversed.toList();
+
+    return ListSection(
+      title: title,
+      useLargeTitle: true,
+      margin: const .only(top: AppSpacing.section),
+      children: sorted.map((assignment) => AssignmentTile(key: ValueKey(assignment.id), assignment: assignment, showDate: tilesShowDate, dim: dimTiles)).toList(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Page.sliver(
-      topBar: TopBar.sliver(title: "Devoirs"),
+      topBar: TopBar.sliver(title: AppStrings.tabAssignments),
       field: Field.search(
-        placeholder: "Chercher une branche...",
+        placeholder: AppStrings.assignmentsSearch,
         focusNode: searchFieldFocusNode,
-        onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase()),
+        onChanged: (content) => setState(() => activeFilter = content.trim().isEmpty ? null : content.trim().toLowerCase()),
       ),
-      onRefresh: () => fetchSharedAssignments(),
-      onFloatingButtonTap: !searchFieldFocusNode.hasFocus && activeFilter == null
-          ? () => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(), enableDrag: false)
-          : null,
-      body: ValueListenableBuilder(
-        valueListenable: sharedAssignmentsNotifier,
-        builder: (_, sharedAssignments, _) => StreamBuilder(
-          stream: database.assignments.watchAll(),
-          builder: (context, snapshot) {
-            final allAssignments =
-                snapshot.data?.where((s) => activeFilter != null ? ((s.title ?? "") + s.content).toLowerCase().contains(activeFilter!) : true) ?? [];
+      onRefresh: fetchSharedAssignments,
+      onFloatingButtonTap: isSearching ? null : openNewAssignmentPage,
+      body: StreamBuilder(
+        stream: database.assignments.watchAll(),
+        builder: (context, snapshot) {
+          final everyAssignment = snapshot.data ?? [];
 
-            final today = DateTime.now().dateOnly();
-            final tomorrow = today.add(const Duration(days: 1));
+          if (snapshot.hasData && lastSentAssignmentsCount != everyAssignment.length) {
+            lastSentAssignmentsCount = everyAssignment.length;
+            network.post("/analytics/upload-assignments-count", {"Assignments": everyAssignment.length});
+          }
 
-            final pastAssignments = allAssignments.where((a) => a.dueDate.isBefore(today));
-            final todaysAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(today));
-            final tomorrowsAssignments = allAssignments.where((a) => a.dueDate.isSameDayAs(tomorrow));
-            final plannedAssignments = allAssignments.where((a) => a.dueDate.isAfter(tomorrow));
+          final assignments = everyAssignment.where(matchesFilter).toList();
+          final shared = sharedAssignments.where((a) => activeFilter == null || a.matches(activeFilter!)).sorted((a, b) => a.dueDate.compareTo(b.dueDate));
 
-            if (lastSentAssignmentsCount != allAssignments.length) {
-              lastSentAssignmentsCount = allAssignments.length;
-              network.post("/analytics/upload-assignments-count", {"Assignments": allAssignments.length});
-            }
+          final today = DateTime.now().dateOnly();
+          final tomorrow = today.add(const Duration(days: 1));
 
-            Widget buildSection(
-              Iterable<Assignment> list,
-              String title, {
-              Color? titleColor,
-              bool tilesShowDate = true,
-              bool dimTiles = false,
-              bool reverseSort = false,
-            }) {
-              list = list.sorted((a, b) => a.dueDate.compareTo(b.dueDate));
+          final past = assignments.where((a) => a.dueDate.isBefore(today));
+          final forToday = assignments.where((a) => a.dueDate.isSameDayAs(today));
+          final forTomorrow = assignments.where((a) => a.dueDate.isSameDayAs(tomorrow));
+          final upcoming = assignments.where((a) => a.dueDate.isAfter(tomorrow) && !a.dueDate.isSameDayAs(tomorrow));
 
-              if (reverseSort) list = list.toList().reversed;
+          final isEmpty = assignments.isEmpty && shared.isEmpty;
 
-              return ListSection(
-                title: title,
-                useLargeTitle: true,
-                margin: .only(top: 16),
-                children: list
-                    .map((assignment) => AssignmentTile(key: ValueKey(assignment.referenceId), assignment: assignment, showDate: tilesShowDate, dim: dimTiles))
-                    .toList(),
-              );
-            }
-
-            Widget buildSharedAssignmentsSection(
-              Iterable<Map<String, dynamic>> list,
-              String title, {
-              Color? titleColor,
-              bool tilesShowDate = true,
-              bool dimTiles = false,
-              bool reverseSort = false,
-            }) {
-              list = list.sorted((a, b) => (a["DueDate"] ?? DateTime(2000)).compareTo(b["DueDate"] ?? DateTime(2000)));
-
-              if (reverseSort) list = list.toList().reversed;
-
-              return ListSection(
-                title: title,
-                useLargeTitle: true,
-                margin: .only(top: 16),
-                children: list.map((sharedAssignment) {
-                  final type = AssignmentType.values.asNameMap()[(sharedAssignment["Type"] ?? "assignment").toLowerCase()];
-                  final content = sharedAssignment["Content"];
-
-                  return ListTile(
-                    child: Column(
-                      crossAxisAlignment: .start,
-                      spacing: 8,
-                      children: [
-                        // Title and tag
-                        Row(
-                          spacing: 10,
-                          children: [
-                            // Test tag
-                            if (type == .test) Tag(text: "TEST", color: AppColors.red),
-
-                            // Leave tag
-                            if (type == .leave) Tag(text: "CONGÉ", color: AppColors.orange),
-
-                            // Title
-                            Expanded(
-                              child: Text(
-                                type == .test ? sharedAssignment["Title"] ?? "Test sans titre" : content,
-                                style: AppStyles.secondaryHeader(context).copyWith(color: type == .test ? AppColors.red : null),
-                                softWrap: true,
-                                maxLines: 2,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // Description
-                        if (type == .test && content.isNotEmpty)
-                          ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 80),
-                            child: Text(content, style: AppStyles.primaryText(context), softWrap: true, maxLines: 5),
-                          ),
-
-                        // Subject and date
-                        Row(
-                          spacing: 8,
-                          children: [
-                            //  if (assignment.subject.value != null) SubjectBadge(subject: assignment.subject.value!, size: 22),
-                            // Expanded(
-                            //   child: Text(
-                            //     type == .leave
-                            //         ? "Prévu pour ${formatDate(assignment.dueDate, includeArticle: true)}"
-                            //         : "${assignment.subject.value?.name}${widget.showDate ? "  •  ${formatDate(assignment.dueDate)}" : ""}",
-                            //     style: AppStyles.primaryText(context),
-                            //   ),
-                            // ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              );
-            }
-
-            return ListView(
-              padding: .zero,
-              children: [
-                if (!searchFieldFocusNode.hasFocus && activeFilter == null) AssignmentsTopCard(),
-                if (sharedAssignments.isNotEmpty) buildSharedAssignmentsSection(sharedAssignments, "Partagés"),
-                if (todaysAssignments.isNotEmpty) buildSection(todaysAssignments, "Pour aujourd'hui", tilesShowDate: false),
-                if (tomorrowsAssignments.isNotEmpty) buildSection(tomorrowsAssignments, "Pour demain", tilesShowDate: false),
-                if (plannedAssignments.isNotEmpty) buildSection(plannedAssignments, "À venir"),
-                if (pastAssignments.isNotEmpty) buildSection(pastAssignments, "Passés", dimTiles: true, reverseSort: true),
-                if (allAssignments.isEmpty) buildPlaceholder(),
-                BottomSpacing(includeBottomBar: true),
-              ],
-            );
-          },
-        ),
+          // Not a ListView: with pull to refresh the page already scrolls (see Page.sliver)
+          return Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              if (!isSearching) const AssignmentsTopCard(),
+              if (shared.isNotEmpty)
+                ListSection(
+                  title: AppStrings.sectionShared,
+                  useLargeTitle: true,
+                  margin: const .only(top: AppSpacing.section),
+                  children: shared.map((assignment) => SharedAssignmentTile(key: ValueKey("shared-${assignment.id}"), assignment: assignment)).toList(),
+                ),
+              if (forToday.isNotEmpty) buildSection(forToday, AppStrings.sectionToday, tilesShowDate: false),
+              if (forTomorrow.isNotEmpty) buildSection(forTomorrow, AppStrings.sectionTomorrow, tilesShowDate: false),
+              if (upcoming.isNotEmpty) buildSection(upcoming, AppStrings.sectionUpcoming),
+              if (past.isNotEmpty) buildSection(past, AppStrings.sectionPast, dimTiles: true, newestFirst: true),
+              if (isEmpty)
+                activeFilter != null
+                    ? const EmptyState(icon: AppIcons.noResults, title: AppStrings.assignmentsNoResults)
+                    : EmptyState(
+                        icon: AppIcons.emptyList,
+                        title: AppStrings.assignmentsEmptyTitle,
+                        subtitle: AppStrings.assignmentsEmptySubtitle,
+                        actionText: AppStrings.addAssignment,
+                        actionIcon: AppIcons.add,
+                        onAction: openNewAssignmentPage,
+                      ),
+              if (sharedAssignmentsNotice != null && !isSearching)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.l, AppSpacing.xl, AppSpacing.l, 0),
+                  child: CustomText(sharedAssignmentsNotice!, textAlign: .center, style: AppStyles.footer(context).copyWith(color: AppColors.tertiaryText.adaptTo(context))),
+                ),
+              const BottomSpacing(includeBottomBar: true),
+            ],
+          );
+        },
       ),
     );
   }

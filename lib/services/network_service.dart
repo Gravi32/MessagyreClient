@@ -2,15 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:basic_utils/basic_utils.dart';
-import 'package:encrypt/encrypt.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:messagyre_client/database/models/chats/chat.dart';
-import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
+import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
@@ -18,8 +16,6 @@ import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:pointycastle/export.dart';
-import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -39,9 +35,6 @@ class NetworkService {
   final secureStorage = SecureStorageService();
 
   // Streams
-  final messageStreamController = StreamController<(String sender, Message message)>.broadcast();
-  final messageDeletionStreamController = StreamController<(String sender, Message message)>.broadcast();
-
   final _acknowledgementStreamController = StreamController<String>.broadcast();
 
   final connectionState = ValueNotifier(ConnectionState.NotConnected);
@@ -227,142 +220,47 @@ class NetworkService {
     }
   }
 
-  Future<bool> waitForServerAcknowledgement(String targetUuid) async {
+  /// Sends a communication; false when there is no connection
+  bool sendRaw(Map<String, dynamic> payload) {
+    final channel = _channel;
+    if (channel == null) return false;
     try {
-      return await _acknowledgementStreamController.stream.any((uuid) => uuid == targetUuid).timeout(Duration(seconds: 10));
-    } catch (_) {
-      debugPrint("[WebSocket] Never received server acknowledgement for message UUID: $targetUuid");
+      channel.sink.add(jsonEncode(payload));
+      return true;
+    } catch (e) {
+      debugPrint("[WebSocket] Sending failed: $e");
       return false;
     }
   }
 
-  Future<bool> send(String messageUuid, String recipientUsername, RSAPublicKey? recipientPublicKeyPem, String messageContent) async {
-    if (!isConnected) return false;
+  /// Sends a message and waits for the server to confirm it stored it (false after 10 seconds without answer)
+  Future<bool> sendAndWaitForAcknowledgement(String uuid, Map<String, dynamic> payload) async {
+    // Listening before sending: the acknowledgement can't be missed
+    final acknowledgement = _acknowledgementStreamController.stream.firstWhere((acknowledged) => acknowledged == uuid).timeout(const Duration(seconds: 10));
 
-    Map<String, dynamic> payload = {"CommunicationType": "Message", "Uuid": messageUuid, "RecipientUsername": recipientUsername};
-
-    if (recipientPublicKeyPem != null) {
-      final aesKey = Key.fromSecureRandom(32); // 32 bytes = 256 bit
-      final iv = IV.fromSecureRandom(12); // 12 bytes for GCM
-
-      final encrypter = Encrypter(AES(aesKey, mode: AESMode.gcm));
-      final encryptedMessage = encrypter.encrypt(messageContent, iv: iv);
-
-      final rsaEncryptor = OAEPEncoding(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(recipientPublicKeyPem));
-
-      final encryptedKeyBytes = rsaEncryptor.process(aesKey.bytes);
-
-      final base64CipherText = encryptedMessage.base64;
-      final base64Iv = base64.encode(iv.bytes);
-      final base64EncryptedKey = base64.encode(encryptedKeyBytes);
-
-      payload.addAll({"CipherText": base64CipherText, "Iv": base64Iv, "EncryptedKey": base64EncryptedKey});
-    } else {
-      payload["Content"] = messageContent;
-    }
-
-    _channel?.sink.add(jsonEncode(payload));
-
-    final success = await waitForServerAcknowledgement(messageUuid);
-
-    return success;
-  }
-
-  void _handleCommunication(Map<String, dynamic> communicationData) async {
-    // On message received
-    void onMessageReceived(String senderUsername, Map<String, dynamic> messageData) {
-      _channel?.sink.add(jsonEncode({"CommunicationType": "Acknowledgement", "Uuid": messageData.tryGetValue("ID")}));
-
-      var receivedMessage = Message.fromMessageData(messageData);
-      var targetChat = database.chats.getByUsername(senderUsername);
-
-      if (targetChat == null) {
-        targetChat = Chat.custom(username: senderUsername);
-        targetChat.unreadMessages = 1;
-      } else {
-        targetChat.unreadMessages += 1;
-      }
-
-      database.chats.addMessage(targetChat, receivedMessage);
-
-      messageStreamController.add((senderUsername, receivedMessage));
-    }
-
-    // On message deletion received
-    void onMessageDeletionReceived(String senderUsername, String uuid) {
-      final targetChat = database.chats.getByUsername(senderUsername);
-      if (targetChat == null) return;
-
-      final targetMessage = database.messages.getByUuid(uuid);
-      if (targetMessage == null) return;
-
-      targetMessage.isDeleted = true;
-
-      database.messages.save(targetMessage);
-
-      messageDeletionStreamController.add((senderUsername, targetMessage));
-    }
+    if (!sendRaw(payload)) return false;
 
     try {
-      final String? communicationType = communicationData.tryGetValue("CommunicationType");
-
-      switch (communicationType) {
-        case "Message":
-          final sender = communicationData.tryGetValue("SenderUsername")?.toString();
-          final messageUuid = communicationData.tryGetValue("Uuid")?.toString();
-          final rawSentAt = communicationData.tryGetValue("SentAt")?.toString();
-          if (sender == null) throw FormatException("Missing SenderUsername");
-          if (rawSentAt == null) throw FormatException("Missing SentAt");
-          if (globals.blockedUsers.contains(sender)) return;
-
-          String content;
-
-          final hasCipherText = communicationData.containsKey("CipherText") && communicationData.tryGetValue("CipherText") != null;
-          final hasIv = communicationData.containsKey("Iv") && communicationData.tryGetValue("Iv") != null;
-          final hasEncryptedKey = communicationData.containsKey("EncryptedKey") && communicationData.tryGetValue("EncryptedKey") != null;
-
-          if (hasCipherText && hasIv && hasEncryptedKey) {
-            content = await encryption.decryptMessage(
-              communicationData.tryGetValue("CipherText"),
-              communicationData.tryGetValue("Iv"),
-              communicationData.tryGetValue("EncryptedKey") as String,
-            );
-          } else {
-            final plain = communicationData.tryGetValue("Content")?.toString();
-            if (plain == null) throw FormatException("Missing Content");
-            content = plain;
-          }
-
-          final sentAt = DateTime.parse(rawSentAt).toLocal();
-
-          onMessageReceived(sender, {"ID": messageUuid ?? Uuid().v4(), "SenderUsername": sender, "Content": content, "SentAt": sentAt});
-
-          HapticFeedback.heavyImpact();
-          break;
-
-        case "Acknowledgement":
-          final messageUuid = communicationData.tryGetValue("Uuid")?.toString();
-          if (messageUuid == null) throw FormatException("Missing Message Uuid");
-          _acknowledgementStreamController.add(messageUuid);
-          break;
-
-        case "Deletion":
-          final sender = communicationData.tryGetValue("SenderUsername")?.toString();
-          final messageUuids = communicationData.tryGetValue("Uuids")?.toString();
-          if (sender == null) throw FormatException("Missing SenderUsername");
-          if (messageUuids == null) throw FormatException("Missing Message Uuids");
-          onMessageDeletionReceived(sender, messageUuids);
-          break;
-      }
-    } catch (e, s) {
-      debugPrint("[WebSocket] Invalid message format: $e $s");
+      await acknowledgement;
+      return true;
+    } catch (_) {
+      debugPrint("[WebSocket] Never received the server's acknowledgement for $uuid");
+      return false;
     }
+  }
+
+  void _handleCommunication(Map<String, dynamic> communicationData) {
+    if (communicationData["CommunicationType"] == "Acknowledgement") {
+      final uuid = communicationData["Uuid"]?.toString();
+      if (uuid != null) _acknowledgementStreamController.add(uuid);
+      return;
+    }
+
+    ChatService().handleCommunication(communicationData);
   }
 
   void sendMessageDelete(List<String> forMessageUuids, String forUsername) {
-    if (!isConnected) return;
-
-    _channel?.sink.add(jsonEncode({"CommunicationType": "Deletion", "RecipientUsername": forUsername, "Uuids": forMessageUuids}));
+    sendRaw({"CommunicationType": "Deletion", "RecipientUsername": forUsername, "Uuids": forMessageUuids});
   }
 
   void disconnect() {
@@ -544,13 +442,104 @@ class NetworkService {
     return;
   }
 
-  Future<RSAPublicKey?> getPublicKey(String username) async {
-    final response = await get("/accounts/get-public-key?username=$username");
+  /// The public key of a user: found, missing (an app too old to have one) or unknown (the request failed)
+  Future<PublicKeyLookup> fetchPublicKey(String username) async {
+    final response = await get("/accounts/get-public-key?username=${Uri.encodeQueryComponent(username)}");
+    if (response.statusCode != 200) return const PublicKeyError();
 
-    if (response.statusCode != 200 || response.body.isEmpty) return null;
+    final pem = tryJsonDecode(response.body);
+    if (pem is! String || pem.trim().isEmpty) return const PublicKeyMissing();
 
-    String pemKey = jsonDecode(response.body);
-    return CryptoUtils.rsaPublicKeyFromPem(pemKey);
+    try {
+      return PublicKeyFound(CryptoUtils.rsaPublicKeyFromPem(pem));
+    } catch (e) {
+      debugPrint("[RSA] The public key of $username is invalid: $e");
+      return const PublicKeyMissing();
+    }
+  }
+
+  // Files
+
+  /// Uploads an (already encrypted) attachment. Returns its ID, or the reason of the refusal.
+  /// The access token lasts an hour: an upload or download refused with 401 is tried again once with a new one
+  Future<({String? id, String? error})> uploadFile(Uint8List bytes, {required String recipientUsername, void Function(double progress)? onProgress}) async {
+    final result = await _uploadFile(bytes, recipientUsername: recipientUsername, onProgress: onProgress);
+    if (result.error != "Unauthorized" || (await refreshAccessToken()).statusCode != 200) return result;
+    return _uploadFile(bytes, recipientUsername: recipientUsername, onProgress: onProgress);
+  }
+
+  Future<({String? id, String? error})> _uploadFile(Uint8List bytes, {required String recipientUsername, void Function(double progress)? onProgress}) async {
+    final multipart = http.MultipartRequest("POST", getBackendUri(route: "/files/upload"))
+      ..fields["RecipientUsername"] = recipientUsername
+      ..files.add(http.MultipartFile.fromBytes("File", bytes, filename: "file.bin"));
+
+    // A streamed copy of the request, to follow how much was sent
+    final body = multipart.finalize();
+    final total = multipart.contentLength;
+    var sent = 0;
+
+    final request = http.StreamedRequest("POST", multipart.url)
+      ..headers.addAll(multipart.headers)
+      ..headers["Authorization"] = globals.token ?? ""
+      ..contentLength = total;
+
+    body.listen(
+      (chunk) {
+        sent += chunk.length;
+        onProgress?.call(total > 0 ? sent / total : 0);
+        request.sink.add(chunk);
+      },
+      onDone: request.sink.close,
+      onError: request.sink.addError,
+      cancelOnError: true,
+    );
+
+    try {
+      final response = await http.Response.fromStream(await request.send().timeout(const Duration(minutes: 5)));
+      if (response.statusCode == 200) return (id: tryJsonDecode(response.body)?["ID"] as String?, error: null);
+      return (
+        id: null,
+        error: switch (response.statusCode) {
+          401 => "Unauthorized",
+          507 => "StorageFull",
+          _ => response.body,
+        },
+      );
+    } catch (e) {
+      debugPrint("[Files] Upload failed: $e");
+      return (id: null, error: "Network");
+    }
+  }
+
+  /// Downloads an attachment (still encrypted)
+  Future<({int statusCode, Uint8List? bytes})> downloadFile(String fileId, {void Function(double progress)? onProgress}) async {
+    final result = await _downloadFile(fileId, onProgress: onProgress);
+    if (result.statusCode != 401 || (await refreshAccessToken()).statusCode != 200) return result;
+    return _downloadFile(fileId, onProgress: onProgress);
+  }
+
+  Future<({int statusCode, Uint8List? bytes})> _downloadFile(String fileId, {void Function(double progress)? onProgress}) async {
+    final client = http.Client();
+    try {
+      final request = http.Request("GET", getBackendUri(route: "/files/get?ID=$fileId"));
+      if (globals.token != null) request.headers["Authorization"] = globals.token!;
+
+      final response = await client.send(request).timeout(const Duration(seconds: 30));
+      if (response.statusCode != 200) return (statusCode: response.statusCode, bytes: null);
+
+      final total = response.contentLength ?? 0;
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in response.stream.timeout(const Duration(seconds: 60))) {
+        builder.add(chunk);
+        if (total > 0) onProgress?.call(builder.length / total);
+      }
+      return (statusCode: 200, bytes: builder.takeBytes());
+    } catch (e) {
+      debugPrint("[Files] Download failed: $e");
+      return (statusCode: 0, bytes: null);
+    } finally {
+      client.close();
+    }
   }
 
   void logout() async {
@@ -576,3 +565,20 @@ class NetworkService {
 }
 
 enum ConnectionState { NotConnected, WaitingForAuthorization, Connecting, WaitingToReconnect, Connected }
+
+sealed class PublicKeyLookup {
+  const PublicKeyLookup();
+}
+
+class PublicKeyFound extends PublicKeyLookup {
+  final RSAPublicKey key;
+  const PublicKeyFound(this.key);
+}
+
+class PublicKeyMissing extends PublicKeyLookup {
+  const PublicKeyMissing();
+}
+
+class PublicKeyError extends PublicKeyLookup {
+  const PublicKeyError();
+}

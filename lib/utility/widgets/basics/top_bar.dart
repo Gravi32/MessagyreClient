@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -20,7 +21,7 @@ class TopBar extends StatefulWidget {
     return TopBar(
       leading: Button.icon(
         context,
-        icon: HugeIcons.strokeRoundedCancel01,
+        icon: AppIcons.close,
         onTap: () {
           if (onCloseConfirmed == null) {
             (onPop ?? () => Navigator.pop(context)).call();
@@ -31,7 +32,7 @@ class TopBar extends StatefulWidget {
             context: context,
             builder: (context) {
               return Dialog.confirm(
-                content: "Voulez-vous vraiment *annuler*? Cette action est irréversible.",
+                content: AppStrings.confirmCancel,
                 isDestructive: true,
                 onConfirm: () => onCloseConfirmed.call(),
               );
@@ -46,7 +47,7 @@ class TopBar extends StatefulWidget {
 
   factory TopBar.tab(BuildContext context, {String? title, bool buildChevron = true}) {
     return TopBar(
-      leading: buildChevron ? Button.icon(context, icon: HugeIcons.strokeRoundedArrowLeft01, onTap: () => Navigator.pop(context)) : null,
+      leading: buildChevron ? Button.icon(context, icon: AppIcons.back, onTap: () => Navigator.pop(context)) : null,
       middle: title != null
           ? Padding(
               padding: .symmetric(horizontal: 8),
@@ -69,7 +70,7 @@ class TopBar extends StatefulWidget {
           Text(title),
         ],
       ),
-      leading: Button.icon(context, margin: .only(bottom: 2), icon: HugeIcons.strokeRoundedArrowLeft01, onTap: () => Navigator.pop(context)),
+      leading: Button.icon(context, margin: .only(bottom: 2), icon: AppIcons.back, onTap: () => Navigator.pop(context)),
       isSliver: true,
       trailing: trailing,
     );

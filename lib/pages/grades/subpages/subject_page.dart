@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
@@ -131,13 +132,13 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
           : grade.removeTrailingZero();
     }
 
-    Widget buildGoalBox({required IconData icon, required String title, required String neededGrade, String? goalGrade, Color? gradeColor, bool dim = false}) {
+    Widget buildGoalBox({required List<List<dynamic>> icon, required String title, required String neededGrade, String? goalGrade, Color? gradeColor, bool dim = false}) {
       return Opacity(
         opacity: dim ? .4 : 1,
         child: Row(
           spacing: 8,
           children: [
-            Icon(icon, color: AppColors.tertiaryText.adaptTo(context)),
+            HugeIcon(icon: icon, color: AppColors.tertiaryText.adaptTo(context)),
             RoundContainer(
               margin: const .symmetric(vertical: 4),
               padding: const .symmetric(vertical: 4, horizontal: 10),
@@ -233,10 +234,10 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 physics: ClampingScrollPhysics(),
                 children: [
                   if (average < 3.75)
-                    buildGoalBox(icon: CupertinoIcons.bandage, title: "pour avoir la moyenne", neededGrade: formatGrade(toPass), dim: toPass < 1 || toPass > 6),
+                    buildGoalBox(icon: AppIcons.goalPass, title: "pour avoir la moyenne", neededGrade: formatGrade(toPass), dim: toPass < 1 || toPass > 6),
                   if (average < 5.75)
                     buildGoalBox(
-                      icon: CupertinoIcons.arrow_turn_right_up,
+                      icon: AppIcons.goalUp,
                       title: "pour monter à",
                       goalGrade: (average.roundToHalves() + .5).removeTrailingZero(),
                       neededGrade: formatGrade(toBoost),
@@ -244,7 +245,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                       dim: toBoost < 1 || toBoost > 6,
                     ),
                   buildGoalBox(
-                    icon: CupertinoIcons.minus,
+                    icon: AppIcons.goalKeep,
                     title: "pour maintenir",
                     goalGrade: average.roundToHalves().removeTrailingZero(),
                     neededGrade: formatGrade(toMaintain),
@@ -253,7 +254,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                   ),
                   if (average >= 4.25)
                     buildGoalBox(
-                      icon: CupertinoIcons.arrow_turn_right_down,
+                      icon: AppIcons.goalDown,
                       title: "pour avoir la moyenne",
                       neededGrade: formatGrade(toPass),
                       dim: toPass < 1 || toPass > 6,

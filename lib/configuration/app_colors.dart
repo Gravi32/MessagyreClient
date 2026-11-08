@@ -21,8 +21,9 @@ class AppColors {
   static const secondaryButton = AppColor(light: Color.fromRGBO(192, 192, 197, 1.0), dark: Color.fromRGBO(54, 61, 78, 1.0));
 
   // Chat bubbles
-  static const sentBubble = AppColor(light: Color.fromRGBO(216, 161, 255, 1.0), dark: Color.fromRGBO(156, 0, 179, 1.0));
-  static const receivedBubble = AppColor(light: Color.fromRGBO(209, 209, 214, 1.0), dark: Color.fromRGBO(46, 46, 60, 1.0));
+  // Sent: white text on the accent; received: the normal text color on a neutral bubble (readable in both modes)
+  static const sentBubble = AppColor(light: Color.fromRGBO(162, 16, 170, 1.0), dark: Color.fromRGBO(146, 0, 168, 1.0));
+  static const receivedBubble = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(40, 46, 62, 1.0));
 
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);

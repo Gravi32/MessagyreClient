@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -294,7 +295,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                 ListTile(
                   onTap: () => subjectFocusNode.requestFocus(),
                   leading: const CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
-                  trailing: isMissingSubject ? const Icon(CupertinoIcons.exclamationmark_circle_fill, color: AppColors.red, size: 18) : null,
+                  trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
 
                   child: SubjectAutocomplete(
                     controller: subjectController,

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
@@ -24,7 +25,7 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
               spacing: 8,
               children: [
                 Text(
-                  network.isLocalhost ? "Connecté au Localhost" : "Connexion en cours",
+                  network.isLocalhost ? AppStrings.connectedToLocalhost : AppStrings.connecting,
                   style: TextStyle(color: network.isLocalhost ? AppColors.red : AppColors.secondaryText.adaptTo(context)),
                 ),
                 network.isLocalhost

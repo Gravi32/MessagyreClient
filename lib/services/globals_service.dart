@@ -21,6 +21,8 @@ class GlobalsService {
 
   Future<void> initialize() async {
     persistent = await SharedPreferences.getInstance();
+    // Loaded here, not on first read: reading it while a page builds must not notify the listeners
+    blockedUsersNotifier.value = List<String>.from(persistent.getStringList("BlockedUsers") ?? []);
     appVersion = (await PackageInfo.fromPlatform()).version;
     return;
   }
@@ -90,16 +92,9 @@ class GlobalsService {
 
   // #region -> Blocked users
 
-  List<String>? _blockedUsers;
   final ValueNotifier<List<String>> blockedUsersNotifier = ValueNotifier([]);
 
-  List<String> get blockedUsers {
-    if (_blockedUsers == null) {
-      _blockedUsers = List<String>.from(persistent.getStringList("BlockedUsers") ?? []);
-      blockedUsersNotifier.value = List<String>.from(_blockedUsers!);
-    }
-    return blockedUsersNotifier.value;
-  }
+  List<String> get blockedUsers => blockedUsersNotifier.value;
 
   Future<void> _saveBlockedUsers() async {
     await persistent.setStringList("BlockedUsers", blockedUsersNotifier.value);

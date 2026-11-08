@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/services/database_service.dart';
@@ -28,9 +29,10 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
       ? today.add(Duration(days: 8 - today.weekday))
       : today.subtract(Duration(days: today.weekday - DateTime.monday));
 
-  late final String nextHolidayName;
-  late final DateTime nextHolidayDate;
-  late DateTime lastHolidayDate;
+  // Null when the holidays calendar (presets.dart) has no date after today: the tab is then hidden
+  String? nextHolidayName;
+  DateTime? nextHolidayDate;
+  DateTime? lastHolidayDate;
 
   Widget buildWeekPeek(List<Assignment> allAssignments, {required DateTime weekStart, required String title}) {
     return Column(
@@ -111,15 +113,17 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
     );
   }
 
-  Widget buildNextHolidaysTab() {
-    final daysDistance = nextHolidayDate.difference(lastHolidayDate).inDays;
+  Widget buildNextHolidaysTab(String nextHolidayName, DateTime nextHolidayDate) {
+    // Before the first holidays of the calendar, the countdown starts with the school year
+    final start = lastHolidayDate ?? DateTime(today.month >= 8 ? today.year : today.year - 1, 8, 18);
+    final daysDistance = nextHolidayDate.difference(start).inDays.clamp(1, 1000);
     final daysLeft = nextHolidayDate.difference(today).inDays;
 
     return Column(
       crossAxisAlignment: .stretch,
       spacing: 6,
       children: [
-        Text("Prochaines vacances", style: AppStyles.secondaryHeader(context)),
+        Text(AppStrings.nextHolidays, style: AppStyles.secondaryHeader(context)),
 
         Spacer(),
 
@@ -137,13 +141,13 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
               ),
             ),
             Text(daysLeft.toString(), style: AppStyles.header(context)),
-            Text("jours restants", style: AppStyles.primaryText(context)),
+            Text(AppStrings.daysLeft, style: AppStyles.primaryText(context)),
           ],
         ),
 
         // Progress bar
         ProgressBar(
-          progress: 1 - daysLeft / daysDistance,
+          progress: (1 - daysLeft / daysDistance).clamp(0.0, 1.0),
           height: 6,
           gradient: LinearGradient(colors: [AppColors.orange, AppColors.yellow]),
         ),
@@ -169,13 +173,14 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
   @override
   Widget build(BuildContext context) {
     final allAssignments = database.assignments.getAll();
+    final holidayName = nextHolidayName, holidayDate = nextHolidayDate;
 
     return PagedCard(
       height: 110,
       pages: [
-        buildWeekPeek(allAssignments, weekStart: monday, title: "Cette semaine"),
-        buildWeekPeek(allAssignments, weekStart: monday.add(Duration(days: 7)), title: "La semaine d'après"),
-        buildNextHolidaysTab(),
+        buildWeekPeek(allAssignments, weekStart: monday, title: AppStrings.thisWeek),
+        buildWeekPeek(allAssignments, weekStart: monday.add(Duration(days: 7)), title: AppStrings.nextWeek),
+        if (holidayName != null && holidayDate != null) buildNextHolidaysTab(holidayName, holidayDate),
       ],
     );
   }

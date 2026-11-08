@@ -189,11 +189,8 @@ class _ProfilePageState extends State<ProfilePage> {
           content:
               "Voulez-vous vraiment *effacer tous les messages* dans la conversation avec *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ? Cette action est irréversible.",
           onConfirm: () async {
-            for (final message in chat!.messages) {
-              database.messages.delete(message);
-            }
-            chat?.messages.clear();
-            database.chats.save(chat!);
+            await database.messages.deleteAllOfChat(account.username);
+            if (!mounted) return;
 
             showCupertinoDialog(
               context: context,

@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:flutter/foundation.dart';
+import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:uuid/uuid.dart';
 
 part 'message.g.dart';
@@ -11,6 +11,10 @@ class Message {
 
   @Index(unique: true)
   late String uuid;
+
+  /// The other person of the conversation. Messages saved before 4.0 get it at the first start (ChatService.migrate).
+  @Index(composite: [CompositeIndex('sentAt')])
+  String? chatUsername;
 
   late String content;
 
@@ -23,9 +27,28 @@ class Message {
 
   bool isDeleted = false;
 
+  /// The photo or file sent with this message, as JSON (see [Attachment]). Null for a text message.
+  String? attachmentData;
+
+  /// Where the decrypted photo or file is on this device, once uploaded or downloaded
+  String? localPath;
+
+  @enumerated
+  TransferState transfer = TransferState.none;
+
   Message();
 
+  @ignore
+  Attachment? get attachment => Attachment.tryParse(attachmentData);
+
+  @ignore
+  bool get hasAttachment => attachmentData != null;
+
   bool get isFailed => status == MessageStatus.Failed;
+
+  /// The text shown in the bubble: the caption of an attachment, or the message itself
+  @ignore
+  String get displayText => hasAttachment ? (attachment?.caption ?? "") : content;
 
   String get formattedTime => sentAt.toIso8601String().split('.').first;
 
@@ -54,31 +77,58 @@ class Message {
 
   factory Message.custom({
     String? uuid,
+    String? chatUsername,
     required String content,
     required DateTime sentAt,
     required bool isOwned,
     MessageStatus status = MessageStatus.Sending,
     bool isDeleted = false,
+    Attachment? attachment,
+    String? localPath,
+    TransferState transfer = TransferState.none,
   }) {
     return Message()
-      ..uuid = uuid ?? Uuid().v4()
+      ..uuid = uuid ?? const Uuid().v4()
+      ..chatUsername = chatUsername
       ..content = content
       ..sentAt = sentAt
       ..isOwned = isOwned
       ..status = status
-      ..isDeleted = isDeleted;
-  }
-
-  String pack(String recipientUsername) {
-    return jsonEncode({'RecipientUsername': recipientUsername, 'Content': content, 'SentAt': sentAt.toIso8601String(), 'Status': status.index, 'ID': uuid});
+      ..isDeleted = isDeleted
+      ..attachmentData = attachment?.toJson()
+      ..localPath = localPath
+      ..transfer = transfer;
   }
 
   @override
   String toString() {
     return 'Message $id ($formattedTime)'
         '${isOwned ? ' [Owned]' : ''}'
-        '${isDeleted ? ' [Deleted]' : ''}: $content';
+        '${isDeleted ? ' [Deleted]' : ''}'
+        '${hasAttachment ? ' [Attachment]' : ''}';
   }
 }
 
+/// The order matters: a receipt only ever moves a message forward (Sent → Delivered → Read). Failed stays last
+/// (saved as its index by Isar, like the other values).
 enum MessageStatus { Sending, Sent, Delivered, Read, Failed }
+
+/// The state of a message's photo or file on this device
+enum TransferState {
+  /// No attachment, or nothing to do
+  none,
+
+  /// Received, not downloaded yet
+  pending,
+  uploading,
+  downloading,
+
+  /// The decrypted file is at localPath
+  ready,
+
+  /// The upload or download failed: it can be retried
+  failed,
+
+  /// The server doesn't have the file any more
+  expired,
+}

@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/services/biometrics_service.dart';
@@ -68,6 +71,10 @@ class Page extends StatefulWidget {
     );
   }
 
+  /// A page with a large title that shrinks on scroll, and an optional pinned search [field].
+  ///
+  /// With [onRefresh] (pull to refresh) the [body] is laid out inside a scroll view: it must not scroll itself
+  /// (use a Column, or a ListView with shrinkWrap and NeverScrollableScrollPhysics).
   factory Page.sliver({
     required Widget body,
     required TopBar topBar,
@@ -124,7 +131,7 @@ class _PageState extends State<Page> {
 
   @override
   Widget build(BuildContext context) {
-    EdgeInsets padding = const .symmetric(horizontal: 10);
+    EdgeInsets padding = const .symmetric(horizontal: AppSpacing.page);
     final bgColor = widget.backgroundColor ?? AppColors.background.adaptTo(context);
     final authOverlayOpacity = isUnlocked ? 0 : 1;
 
@@ -151,6 +158,7 @@ class _PageState extends State<Page> {
                     physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                     body: widget.onRefresh != null
                         ? CustomScrollView(
+                            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                             slivers: [
                               CupertinoSliverRefreshControl(onRefresh: widget.onRefresh!),
                               SliverToBoxAdapter(
@@ -177,11 +185,11 @@ class _PageState extends State<Page> {
                   ),
             if (widget.onFloatingButtonTap != null)
               Positioned(
-                bottom: MediaQuery.viewPaddingOf(context).bottom + 90,
-                right: 13,
+                bottom: MediaQuery.viewPaddingOf(context).bottom + AppSizes.bottomBar + AppSpacing.s,
+                right: AppSpacing.page + 3,
                 child: SizedBox(
-                  height: 50,
-                  child: Button.icon(context, icon: HugeIcons.strokeRoundedAdd01, onTap: () => widget.onFloatingButtonTap!()),
+                  height: AppSizes.control,
+                  child: Button.icon(context, icon: AppIcons.add, onTap: () => widget.onFloatingButtonTap!()),
                 ),
               ),
 
@@ -203,20 +211,20 @@ class _PageState extends State<Page> {
                               spacing: 16,
                               children: [
                                 HugeIcon(icon: HugeIcons.strokeRoundedFaceId, size: 36),
-                                Text("Page bloquée", style: AppStyles.header(context)),
+                                Text(AppStrings.lockedTitle, style: AppStyles.header(context)),
 
                                 const SizedBox(height: 16),
 
                                 Text(
-                                  "Cette page est confidentielle,\nauthentifiez-vous avec le FaceID pour continuer.",
+                                  AppStrings.lockedContent,
                                   style: AppStyles.primaryText(context),
                                   textAlign: .center,
                                 ),
-                                Text("Vous pouvez désactiver cet écran dans les réglages.", style: AppStyles.tertiaryText(context), textAlign: .center),
+                                Text(AppStrings.lockedHint, style: AppStyles.tertiaryText(context), textAlign: .center),
 
                                 const SizedBox(height: 16),
 
-                                Button(text: "FaceID", transparent: true, onTap: () => setState(() => authFailed = false)),
+                                Button(text: AppStrings.unlock, transparent: true, onTap: () => setState(() => authFailed = false)),
                               ],
                             ),
                     ),

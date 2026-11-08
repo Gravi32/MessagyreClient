@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -87,11 +87,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         SizedBox(),
         Row(
           children: [
-            Icon(CupertinoIcons.left_chevron, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+            HugeIcon(icon: AppIcons.back, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
             Expanded(
               child: Text("Faites glisser pour changer de mois", textAlign: .center, style: AppStyles.footer(context)),
             ),
-            Icon(CupertinoIcons.right_chevron, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+            HugeIcon(icon: AppIcons.chevronRight, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
           ],
         ),
       ],

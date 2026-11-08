@@ -1,0 +1,3 @@
+tags:
+  screenshots:
+    skip: "Screenshots of the pages: run them with --run-skipped (see test/screenshots/screenshots_test.dart)"

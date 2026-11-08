@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -27,23 +28,22 @@ class Dialog extends StatelessWidget {
     this.obscureText = false,
   });
 
+  /// A failed request, explained in words (the server's raw answer only goes to the logs)
   factory Dialog.networkError(Response apiResponse) {
-    return Dialog(
-      title: "Erreur ${apiResponse.statusCode}!",
-      content: "Une erreur est survenue ! Veuillez reéssayer.\n\n${apiResponse.body}",
-      options: {"Fermer": () {}},
-    );
+    debugPrint("[Request failed] ${apiResponse.statusCode} ${apiResponse.body}");
+    return Dialog(title: AppStrings.errorTitle, content: AppStrings.errorFor(apiResponse), options: {AppStrings.close: () {}});
   }
 
   factory Dialog.error(Object e) {
-    return Dialog(title: "Oups !", content: "Une erreur est survenue :\n\n\"${e.toString()}\"", options: {"Fermer": () {}});
+    debugPrint("[Error] $e");
+    return Dialog(title: AppStrings.errorTitle, content: AppStrings.genericError, options: {AppStrings.close: () {}});
   }
 
   factory Dialog.confirm({String? content, void Function()? onConfirm, bool isDestructive = false}) {
     return Dialog(
-      title: "Confirmer l'action",
+      title: AppStrings.confirmTitle,
       content: content,
-      options: {"Annuler": () {}, "Confirmer": () => onConfirm?.call()},
+      options: {AppStrings.cancel: () {}, AppStrings.confirm: () => onConfirm?.call()},
       optionsDirection: .horizontal,
       isDestructive: isDestructive,
     );
@@ -62,7 +62,7 @@ class Dialog extends StatelessWidget {
     return Dialog(
       title: title,
       field: Field(keyboardType: keyboardType, controller: controller, placeholder: placeholder, maxLines: maxLines, isPassword: obscureText),
-      options: {"Annuler": () {}, "Confirmer": () => onConfirm?.call()},
+      options: {AppStrings.cancel: () {}, AppStrings.confirm: () => onConfirm?.call()},
       optionsDirection: .horizontal,
       isDestructive: isDestructive,
     );
@@ -102,11 +102,11 @@ class Dialog extends StatelessWidget {
             Flex(
               direction: optionsDirection,
               spacing: 8,
-              children: (options ?? {"OK": () => {}}).entries.map((option) {
+              children: (options ?? {AppStrings.ok: () => {}}).entries.map((option) {
                 Widget button = Button(
                   text: option.key,
                   transparent: true,
-                  color: option.key == "Annuler" ? AppColors.secondaryButton.adaptTo(context) : (isDestructive ? AppColors.red : null),
+                  color: option.key == AppStrings.cancel ? AppColors.secondaryButton.adaptTo(context) : (isDestructive ? AppColors.red : null),
                   onTap: () {
                     Navigator.of(context).pop();
                     option.value();

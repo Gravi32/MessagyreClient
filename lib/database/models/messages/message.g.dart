@@ -17,44 +17,65 @@ const MessageSchema = CollectionSchema(
   name: r'Message',
   id: 2463283977299753079,
   properties: {
-    r'content': PropertySchema(
+    r'attachmentData': PropertySchema(
       id: 0,
+      name: r'attachmentData',
+      type: IsarType.string,
+    ),
+    r'chatUsername': PropertySchema(
+      id: 1,
+      name: r'chatUsername',
+      type: IsarType.string,
+    ),
+    r'content': PropertySchema(
+      id: 2,
       name: r'content',
       type: IsarType.string,
     ),
     r'formattedTime': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'formattedTime',
       type: IsarType.string,
     ),
     r'isDeleted': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'isFailed': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'isFailed',
       type: IsarType.bool,
     ),
     r'isOwned': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'isOwned',
       type: IsarType.bool,
     ),
+    r'localPath': PropertySchema(
+      id: 7,
+      name: r'localPath',
+      type: IsarType.string,
+    ),
     r'sentAt': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'sentAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'status',
       type: IsarType.byte,
       enumMap: _MessagestatusEnumValueMap,
     ),
+    r'transfer': PropertySchema(
+      id: 10,
+      name: r'transfer',
+      type: IsarType.byte,
+      enumMap: _MessagetransferEnumValueMap,
+    ),
     r'uuid': PropertySchema(
-      id: 7,
+      id: 11,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -77,6 +98,24 @@ const MessageSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'chatUsername_sentAt': IndexSchema(
+      id: 7412881566252582649,
+      name: r'chatUsername_sentAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'chatUsername',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'sentAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -93,8 +132,26 @@ int _messageEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.attachmentData;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.chatUsername;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.content.length * 3;
   bytesCount += 3 + object.formattedTime.length * 3;
+  {
+    final value = object.localPath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.uuid.length * 3;
   return bytesCount;
 }
@@ -105,14 +162,18 @@ void _messageSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.content);
-  writer.writeString(offsets[1], object.formattedTime);
-  writer.writeBool(offsets[2], object.isDeleted);
-  writer.writeBool(offsets[3], object.isFailed);
-  writer.writeBool(offsets[4], object.isOwned);
-  writer.writeDateTime(offsets[5], object.sentAt);
-  writer.writeByte(offsets[6], object.status.index);
-  writer.writeString(offsets[7], object.uuid);
+  writer.writeString(offsets[0], object.attachmentData);
+  writer.writeString(offsets[1], object.chatUsername);
+  writer.writeString(offsets[2], object.content);
+  writer.writeString(offsets[3], object.formattedTime);
+  writer.writeBool(offsets[4], object.isDeleted);
+  writer.writeBool(offsets[5], object.isFailed);
+  writer.writeBool(offsets[6], object.isOwned);
+  writer.writeString(offsets[7], object.localPath);
+  writer.writeDateTime(offsets[8], object.sentAt);
+  writer.writeByte(offsets[9], object.status.index);
+  writer.writeByte(offsets[10], object.transfer.index);
+  writer.writeString(offsets[11], object.uuid);
 }
 
 Message _messageDeserialize(
@@ -122,15 +183,21 @@ Message _messageDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Message();
-  object.content = reader.readString(offsets[0]);
+  object.attachmentData = reader.readStringOrNull(offsets[0]);
+  object.chatUsername = reader.readStringOrNull(offsets[1]);
+  object.content = reader.readString(offsets[2]);
   object.id = id;
-  object.isDeleted = reader.readBool(offsets[2]);
-  object.isOwned = reader.readBool(offsets[4]);
-  object.sentAt = reader.readDateTime(offsets[5]);
+  object.isDeleted = reader.readBool(offsets[4]);
+  object.isOwned = reader.readBool(offsets[6]);
+  object.localPath = reader.readStringOrNull(offsets[7]);
+  object.sentAt = reader.readDateTime(offsets[8]);
   object.status =
-      _MessagestatusValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+      _MessagestatusValueEnumMap[reader.readByteOrNull(offsets[9])] ??
           MessageStatus.Sending;
-  object.uuid = reader.readString(offsets[7]);
+  object.transfer =
+      _MessagetransferValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+          TransferState.none;
+  object.uuid = reader.readString(offsets[11]);
   return object;
 }
 
@@ -142,21 +209,30 @@ P _messageDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readBool(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readDateTime(offset)) as P;
+    case 9:
       return (_MessagestatusValueEnumMap[reader.readByteOrNull(offset)] ??
           MessageStatus.Sending) as P;
-    case 7:
+    case 10:
+      return (_MessagetransferValueEnumMap[reader.readByteOrNull(offset)] ??
+          TransferState.none) as P;
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -176,6 +252,24 @@ const _MessagestatusValueEnumMap = {
   2: MessageStatus.Delivered,
   3: MessageStatus.Read,
   4: MessageStatus.Failed,
+};
+const _MessagetransferEnumValueMap = {
+  'none': 0,
+  'pending': 1,
+  'uploading': 2,
+  'downloading': 3,
+  'ready': 4,
+  'failed': 5,
+  'expired': 6,
+};
+const _MessagetransferValueEnumMap = {
+  0: TransferState.none,
+  1: TransferState.pending,
+  2: TransferState.uploading,
+  3: TransferState.downloading,
+  4: TransferState.ready,
+  5: TransferState.failed,
+  6: TransferState.expired,
 };
 
 Id _messageGetId(Message object) {
@@ -361,10 +455,473 @@ extension MessageQueryWhere on QueryBuilder<Message, Message, QWhereClause> {
       }
     });
   }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameIsNullAnySentAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'chatUsername_sentAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameIsNotNullAnySentAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'chatUsername_sentAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameEqualToAnySentAt(String? chatUsername) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'chatUsername_sentAt',
+        value: [chatUsername],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameNotEqualToAnySentAt(String? chatUsername) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [],
+              upper: [chatUsername],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [chatUsername],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [chatUsername],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [],
+              upper: [chatUsername],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> chatUsernameSentAtEqualTo(
+      String? chatUsername, DateTime sentAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'chatUsername_sentAt',
+        value: [chatUsername, sentAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameEqualToSentAtNotEqualTo(
+          String? chatUsername, DateTime sentAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [chatUsername],
+              upper: [chatUsername, sentAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [chatUsername, sentAt],
+              includeLower: false,
+              upper: [chatUsername],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [chatUsername, sentAt],
+              includeLower: false,
+              upper: [chatUsername],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatUsername_sentAt',
+              lower: [chatUsername],
+              upper: [chatUsername, sentAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameEqualToSentAtGreaterThan(
+    String? chatUsername,
+    DateTime sentAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'chatUsername_sentAt',
+        lower: [chatUsername, sentAt],
+        includeLower: include,
+        upper: [chatUsername],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameEqualToSentAtLessThan(
+    String? chatUsername,
+    DateTime sentAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'chatUsername_sentAt',
+        lower: [chatUsername],
+        upper: [chatUsername, sentAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause>
+      chatUsernameEqualToSentAtBetween(
+    String? chatUsername,
+    DateTime lowerSentAt,
+    DateTime upperSentAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'chatUsername_sentAt',
+        lower: [chatUsername, lowerSentAt],
+        includeLower: includeLower,
+        upper: [chatUsername, upperSentAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension MessageQueryFilter
     on QueryBuilder<Message, Message, QFilterCondition> {
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'attachmentData',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      attachmentDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'attachmentData',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'attachmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      attachmentDataGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'attachmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'attachmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'attachmentData',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      attachmentDataStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'attachmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'attachmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'attachmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'attachmentData',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      attachmentDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'attachmentData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      attachmentDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'attachmentData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'chatUsername',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      chatUsernameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'chatUsername',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'chatUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'chatUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'chatUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'chatUsername',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'chatUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'chatUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'chatUsername',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'chatUsername',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatUsernameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'chatUsername',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      chatUsernameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'chatUsername',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> contentEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -709,6 +1266,152 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localPath',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localPath',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localPath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localPath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localPath',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> sentAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -807,6 +1510,59 @@ extension MessageQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'status',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> transferEqualTo(
+      TransferState value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'transfer',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> transferGreaterThan(
+    TransferState value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'transfer',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> transferLessThan(
+    TransferState value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'transfer',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> transferBetween(
+    TransferState lower,
+    TransferState upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'transfer',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -953,6 +1709,30 @@ extension MessageQueryLinks
     on QueryBuilder<Message, Message, QFilterCondition> {}
 
 extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
+  QueryBuilder<Message, Message, QAfterSortBy> sortByAttachmentData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'attachmentData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByAttachmentDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'attachmentData', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByChatUsername() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatUsername', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByChatUsernameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatUsername', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -1013,6 +1793,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByLocalPath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByLocalPathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPath', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortBySentAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sentAt', Sort.asc);
@@ -1037,6 +1829,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByTransfer() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transfer', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByTransferDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transfer', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByUuid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uuid', Sort.asc);
@@ -1052,6 +1856,30 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
 
 extension MessageQuerySortThenBy
     on QueryBuilder<Message, Message, QSortThenBy> {
+  QueryBuilder<Message, Message, QAfterSortBy> thenByAttachmentData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'attachmentData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByAttachmentDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'attachmentData', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByChatUsername() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatUsername', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByChatUsernameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatUsername', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -1124,6 +1952,18 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByLocalPath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByLocalPathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPath', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenBySentAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sentAt', Sort.asc);
@@ -1148,6 +1988,18 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByTransfer() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transfer', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByTransferDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transfer', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByUuid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uuid', Sort.asc);
@@ -1163,6 +2015,21 @@ extension MessageQuerySortThenBy
 
 extension MessageQueryWhereDistinct
     on QueryBuilder<Message, Message, QDistinct> {
+  QueryBuilder<Message, Message, QDistinct> distinctByAttachmentData(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'attachmentData',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByChatUsername(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'chatUsername', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByContent(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1196,6 +2063,13 @@ extension MessageQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Message, Message, QDistinct> distinctByLocalPath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localPath', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctBySentAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'sentAt');
@@ -1205,6 +2079,12 @@ extension MessageQueryWhereDistinct
   QueryBuilder<Message, Message, QDistinct> distinctByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'status');
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByTransfer() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'transfer');
     });
   }
 
@@ -1221,6 +2101,18 @@ extension MessageQueryProperty
   QueryBuilder<Message, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> attachmentDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'attachmentData');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> chatUsernameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'chatUsername');
     });
   }
 
@@ -1254,6 +2146,12 @@ extension MessageQueryProperty
     });
   }
 
+  QueryBuilder<Message, String?, QQueryOperations> localPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localPath');
+    });
+  }
+
   QueryBuilder<Message, DateTime, QQueryOperations> sentAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'sentAt');
@@ -1263,6 +2161,12 @@ extension MessageQueryProperty
   QueryBuilder<Message, MessageStatus, QQueryOperations> statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'status');
+    });
+  }
+
+  QueryBuilder<Message, TransferState, QQueryOperations> transferProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'transfer');
     });
   }
 

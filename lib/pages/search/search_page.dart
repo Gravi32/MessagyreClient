@@ -4,9 +4,13 @@ import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Theme;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/search/subpages/ideas_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
@@ -22,7 +26,6 @@ import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:stac/stac.dart';
 
 class SearchResult {
@@ -56,7 +59,7 @@ class SearchPageState extends State<SearchPage> {
   final searchBarController = TextEditingController();
   final searchBarFocusNode = FocusNode();
 
-  bool isSearcing = false;
+  bool isSearching = false;
   String? usernameBeingLoaded;
   int searchCounter = 0;
   int latestSearch = 0;
@@ -78,14 +81,22 @@ class SearchPageState extends State<SearchPage> {
     final int thisSearch = ++searchCounter;
 
     setState(() {
-      isSearcing = true;
+      isSearching = true;
     });
 
-    final response = await network.get("/accounts/search?query=$query");
+    if (query.trim().length < 2) {
+      setState(() {
+        isSearching = false;
+        searchResults = [];
+      });
+      return;
+    }
+
+    final response = await network.get("/accounts/search?query=${Uri.encodeQueryComponent(query.trim())}");
 
     if (thisSearch < latestSearch) return;
     setState(() {
-      isSearcing = false;
+      isSearching = false;
     });
 
     latestSearch = thisSearch;
@@ -164,38 +175,15 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Widget buildDecoration() {
-    final bool isShortQuery = searchBarController.text.length < 2;
+    final bool isShortQuery = searchBarController.text.trim().length < 2;
 
     if (!isShortQuery) {
-      return isSearcing
+      return isSearching
           ? Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14))
-          : Column(
-              mainAxisAlignment: .center,
-              children: [
-                CustomIcon(icon: HugeIcons.strokeRoundedUserQuestion01, color: AppColors.secondaryText.adaptTo(context), size: 40),
-                const SizedBox(height: 10),
-                Text("Aucun utilisateur trouvé.", style: TextStyle(color: AppColors.secondaryText.adaptTo(context))),
-              ],
-            );
+          : const EmptyState(icon: AppIcons.noResults, title: AppStrings.searchNoResults, padding: EdgeInsets.only(top: AppSpacing.xl));
     }
 
-    return Column(
-      mainAxisAlignment: .center,
-      spacing: 2,
-      children: [
-        CustomIcon(icon: HugeIcons.strokeRoundedSearch01, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
-        const SizedBox(height: 8),
-        Text(
-          "Recherchez un utilisateur",
-          style: TextStyle(fontWeight: .w500, color: AppColors.secondaryText.adaptTo(context), fontSize: 22),
-        ),
-        Text(
-          "Et appuyez sur son profil\npour entamer une conversation !",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: .w400, color: AppColors.tertiaryText.adaptTo(context)),
-        ),
-      ],
-    );
+    return const EmptyState(icon: AppIcons.search, title: AppStrings.searchEmptyTitle, subtitle: AppStrings.searchEmptySubtitle, padding: EdgeInsets.only(top: AppSpacing.xl));
   }
 
   Widget buildNews() {
@@ -208,7 +196,7 @@ class SearchPageState extends State<SearchPage> {
         children: [
           Padding(
             padding: .symmetric(horizontal: 10, vertical: 8),
-            child: Text("Raccourcis", style: AppStyles.header(context)),
+            child: Text(AppStrings.shortcuts, style: AppStyles.header(context)),
           ),
           Row(
             spacing: 8,
@@ -240,7 +228,7 @@ class SearchPageState extends State<SearchPage> {
                             Expanded(
                               child: Text(shortcut.name, maxLines: 1, softWrap: false, overflow: .fade, style: AppStyles.secondaryHeader(context)),
                             ),
-                            Icon(CupertinoIcons.chevron_right, size: AppStyles.tertiaryText(context).fontSize, color: AppColors.tertiaryText.adaptTo(context)),
+                            HugeIcon(icon: AppIcons.chevronRight, size: AppStyles.tertiaryText(context).fontSize, color: AppColors.tertiaryText.adaptTo(context)),
                           ],
                         ),
                       ],
@@ -255,7 +243,7 @@ class SearchPageState extends State<SearchPage> {
 
           Padding(
             padding: .symmetric(horizontal: 10, vertical: 8),
-            child: Text("Annonces", style: AppStyles.header(context)),
+            child: Text(AppStrings.announcements, style: AppStyles.header(context)),
           ),
           ...newsContent.map((newsBox) {
             final Map<String, dynamic>? metadata = tryJsonDecode(newsBox["Metadata"] ?? "{}");
@@ -322,7 +310,7 @@ class SearchPageState extends State<SearchPage> {
                             context: context,
                             builder: (context) => Page(
                               topBar: TopBar.tab(context),
-                              child: Stac.fromJson(pageWidget, context) ?? Center(child: Text("Une erreur s'est produite.", style: AppStyles.error(context))),
+                              child: Stac.fromJson(pageWidget, context) ?? Center(child: Text(AppStrings.pageError, style: AppStyles.error(context))),
                             ),
                           )
                   : null,
@@ -341,7 +329,7 @@ class SearchPageState extends State<SearchPage> {
                   spacing: 2,
 
                   children: [
-                    Expanded(child: Text("Laisser un avis", style: AppStyles.header(context))),
+                    Expanded(child: Text(AppStrings.leaveReview, style: AppStyles.header(context))),
                     ...List.generate(
                       5,
                       (_) => HugeIcon(
@@ -354,7 +342,7 @@ class SearchPageState extends State<SearchPage> {
                 ),
 
                 Text(
-                  "Soutenez Messagyre en laissant un avis sur ${Theme.of(context).platform == .android ? "Google Play" : "l'App Store"} !",
+                  AppStrings.leaveReviewContent(Theme.of(context).platform == .android),
                   style: AppStyles.tertiaryText(context),
                 ),
               ],
@@ -368,7 +356,7 @@ class SearchPageState extends State<SearchPage> {
               if (context.mounted) {
                 showCupertinoDialog(
                   context: context,
-                  builder: (_) => Dialog(title: "Merci !", options: {"Fermer": () {}}),
+                  builder: (_) => Dialog(title: AppStrings.thanks, options: {AppStrings.close: () {}}),
                 );
               }
             },
@@ -386,8 +374,8 @@ class SearchPageState extends State<SearchPage> {
                   child: Column(
                     crossAxisAlignment: .stretch,
                     children: [
-                      Text("Boîte à idées", style: AppStyles.header(context)),
-                      Text("Votez per vos idées préférées !\nUne idée manque ? Proposez-la !", style: AppStyles.tertiaryText(context)),
+                      Text(AppStrings.ideasBox, style: AppStyles.header(context)),
+                      Text(AppStrings.ideasBoxContent, style: AppStyles.tertiaryText(context)),
                     ],
                   ),
                 ),
@@ -417,10 +405,10 @@ class SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Page.sliver(
-      topBar: TopBar.sliver(title: "Recherche"),
+      topBar: TopBar.sliver(title: AppStrings.tabSearch),
       onRefresh: () async => await fetchNews(),
       field: Field.search(
-        placeholder: "Rechercher un.e gymnasien.ne",
+        placeholder: AppStrings.searchPlaceholder,
         controller: searchBarController,
         focusNode: searchBarFocusNode,
         onChanged: search,

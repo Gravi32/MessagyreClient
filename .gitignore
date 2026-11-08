@@ -47,3 +47,7 @@ app.*.map.json
 
 # Ignore local gradle properties with secrets
 /android/gradle.properties
+
+# Screenshots made by test/screenshots (local only)
+test/screenshots/goldens/
+test/screenshots/failures/

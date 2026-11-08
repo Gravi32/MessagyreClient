@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -204,7 +205,7 @@ class SubjectCard extends StatelessWidget {
               if (isSubjectLocked) {
                 return Align(
                   alignment: .bottomRight,
-                  child: Icon(CupertinoIcons.lock_fill, size: AppStyles.primaryText(context).fontSize, color: AppColors.text.adaptTo(context)),
+                  child: HugeIcon(icon: AppIcons.locked, size: AppStyles.primaryText(context).fontSize, color: AppColors.text.adaptTo(context)),
                 );
               }
               if (isSubjectEmpty && !isSubjectLocked && compositeSubject == null) {

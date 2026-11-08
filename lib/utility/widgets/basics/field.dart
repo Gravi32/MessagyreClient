@@ -1,14 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
+/// The app's text field. A single-line field always has the same height ([AppSizes.control], or
+/// [AppSizes.compactControl] when [thin]), so it fits in fixed-height places such as the pinned search bars.
 class Field extends StatefulWidget {
   final String placeholder;
-  final IconData? icon;
+  final List<List<dynamic>>? icon;
   final Function(String content)? onSubmitted;
   final Function(String content)? onChanged;
   final Function()? onTap;
@@ -17,6 +21,8 @@ class Field extends StatefulWidget {
   final String? error;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final TextCapitalization textCapitalization;
   final TextStyle? textStyle;
   final FocusNode? focusNode;
   final ScrollPhysics? scrollPhysics;
@@ -28,6 +34,7 @@ class Field extends StatefulWidget {
   final bool isSearch;
   final bool alwaysHidePassword;
   final bool enabled;
+  final bool autofocus;
 
   const Field({
     super.key,
@@ -41,6 +48,8 @@ class Field extends StatefulWidget {
     this.error,
     this.controller,
     this.keyboardType,
+    this.textInputAction,
+    this.textCapitalization = TextCapitalization.sentences,
     this.textStyle,
     this.focusNode,
     this.scrollPhysics,
@@ -52,6 +61,7 @@ class Field extends StatefulWidget {
     this.isSearch = false,
     this.alwaysHidePassword = false,
     this.enabled = true,
+    this.autofocus = false,
   });
 
   factory Field.password({
@@ -68,6 +78,7 @@ class Field extends StatefulWidget {
       error: error,
       controller: controller,
       keyboardType: .visiblePassword,
+      textCapitalization: TextCapitalization.none,
       isPassword: true,
       alwaysHidePassword: alwaysHidePassword,
       enabled: enabled,
@@ -82,34 +93,130 @@ class Field extends StatefulWidget {
     FocusNode? focusNode,
   }) {
     return Field(
-      placeholder: placeholder ?? "Rechercher",
-      icon: CupertinoIcons.search,
+      placeholder: placeholder ?? AppStrings.search,
+      icon: AppIcons.search,
       onChanged: onChanged,
       onClear: onClear,
       controller: controller,
       focusNode: focusNode,
+      textInputAction: TextInputAction.search,
+      textCapitalization: TextCapitalization.none,
+      thin: true,
       isSearch: true,
     );
   }
+
+  /// Height of a single-line field
+  static double heightOf({bool thin = false}) => thin ? AppSizes.compactControl : AppSizes.control;
 
   @override
   State<Field> createState() => _FieldState();
 }
 
 class _FieldState extends State<Field> {
-  late bool _obscureText;
+  late bool _obscureText = widget.isPassword;
+  TextEditingController? _ownController;
+
+  TextEditingController get _controller => widget.controller ?? (_ownController ??= TextEditingController());
+
+  bool get _isSingleLine => widget.maxLines == 1 && (widget.minLines ?? 1) <= 1;
 
   @override
-  void initState() {
-    super.initState();
-    _obscureText = widget.isPassword;
+  void dispose() {
+    _ownController?.dispose();
+    super.dispose();
+  }
+
+  Widget _trailingButton({required List<List<dynamic>> icon, required VoidCallback onTap}) {
+    final color = AppColors.secondaryText.adaptTo(context);
+    return CupertinoButton(
+      padding: const .symmetric(horizontal: AppSpacing.m),
+      minimumSize: const Size.square(AppSizes.compactControl),
+      onPressed: widget.enabled ? onTap : null,
+      child: HugeIcon(icon: icon, color: color, size: widget.thin ? AppSizes.smallIcon : 20),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    Color color = AppColors.secondaryButton.adaptTo(context);
-    bool isNumeric = widget.keyboardType == .number;
-    bool showingError = (widget.error ?? "").isNotEmpty;
+    final borderColor = AppColors.secondaryButton.adaptTo(context);
+    final isNumeric = widget.keyboardType == .number;
+    final showingError = (widget.error ?? "").isNotEmpty;
+    final height = Field.heightOf(thin: widget.thin);
+    // A single-line field has a fixed height: its text is centered in it (2 × 2 px of border, ~26 px of text line)
+    final verticalPadding = _isSingleLine ? ((height - 4 - 26) / 2).clamp(0.0, AppSpacing.l) : (widget.thin ? AppSpacing.s + 2 : AppSpacing.l);
+
+    final textField = CupertinoTextField(
+      padding: .only(left: widget.icon != null ? AppSpacing.s : AppSpacing.l, right: AppSpacing.l, top: verticalPadding, bottom: verticalPadding),
+      placeholder: widget.placeholder,
+      placeholderStyle: AppStyles.placeholder(context).copyWith(fontSize: isNumeric ? 20 : null),
+      minLines: widget.minLines,
+      maxLines: widget.maxLines,
+      expands: false,
+      scrollPadding: const .only(bottom: 80), // Distance from the keyboard
+      decoration: const BoxDecoration(),
+      controller: _controller,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      textCapitalization: widget.textCapitalization,
+      onSubmitted: widget.onSubmitted,
+      onChanged: widget.onChanged,
+      obscureText: _obscureText,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      enabled: widget.enabled,
+      scrollPhysics: widget.scrollPhysics,
+      textAlign: isNumeric ? .center : .start,
+      textAlignVertical: TextAlignVertical.center,
+      style: AppStyles.primaryText(context).merge(widget.textStyle?.copyWith(inherit: true)),
+      onTapOutside: widget.focusNode == null && !(widget.isPassword && !widget.alwaysHidePassword) ? (_) => FocusScope.of(context).unfocus() : null,
+      onTap: widget.onTap,
+    );
+
+    final field = Container(
+      height: _isSingleLine ? height : null,
+      constraints: _isSingleLine ? null : BoxConstraints(minHeight: height),
+      decoration: BoxDecoration(
+        color: borderColor.withTransparency(widget.enabled ? 0.25 : 0.75),
+        border: .all(color: showingError ? AppColors.red : borderColor, width: 2),
+        borderRadius: .circular(widget.thin ? height / 2 : AppRadius.l),
+      ),
+      child: Row(
+        crossAxisAlignment: _isSingleLine ? .center : .end,
+        children: [
+          if (widget.icon != null)
+            Padding(
+              padding: EdgeInsets.only(left: AppSpacing.l, bottom: _isSingleLine ? 0 : verticalPadding),
+              child: HugeIcon(icon: widget.icon!, color: AppColors.secondaryText.adaptTo(context), size: widget.thin ? AppSizes.smallIcon + 2 : AppSizes.icon),
+            ),
+          Expanded(child: textField),
+          if (widget.suffix != null)
+            Padding(
+              padding: const .only(right: AppSpacing.l),
+              child: Text(widget.suffix!, style: AppStyles.secondaryText(context)),
+            ),
+          if (widget.isPassword && !widget.alwaysHidePassword)
+            _trailingButton(
+              icon: _obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
+              onTap: () => setState(() => _obscureText = !_obscureText),
+            ),
+          if (widget.isSearch)
+            ValueListenableBuilder(
+              valueListenable: _controller,
+              builder: (context, value, _) => value.text.isEmpty
+                  ? const SizedBox.shrink()
+                  : _trailingButton(
+                      icon: AppIcons.clear,
+                      onTap: () {
+                        _controller.clear();
+                        widget.onChanged?.call("");
+                        widget.onClear?.call();
+                      },
+                    ),
+            ),
+        ],
+      ),
+    );
 
     return Padding(
       padding: widget.margin ?? .zero,
@@ -117,87 +224,10 @@ class _FieldState extends State<Field> {
         crossAxisAlignment: .stretch,
         mainAxisSize: .min,
         children: [
-          Stack(
-            children: [
-              Container(
-                padding: .only(right: 16),
-                decoration: BoxDecoration(
-                  color: color.withTransparency(widget.enabled ? 0.25 : 0.75),
-                  border: .all(color: color, width: 2),
-                  borderRadius: .circular(24),
-                ),
-                child: Row(
-                  crossAxisAlignment: .center,
-                  children: [
-                    if (widget.icon != null)
-                      Padding(
-                        padding: .only(left: 16),
-                        child: Icon(widget.icon, color: color),
-                      ),
-                    Expanded(
-                      child: CupertinoTextField(
-                        padding: .only(left: 16, top: widget.thin ? 8 : 16, bottom: widget.thin ? 8 : 16),
-                        placeholder: widget.placeholder,
-                        placeholderStyle: AppStyles.placeholder(context).copyWith(fontSize: isNumeric ? 20 : null),
-                        minLines: widget.minLines,
-                        maxLines: widget.maxLines,
-                        scrollPadding: const .only(bottom: 60), // Distance from the keyboard
-                        decoration: const BoxDecoration(),
-                        controller: widget.controller,
-                        keyboardType: widget.keyboardType,
-                        onSubmitted: widget.onSubmitted,
-                        onChanged: widget.onChanged,
-                        obscureText: _obscureText,
-                        focusNode: widget.focusNode,
-                        scrollPhysics: widget.scrollPhysics,
-                        textAlign: isNumeric ? .center : .start,
-                        style: AppStyles.primaryText(context).merge(widget.textStyle?.copyWith(inherit: true)),
-                        onTapOutside: widget.focusNode == null && !(widget.isPassword && !widget.alwaysHidePassword)
-                            ? (_) => FocusScope.of(context).unfocus()
-                            : null,
-                        onTap: widget.onTap,
-                      ),
-                    ),
-                    if (widget.suffix != null) Text(widget.suffix!),
-                  ],
-                ),
-              ),
-
-              if (widget.isPassword && !widget.alwaysHidePassword)
-                Positioned(
-                  right: 6,
-                  top: 6,
-                  bottom: 6,
-                  child: Button.icon(
-                    context,
-                    color: color,
-                    onTap: () => setState(() => _obscureText = !_obscureText),
-                    icon: _obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
-                    enabled: widget.enabled,
-                  ),
-                ),
-
-              if (widget.isSearch && (widget.controller?.text.isNotEmpty ?? false))
-                Positioned(
-                  right: 6,
-                  top: 6,
-                  bottom: 6,
-                  child: Button.icon(
-                    context,
-                    color: color,
-                    onTap: () {
-                      widget.onClear?.call();
-                      widget.controller?.clear();
-                    },
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    enabled: widget.enabled,
-                  ),
-                ),
-            ],
-          ),
+          field,
           if (showingError)
             Padding(
-              padding: const .only(top: 4, left: 16, right: 16),
+              padding: const .only(top: AppSpacing.xs, left: AppSpacing.l, right: AppSpacing.l),
               child: CustomText(widget.error!, style: AppStyles.error(context)),
             ),
         ],

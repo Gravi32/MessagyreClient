@@ -7,7 +7,8 @@ import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/pages/chats/chats_list_page.dart';
@@ -15,6 +16,7 @@ import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
+import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -130,15 +132,11 @@ class App extends StatelessWidget {
   final globals = GlobalsService();
 
   static List<AppPage> pages = [
-    AppPage(name: "Notes", icon: HugeIcons.strokeRoundedCheckmarkBadge04, build: () => GradesListPage()),
-    AppPage(
-      name: "Devoirs",
-      icon: HugeIcons.strokeRoundedWork,
-      build: () => AssignmentsListPage(key: assignmentListPageKey),
-    ),
-    AppPage(name: "Conversations", icon: HugeIcons.strokeRoundedMessageMultiple02, build: () => ChatsListPage()),
-    AppPage(name: "Recherche", icon: HugeIcons.strokeRoundedSearch01, build: () => SearchPage()),
-    AppPage(name: "Réglages", icon: HugeIcons.strokeRoundedSettings05, build: () => SettingsListPage()),
+    AppPage(name: AppStrings.tabGrades, icon: AppIcons.grades, build: () => GradesListPage()),
+    AppPage(name: AppStrings.tabAssignments, icon: AppIcons.assignments, build: () => AssignmentsListPage(key: assignmentListPageKey)),
+    AppPage(name: AppStrings.tabChats, icon: AppIcons.chats, build: () => ChatsListPage()),
+    AppPage(name: AppStrings.tabSearch, icon: AppIcons.search, build: () => SearchPage()),
+    AppPage(name: AppStrings.tabSettings, icon: AppIcons.settings, build: () => SettingsListPage()),
   ];
 
   @override
@@ -223,6 +221,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
+    ChatService().initialize();
     network.start();
     WidgetsBinding.instance.addObserver(this);
 

@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:basic_utils/basic_utils.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
 import 'package:pointycastle/asymmetric/oaep.dart';
@@ -87,6 +86,89 @@ class EncryptionService {
     NetworkService().uploadPublicKey();
 
     return result;
+  }
+
+  // #region -> Messages
+
+  /// Encrypts a message for its recipient: a new AES-256-GCM key per message, itself encrypted with the
+  /// recipient's RSA key. The attachment's description (if any) uses the same key with its own nonce, sent as
+  /// `nonce:cipherText` in base64.
+  Map<String, String> encryptMessage(String content, RSAPublicKey recipientKey, {String? attachmentJson}) {
+    final random = Random.secure();
+    final aesKey = Uint8List.fromList(List<int>.generate(32, (_) => random.nextInt(256)));
+    final iv = _randomBytes(12);
+
+    final rsaEncryptor = OAEPEncoding(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(recipientKey));
+
+    final result = {
+      "CipherText": base64.encode(_gcm(true, aesKey, iv, Uint8List.fromList(utf8.encode(content)))),
+      "Iv": base64.encode(iv),
+      "EncryptedKey": base64.encode(rsaEncryptor.process(aesKey)),
+    };
+
+    if (attachmentJson != null) {
+      final attachmentIv = _randomBytes(12);
+      final cipher = _gcm(true, aesKey, attachmentIv, Uint8List.fromList(utf8.encode(attachmentJson)));
+      result["Attachment"] = "${base64.encode(attachmentIv)}:${base64.encode(cipher)}";
+    }
+
+    return result;
+  }
+
+  /// The text of a received message and the description of its attachment (null without one, or when it
+  /// can't be read: the text is still shown)
+  Future<(String content, String? attachmentJson)> decryptPayload(String rawCipherText, String rawIv, String rawEncryptedKey, {String? rawAttachment}) async {
+    final aesKey = await _decryptKey(rawEncryptedKey);
+    final content = utf8.decode(_gcm(false, aesKey, base64.decode(rawIv), base64.decode(rawCipherText)));
+
+    String? attachmentJson;
+    if (rawAttachment != null && rawAttachment.contains(':')) {
+      try {
+        final parts = rawAttachment.split(':');
+        attachmentJson = utf8.decode(_gcm(false, aesKey, base64.decode(parts[0]), base64.decode(parts[1])));
+      } catch (e) {
+        debugPrint("[Encryption] An attachment couldn't be decrypted: $e");
+      }
+    }
+
+    return (content, attachmentJson);
+  }
+
+  Future<Uint8List> _decryptKey(String rawEncryptedKey) async {
+    final key = await privateKey;
+    final rsaDecryptor = OAEPEncoding(RSAEngine())..init(false, PrivateKeyParameter<RSAPrivateKey>(key));
+    return rsaDecryptor.process(base64.decode(rawEncryptedKey));
+  }
+
+  // #endregion
+
+  // #region -> Files
+
+  /// Encrypts a file's bytes with a new key (in a background isolate: a photo can weigh several MB)
+  /// With [key] and [iv] (base64) the same file is encrypted again identically, to upload it a second time.
+  static Future<({Uint8List bytes, String key, String iv})> encryptFile(Uint8List plain, {String? key, String? iv}) async {
+    final keyBytes = key != null ? base64.decode(key) : _randomBytes(32);
+    final ivBytes = iv != null ? base64.decode(iv) : _randomBytes(12);
+    final encrypted = await compute(_gcmIsolate, (true, keyBytes, ivBytes, plain));
+    return (bytes: encrypted, key: base64.encode(keyBytes), iv: base64.encode(ivBytes));
+  }
+
+  static Future<Uint8List> decryptFile(Uint8List encrypted, String key, String iv) =>
+      compute(_gcmIsolate, (false, base64.decode(key), base64.decode(iv), encrypted));
+
+  static Uint8List _gcmIsolate((bool, Uint8List, Uint8List, Uint8List) arguments) => _gcm(arguments.$1, arguments.$2, arguments.$3, arguments.$4);
+
+  // #endregion
+
+  static Uint8List _randomBytes(int length) {
+    final random = Random.secure();
+    return Uint8List.fromList(List<int>.generate(length, (_) => random.nextInt(256)));
+  }
+
+  /// AES-GCM with a 128-bit tag (the format the app has always used, see decryptMessage)
+  static Uint8List _gcm(bool encrypt, Uint8List key, Uint8List iv, Uint8List data) {
+    final cipher = GCMBlockCipher(AESEngine())..init(encrypt, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+    return cipher.process(data);
   }
 
   Future<String> decryptMessage(String rawCipherText, String rawIv, String rawEncryptedKey) async {

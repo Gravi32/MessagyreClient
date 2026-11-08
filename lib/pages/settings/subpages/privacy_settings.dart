@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/services/biometrics_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
@@ -52,6 +53,25 @@ class _PrivacySettingsState extends State<PrivacySettings> {
                     await globals.persistent.setBool("GradesPageRequiresFaceId", enableFaceID);
 
                     if (context.mounted) Phoenix.rebirth(context);
+                  },
+                ),
+              ),
+            ],
+          ),
+          ListSection(
+            margin: const EdgeInsets.only(top: AppSpacing.section),
+            footer: "Quand cette option est désactivée, vos contacts ne voient pas quand vous avez lu leurs messages.",
+            children: [
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedTickDouble02,
+                title: "Confirmations de lecture",
+                buildChevron: false,
+                trailing: CupertinoSwitch(
+                  value: globals.persistent.getBool("SendReadReceipts") ?? true,
+                  onChanged: (enabled) async {
+                    await globals.persistent.setBool("SendReadReceipts", enabled);
+                    setState(() {});
                   },
                 ),
               ),
