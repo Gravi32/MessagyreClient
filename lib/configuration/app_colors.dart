@@ -61,6 +61,17 @@ class AppColors {
   static const sentBubble = AppColor(light: Color.fromRGBO(134, 32, 146, 1.0), dark: Color.fromRGBO(118, 30, 130, 1.0));
   static const receivedBubble = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(32, 44, 68, 1.0));
 
+  // Grades
+  /// An insufficient grade: a soft coral rather than an alarm red, so that a page with several of them stays
+  /// encouraging (still clearly different from the normal text)
+  static const gradeLow = AppColor(light: Color.fromRGBO(196, 104, 98, 1.0), dark: Color.fromRGBO(232, 146, 136, 1.0));
+
+  /// A grade just under 4 (3.75 < grade < 4): a soft amber
+  static const gradeBorderline = AppColor(light: Color.fromRGBO(190, 134, 52, 1.0), dark: Color.fromRGBO(228, 180, 108, 1.0));
+
+  /// Good news about the grades (no insufficient grade, positive compensation): a calm green
+  static const gradeGood = AppColor(light: Color.fromRGBO(62, 150, 98, 1.0), dark: Color.fromRGBO(120, 200, 150, 1.0));
+
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);
   static const black = Color.fromRGBO(0, 0, 0, 1.0);

@@ -1,3 +1,5 @@
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -10,7 +12,11 @@ import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
+import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
+import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -75,7 +81,11 @@ class MessageBubble extends StatelessWidget {
     final maxWidth = MediaQuery.sizeOf(context).width * .75;
     final attachment = message.isDeleted ? null : message.attachment;
 
-    final Widget content = attachment == null
+    final sharedAssignment = message.isDeleted ? null : message.sharedAssignment;
+
+    final Widget content = sharedAssignment != null
+        ? _AssignmentContent(message: message, assignment: sharedAssignment, colors: colors)
+        : attachment == null
         ? _TextContent(message: message, colors: colors)
         : attachment.isImage
         ? _ImageContent(message: message, attachment: attachment, colors: colors, shape: _shape, maxWidth: maxWidth)
@@ -97,7 +107,7 @@ class MessageBubble extends StatelessWidget {
               if (message.isOwned && message.isFailed && !message.isDeleted)
                 const Padding(
                   padding: EdgeInsets.only(right: AppSpacing.s),
-                  child: HugeIcon(icon: AppIcons.statusFailed, color: AppColors.red, size: 22),
+                  child: AppIcon(icon: AppIcons.statusFailed, color: AppColors.red, size: 22),
                 ),
               Builder(
                 builder: (context) {
@@ -154,8 +164,147 @@ class MessageFooter extends StatelessWidget {
       children: [
         Text(DateFormat('HH:mm').format(message.sentAt), style: AppStyles.caption(context).copyWith(color: color)),
         if (message.isOwned && !message.isDeleted)
-          HugeIcon(icon: status.icon, size: 14, color: message.status == MessageStatus.Read ? AppColors.mint : (message.isFailed ? AppColors.red : color)),
+          AppIcon(icon: status.icon, size: 14, color: message.status == MessageStatus.Read ? AppColors.mint : (message.isFailed ? AppColors.red : color)),
       ],
+    );
+  }
+}
+
+/// An assignment sent in the chat: what, for when, and (received) a button to add it to my assignments
+class _AssignmentContent extends StatefulWidget {
+  final Message message;
+  final AssignmentShare assignment;
+  final BubbleColors colors;
+  const _AssignmentContent({required this.message, required this.assignment, required this.colors});
+
+  @override
+  State<_AssignmentContent> createState() => _AssignmentContentState();
+}
+
+class _AssignmentContentState extends State<_AssignmentContent> {
+  /// Already in my assignments (false when the database can't be read, as in the widget tests)
+  bool get isAdded {
+    try {
+      return DatabaseService().assignments.getAll().any(widget.assignment.isSameAs);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> add() async {
+    await showCupertinoSheet(
+      context: context,
+      builder: (context) => NewAssignmentPage(prefill: widget.assignment),
+      enableDrag: false,
+    );
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final assignment = widget.assignment;
+    final colors = widget.colors;
+    final owned = widget.message.isOwned;
+    final inner = owned ? AppColors.white.withValues(alpha: .14) : AppColors.tertiaryBackground.adaptTo(context);
+
+    final (label, icon) = switch (assignment.type) {
+      AssignmentType.test => (AppStrings.tagTest, HugeIcons.strokeRoundedAlert02),
+      AssignmentType.leave => (AppStrings.tagLeave, HugeIcons.strokeRoundedSun03),
+      AssignmentType.assignment => ("Devoir", AppIcons.assignments),
+    };
+    final subject = assignment.subjectName;
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.s),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 260,
+            padding: const EdgeInsets.all(AppSpacing.m),
+            decoration: BoxDecoration(color: inner, borderRadius: BorderRadius.circular(AppRadius.l - AppSpacing.s)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: AppSpacing.xs,
+              children: [
+                Row(
+                  spacing: AppSpacing.s - 2,
+                  children: [
+                    AppIcon(icon: icon, size: 16, strokeWidth: 2, color: colors.secondary),
+                    Expanded(
+                      child: Text(
+                        [label.toUpperCase(), if (subject != null) subject].join(" · "),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppStyles.caption(context).copyWith(color: colors.secondary, fontWeight: FontWeight.w700, letterSpacing: .4),
+                      ),
+                    ),
+                  ],
+                ),
+                Text(assignment.headline, maxLines: 4, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context).copyWith(color: colors.text)),
+                if (assignment.type == AssignmentType.test && assignment.content.trim().isNotEmpty)
+                  Text(assignment.content.trim(), maxLines: 4, overflow: TextOverflow.ellipsis, style: AppStyles.subheadline(context).copyWith(color: colors.secondary)),
+                Text(
+                  "Pour ${formatDate(assignment.dueDate, includeArticle: true)}",
+                  style: AppStyles.footnote(context).copyWith(color: colors.secondary),
+                ),
+              ],
+            ),
+          ),
+          if (!owned) ...[
+            const SizedBox(height: AppSpacing.s),
+            SizedBox(
+              width: 260,
+              child: isAdded
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: AppSpacing.xs,
+                        children: [
+                          AppIcon(icon: AppIcons.done, size: 16, color: colors.secondary),
+                          Flexible(
+                            child: Text(
+                              "Dans vos devoirs",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppStyles.subheadline(context).copyWith(color: colors.secondary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : CupertinoButton(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.s),
+                      minimumSize: Size.zero,
+                      color: AppColors.accentSoft.adaptTo(context),
+                      borderRadius: BorderRadius.circular(AppRadius.m),
+                      onPressed: add,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: AppSpacing.xs,
+                        children: [
+                          AppIcon(icon: AppIcons.add, size: 16, strokeWidth: 2, color: AppColors.tint.adaptTo(context)),
+                          Flexible(
+                            child: Text(
+                              "Ajouter à mes devoirs",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppStyles.subheadline(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs, right: AppSpacing.xxs),
+            child: Align(alignment: Alignment.centerRight, widthFactor: 1, child: MessageFooter(message: widget.message, color: colors.secondary)),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -207,7 +356,7 @@ class _TransferIndicator extends StatelessWidget {
               SizedBox.square(
                 dimension: size - 6,
                 child: progress == null || progress <= 0
-                    ? CupertinoActivityIndicator(color: color, radius: size / 4)
+                    ? GymnaseLoader(color: color, size: size / 2)
                     : CustomPaint(
                         painter: _RingPainter(progress: progress, color: color),
                       ),
@@ -225,7 +374,7 @@ class _TransferIndicator extends StatelessWidget {
       _ => null,
     };
     if (icon == null) return const SizedBox.shrink();
-    return HugeIcon(icon: icon, color: color, size: size * .6);
+    return AppIcon(icon: icon, color: color, size: size * .6);
   }
 }
 
@@ -387,7 +536,7 @@ class _FileContent extends StatelessWidget {
                 alignment: Alignment.center,
                 child: showsState
                     ? _TransferIndicator(message: message, color: colors.text, size: 32)
-                    : HugeIcon(icon: attachment.icon, color: colors.text, size: AppSizes.icon),
+                    : AppIcon(icon: attachment.icon, color: colors.text, size: AppSizes.icon),
               ),
               Flexible(
                 child: Column(

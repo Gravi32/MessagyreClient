@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.104.1011+1011
+version: 4.105.1012+1012
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -108,6 +108,7 @@ version: 4.104.1011+1011
 # 4.102 The Gymnase as a decoration: before the tabs' titles, in the top cards, the profile card and the empty states
 # 4.103 New tab dock: a purple capsule grows behind the selected icon, names end with "…" on narrow phones
 # 4.104 Decorations in the card's own color (no purple on blue), profile badges on their own purple disc
+# 4.105 Class chats get a profile (picture, description, elected delegates, media, members), assignments can be sent in chats, flat tab dock, softer grade colors
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

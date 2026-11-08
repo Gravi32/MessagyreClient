@@ -1,5 +1,5 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
@@ -52,7 +52,7 @@ class EmptyState extends StatelessWidget {
                     border: .all(color: AppColors.outline.adaptTo(context)),
                     boxShadow: [BoxShadow(color: AppColors.cardLip.adaptTo(context), offset: const Offset(0, 3))],
                   ),
-                  child: HugeIcon(icon: icon, strokeWidth: 1.8, size: 36, color: AppColors.tint.adaptTo(context)),
+                  child: AppIcon(icon: icon, strokeWidth: 1.8, size: 36, color: AppColors.tint.adaptTo(context)),
                 ),
               ],
             ),
@@ -72,7 +72,7 @@ class EmptyState extends StatelessWidget {
                 spacing: AppSpacing.s - 2,
                 children: [
                   Text(actionText!, style: AppStyles.strongText(context).copyWith(color: AppColors.tint.adaptTo(context))),
-                  if (actionIcon != null) HugeIcon(icon: actionIcon!, size: AppSizes.smallIcon, color: AppColors.tint.adaptTo(context)),
+                  if (actionIcon != null) AppIcon(icon: actionIcon!, size: AppSizes.smallIcon, color: AppColors.tint.adaptTo(context)),
                 ],
               ),
             ),

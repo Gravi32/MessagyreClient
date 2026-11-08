@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
@@ -13,6 +14,7 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/workarounds/field_header_delegate.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
 class Page extends StatefulWidget {
   final Widget child;
@@ -161,7 +163,7 @@ class _PageState extends State<Page> {
                         ? CustomScrollView(
                             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                             slivers: [
-                              CupertinoSliverRefreshControl(onRefresh: widget.onRefresh!),
+                              CupertinoSliverRefreshControl(onRefresh: widget.onRefresh!, builder: buildRefreshIndicator),
                               SliverToBoxAdapter(
                                 child: SafeArea(top: false, minimum: padding, child: widget.child),
                               ),
@@ -210,7 +212,7 @@ class _PageState extends State<Page> {
                         ),
                       ],
                     ),
-                    child: HugeIcon(icon: AppIcons.add, size: 26, strokeWidth: 2, color: AppColors.white),
+                    child: AppIcon(icon: AppIcons.add, size: 26, strokeWidth: 2, color: AppColors.white),
                   ),
                 ),
               ),
@@ -232,7 +234,7 @@ class _PageState extends State<Page> {
                               mainAxisAlignment: .center,
                               spacing: 16,
                               children: [
-                                HugeIcon(icon: HugeIcons.strokeRoundedFaceId, size: 36),
+                                AppIcon(icon: HugeIcons.strokeRoundedFaceId, size: 36),
                                 Text(AppStrings.lockedTitle, style: AppStyles.header(context)),
 
                                 const SizedBox(height: 16),
@@ -254,4 +256,34 @@ class _PageState extends State<Page> {
       ),
     );
   }
+}
+
+/// The pull to refresh indicator in the app's style: the Gymnase fills up while the page is pulled, then its two
+/// blocks light up in turn while it refreshes (instead of iOS's grey wheel)
+Widget buildRefreshIndicator(
+  BuildContext context,
+  RefreshIndicatorMode mode,
+  double pulledExtent,
+  double refreshTriggerPullDistance,
+  double refreshIndicatorExtent,
+) {
+  final progress = (pulledExtent / refreshTriggerPullDistance).clamp(0.0, 1.0);
+  final color = AppColors.tint.adaptTo(context);
+  const size = 26.0;
+
+  final Widget indicator = switch (mode) {
+    RefreshIndicatorMode.refresh || RefreshIndicatorMode.armed => GymnaseLoader(size: size, color: color),
+    RefreshIndicatorMode.done => Opacity(opacity: progress, child: GymnaseMark(size: size, color: color)),
+    _ => Transform.scale(
+      scale: .5 + .5 * progress,
+      child: Opacity(opacity: progress, child: GymnaseMark(size: size, color: color)),
+    ),
+  };
+
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.s),
+      child: mode == RefreshIndicatorMode.inactive ? const SizedBox.shrink() : indicator,
+    ),
+  );
 }

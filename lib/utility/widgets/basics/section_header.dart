@@ -1,5 +1,5 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -39,7 +39,7 @@ class SectionHeader extends StatelessWidget {
                       actionText,
                       style: AppStyles.subheadline(context).copyWith(color: tint, fontWeight: .w500),
                     ),
-                    HugeIcon(icon: AppIcons.chevronRight, size: 16, color: tint, strokeWidth: 2),
+                    AppIcon(icon: AppIcons.chevronRight, size: 16, color: tint, strokeWidth: 2),
                   ],
                 ),
               ),

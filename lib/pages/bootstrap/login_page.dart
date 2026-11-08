@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart' hide Page;
@@ -6,7 +7,6 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -16,6 +16,7 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/made_by_gravi.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -58,7 +59,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     setState(() => isWaitingForResponse = false);
 
     try {
-      final responseData = jsonDecode(response.body);
+      // A refusal is sometimes plain text ("Internal error" without connection): it is shown, not decoded
+      final responseData = tryJsonDecode(response.body);
       // Handling failure
       if (response.statusCode != 200) {
         debugPrint("[Login failed] Error ${response.statusCode}: $responseData");
@@ -93,17 +95,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       await globals.persistent.setString("Username", username);
     } catch (e, s) {
       debugPrint("[Access] Error decoding response: '$e'. Stack trace: $s");
+      setState(() => usernameError = "La réponse du serveur est illisible ($e). Réessayez dans un instant.");
+      return;
     }
 
-    // Connecting to the WebSocket
-    network.isLoginPageOpen = false;
-    network.isSignedIn.value = globals.token != null;
-    network.connect();
-
-    // Closing the page
     debugPrint("[Login successful] Token received and stored.");
 
-    if (mounted) Navigator.of(context).pop();
+    // The app starts again with the new account (this page closes with it)
+    network.didSignIn();
   }
 
   void tryToResetPassword() async {
@@ -189,7 +188,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             crossAxisAlignment: .start,
             spacing: AppSpacing.m,
             children: [
-              HugeIcon(icon: AppIcons.info, size: 20, color: AppColors.secondaryText.adaptTo(context)),
+              AppIcon(icon: AppIcons.info, size: 20, color: AppColors.secondaryText.adaptTo(context)),
               Expanded(
                 child: Text(
                   "Votre compte Messagyre n'est pas celui du gymnase : créez-en un si ce n'est pas déjà fait.",

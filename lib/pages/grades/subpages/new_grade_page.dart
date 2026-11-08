@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:in_app_review/in_app_review.dart';
@@ -28,6 +29,7 @@ import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/grade_picker.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class NewGradePage extends StatefulWidget {
   final Grade? toEdit;
@@ -324,7 +326,7 @@ class _NewGradePageState extends State<NewGradePage> {
                           placeholder: "Titre",
                           placeholderStyle: AppStyles.placeholder(context).copyWith(color: isMissingTitle ? AppColors.red : null),
                           forceValid: false,
-                          suffix: isMissingTitle ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
+                          suffix: isMissingTitle ? const AppIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
                           suffixMode: .notEditing,
                           style: AppStyles.primaryText(context),
                           items: getPlannedGrades(),
@@ -351,12 +353,16 @@ class _NewGradePageState extends State<NewGradePage> {
               // Subject
               ListTile(
                 onTap: () => subjectFocusNode.requestFocus(),
-                leading: ListTile.iconTile(
-                  context,
-                  icon: HugeIcons.strokeRoundedBookBookmark02,
-                  color: referenceId != null ? AppColors.inactive.adaptTo(context) : (isMissingSubject ? AppColors.red : null),
+                leading: SubjectLeading(
+                  subject: subject,
+                  controller: subjectController,
+                  child: ListTile.iconTile(
+                    context,
+                    icon: HugeIcons.strokeRoundedBookBookmark02,
+                    color: referenceId != null ? AppColors.inactive.adaptTo(context) : (isMissingSubject ? AppColors.red : null),
+                  ),
                 ),
-                trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : const SizedBox.shrink(),
+                trailing: isMissingSubject ? const AppIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : const SizedBox.shrink(),
                 enabled: referenceId == null,
                 child: SubjectAutocomplete(
                   controller: subjectController,
@@ -480,7 +486,7 @@ class _NewGradePageState extends State<NewGradePage> {
                     onTap: () => setState(() => groupName = existingGroupName),
                     leading: const SizedBox(width: 32),
                     trailing: groupName == existingGroupName
-                        ? HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 20, color: AppColors.tint.adaptTo(context))
+                        ? AppIcon(icon: HugeIcons.strokeRoundedTick02, size: 20, color: AppColors.tint.adaptTo(context))
                         : null,
                     child: Text(existingGroupName, style: AppStyles.primaryText(context)),
                   ),

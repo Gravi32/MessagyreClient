@@ -1,18 +1,21 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
+import 'package:messagyre_client/pages/chats/subpages/class_profile_page.dart';
 import 'package:messagyre_client/pages/chats/widgets/attachment_actions.dart';
 import 'package:messagyre_client/pages/chats/widgets/message_bubble.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
@@ -30,7 +33,11 @@ import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
+import 'package:messagyre_client/utility/widgets/basics/modal_popup.dart';
+import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
 class ChatPage extends StatefulWidget {
   final String username;
@@ -171,13 +178,19 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  /// The members of the class chat
+  /// The class chat's page: picture, description, delegates, media, members
   Future<void> showMembers() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    await showCupertinoModalPopup(
-      context: context,
-      builder: (context) => _ClassMembersSheet(className: className!, isMember: canWrite),
-    );
+    await Navigator.push(context, CupertinoPageRoute(builder: (context) => ClassProfilePage(className: className!)));
+    if (mounted) setState(() {});
+  }
+
+  /// Sends one of my coming assignments: the others can add it to theirs
+  Future<void> pickAssignment() async {
+    final chosen = await showCupertinoModalPopup<Assignment>(context: context, builder: (context) => const _AssignmentPicker());
+    if (chosen == null || !mounted) return;
+    await chats.sendAssignment(username, AssignmentShare.of(chosen));
+    scrollDown();
   }
 
   void sendText() {
@@ -211,9 +224,11 @@ class _ChatPageState extends State<ChatPage> {
         SheetAction(AppStrings.attachPhoto, icon: AppIcons.photo, value: "gallery"),
         SheetAction(AppStrings.attachCamera, icon: AppIcons.camera, value: "camera"),
         SheetAction(AppStrings.attachFile, icon: AppIcons.file, value: "file"),
+        SheetAction("Devoir", icon: AppIcons.assignments, value: "assignment"),
       ],
     );
     if (choice == null || !mounted) return;
+    if (choice == "assignment") return pickAssignment();
 
     setState(() => isPickingAttachment = true);
     try {
@@ -380,7 +395,7 @@ class _ChatPageState extends State<ChatPage> {
                 Navigator.of(context).pop();
               },
             ),
-            isClassChat ? const ClassAvatar(size: AppSizes.avatarSmall) : ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
+            isClassChat ? ClassAvatar(className: className!, size: AppSizes.avatarSmall) : ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
             Expanded(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -392,7 +407,7 @@ class _ChatPageState extends State<ChatPage> {
                     Row(
                       spacing: AppSpacing.xs + 2,
                       children: [
-                        if (isBlocked) HugeIcon(icon: AppIcons.blocked, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                        if (isBlocked) AppIcon(icon: AppIcons.blocked, size: 16, color: AppColors.secondaryText.adaptTo(context)),
                         Flexible(
                           child: Text(displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context)),
                         ),
@@ -428,7 +443,7 @@ class _ChatPageState extends State<ChatPage> {
           padding: const EdgeInsets.all(AppSpacing.l),
           child: Column(
             children: [
-              const ClassAvatar(size: AppSizes.avatarLarge),
+              ClassAvatar(className: className!, size: AppSizes.avatarLarge),
               const SizedBox(height: AppSpacing.s),
               Text(displayName, textAlign: TextAlign.center, style: AppStyles.header(context)),
               Text(classSubtitle, style: AppStyles.secondaryText(context)),
@@ -615,7 +630,7 @@ class _ChatPageState extends State<ChatPage> {
               SizedBox.square(
                 dimension: AppSizes.compactControl,
                 child: isPickingAttachment
-                    ? const CupertinoActivityIndicator()
+                    ? const GymnaseLoader(size: 22)
                     : ValueListenableBuilder(
                         valueListenable: chats.encryptionStateOf(username),
                         builder: (context, state, _) => Button.icon(
@@ -736,7 +751,7 @@ class _Notice extends StatelessWidget {
             alignment: PlaceholderAlignment.middle,
             child: Padding(
               padding: const EdgeInsets.only(right: AppSpacing.xs + 2),
-              child: HugeIcon(icon: icon, size: 16, color: color),
+              child: AppIcon(icon: icon, size: 16, color: color),
             ),
           ),
           ...CustomText.parseSpans(text, style: style),
@@ -780,74 +795,71 @@ class _SlideInState extends State<_SlideIn> with SingleTickerProviderStateMixin 
   }
 }
 
-/// Who is in a class chat (everybody who chose this class for this school year)
-class _ClassMembersSheet extends StatelessWidget {
-  final String className;
-  final bool isMember;
-  const _ClassMembersSheet({required this.className, required this.isMember});
+/// My coming assignments, to send one in the chat
+class _AssignmentPicker extends StatelessWidget {
+  const _AssignmentPicker();
 
   @override
   Widget build(BuildContext context) {
-    final classes = ClassService();
-    final globals = GlobalsService();
+    final today = DateTime.now().dateOnly();
+    final assignments = DatabaseService().assignments.getAll().where((a) => a.archivedYear == null && !a.dueDate.isBefore(today)).toList()
+      ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
-    return CupertinoPopupSurface(
-      child: SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .7),
-          child: ValueListenableBuilder(
-            valueListenable: classes.members,
-            builder: (context, members, _) => ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(AppSpacing.l),
+    return ModalPopup(
+      topBar: TopBar.form(context, title: "Envoyer un devoir"),
+      height: assignments.isEmpty ? null : MediaQuery.sizeOf(context).height * .5,
+      child: assignments.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.l),
+              child: Text(
+                "Vous n'avez aucun devoir à venir. Ajoutez-en un dans l'onglet Devoirs, puis envoyez-le ici.",
+                textAlign: TextAlign.center,
+                style: AppStyles.secondaryText(context),
+              ),
+            )
+          : ListView(
+              padding: EdgeInsets.zero,
               children: [
-                Row(
-                  spacing: AppSpacing.m,
-                  children: [
-                    const ClassAvatar(size: AppSizes.avatarSmall),
-                    Expanded(child: Text(ClassService.chatTitleOf(className), style: AppStyles.header(context))),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.s),
+                  child: Text("Les autres pourront l'ajouter à leurs devoirs d'un geste.", style: AppStyles.footnote(context)),
                 ),
-                const SizedBox(height: AppSpacing.s),
-                CustomText(isMember ? AppStrings.classMembersHint : AppStrings.classChatReadOnly, style: AppStyles.secondaryText(context)),
-                const SizedBox(height: AppSpacing.m),
-                if (isMember && members.isEmpty) const Padding(padding: EdgeInsets.all(AppSpacing.l), child: CupertinoActivityIndicator()),
-                if (isMember)
-                  for (final member in members)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                      child: Row(
-                        spacing: AppSpacing.m,
-                        children: [
-                          SizedBox.square(
-                            dimension: AppSizes.avatarSmall,
-                            child: ProfilePictureDisplay(accountUsername: member.username, pictureURL: member.pictureUrl),
+                for (final assignment in assignments)
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.s),
+                    minimumSize: Size.zero,
+                    onPressed: () => Navigator.pop(context, assignment),
+                    child: Row(
+                      spacing: AppSpacing.m,
+                      children: [
+                        assignment.subject.value != null
+                            ? SubjectBadge(subject: assignment.subject.value, size: 32)
+                            : ListTile.iconTile(context, icon: AppIcons.assignments),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AssignmentShare.of(assignment).headline,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppStyles.primaryText(context),
+                              ),
+                              Text(
+                                [?assignment.subject.value?.name, formatDate(assignment.dueDate)].join(" · "),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppStyles.footnote(context),
+                              ),
+                            ],
                           ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  member.username == globals.username
-                                      ? "${classes.displayNameOf(member.username)} (vous)"
-                                      : classes.displayNameOf(member.username),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppStyles.primaryText(context),
-                                ),
-                                Text(member.username, style: AppStyles.footnote(context)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        AppIcon(icon: AppIcons.send, size: 18, color: AppColors.tint.adaptTo(context)),
+                      ],
                     ),
+                  ),
               ],
             ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
@@ -144,7 +145,7 @@ class SubjectCard extends StatelessWidget {
                   Row(
                     spacing: 4,
                     children: [
-                      if (isSubjectLocked) HugeIcon(icon: AppIcons.locked, size: 13, color: AppColors.tertiaryText.adaptTo(context)),
+                      if (isSubjectLocked) AppIcon(icon: AppIcons.locked, size: 13, color: AppColors.tertiaryText.adaptTo(context)),
                       Flexible(
                         child: Text(subtitle, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context)),
                       ),
@@ -175,12 +176,12 @@ class SubjectCard extends StatelessWidget {
                 textAlign: .right,
                 style: AppStyles.secondaryHeader(context).copyWith(
                   fontWeight: .w700,
-                  color: hasAverage ? getGradeColor(average!, defaultColor: AppColors.text.adaptTo(context)) : AppColors.quaternaryText.adaptTo(context),
+                  color: hasAverage ? getGradeColor(average!, context, defaultColor: AppColors.text.adaptTo(context)) : AppColors.quaternaryText.adaptTo(context),
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
-            HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+            AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
           ],
         ),
       ),

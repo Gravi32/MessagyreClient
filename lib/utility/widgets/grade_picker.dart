@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -48,7 +49,7 @@ class GradePicker extends StatelessWidget {
         height: 40,
         alignment: .center,
         decoration: BoxDecoration(shape: .circle, color: background),
-        child: HugeIcon(icon: icon, size: 20, strokeWidth: 2.4, color: foreground.withValues(alpha: enabled ? 1 : .3)),
+        child: AppIcon(icon: icon, size: 20, strokeWidth: 2.4, color: foreground.withValues(alpha: enabled ? 1 : .3)),
       ),
     );
   }

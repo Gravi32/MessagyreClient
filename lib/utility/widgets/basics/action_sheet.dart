@@ -1,6 +1,6 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -133,7 +133,7 @@ class _Row<T> extends StatelessWidget {
         spacing: AppSpacing.l,
         children: [
           if (action.icon != null)
-            HugeIcon(icon: action.icon!, size: 22, color: action.isDestructive ? AppColors.red : AppColors.secondaryText.adaptTo(context)),
+            AppIcon(icon: action.icon!, size: 22, color: action.isDestructive ? AppColors.red : AppColors.secondaryText.adaptTo(context)),
           Expanded(
             child: Text(action.text, style: AppStyles.primaryText(context).copyWith(color: color)),
           ),

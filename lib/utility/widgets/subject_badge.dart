@@ -31,3 +31,29 @@ class SubjectBadge extends StatelessWidget {
     );
   }
 }
+
+/// The leading of a "Branche" row: the generic icon ([child]) until a subject is chosen, then that subject's badge.
+/// Typing something else in the field ([controller]) brings the icon back.
+class SubjectLeading extends StatelessWidget {
+  final Subject? subject;
+  final TextEditingController controller;
+  final Widget child;
+  final double size;
+
+  const SubjectLeading({super.key, required this.subject, required this.controller, required this.child, this.size = 32});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) {
+        final chosen = subject != null && value.text.trim() == subject!.name.trim();
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child)),
+          child: chosen ? SubjectBadge(key: ValueKey(subject!.code), subject: subject, size: size) : KeyedSubtree(key: const ValueKey("none"), child: child),
+        );
+      },
+    );
+  }
+}

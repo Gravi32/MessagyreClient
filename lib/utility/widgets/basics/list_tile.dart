@@ -1,5 +1,5 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -65,7 +65,7 @@ class ListTile extends StatefulWidget {
         borderRadius: .circular(9),
         color: color == null ? AppColors.tertiaryBackground.adaptTo(context) : color.withValues(alpha: AppColors.isDark(context) ? .2 : .12),
       ),
-      child: HugeIcon(icon: icon, size: 18, color: color ?? AppColors.text.adaptTo(context)),
+      child: AppIcon(icon: icon, size: 18, color: color ?? AppColors.text.adaptTo(context)),
     );
   }
 

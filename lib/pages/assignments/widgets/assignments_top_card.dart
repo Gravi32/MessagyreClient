@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -166,7 +167,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
               color: AppColors.orange.withValues(alpha: AppColors.isDark(context) ? .2 : .14),
               borderRadius: .circular(10),
             ),
-            child: const HugeIcon(icon: HugeIcons.strokeRoundedSun03, size: 20, color: AppColors.orange),
+            child: const AppIcon(icon: HugeIcons.strokeRoundedSun03, size: 20, color: AppColors.orange),
           ),
           Expanded(
             child: Column(

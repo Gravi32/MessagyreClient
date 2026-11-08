@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -8,7 +9,10 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
@@ -30,12 +34,35 @@ class _OnlineUser {
   _OnlineUser(this.username, this.displayName, this.since);
 }
 
+/// Someone who was online in the chosen period
+class _ActiveUser {
+  final String username;
+  final String? displayName;
+  final String? classOrRole;
+  final String? pictureUrl;
+  final DateTime lastSeen;
+
+  /// In how many hours of the period they were online
+  final int hours;
+  _ActiveUser(this.username, this.displayName, this.classOrRole, this.pictureUrl, this.lastSeen, this.hours);
+}
+
+/// A class this school year, with its delegates (to name them by hand)
+class _AdminClass {
+  final String name;
+  final List<String> members;
+  final String? delegate;
+  final String? viceDelegate;
+  _AdminClass(this.name, this.members, this.delegate, this.viceDelegate);
+}
+
 class _Stats {
   final List<_OnlineUser> online;
   final List<({DateTime time, int users})> series;
   final int activeUsers;
   final int totalAccounts;
-  _Stats(this.online, this.series, this.activeUsers, this.totalAccounts);
+  final List<_ActiveUser> users;
+  _Stats(this.online, this.series, this.activeUsers, this.totalAccounts, this.users);
 
   static _Stats? tryParse(dynamic json) {
     if (json is! Map) return null;
@@ -48,6 +75,18 @@ class _Stats {
         [for (final point in json["Series"] as List) (time: DateTime.parse(point["Time"]).toLocal(), users: (point["Users"] as num).toInt())],
         (json["ActiveUsers"] as num).toInt(),
         (json["TotalAccounts"] as num).toInt(),
+        [
+          // A server older than this page has no list: empty
+          for (final user in (json["Users"] as List?) ?? const [])
+            _ActiveUser(
+              user["Username"].toString(),
+              user["DisplayName"]?.toString(),
+              user["ClassOrRole"]?.toString(),
+              user["ProfilePictureURL"]?.toString(),
+              DateTime.tryParse(user["LastSeen"]?.toString() ?? "")?.toLocal() ?? DateTime.now(),
+              (user["Hours"] as num?)?.toInt() ?? 0,
+            ),
+        ],
       );
     } catch (_) {
       return null;
@@ -71,6 +110,74 @@ class _AdminPageState extends State<AdminPage> {
   String? error;
   Timer? refreshTimer;
 
+  /// Show every active user of the period, not only the first ones
+  bool showAllUsers = false;
+
+  List<_AdminClass>? classes;
+  String? classesError;
+
+  Future<void> loadClasses() async {
+    final response = await network.get("/admin/classes");
+    if (!mounted) return;
+    final data = response.statusCode == 200 ? tryJsonDecode(response.body) : null;
+    setState(() {
+      if (data is List) {
+        classes = [
+          for (final item in data.whereType<Map>())
+            _AdminClass(
+              item["Class"].toString(),
+              [for (final member in (item["Members"] as List? ?? const [])) member.toString()],
+              item["Delegate"]?.toString(),
+              item["ViceDelegate"]?.toString(),
+            ),
+        ];
+        classesError = null;
+      } else {
+        classesError = AppStrings.errorFor(response);
+      }
+    });
+  }
+
+  /// Names a delegate by hand (or gives the choice back to the votes)
+  Future<void> editDelegates(_AdminClass schoolClass) async {
+    final role = await ActionSheet.show<String>(
+      context,
+      title: "Classe ${schoolClass.name}",
+      message: "Délégué·e : ${schoolClass.delegate ?? "personne"}\nVice : ${schoolClass.viceDelegate ?? "personne"}",
+      actions: const [
+        SheetAction("Nommer le délégué", icon: AppIcons.edit, value: "Delegate"),
+        SheetAction("Nommer le vice", icon: AppIcons.edit, value: "Vice"),
+      ],
+    );
+    if (role == null || !mounted) return;
+
+    final username = await ActionSheet.show<String>(
+      context,
+      title: role == "Delegate" ? "Délégué·e de la ${schoolClass.name}" : "Vice de la ${schoolClass.name}",
+      actions: [
+        const SheetAction("Selon les votes de la classe", icon: AppIcons.members, value: ""),
+        for (final member in schoolClass.members) SheetAction(member, icon: AppIcons.profile, value: member),
+      ],
+    );
+    if (username == null || !mounted) return;
+
+    final response = await network.post("/admin/classes/delegate", {"Class": schoolClass.name, "Role": role, "Username": username.isEmpty ? null : username});
+    if (!mounted) return;
+    if (response.statusCode != 200) {
+      showCupertinoDialog(context: context, builder: (_) => Dialog.networkError(response));
+      return;
+    }
+    loadClasses();
+  }
+
+  /// "à 14:05" today, "hier", "3 nov." before
+  String lastSeenLabel(DateTime time) {
+    final now = DateTime.now();
+    if (time.isSameDayAs(now)) return "à ${DateFormat("HH:mm").format(time)}";
+    if (time.isSameDayAs(now.subtract(const Duration(days: 1)))) return "hier";
+    return DateFormat("d MMM", "fr_CH").format(time);
+  }
+
   Future<void> load() async {
     final response = await network.get("/admin/stats?Range=$range");
     if (!mounted) return;
@@ -85,6 +192,7 @@ class _AdminPageState extends State<AdminPage> {
   void initState() {
     super.initState();
     load();
+    loadClasses();
     refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) => load());
   }
 
@@ -214,7 +322,7 @@ class _AdminPageState extends State<AdminPage> {
               padding: const EdgeInsets.only(bottom: AppSpacing.m),
               child: Text(error!, textAlign: TextAlign.center, style: AppStyles.error(context)),
             ),
-          if (current == null && error == null) const Padding(padding: EdgeInsets.all(AppSpacing.xl), child: CupertinoActivityIndicator()),
+          if (current == null && error == null) const Padding(padding: EdgeInsets.all(AppSpacing.xl), child: Center(child: GymnaseLoader(size: 22))),
           if (current != null) ...[
             Row(
               spacing: AppSpacing.s,
@@ -262,6 +370,89 @@ class _AdminPageState extends State<AdminPage> {
                           ),
                         ),
                         if (user.since != null) Text("depuis ${DateFormat("HH:mm").format(user.since!)}", style: AppStyles.subheadline(context)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            ListSection(
+              title: "Actifs $shortRangeName (${current.users.length})",
+              margin: const EdgeInsets.only(top: AppSpacing.section),
+              footer: current.users.isEmpty
+                  ? "Personne n'a utilisé l'application $shortRangeName."
+                  : "Du plus récent au plus ancien, avec le nombre d'heures où ils étaient en ligne.",
+              children: [
+                for (final user in showAllUsers ? current.users : current.users.take(30))
+                  ListTile(
+                    buildChevron: false,
+                    child: Row(
+                      spacing: AppSpacing.m,
+                      children: [
+                        SizedBox.square(
+                          dimension: AppSizes.avatarSmall,
+                          child: ProfilePictureDisplay(accountUsername: user.username, pictureURL: user.pictureUrl, includeBadge: false),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.displayName ?? Account.getDefaultDisplayName(user.username),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppStyles.strongText(context),
+                              ),
+                              Text(
+                                [user.username, ?user.classOrRole].join(" · "),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppStyles.footnote(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(lastSeenLabel(user.lastSeen), style: AppStyles.subheadline(context)),
+                            Text("${user.hours} h", style: AppStyles.footnote(context)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                if (!showAllUsers && current.users.length > 30)
+                  ListTile.simple(
+                    context,
+                    title: "Afficher les ${current.users.length - 30} autres",
+                    icon: AppIcons.chevronDown,
+                    buildChevron: false,
+                    onTap: () => setState(() => showAllUsers = true),
+                  ),
+              ],
+            ),
+            ListSection(
+              title: "Délégués des classes",
+              margin: const EdgeInsets.only(top: AppSpacing.section),
+              footer: classesError ??
+                  ((classes?.isEmpty ?? false)
+                      ? "Aucune classe choisie cette année."
+                      : "Élus par les votes de chaque classe. Touchez une classe pour nommer quelqu'un à la main."),
+              children: [
+                for (final schoolClass in classes ?? const <_AdminClass>[])
+                  ListTile(
+                    onTap: () => editDelegates(schoolClass),
+                    leading: ClassAvatar(className: schoolClass.name, size: 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("${schoolClass.name} · ${schoolClass.members.length} membres", style: AppStyles.strongText(context)),
+                        Text(
+                          "Délégué·e : ${schoolClass.delegate ?? "—"} · Vice : ${schoolClass.viceDelegate ?? "—"}",
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppStyles.footnote(context),
+                        ),
                       ],
                     ),
                   ),

@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart' hide Page;
+import 'package:flutter/cupertino.dart' hide Page, ConnectionState;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
@@ -52,6 +52,8 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   void openNewAssignmentPage() => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(), enableDrag: false);
 
   Future<void> fetchSharedAssignments() async {
+    // Before the login (or while the app checks the stored session) there is nothing to ask yet
+    await network.waitForSignIn();
     final response = await network.get("/shared/assignments/get");
     if (!mounted) return;
 
@@ -93,10 +95,17 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
     }
 
     fetchSharedAssignments();
+    network.connectionState.addListener(onConnectionChanged);
+  }
+
+  /// When the connection comes back, the shared assignments that couldn't load are asked again
+  void onConnectionChanged() {
+    if (sharedAssignmentsNotice != null && network.connectionState.value == ConnectionState.Connected) fetchSharedAssignments();
   }
 
   @override
   void dispose() {
+    network.connectionState.removeListener(onConnectionChanged);
     MainPage.pageIndex.removeListener(onPageChanged);
     searchFieldFocusNode.removeListener(onSearchFocusChanged);
     searchFieldFocusNode.dispose();
@@ -168,7 +177,7 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
                 ListSection(
                   title: AppStrings.sectionShared,
                   margin: const .only(top: AppSpacing.section),
-                  children: shared.map((assignment) => SharedAssignmentTile(key: ValueKey("shared-${assignment.id}"), assignment: assignment)).toList(),
+                  children: shared.map((assignment) => SharedAssignmentTile(key: ValueKey("shared-${assignment.id}"), assignment: assignment, onChanged: fetchSharedAssignments)).toList(),
                 ),
               if (forToday.isNotEmpty) buildSection(forToday, AppStrings.sectionToday, tilesShowDate: false),
               if (forTomorrow.isNotEmpty) buildSection(forTomorrow, AppStrings.sectionTomorrow, tilesShowDate: false),

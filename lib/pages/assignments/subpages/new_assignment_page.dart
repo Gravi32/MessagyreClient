@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
@@ -5,6 +6,10 @@ import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
+import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
+import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/assignments/subpages/notification_date_picker.dart';
 import 'package:messagyre_client/services/database_service.dart';
@@ -28,7 +33,10 @@ class NewAssignmentPage extends StatefulWidget {
   final Assignment? toEdit;
   final DateTime? dueDateOverride;
 
-  const NewAssignmentPage({super.key, this.toEdit, this.dueDateOverride});
+  /// An assignment received in a chat, to add to mine (its subject is found by name)
+  final AssignmentShare? prefill;
+
+  const NewAssignmentPage({super.key, this.toEdit, this.dueDateOverride, this.prefill});
 
   @override
   State<StatefulWidget> createState() => _NewAssignmentPageState();
@@ -43,8 +51,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   late final editMode = widget.toEdit != null;
 
   late final subjectController = TextEditingController(text: subject?.name);
-  late final titleController = TextEditingController(text: widget.toEdit?.title);
-  late final contentController = TextEditingController(text: widget.toEdit?.content);
+  late final titleController = TextEditingController(text: widget.toEdit?.title ?? widget.prefill?.title);
+  late final contentController = TextEditingController(text: widget.toEdit?.content ?? widget.prefill?.content);
   late final ValueNotifier<bool> canSubmitNotifier;
 
   final notificationDayOptions = {
@@ -61,9 +69,10 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
   final titleFocusNode = FocusNode();
   final contentFocusNode = FocusNode();
 
-  late AssignmentType mode = widget.toEdit?.type ?? AssignmentType.assignment;
-  late Subject? subject = widget.toEdit?.subject.value;
-  late DateTime dueDate = widget.toEdit?.dueDate.dateOnly() ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 2)).dateOnly();
+  late AssignmentType mode = widget.toEdit?.type ?? widget.prefill?.type ?? AssignmentType.assignment;
+  late Subject? subject = widget.toEdit?.subject.value ?? widget.prefill?.matchingSubject(database.subjects.getAll());
+  late DateTime dueDate =
+      widget.toEdit?.dueDate.dateOnly() ?? widget.prefill?.dueDate ?? widget.dueDateOverride?.dateOnly() ?? DateTime.now().add(const Duration(days: 2)).dateOnly();
   late DateTime? notificationDate =
       widget.toEdit?.notificationDate ??
       (editMode
@@ -71,7 +80,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
           : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? dueDate.add(const Duration(days: -1)).copyWith(hour: 17) : null));
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
-  late bool isShared = editMode ? widget.toEdit!.isShared : true;
+  // An assignment received from someone isn't shared again by default
+  late bool isShared = editMode ? widget.toEdit!.isShared : widget.prefill == null;
 
   bool isMissingTitle = false;
   bool isMissingContent = false;
@@ -281,8 +291,12 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               if (mode != .leave)
                 ListTile(
                   onTap: () => subjectFocusNode.requestFocus(),
-                  leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02, color: isMissingSubject ? AppColors.red : null),
-                  trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : const SizedBox.shrink(),
+                  leading: SubjectLeading(
+                    subject: subject,
+                    controller: subjectController,
+                    child: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02, color: isMissingSubject ? AppColors.red : null),
+                  ),
+                  trailing: isMissingSubject ? const AppIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : const SizedBox.shrink(),
                   child: SubjectAutocomplete(
                     controller: subjectController,
                     focusNode: subjectFocusNode,
@@ -313,7 +327,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   spacing: 6,
                   children: [
                     Text(formatDate(dueDate, includeArticle: true), style: AppStyles.secondaryText(context)),
-                    HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                    AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
                   ],
                 ),
                 onTap: showDatePicker,
@@ -351,16 +365,18 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                           : "${notificationDayOptions[dueDate.dateOnly().difference(notificationDate!.dateOnly()).inDays]}, ${notificationDate?.hour == 0 && notificationDate?.minute == 0 ? "minuit" : "${notificationDate?.hour.toString().padLeft(2, "0")}h${notificationDate?.minute == 0 ? "" : notificationDate?.minute.toString().padLeft(2, "0")}"}",
                       style: AppStyles.secondaryText(context),
                     ),
-                    HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                    AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
                   ],
                 ),
               ),
               if (userClass != null)
-                ListTile.simple(
-                  context,
-                  icon: HugeIcons.strokeRoundedUserGroup,
-                  title: "Partager avec la classe",
+                ListTile(
+                  buildChevron: false,
+                  onTap: () => setState(() => isShared = !isShared),
+                  // The class chat's own picture: it is shared with the people of that conversation
+                  leading: ClassAvatar(className: ClassService().current.value?.name ?? userClass!, size: 32),
                   trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: isShared, onChanged: (value) => setState(() => isShared = value)),
+                  child: Text("Partager avec la classe", style: AppStyles.primaryText(context)),
                 ),
               if (mode == AssignmentType.test)
                 ListTile.simple(

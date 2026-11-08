@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:flutter/foundation.dart';
+import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:uuid/uuid.dart';
 
@@ -33,6 +34,9 @@ class Message {
   /// The photo or file sent with this message, as JSON (see [Attachment]). Null for a text message.
   String? attachmentData;
 
+  /// An assignment sent in the chat, as JSON (see [AssignmentShare]). Null for anything else.
+  String? assignmentData;
+
   /// Where the decrypted photo or file is on this device, once uploaded or downloaded
   String? localPath;
 
@@ -46,6 +50,9 @@ class Message {
 
   @ignore
   bool get hasAttachment => attachmentData != null;
+
+  @ignore
+  AssignmentShare? get sharedAssignment => AssignmentShare.tryParse(assignmentData);
 
   bool get isFailed => status == MessageStatus.Failed;
 
@@ -88,6 +95,7 @@ class Message {
     MessageStatus status = MessageStatus.Sending,
     bool isDeleted = false,
     Attachment? attachment,
+    AssignmentShare? sharedAssignment,
     String? localPath,
     TransferState transfer = TransferState.none,
   }) {
@@ -101,6 +109,7 @@ class Message {
       ..status = status
       ..isDeleted = isDeleted
       ..attachmentData = attachment?.toJson()
+      ..assignmentData = sharedAssignment?.toJson()
       ..localPath = localPath
       ..transfer = transfer;
   }

@@ -1,6 +1,6 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Page;
 import 'package:flutter/services.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
@@ -137,7 +137,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
             SizedBox.square(
               dimension: AppSizes.avatar,
               child: ClassService.isClassChat(chat.username)
-                  ? const ClassAvatar(size: AppSizes.avatar)
+                  ? ClassAvatar(className: ClassService.classOfChat(chat.username)!, size: AppSizes.avatar)
                   : ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked),
             ),
             Expanded(
@@ -148,7 +148,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                   Row(
                     spacing: AppSpacing.xs + 2,
                     children: [
-                      if (isBlocked) HugeIcon(icon: AppIcons.blocked, size: 16, color: secondary),
+                      if (isBlocked) AppIcon(icon: AppIcons.blocked, size: 16, color: secondary),
                       Expanded(
                         child: Text(
                           chat.displayUsername ?? Account.getDefaultDisplayName(chat.username),
@@ -185,7 +185,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                         alignment: PlaceholderAlignment.middle,
                                         child: Padding(
                                           padding: const EdgeInsets.only(right: AppSpacing.xs),
-                                          child: HugeIcon(
+                                          child: AppIcon(
                                             icon: getStatusIcon(lastMessage.status).icon,
                                             size: 16,
                                             color: getStatusIcon(lastMessage.status).color,
@@ -197,7 +197,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                                         alignment: PlaceholderAlignment.middle,
                                         child: Padding(
                                           padding: const EdgeInsets.only(right: AppSpacing.xs),
-                                          child: HugeIcon(icon: previewIcon, size: 16, color: secondary),
+                                          child: AppIcon(icon: previewIcon, size: 16, color: secondary),
                                         ),
                                       ),
                                     ...CustomText.parseSpans(
@@ -217,7 +217,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                       if (chat.isPinned)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
-                          child: HugeIcon(icon: AppIcons.pin, size: 16, color: secondary),
+                          child: AppIcon(icon: AppIcons.pin, size: 16, color: secondary),
                         ),
                       if (hasUnread)
                         Container(

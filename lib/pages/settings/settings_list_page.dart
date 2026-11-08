@@ -1,4 +1,5 @@
-import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
+import 'package:flutter/cupertino.dart' hide Page, ConnectionState;
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
@@ -52,16 +53,20 @@ class _SettingsListPageState extends State<SettingsListPage> {
   Account? account;
   bool isCreatingBackup = false;
 
+  /// Why the profile couldn't be loaded (the card says it and can be tapped to try again)
+  String? accountError;
+
   Future getAccount() async {
     if (globals.username == null) return;
+    if (accountError != null) setState(() => accountError = null);
 
-    final receivedAccount = await network.getAccount(globals.username!);
+    final result = await network.fetchAccount(globals.username!);
+    if (!mounted) return;
 
     setState(() {
-      account = receivedAccount;
+      if (result.account != null) account = result.account;
+      accountError = result.error;
     });
-
-    return;
   }
 
   void showLogoutDialog(BuildContext context, VoidCallback onLogoutConfirmed) {
@@ -72,10 +77,22 @@ class _SettingsListPageState extends State<SettingsListPage> {
     );
   }
 
+  /// Started without a connection: the profile loads as soon as it comes back
+  void onConnectionChanged() {
+    if (account == null && network.connectionState.value == ConnectionState.Connected) getAccount();
+  }
+
   @override
   void initState() {
     super.initState();
     getAccount();
+    network.connectionState.addListener(onConnectionChanged);
+  }
+
+  @override
+  void dispose() {
+    network.connectionState.removeListener(onConnectionChanged);
+    super.dispose();
   }
 
   Future<void> openProfile() async {
@@ -92,6 +109,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
   Widget buildProfileCard(BuildContext context) {
     final schoolClass = ClassService().current.value?.name;
     final isLoading = account == null || globals.username == null;
+    final failed = account == null && accountError != null;
 
     return Padding(
       padding: const .only(top: AppSpacing.s),
@@ -99,12 +117,22 @@ class _SettingsListPageState extends State<SettingsListPage> {
         padding: .zero,
         minimumSize: .zero,
         pressedOpacity: .6,
-        onPressed: isLoading ? null : openProfile,
+        onPressed: failed ? getAccount : (isLoading ? null : openProfile),
         // On the icon's gradient with its Gymnase: the card that says whose Messagyre this is
         child: BrandCard(
           height: 112,
           padding: const .symmetric(horizontal: AppSpacing.l),
-          child: isLoading
+          child: failed
+              ? Center(
+                  child: Text(
+                    "Votre profil n'a pas pu être chargé. $accountError\nTouchez pour réessayer.",
+                    textAlign: .center,
+                    maxLines: 4,
+                    overflow: .ellipsis,
+                    style: AppStyles.subheadline(context).copyWith(color: AppColors.white),
+                  ),
+                )
+              : isLoading
               ? const Center(child: GymnaseLoader(size: 22, color: AppColors.white))
               : Row(
                   spacing: AppSpacing.l,
@@ -145,7 +173,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                         ],
                       ),
                     ),
-                    HugeIcon(icon: AppIcons.chevronRight, color: AppColors.white.withValues(alpha: .7), size: AppSizes.smallIcon),
+                    AppIcon(icon: AppIcons.chevronRight, color: AppColors.white.withValues(alpha: .7), size: AppSizes.smallIcon),
                   ],
                 ),
         ),

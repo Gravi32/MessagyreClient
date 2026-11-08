@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
@@ -154,7 +155,7 @@ class _ButtonState extends State<Button> {
               if (finalIcon != null)
                 AspectRatio(
                   aspectRatio: 1,
-                  child: usingLegacyIcon ? Icon(widget.legacyIcon, color: finalIconColor) : HugeIcon(icon: widget.icon!, color: finalIconColor),
+                  child: usingLegacyIcon ? Icon(widget.legacyIcon, color: finalIconColor) : AppIcon(icon: widget.icon!, color: finalIconColor),
                 ),
             ],
           ),

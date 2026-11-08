@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -52,8 +53,8 @@ class GradeDisplay extends StatelessWidget {
     final track = onAccent ? AppColors.white.withValues(alpha: .2) : AppColors.tertiaryBackground.adaptTo(context);
     final textColor = onAccent ? AppColors.white : AppColors.text.adaptTo(context);
     final color = onAccent
-        ? (grade >= 4 ? AppColors.white : (grade > 3.75 ? const Color.fromRGBO(255, 190, 90, 1) : const Color.fromRGBO(255, 130, 120, 1)))
-        : getGradeColor(grade, defaultColor: textColor);
+        ? (grade >= 4 ? AppColors.white : (grade > 3.75 ? const Color.fromRGBO(255, 214, 160, 1) : const Color.fromRGBO(255, 184, 172, 1)))
+        : getGradeColor(grade, context, defaultColor: textColor);
 
     final List<List<dynamic>>? badge = isIncoming
         ? HugeIcons.strokeRoundedClock01
@@ -165,7 +166,7 @@ class GradeDisplay extends StatelessWidget {
                   color: AppColors.secondaryBackground.adaptTo(context),
                   border: .all(color: AppColors.separator.adaptTo(context)),
                 ),
-                child: HugeIcon(icon: badge, size: max(11, size * .22), strokeWidth: 2, color: AppColors.secondaryText.adaptTo(context)),
+                child: AppIcon(icon: badge, size: max(11, size * .22), strokeWidth: 2, color: AppColors.secondaryText.adaptTo(context)),
               ),
             ),
         ],

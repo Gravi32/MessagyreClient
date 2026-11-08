@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:math';
 
 import 'package:hugeicons/hugeicons.dart';
@@ -87,11 +88,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         SizedBox(),
         Row(
           children: [
-            HugeIcon(icon: AppIcons.back, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+            AppIcon(icon: AppIcons.back, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
             Expanded(
               child: Text("Faites glisser pour changer de mois", textAlign: .center, style: AppStyles.footer(context)),
             ),
-            HugeIcon(icon: AppIcons.chevronRight, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
+            AppIcon(icon: AppIcons.chevronRight, size: 14, color: AppColors.tertiaryText.adaptTo(context)),
           ],
         ),
       ],

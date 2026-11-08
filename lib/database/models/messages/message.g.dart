@@ -17,70 +17,75 @@ const MessageSchema = CollectionSchema(
   name: r'Message',
   id: 2463283977299753079,
   properties: {
-    r'attachmentData': PropertySchema(
+    r'assignmentData': PropertySchema(
       id: 0,
+      name: r'assignmentData',
+      type: IsarType.string,
+    ),
+    r'attachmentData': PropertySchema(
+      id: 1,
       name: r'attachmentData',
       type: IsarType.string,
     ),
     r'chatUsername': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'chatUsername',
       type: IsarType.string,
     ),
     r'content': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'content',
       type: IsarType.string,
     ),
     r'formattedTime': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'formattedTime',
       type: IsarType.string,
     ),
     r'isDeleted': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'isFailed': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isFailed',
       type: IsarType.bool,
     ),
     r'isOwned': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'isOwned',
       type: IsarType.bool,
     ),
     r'localPath': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'localPath',
       type: IsarType.string,
     ),
     r'senderUsername': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'senderUsername',
       type: IsarType.string,
     ),
     r'sentAt': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'sentAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'status',
       type: IsarType.byte,
       enumMap: _MessagestatusEnumValueMap,
     ),
     r'transfer': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'transfer',
       type: IsarType.byte,
       enumMap: _MessagetransferEnumValueMap,
     ),
     r'uuid': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -138,6 +143,12 @@ int _messageEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.assignmentData;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.attachmentData;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -173,19 +184,20 @@ void _messageSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.attachmentData);
-  writer.writeString(offsets[1], object.chatUsername);
-  writer.writeString(offsets[2], object.content);
-  writer.writeString(offsets[3], object.formattedTime);
-  writer.writeBool(offsets[4], object.isDeleted);
-  writer.writeBool(offsets[5], object.isFailed);
-  writer.writeBool(offsets[6], object.isOwned);
-  writer.writeString(offsets[7], object.localPath);
-  writer.writeString(offsets[8], object.senderUsername);
-  writer.writeDateTime(offsets[9], object.sentAt);
-  writer.writeByte(offsets[10], object.status.index);
-  writer.writeByte(offsets[11], object.transfer.index);
-  writer.writeString(offsets[12], object.uuid);
+  writer.writeString(offsets[0], object.assignmentData);
+  writer.writeString(offsets[1], object.attachmentData);
+  writer.writeString(offsets[2], object.chatUsername);
+  writer.writeString(offsets[3], object.content);
+  writer.writeString(offsets[4], object.formattedTime);
+  writer.writeBool(offsets[5], object.isDeleted);
+  writer.writeBool(offsets[6], object.isFailed);
+  writer.writeBool(offsets[7], object.isOwned);
+  writer.writeString(offsets[8], object.localPath);
+  writer.writeString(offsets[9], object.senderUsername);
+  writer.writeDateTime(offsets[10], object.sentAt);
+  writer.writeByte(offsets[11], object.status.index);
+  writer.writeByte(offsets[12], object.transfer.index);
+  writer.writeString(offsets[13], object.uuid);
 }
 
 Message _messageDeserialize(
@@ -195,22 +207,23 @@ Message _messageDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Message();
-  object.attachmentData = reader.readStringOrNull(offsets[0]);
-  object.chatUsername = reader.readStringOrNull(offsets[1]);
-  object.content = reader.readString(offsets[2]);
+  object.assignmentData = reader.readStringOrNull(offsets[0]);
+  object.attachmentData = reader.readStringOrNull(offsets[1]);
+  object.chatUsername = reader.readStringOrNull(offsets[2]);
+  object.content = reader.readString(offsets[3]);
   object.id = id;
-  object.isDeleted = reader.readBool(offsets[4]);
-  object.isOwned = reader.readBool(offsets[6]);
-  object.localPath = reader.readStringOrNull(offsets[7]);
-  object.senderUsername = reader.readStringOrNull(offsets[8]);
-  object.sentAt = reader.readDateTime(offsets[9]);
+  object.isDeleted = reader.readBool(offsets[5]);
+  object.isOwned = reader.readBool(offsets[7]);
+  object.localPath = reader.readStringOrNull(offsets[8]);
+  object.senderUsername = reader.readStringOrNull(offsets[9]);
+  object.sentAt = reader.readDateTime(offsets[10]);
   object.status =
-      _MessagestatusValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+      _MessagestatusValueEnumMap[reader.readByteOrNull(offsets[11])] ??
           MessageStatus.Sending;
   object.transfer =
-      _MessagetransferValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+      _MessagetransferValueEnumMap[reader.readByteOrNull(offsets[12])] ??
           TransferState.none;
-  object.uuid = reader.readString(offsets[12]);
+  object.uuid = reader.readString(offsets[13]);
   return object;
 }
 
@@ -226,28 +239,30 @@ P _messageDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
+      return (reader.readDateTime(offset)) as P;
+    case 11:
       return (_MessagestatusValueEnumMap[reader.readByteOrNull(offset)] ??
           MessageStatus.Sending) as P;
-    case 11:
+    case 12:
       return (_MessagetransferValueEnumMap[reader.readByteOrNull(offset)] ??
           TransferState.none) as P;
-    case 12:
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -638,6 +653,157 @@ extension MessageQueryWhere on QueryBuilder<Message, Message, QWhereClause> {
 
 extension MessageQueryFilter
     on QueryBuilder<Message, Message, QFilterCondition> {
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'assignmentData',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      assignmentDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'assignmentData',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'assignmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      assignmentDataGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'assignmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'assignmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'assignmentData',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      assignmentDataStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'assignmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'assignmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'assignmentData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> assignmentDataMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'assignmentData',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      assignmentDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'assignmentData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      assignmentDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'assignmentData',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> attachmentDataIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1875,6 +2041,18 @@ extension MessageQueryLinks
     on QueryBuilder<Message, Message, QFilterCondition> {}
 
 extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
+  QueryBuilder<Message, Message, QAfterSortBy> sortByAssignmentData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'assignmentData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByAssignmentDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'assignmentData', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByAttachmentData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'attachmentData', Sort.asc);
@@ -2034,6 +2212,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
 
 extension MessageQuerySortThenBy
     on QueryBuilder<Message, Message, QSortThenBy> {
+  QueryBuilder<Message, Message, QAfterSortBy> thenByAssignmentData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'assignmentData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByAssignmentDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'assignmentData', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByAttachmentData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'attachmentData', Sort.asc);
@@ -2205,6 +2395,14 @@ extension MessageQuerySortThenBy
 
 extension MessageQueryWhereDistinct
     on QueryBuilder<Message, Message, QDistinct> {
+  QueryBuilder<Message, Message, QDistinct> distinctByAssignmentData(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'assignmentData',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByAttachmentData(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2299,6 +2497,12 @@ extension MessageQueryProperty
   QueryBuilder<Message, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> assignmentDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'assignmentData');
     });
   }
 

@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 
@@ -25,19 +28,114 @@ class GymnaseMark extends StatelessWidget {
   }
 }
 
-/// A class chat's picture: the icon's shape on the accent color, round like a profile picture
+/// A class chat's picture: the photo chosen by its delegates, or else the class's name ("1M05") on its own color,
+/// with the Gymnase faint in the corner. The color comes from the name: every class has its own, always the same,
+/// on every phone. Round like a profile picture.
 class ClassAvatar extends StatelessWidget {
+  final String className;
   final double size;
-  const ClassAvatar({super.key, this.size = 44});
+
+  /// The photo to show instead of the one of [ClassService.group] (a picture being chosen)
+  final String? pictureUrl;
+
+  const ClassAvatar({super.key, required this.className, this.size = 44, this.pictureUrl});
+
+  /// Bright enough for white text, calm enough to sit next to the purple
+  static const _palette = [
+    Color.fromRGBO(88, 101, 222, 1), // indigo
+    Color.fromRGBO(34, 150, 130, 1), // teal
+    Color.fromRGBO(214, 110, 62, 1), // orange
+    Color.fromRGBO(200, 72, 128, 1), // raspberry
+    Color.fromRGBO(132, 86, 210, 1), // violet
+    Color.fromRGBO(46, 136, 200, 1), // blue
+    Color.fromRGBO(70, 150, 82, 1), // green
+    Color.fromRGBO(180, 130, 30, 1), // ochre
+    Color.fromRGBO(196, 78, 78, 1), // brick
+    Color.fromRGBO(60, 120, 150, 1), // petrol
+  ];
+
+  /// The color of a class (the same on every phone: it doesn't depend on Dart's hashCode)
+  static Color colorOf(String className) {
+    var hash = 7;
+    for (final unit in className.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    return _palette[hash % _palette.length];
+  }
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<ClassGroup?>(
+      valueListenable: ClassService().group,
+      builder: (context, group, _) {
+        final url = pictureUrl ?? (group?.className == className ? group?.pictureUrl : null);
+        final fallback = _NameAvatar(className: className, size: size);
+        if (url == null) return fallback;
+        return ClipOval(
+          child: CachedNetworkImage(
+            imageUrl: url,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            placeholder: (_, _) => fallback,
+            errorWidget: (_, _, _) => fallback,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _NameAvatar extends StatelessWidget {
+  final String className;
+  final double size;
+  const _NameAvatar({required this.className, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = ClassAvatar.colorOf(className);
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.accentGradient),
-      alignment: Alignment.center,
-      child: GymnaseMark(size: size * .58, color: AppColors.white),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color.lerp(color, AppColors.white, .12)!, Color.lerp(color, AppColors.black, .18)!],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -size * .22,
+            bottom: -size * .26,
+            child: GymnaseMark(size: size * .82, color: AppColors.white.withValues(alpha: .13)),
+          ),
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: size * .1),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  className,
+                  maxLines: 1,
+                  textScaler: TextScaler.noScaling,
+                  style: TextStyle(
+                    fontFamily: AppStyles.titleFontFamily,
+                    fontWeight: FontWeight.w700,
+                    fontSize: size * .3,
+                    height: 1,
+                    color: AppColors.white,
+                    letterSpacing: -.2,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -87,7 +185,7 @@ class BrandCard extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(borderRadius), gradient: AppColors.accentGradient),
       child: Stack(
         children: [
-          MarkWatermark(scale: markScale, color: AppColors.white.withValues(alpha: .12)),
+          MarkWatermark(scale: markScale, color: AppColors.white.withValues(alpha: .06)),
           Padding(padding: padding, child: child),
         ],
       ),
@@ -110,7 +208,7 @@ class MarkWatermark extends StatelessWidget {
   /// darker, never a different hue (no purple on blue)
   static Color faint(BuildContext context, {Color? surface}) {
     final base = surface ?? AppColors.secondaryBackground.adaptTo(context);
-    return AppColors.isDark(context) ? Color.lerp(base, AppColors.white, .05)! : Color.lerp(base, AppColors.black, .045)!;
+    return AppColors.isDark(context) ? Color.lerp(base, AppColors.white, .025)! : Color.lerp(base, AppColors.black, .022)!;
   }
 
   @override

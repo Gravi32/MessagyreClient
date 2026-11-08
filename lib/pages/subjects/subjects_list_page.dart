@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' hide Dialog, Page, ListTile;
@@ -97,7 +98,7 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                         spacing: 6,
                         children: [
                           Text(subject.name, style: AppStyles.strongText(context)),
-                          if (subject.isLocked) HugeIcon(icon: AppIcons.locked, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
+                          if (subject.isLocked) AppIcon(icon: AppIcons.locked, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
                         ],
                       ),
                       onTap: () => showCupertinoSheet(

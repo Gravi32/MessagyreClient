@@ -159,16 +159,12 @@ extension ColorExtension on Color {
   }
 }
 
-Color getGradeColor(double grade, {Color? defaultColor, BuildContext? context}) {
-  Color result = AppColors.red;
-
-  if (grade >= 4) {
-    result = defaultColor ?? (context != null ? AppColors.text.adaptTo(context) : AppColors.accent);
-  } else if (grade > 3.75) {
-    result = AppColors.orange;
-  }
-
-  return result;
+/// The color of a grade: [defaultColor] (the text's by default) when sufficient, soft amber just under 4, soft
+/// coral below (never an alarm red: a student with several insufficient grades shouldn't see a page of red)
+Color getGradeColor(double grade, BuildContext context, {Color? defaultColor}) {
+  if (grade >= 4) return defaultColor ?? AppColors.text.adaptTo(context);
+  if (grade > 3.75) return AppColors.gradeBorderline.adaptTo(context);
+  return AppColors.gradeLow.adaptTo(context);
 }
 
 Color getProgressColor(double ratio) {

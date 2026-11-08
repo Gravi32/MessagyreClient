@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/database/models/chats/chat.dart';
+import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/class_service.dart';
@@ -144,6 +145,13 @@ class ChatService {
     unawaited(_deliver(message.uuid));
   }
 
+  /// Sends an assignment, that the others can add to their list (see [AssignmentShare])
+  Future<void> sendAssignment(String chatId, AssignmentShare assignment) async {
+    final message = Message.custom(chatUsername: chatId, content: assignment.previewText, sentAt: DateTime.now(), isOwned: true, sharedAssignment: assignment);
+    await database.chats.addMessage(await _chatFor(chatId), message);
+    unawaited(_deliver(message.uuid));
+  }
+
   /// Sends a photo (from the gallery or the camera, already resized by image_picker) or any file.
   /// Throws an [AttachmentException] with a sentence for the user when it can't be sent.
   Future<void> sendAttachment(String username, {required String path, required AttachmentKind kind, String? name, String? caption}) async {
@@ -256,8 +264,8 @@ class ChatService {
 
       final payload = <String, dynamic>{"CommunicationType": "Message", "Uuid": uuid, "RecipientUsername": username};
       if (key != null) {
-        payload.addAll(encryption.encryptMessage(message.content, key, attachmentJson: attachment?.toJson()));
-      } else if (attachment != null) {
+        payload.addAll(encryption.encryptMessage(message.content, key, attachmentJson: attachment?.toJson() ?? message.assignmentData));
+      } else if (attachment != null || message.assignmentData != null) {
         await _setStatus(uuid, MessageStatus.Failed);
         return;
       } else {
@@ -301,7 +309,7 @@ class ChatService {
       "CommunicationType": "GroupMessage",
       "Uuid": message.uuid,
       "Group": className,
-      ...encryption.encryptForMany(message.content, keys, attachmentJson: attachment?.toJson()),
+      ...encryption.encryptForMany(message.content, keys, attachmentJson: attachment?.toJson() ?? message.assignmentData),
     };
 
     final acknowledged = await network.sendAndWaitForAcknowledgement(message.uuid, payload);
@@ -392,6 +400,7 @@ class ChatService {
 
     String content;
     Attachment? attachment;
+    AssignmentShare? sharedAssignment;
 
     final cipherText = data["CipherText"], iv = data["Iv"] ?? data["IV"], encryptedKey = data["EncryptedKey"];
     if (cipherText is String && iv is String && encryptedKey is String) {
@@ -399,6 +408,7 @@ class ChatService {
         final decrypted = await encryption.decryptPayload(cipherText, iv, encryptedKey, rawAttachment: data["Attachment"]?.toString());
         content = decrypted.$1;
         attachment = Attachment.tryParse(decrypted.$2);
+        sharedAssignment = attachment == null ? AssignmentShare.tryParse(decrypted.$2) : null;
       } catch (e) {
         debugPrint("[Chat] A message from $sender couldn't be decrypted: $e");
         content = "🔒 Ce message n'a pas pu être déchiffré.";
@@ -416,6 +426,7 @@ class ChatService {
       isOwned: false,
       status: MessageStatus.Delivered,
       attachment: attachment,
+      sharedAssignment: sharedAssignment,
       transfer: attachment != null ? TransferState.pending : TransferState.none,
     );
 
@@ -620,6 +631,14 @@ class ChatService {
       network.sendMessageDelete([message.uuid], message.chatUsername!);
     }
     if (fileId != null) unawaited(network.post("/files/delete", {"ID": fileId}));
+  }
+
+  /// Removes from this phone the messages of a chat written before [date] (with their files)
+  Future<void> deleteMessagesBefore(String chatUsername, DateTime date) async {
+    for (final message in database.messages.ofChat(chatUsername).where((message) => message.sentAt.isBefore(date)).toList()) {
+      await _deleteLocalFile(message);
+      await database.messages.delete(message);
+    }
   }
 
   Future<void> deleteChat(Chat chat) async {

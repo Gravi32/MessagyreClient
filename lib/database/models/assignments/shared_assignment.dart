@@ -10,7 +10,22 @@ class SharedAssignment {
   final DateTime dueDate;
   final AssignmentType type;
 
-  const SharedAssignment({required this.id, this.title, required this.content, this.authorUsername, required this.dueDate, required this.type});
+  /// Whether I can change or remove it: I wrote it, or I am a delegate of the class (the server decides)
+  final bool canEdit;
+
+  /// Who changed it last, when it isn't its author (a delegate)
+  final String? editedBy;
+
+  const SharedAssignment({
+    required this.id,
+    this.title,
+    required this.content,
+    this.authorUsername,
+    required this.dueDate,
+    required this.type,
+    this.canEdit = false,
+    this.editedBy,
+  });
 
   String get displayTitle => switch (type) {
     AssignmentType.test => (title?.trim().isNotEmpty ?? false) ? title!.trim() : "Test sans titre",
@@ -31,6 +46,8 @@ class SharedAssignment {
       authorUsername: json["AuthorUsername"]?.toString(),
       dueDate: dueDate,
       type: AssignmentType.values.asNameMap()[(json["Type"]?.toString() ?? "assignment").toLowerCase()] ?? AssignmentType.assignment,
+      canEdit: json["CanEdit"] == true,
+      editedBy: json["EditedBy"]?.toString(),
     );
   }
 

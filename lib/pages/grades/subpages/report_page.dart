@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart' hide Page;
@@ -56,7 +57,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   Row(
                     spacing: 4,
                     children: [
-                      if (isLocked) HugeIcon(icon: AppIcons.locked, size: 12, color: AppColors.tertiaryText.adaptTo(context)),
+                      if (isLocked) AppIcon(icon: AppIcons.locked, size: 12, color: AppColors.tertiaryText.adaptTo(context)),
                       Text(isLocked ? "Bloquée" : "Moyenne ${rawAverage!.toStringAsFixed(2)}", style: AppStyles.footnote(context)),
                     ],
                   ),
@@ -67,7 +68,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
             average?.removeTrailingZero() ?? "–",
             style: AppStyles.secondaryHeader(context).copyWith(
               fontWeight: .w700,
-              color: average == null ? AppColors.quaternaryText.adaptTo(context) : getGradeColor(average, context: context),
+              color: average == null ? AppColors.quaternaryText.adaptTo(context) : getGradeColor(average, context),
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -87,7 +88,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
     String? lowerBound,
     String? upperBound,
   }) {
-    final color = isMet ? AppColors.green : AppColors.red;
+    final color = (isMet ? AppColors.gradeGood : AppColors.gradeLow).adaptTo(context);
     return Padding(
       padding: const .all(AppSpacing.l),
       child: Column(
@@ -106,7 +107,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                     Row(
                       spacing: 4,
                       children: [
-                        HugeIcon(icon: isMet ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedAlertCircle, size: 14, color: color),
+                        AppIcon(icon: isMet ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedAlertCircle, size: 14, color: color),
                         Flexible(
                           child: Text(status, style: AppStyles.footnote(context).copyWith(color: color)),
                         ),
@@ -315,7 +316,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   spacing: 6,
                   children: [
                     Text(report.maxFailingGrades.toString(), style: AppStyles.secondaryText(context)),
-                    HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                    AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
                   ],
                 ),
                 onTap: chooseMaxFailingSubjects,
@@ -358,14 +359,14 @@ class _ReportCardPageState extends State<ReportCardPage> {
                 for (final compositeSubject in restrictedGroupCompositeSubjects)
                   ListTile(
                     leading: CompositeSubjectBadge(compositeSubject: compositeSubject, size: 28),
-                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                    trailing: AppIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
                     onTap: () => onSubjectRemoved(compositeSubject.code),
                     child: Text(compositeSubject.name, style: AppStyles.primaryText(context)),
                   ),
                 for (final subject in restrictedGroupSubjects)
                   ListTile(
                     leading: SubjectBadge(subject: subject, size: 28),
-                    trailing: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
+                    trailing: AppIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.secondaryText.adaptTo(context)),
                     onTap: () => showCupertinoDialog(
                       context: context,
                       builder: (_) =>

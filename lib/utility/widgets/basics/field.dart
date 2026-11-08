@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
@@ -160,7 +161,7 @@ class _FieldState extends State<Field> {
       padding: const .symmetric(horizontal: AppSpacing.m),
       minimumSize: const Size.square(AppSizes.compactControl),
       onPressed: widget.enabled ? onTap : null,
-      child: HugeIcon(icon: icon, color: color, size: widget.thin ? AppSizes.smallIcon : 20),
+      child: AppIcon(icon: icon, color: color, size: widget.thin ? AppSizes.smallIcon : 20),
     );
   }
 
@@ -221,7 +222,7 @@ class _FieldState extends State<Field> {
           if (widget.icon != null)
             Padding(
               padding: EdgeInsets.only(left: AppSpacing.l, bottom: _isSingleLine ? 0 : verticalPadding),
-              child: HugeIcon(icon: widget.icon!, color: AppColors.secondaryText.adaptTo(context), size: widget.thin ? AppSizes.smallIcon + 2 : AppSizes.icon),
+              child: AppIcon(icon: widget.icon!, color: AppColors.secondaryText.adaptTo(context), size: widget.thin ? AppSizes.smallIcon + 2 : AppSizes.icon),
             ),
           Expanded(child: textField),
           if (widget.suffix != null)

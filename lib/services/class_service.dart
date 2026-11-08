@@ -3,8 +3,10 @@ import 'dart:convert';
 
 import 'package:basic_utils/basic_utils.dart' show CryptoUtils;
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/database/models/chats/chat.dart';
+import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -71,6 +73,54 @@ class ClassMember {
   const ClassMember({required this.username, this.displayName, this.pictureUrl, this.publicKey});
 }
 
+/// The class chat's details shared by its members (GET /classes/mine): its picture and description, chosen by the
+/// delegates, and the delegates themselves, elected by the class (each member votes for one delegate and one vice)
+@immutable
+class ClassGroup {
+  final String className;
+  final String? pictureUrl;
+  final String? description;
+  final String? delegate;
+  final String? viceDelegate;
+
+  /// Votes per role ([ClassService.delegateRole], [ClassService.viceRole]) and candidate
+  final Map<String, Map<String, int>> votes;
+
+  /// My vote per role
+  final Map<String, String> myVotes;
+
+  const ClassGroup({
+    required this.className,
+    this.pictureUrl,
+    this.description,
+    this.delegate,
+    this.viceDelegate,
+    this.votes = const {},
+    this.myVotes = const {},
+  });
+
+  bool isDelegate(String? username) => username != null && (username == delegate || username == viceDelegate);
+
+  int votesFor(String role, String username) => votes[role]?[username] ?? 0;
+
+  static ClassGroup fromJson(String className, Map data) {
+    Map<String, int> counts(Object? raw) =>
+        raw is Map ? {for (final MapEntry(:key, :value) in raw.entries) key.toString(): (value is num ? value.toInt() : 0)} : const {};
+    final votes = data["Votes"];
+    final myVotes = data["MyVotes"];
+    String? text(Object? value) => value is String && value.trim().isNotEmpty ? value : null;
+    return ClassGroup(
+      className: className,
+      pictureUrl: text(data["PictureURL"]),
+      description: text(data["Description"]),
+      delegate: text(data["Delegate"]),
+      viceDelegate: text(data["ViceDelegate"]),
+      votes: votes is Map ? {for (final MapEntry(:key, :value) in votes.entries) key.toString(): counts(value)} : const {},
+      myVotes: myVotes is Map ? {for (final MapEntry(:key, :value) in myVotes.entries) key.toString(): value.toString()} : const {},
+    );
+  }
+}
+
 /// The user's class and its chat. The class is chosen for a school year: when a new one starts the app asks again
 /// (a class of last year is not the class of this year). The account keeps it on the server ("ClassOrRole", also
 /// used by the shared assignments, and "ClassYear"); this device keeps a copy to know whether to ask.
@@ -94,6 +144,15 @@ class ClassService {
   /// The members of my class (refreshed at every connection and before writing)
   final members = ValueNotifier<List<ClassMember>>(const []);
   DateTime? _membersLoadedAt;
+
+  /// My class chat's picture, description and delegates (null until the server answered)
+  final group = ValueNotifier<ClassGroup?>(null);
+
+  static const delegateRole = "Delegate";
+  static const viceRole = "Vice";
+
+  /// Whether I can change my class's picture and description and every shared assignment
+  bool get amDelegate => group.value?.isDelegate(globals.username) ?? false;
 
   // #region -> Chat identifiers
 
@@ -180,9 +239,36 @@ class ClassService {
     if (current.value != next) {
       current.value = next;
       members.value = const [];
+      group.value = null;
       _membersLoadedAt = null;
     }
     if (next != null) unawaited(_ensureChat(next.name));
+    unawaited(_removePastClassChats());
+  }
+
+  /// On 15 August the classes move up (last year's 1M05 is somebody else this year): the class chats of an earlier
+  /// school year are removed from this phone, with their messages and files. The server removes its side too.
+  Future<void> _removePastClassChats() async {
+    const key = "ClassChatsYear";
+    final year = SchoolClass.yearLabel(DateTime.now());
+    final previous = globals.persistent.getString(key);
+    if (previous == year) return;
+    try {
+      if (previous != null) {
+        final now = DateTime.now();
+        final yearStart = DateTime(now.month > 8 || (now.month == 8 && now.day >= 15) ? now.year : now.year - 1, 8, 15);
+        final currentChat = current.value == null ? null : chatIdOf(current.value!.name);
+        for (final chat in database.chats.getAll().where((chat) => isClassChat(chat.username)).toList()) {
+          // The chat of this year's class may have the same name as last year's (a repeated year): only its old
+          // messages go
+          chat.username == currentChat ? await ChatService().deleteMessagesBefore(chat.username, yearStart) : await ChatService().deleteChat(chat);
+        }
+        debugPrint("[Class] New school year: last year's class chats were removed");
+      }
+      await globals.persistent.setString(key, year);
+    } catch (e) {
+      debugPrint("[Class] Removing last year's class chats failed: $e");
+    }
   }
 
   /// The class chat is in the list as soon as the class is chosen, even before its first message
@@ -199,6 +285,7 @@ class ClassService {
     await globals.persistent.remove(_postponedKey);
     current.value = null;
     members.value = const [];
+    group.value = null;
     _membersLoadedAt = null;
   }
 
@@ -250,6 +337,7 @@ class ClassService {
             publicKey: _parseKey(item["PublicKey"]),
           ),
       ];
+      group.value = ClassGroup.fromJson(data["Class"]?.toString() ?? current.value?.name ?? "", data as Map);
       _membersLoadedAt = DateTime.now();
     } catch (e) {
       debugPrint("[Class] Reading the members failed: $e");
@@ -265,6 +353,48 @@ class ClassService {
       return null;
     }
   }
+
+  // #region -> Group
+
+  /// My vote for [role] ([delegateRole] or [viceRole]); a null [candidate] takes it back. Returns why it failed
+  Future<String?> vote(String role, String? candidate) async {
+    final response = await network.post("/classes/vote", {"Role": role, "Candidate": candidate});
+    if (response.statusCode != 200) return AppStrings.errorFor(response);
+    await loadMembers(force: true);
+    return null;
+  }
+
+  /// The class chat's picture ([path] of a JPEG or PNG), or none. Only the delegates can. Returns why it failed
+  Future<String?> setPicture(String? path) async {
+    try {
+      final request = http.MultipartRequest("POST", network.getBackendUri(route: "/classes/picture"))..headers["Authorization"] = globals.token ?? "";
+      if (path == null) {
+        request.fields["Remove"] = "true";
+      } else {
+        request.files.add(await http.MultipartFile.fromPath("Picture", path));
+      }
+      var response = await http.Response.fromStream(await request.send().timeout(const Duration(seconds: 60)));
+      if (response.statusCode == 401 && (await network.refreshAccessToken()).statusCode == 200) return setPicture(path);
+      if (response.statusCode == 403) return "Seuls le délégué et le vice-délégué de la classe peuvent changer sa photo.";
+      if (response.statusCode != 200) return AppStrings.errorFor(response);
+      await loadMembers(force: true);
+      return null;
+    } catch (e) {
+      debugPrint("[Class] Changing the picture failed: $e");
+      return AppStrings.describe(e);
+    }
+  }
+
+  /// The few words under the class's name. Only the delegates can. Returns why it failed
+  Future<String?> setDescription(String? description) async {
+    final response = await network.post("/classes/description", {"Description": description});
+    if (response.statusCode == 403) return "Seuls le délégué et le vice-délégué de la classe peuvent changer sa description.";
+    if (response.statusCode != 200) return AppStrings.errorFor(response);
+    await loadMembers(force: true);
+    return null;
+  }
+
+  // #endregion
 
   /// The name to show for someone of the class
   String displayNameOf(String username) {

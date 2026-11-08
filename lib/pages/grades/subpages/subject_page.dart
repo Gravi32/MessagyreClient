@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart' hide Page;
@@ -78,7 +79,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
                 ],
               ),
             ),
-            HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+            AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
           ],
         ),
       ),
@@ -89,7 +90,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
   Widget buildAverageCard() {
     final grades = thisSubjectGrades.sorted((a, b) => a.date.compareTo(b.date));
     final average = calculateAverage(grades);
-    final color = average < 4 ? getGradeColor(average) : widget.subject.color;
+    final color = average < 4 ? getGradeColor(average, context) : widget.subject.color;
 
     return RoundContainer(
       padding: const .all(AppSpacing.card),
@@ -160,7 +161,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
               height: 32,
               alignment: .center,
               decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(9)),
-              child: HugeIcon(icon: icon, size: 18, color: AppColors.text.adaptTo(context)),
+              child: AppIcon(icon: icon, size: 18, color: AppColors.text.adaptTo(context)),
             ),
             Expanded(child: Text(title, style: AppStyles.primaryText(context))),
             Text(

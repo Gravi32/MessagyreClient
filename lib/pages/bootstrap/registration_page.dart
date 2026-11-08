@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -154,13 +155,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
       await globals.persistent.setString("Username", username);
       clearRegistrationCache();
 
-      if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
       isWaitingForResponse = false;
 
-      network.isLoginPageOpen = false;
-      network.connect();
+      // The app starts again with the new account (the login and registration pages close with it)
+      network.didSignIn();
     }
   }
 
@@ -191,7 +189,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         height: 64,
         alignment: .center,
         decoration: BoxDecoration(shape: .circle, color: AppColors.tertiaryBackground.adaptTo(context)),
-        child: HugeIcon(icon: icon, size: 28, color: AppColors.text.adaptTo(context)),
+        child: AppIcon(icon: icon, size: 28, color: AppColors.text.adaptTo(context)),
       ),
       Padding(
         padding: const .only(bottom: AppSpacing.s),

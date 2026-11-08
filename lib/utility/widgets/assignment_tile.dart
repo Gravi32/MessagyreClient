@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:animated_line_through/animated_line_through.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +9,12 @@ import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/assignments/shared_assignment.dart';
+import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
+import 'package:messagyre_client/pages/assignments/subpages/edit_shared_assignment_sheet.dart';
 import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
+import 'package:messagyre_client/services/network_service.dart';
+import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -93,7 +99,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                 child: AnimatedOpacity(
                   duration: AppDurations.fast,
                   opacity: isDone ? 1 : 0,
-                  child: const HugeIcon(icon: AppIcons.done, color: AppColors.white, size: 16, strokeWidth: 2.5),
+                  child: const AppIcon(icon: AppIcons.done, color: AppColors.white, size: 16, strokeWidth: 2.5),
                 ),
               ),
             )
@@ -105,7 +111,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                 shape: .circle,
                 color: (isTest ? AppColors.red : AppColors.orange).withValues(alpha: AppColors.isDark(context) ? .22 : .14),
               ),
-              child: HugeIcon(
+              child: AppIcon(
                 icon: isTest ? HugeIcons.strokeRoundedAlert02 : HugeIcons.strokeRoundedSun03,
                 size: 15,
                 strokeWidth: 2,
@@ -161,17 +167,85 @@ class _AssignmentTileState extends State<AssignmentTile> {
   }
 }
 
-/// An assignment shared by a classmate (read-only)
+/// An assignment shared by a classmate. Touching it adds it to mine; its author and the class's delegates can also
+/// change or remove it ([onChanged] then reloads the list).
 class SharedAssignmentTile extends ListTile {
   final SharedAssignment assignment;
+  final VoidCallback? onChanged;
 
-  const SharedAssignmentTile({super.key, required this.assignment}) : super(buildChevron: false);
+  const SharedAssignmentTile({super.key, required this.assignment, this.onChanged}) : super(buildChevron: false);
 
   @override
   State<SharedAssignmentTile> createState() => _SharedAssignmentTileState();
 }
 
 class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
+  bool isWorking = false;
+
+  AssignmentShare get share => AssignmentShare(
+    type: widget.assignment.type,
+    title: widget.assignment.title,
+    content: widget.assignment.content,
+    dueDate: widget.assignment.dueDate.toLocal().dateOnly(),
+  );
+
+  /// Already in my assignments (false when the database can't be read, as in the widget tests)
+  bool get isAdded {
+    try {
+      return DatabaseService().assignments.getAll().any(share.isSameAs);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void showError(String message) =>
+      showCupertinoDialog(context: context, builder: (_) => Dialog(title: AppStrings.errorTitle, content: message));
+
+  Future<void> showActions() async {
+    final choice = await ActionSheet.show<String>(
+      context,
+      message: widget.assignment.displayTitle,
+      actions: [
+        if (!isAdded) const SheetAction("Ajouter à mes devoirs", icon: AppIcons.add, value: "add"),
+        if (widget.assignment.canEdit) const SheetAction("Modifier", icon: AppIcons.edit, value: "edit"),
+        if (widget.assignment.canEdit) const SheetAction("Supprimer pour toute la classe", icon: AppIcons.delete, value: "delete", isDestructive: true),
+      ],
+    );
+    if (!mounted) return;
+
+    switch (choice) {
+      case "add":
+        await showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(prefill: share), enableDrag: false);
+        if (mounted) setState(() {});
+      case "edit":
+        final saved = await showCupertinoModalPopup<bool>(context: context, builder: (_) => EditSharedAssignmentSheet(assignment: widget.assignment));
+        if (saved == true) widget.onChanged?.call();
+      case "delete":
+        showCupertinoDialog(
+          context: context,
+          builder: (_) => Dialog.confirm(
+            content: "Supprimer ce devoir partagé ? Il disparaîtra pour toute la classe (ceux qui l'ont ajouté à leurs devoirs le gardent).",
+            isDestructive: true,
+            onConfirm: remove,
+          ),
+        );
+    }
+  }
+
+  Future<void> remove() async {
+    setState(() => isWorking = true);
+    final response = await NetworkService().post("/shared/assignments/remove", {"ID": widget.assignment.id});
+    if (!mounted) return;
+    setState(() => isWorking = false);
+    if (response.statusCode == 200 || response.statusCode == 404) {
+      widget.onChanged?.call();
+    } else {
+      showError(
+        response.statusCode == 403 ? "Seuls son auteur, le délégué et le vice-délégué de la classe peuvent supprimer ce devoir." : AppStrings.errorFor(response),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final assignment = widget.assignment;
@@ -180,6 +254,9 @@ class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
 
     return ListTile(
       buildChevron: false,
+      isLoading: isWorking,
+      onTap: showActions,
+      trailing: isAdded ? AppIcon(icon: AppIcons.done, size: 18, color: AppColors.tertiaryText.adaptTo(context)) : null,
       child: Column(
         crossAxisAlignment: .start,
         spacing: AppSpacing.s,
@@ -196,7 +273,11 @@ class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
           if (assignment.type == AssignmentType.test && assignment.content.isNotEmpty)
             Text(assignment.content, style: AppStyles.subheadline(context), softWrap: true, maxLines: 3, overflow: .ellipsis),
           Text(
-            [formatDate(assignment.dueDate), if (author != null && author.isNotEmpty) AppStrings.sharedBy(Account.getDefaultDisplayName(author))].join(" · "),
+            [
+              formatDate(assignment.dueDate),
+              if (author != null && author.isNotEmpty) AppStrings.sharedBy(Account.getDefaultDisplayName(author)),
+              if (assignment.editedBy != null && assignment.editedBy != author) "modifié par ${Account.getDefaultDisplayName(assignment.editedBy!)}",
+            ].join(" · "),
             style: AppStyles.footnote(context),
           ),
         ],

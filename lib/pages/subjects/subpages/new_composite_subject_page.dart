@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart' hide Page;
@@ -169,7 +170,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                   placeholderStyle: TextStyle(color: isMissingInfo ? AppColors.red : AppColors.placeholderText.adaptTo(context), fontWeight: .w400),
                 ),
               ),
-              if (isMissingInfo) const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18),
+              if (isMissingInfo) const AppIcon(icon: AppIcons.missing, color: AppColors.red, size: 18),
             ],
           ),
         ),

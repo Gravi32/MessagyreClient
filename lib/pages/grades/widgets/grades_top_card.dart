@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -86,7 +87,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
                       GradeDisplay.format(generalAverage, round: false),
                       style: AppStyles.display(
                         context,
-                      ).copyWith(color: isFailing ? getGradeColor(generalAverage) : null, fontFeatures: const [FontFeature.tabularFigures()]),
+                      ).copyWith(color: isFailing ? getGradeColor(generalAverage, context) : null, fontFeatures: const [FontFeature.tabularFigures()]),
                     ),
                     Text("${grades.length} note${grades.length > 1 ? "s" : ""}", style: AppStyles.subheadline(context)),
                   ],
@@ -95,7 +96,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
                   child: SizedBox(
                     height: 72,
                     child: Chart(
-                      color: isFailing ? getGradeColor(generalAverage) : AppColors.text.adaptTo(context).withValues(alpha: .75),
+                      color: isFailing ? getGradeColor(generalAverage, context) : AppColors.text.adaptTo(context).withValues(alpha: .75),
                       showLines: false,
                       min: max(low.floorToDouble() - .5, 1),
                       max: min(high.ceilToDouble(), 6),
@@ -136,10 +137,10 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
   Widget buildReportCard() {
     final failingColor = report.failingGrades <= 0
-        ? AppColors.green
+        ? AppColors.gradeGood.adaptTo(context)
         : report.failingGrades <= report.maxFailingGrades
-        ? AppColors.orange
-        : AppColors.red;
+        ? AppColors.gradeBorderline.adaptTo(context)
+        : AppColors.gradeLow.adaptTo(context);
 
     final figures = <Widget>[
       _Figure(label: "Points", value: report.totalPoints.removeTrailingZero(), alignment: .start),
@@ -150,7 +151,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
         _Figure(
           label: "Compensation",
           value: report.doubleCompensation.removeTrailingZero(),
-          valueColor: report.doubleCompensation >= 0 ? AppColors.green : AppColors.red,
+          valueColor: (report.doubleCompensation >= 0 ? AppColors.gradeGood : AppColors.gradeLow).adaptTo(context),
           alignment: .start,
         ),
     ];
@@ -176,10 +177,10 @@ class _GradesTopCardState extends State<GradesTopCard> {
                   height: 32,
                   alignment: .center,
                   decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(9)),
-                  child: HugeIcon(icon: HugeIcons.strokeRoundedFile02, size: 18, color: AppColors.text.adaptTo(context)),
+                  child: AppIcon(icon: HugeIcons.strokeRoundedFile02, size: 18, color: AppColors.text.adaptTo(context)),
                 ),
                 Expanded(child: Text("Bulletin", style: AppStyles.strongText(context))),
-                HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
               ],
             ),
             Row(children: [for (final figure in figures.take(3)) Expanded(child: figure)]),

@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
@@ -81,12 +82,12 @@ class GradeBar extends StatelessWidget {
               ),
             ),
             if (isGradeUnknown)
-              HugeIcon(
+              AppIcon(
                 icon: isPlanned ? HugeIcons.strokeRoundedCalendarCheckOut01 : HugeIcons.strokeRoundedAdd01,
                 size: 20,
                 color: AppColors.tertiaryText.adaptTo(context),
               ),
-            HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+            AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
           ],
         ),
       ),

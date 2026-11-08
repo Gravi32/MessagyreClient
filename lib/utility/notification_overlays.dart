@@ -105,7 +105,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                     Row(
                       children: [
                         widget.senderUsername.startsWith("#")
-                            ? const ClassAvatar(size: 48)
+                            ? ClassAvatar(className: widget.senderUsername.substring(1), size: 48)
                             : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 24),
                         SizedBox(width: 12),
                         Expanded(

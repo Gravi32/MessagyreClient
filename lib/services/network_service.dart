@@ -6,6 +6,7 @@ import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
@@ -188,9 +189,10 @@ class NetworkService {
         debugPrint("[WebSocket] Socket done with error: $e");
       });
 
-      _channel = IOWebSocketChannel(socket);
+      final channel = IOWebSocketChannel(socket);
+      _channel = channel;
 
-      _channel!.stream.listen(
+      channel.stream.listen(
         (message) {
           try {
             final receivedData = jsonDecode(message);
@@ -208,7 +210,9 @@ class NetworkService {
         },
 
         onDone: () {
-          debugPrint("[WebSocket] Disconnected by the server: ${_channel?.closeCode} ${_channel?.closeReason}");
+          debugPrint("[WebSocket] Disconnected by the server: ${channel.closeCode} ${channel.closeReason}");
+          // A channel closed after a newer one opened (the app restarted after a sign-in) must leave it alone
+          if (!identical(_channel, channel)) return;
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
           _isConnecting = false;
@@ -223,6 +227,7 @@ class NetworkService {
         },
         onError: (err) {
           debugPrint("[WebSocket] Error: $err");
+          if (!identical(_channel, channel)) return;
           _channel = null;
           connectionState.value = ConnectionState.NotConnected;
           _isConnecting = false;
@@ -309,7 +314,30 @@ class NetworkService {
 
   // HTTP Shorthands
 
-  Future<http.Response> post(String route, Object body, {int timeout = 30}) async {
+  /// Routes that never carry a valid access token: a 401 there is the real answer, not an expired token
+  static const _routesWithoutToken = {"/auth/login", "/auth/refresh", "/auth/registration", "/auth/logout", "/ping"};
+
+  /// Sends a request; when the access token expired (it lasts an hour) it is renewed once and the request sent again
+  Future<http.Response> _withFreshToken(String route, Future<http.Response> Function() send) async {
+    final response = await send();
+    if (response.statusCode != 401 || globals.token == null || _routesWithoutToken.contains(route.split("?").first)) return response;
+
+    final refreshed = await refreshAccessToken();
+    if (refreshed.statusCode == 401) {
+      // The refresh token isn't valid any more (logged out elsewhere, password changed): signing in again is the only way
+      onUnauthorized();
+      return response;
+    }
+    if (refreshed.statusCode != 200) return response;
+    return send();
+  }
+
+  Future<http.Response> post(String route, Object body, {int timeout = 30}) => _withFreshToken(route, () => _post(route, body, timeout: timeout));
+
+  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false}) =>
+      _withFreshToken(route, () => _get(route, timeout: timeout, forceLocalhost: forceLocalhost));
+
+  Future<http.Response> _post(String route, Object body, {int timeout = 30}) async {
     try {
       final response = await http
           .post(
@@ -329,7 +357,7 @@ class NetworkService {
     }
   }
 
-  Future<http.Response> get(String route, {int timeout = 30, bool forceLocalhost = false}) async {
+  Future<http.Response> _get(String route, {int timeout = 30, bool forceLocalhost = false}) async {
     try {
       final response = await http
           .get(
@@ -406,23 +434,34 @@ class NetworkService {
     return result;
   }
 
-  Future<Account?> getAccount(String accountUsername) async {
-    final response = await get("/accounts/get?Username=$accountUsername");
+  Future<Account?> getAccount(String accountUsername) async => (await fetchAccount(accountUsername)).account;
+
+  /// An account, or why it couldn't be loaded (in words)
+  Future<({Account? account, String? error})> fetchAccount(String accountUsername) async {
+    final response = await get("/accounts/get?Username=${Uri.encodeQueryComponent(accountUsername)}");
 
     if (response.statusCode != 200) {
       debugPrint("[Account Get Failed] Error ${response.statusCode}: ${response.body}");
-      return null;
+      return (account: null, error: AppStrings.errorFor(response));
     }
 
     try {
-      return Account.fromJson(response.body);
+      return (account: Account.fromJson(response.body), error: null);
     } catch (e) {
       debugPrint("[Account Get Failed] Unreadable answer: $e");
-      return null;
+      return (account: null, error: "La réponse du serveur est illisible : $e");
     }
   }
 
-  Future<http.Response> refreshAccessToken() async {
+  Future<http.Response>? _refreshing;
+
+  /// Renews the access token. Requests that find it expired at the same time share one renewal: each one
+  /// replaces the refresh token, and two at once would only waste one
+  Future<http.Response> refreshAccessToken() {
+    return _refreshing ??= _refreshAccessToken().whenComplete(() => _refreshing = null);
+  }
+
+  Future<http.Response> _refreshAccessToken() async {
     final refreshToken = await secureStorage.read(key: "RefreshToken");
 
     if (refreshToken == null) {
@@ -430,13 +469,7 @@ class NetworkService {
       return http.Response("No refresh token found in SecureStorage.", 401);
     }
 
-    final response = await post("/auth/refresh", {"RefreshToken": refreshToken}).timeout(
-      const Duration(seconds: 15),
-      onTimeout: () {
-        debugPrint("[RefreshToken] Request timed out");
-        throw Exception("Refresh token request timed out");
-      },
-    );
+    final response = await _post("/auth/refresh", {"RefreshToken": refreshToken}, timeout: 15);
 
     if (response.statusCode == 200) {
       try {
@@ -583,6 +616,20 @@ class NetworkService {
     }
   }
 
+  /// After the login or the registration: the app starts again from scratch, so that every page (profile card,
+  /// shared assignments, class, conversations) loads the new account instead of keeping what it had before
+  void didSignIn() {
+    isLoginPageOpen = false;
+    final context = navigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      Phoenix.rebirth(context);
+    } else {
+      isSignedIn.value = true;
+      uploadPublicKey();
+      connect();
+    }
+  }
+
   void logout() async {
     isSignedIn.value = false;
     await BackupService().stop(); // the last changes go first, while the token is still valid
@@ -599,11 +646,17 @@ class NetworkService {
     await secureStorage.delete(key: "RefreshToken");
     await secureStorage.delete(key: "PublicKey");
     await secureStorage.delete(key: "PrivateKey");
-    globals.persistent.remove("Username");
+    await globals.persistent.remove("Username");
 
-    onUnauthorized();
-
+    // Started again without an account: the pages forget the old one and the login page opens
     MainPage.pageIndex.value = 2;
+    isLoginPageOpen = false;
+    final context = navigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      Phoenix.rebirth(context);
+    } else {
+      onUnauthorized();
+    }
   }
 
   // #endregion

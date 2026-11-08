@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
@@ -326,7 +327,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           color: AppColors.secondaryBackground.adaptTo(context),
                           border: .all(color: AppColors.background.adaptTo(context), width: 3),
                         ),
-                        child: HugeIcon(icon: HugeIcons.strokeRoundedCamera01, size: 16, color: AppColors.text.adaptTo(context)),
+                        child: AppIcon(icon: HugeIcons.strokeRoundedCamera01, size: 16, color: AppColors.text.adaptTo(context)),
                       ),
                     ),
                 ],

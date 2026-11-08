@@ -1,5 +1,5 @@
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/utility.dart';
 
@@ -15,7 +15,7 @@ class CustomIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Opacity(
       opacity: color?.a ?? 1,
-      child: HugeIcon(key: super.key, icon: icon, color: color?.withTransparency(1) ?? AppColors.text.adaptTo(context), size: size, strokeWidth: strokeWidth),
+      child: AppIcon(key: super.key, icon: icon, color: color?.withTransparency(1) ?? AppColors.text.adaptTo(context), size: size, strokeWidth: strokeWidth),
     );
   }
 }
