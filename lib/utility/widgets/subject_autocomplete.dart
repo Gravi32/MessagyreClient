@@ -88,9 +88,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
     final subjectsInsideComposite = <String>{};
 
     for (final compositeSubject in compositeSubjects) {
-      final firstSubject = compositeSubject.firstSubject.value;
-      final secondSubject = compositeSubject.secondSubject.value;
-      subjectsInsideComposite.addAll([if (firstSubject != null) firstSubject.code, if (secondSubject != null) secondSubject.code]);
+      subjectsInsideComposite.addAll(compositeSubject.subjects.map((subject) => subject.code));
     }
 
     normalizedOptions = [];

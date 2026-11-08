@@ -238,7 +238,10 @@ class NetworkService {
     // Listening before sending: the acknowledgement can't be missed
     final acknowledgement = _acknowledgementStreamController.stream.firstWhere((acknowledged) => acknowledged == uuid).timeout(const Duration(seconds: 10));
 
-    if (!sendRaw(payload)) return false;
+    if (!sendRaw(payload)) {
+      acknowledgement.ignore(); // nobody waits for it any more: its timeout must not become an uncaught error
+      return false;
+    }
 
     try {
       await acknowledgement;

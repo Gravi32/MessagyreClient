@@ -8,6 +8,8 @@ import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/bootstrap/privacy_policy.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/admin_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/archives_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/preferences_settings_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/privacy_settings.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
@@ -192,6 +194,12 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 icon: HugeIcons.strokeRoundedSettings05,
                 onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => PreferencesSettingsPage())),
               ),
+              ListTile.simple(
+                context,
+                title: "Archives",
+                icon: HugeIcons.strokeRoundedArchive02,
+                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const ArchivesPage())),
+              ),
             ],
           ),
 
@@ -327,6 +335,14 @@ class _SettingsListPageState extends State<SettingsListPage> {
                 icon: HugeIcons.strokeRoundedSourceCodeSquare,
                 onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => DebugSettingsPage())),
               ),
+
+              if (adminUsernames.contains(globals.username))
+                ListTile.simple(
+                  context,
+                  title: "Administration",
+                  icon: HugeIcons.strokeRoundedAnalytics01,
+                  onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const AdminPage())),
+                ),
             ],
           ),
 

@@ -17,38 +17,43 @@ const GradeSchema = CollectionSchema(
   name: r'Grade',
   id: -5717027466259005798,
   properties: {
-    r'date': PropertySchema(
+    r'archivedYear': PropertySchema(
       id: 0,
+      name: r'archivedYear',
+      type: IsarType.string,
+    ),
+    r'date': PropertySchema(
+      id: 1,
       name: r'date',
       type: IsarType.dateTime,
     ),
     r'details': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'details',
       type: IsarType.string,
     ),
     r'grade': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'grade',
       type: IsarType.double,
     ),
     r'groupName': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'groupName',
       type: IsarType.string,
     ),
     r'referenceId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'title',
       type: IsarType.string,
     ),
     r'weight': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'weight',
       type: IsarType.double,
     )
@@ -58,7 +63,21 @@ const GradeSchema = CollectionSchema(
   deserialize: _gradeDeserialize,
   deserializeProp: _gradeDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'archivedYear': IndexSchema(
+      id: 5891172984522211230,
+      name: r'archivedYear',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'archivedYear',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {
     r'subject': LinkSchema(
       id: -7386020070213761028,
@@ -80,6 +99,12 @@ int _gradeEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.archivedYear;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.details;
     if (value != null) {
@@ -108,13 +133,14 @@ void _gradeSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.date);
-  writer.writeString(offsets[1], object.details);
-  writer.writeDouble(offsets[2], object.grade);
-  writer.writeString(offsets[3], object.groupName);
-  writer.writeString(offsets[4], object.referenceId);
-  writer.writeString(offsets[5], object.title);
-  writer.writeDouble(offsets[6], object.weight);
+  writer.writeString(offsets[0], object.archivedYear);
+  writer.writeDateTime(offsets[1], object.date);
+  writer.writeString(offsets[2], object.details);
+  writer.writeDouble(offsets[3], object.grade);
+  writer.writeString(offsets[4], object.groupName);
+  writer.writeString(offsets[5], object.referenceId);
+  writer.writeString(offsets[6], object.title);
+  writer.writeDouble(offsets[7], object.weight);
 }
 
 Grade _gradeDeserialize(
@@ -124,14 +150,15 @@ Grade _gradeDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Grade();
-  object.date = reader.readDateTime(offsets[0]);
-  object.details = reader.readStringOrNull(offsets[1]);
-  object.grade = reader.readDouble(offsets[2]);
-  object.groupName = reader.readStringOrNull(offsets[3]);
+  object.archivedYear = reader.readStringOrNull(offsets[0]);
+  object.date = reader.readDateTime(offsets[1]);
+  object.details = reader.readStringOrNull(offsets[2]);
+  object.grade = reader.readDouble(offsets[3]);
+  object.groupName = reader.readStringOrNull(offsets[4]);
   object.id = id;
-  object.referenceId = reader.readStringOrNull(offsets[4]);
-  object.title = reader.readString(offsets[5]);
-  object.weight = reader.readDouble(offsets[6]);
+  object.referenceId = reader.readStringOrNull(offsets[5]);
+  object.title = reader.readString(offsets[6]);
+  object.weight = reader.readDouble(offsets[7]);
   return object;
 }
 
@@ -143,18 +170,20 @@ P _gradeDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readDouble(offset)) as P;
-    case 3:
       return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readDouble(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -247,9 +276,220 @@ extension GradeQueryWhere on QueryBuilder<Grade, Grade, QWhereClause> {
       ));
     });
   }
+
+  QueryBuilder<Grade, Grade, QAfterWhereClause> archivedYearIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'archivedYear',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterWhereClause> archivedYearIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'archivedYear',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterWhereClause> archivedYearEqualTo(
+      String? archivedYear) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'archivedYear',
+        value: [archivedYear],
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterWhereClause> archivedYearNotEqualTo(
+      String? archivedYear) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [],
+              upper: [archivedYear],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [archivedYear],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [archivedYear],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [],
+              upper: [archivedYear],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension GradeQueryFilter on QueryBuilder<Grade, Grade, QFilterCondition> {
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'archivedYear',
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'archivedYear',
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'archivedYear',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'archivedYear',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'archivedYear',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterFilterCondition> archivedYearIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'archivedYear',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Grade, Grade, QAfterFilterCondition> dateEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1064,6 +1304,18 @@ extension GradeQueryLinks on QueryBuilder<Grade, Grade, QFilterCondition> {
 }
 
 extension GradeQuerySortBy on QueryBuilder<Grade, Grade, QSortBy> {
+  QueryBuilder<Grade, Grade, QAfterSortBy> sortByArchivedYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterSortBy> sortByArchivedYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.desc);
+    });
+  }
+
   QueryBuilder<Grade, Grade, QAfterSortBy> sortByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -1150,6 +1402,18 @@ extension GradeQuerySortBy on QueryBuilder<Grade, Grade, QSortBy> {
 }
 
 extension GradeQuerySortThenBy on QueryBuilder<Grade, Grade, QSortThenBy> {
+  QueryBuilder<Grade, Grade, QAfterSortBy> thenByArchivedYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Grade, Grade, QAfterSortBy> thenByArchivedYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.desc);
+    });
+  }
+
   QueryBuilder<Grade, Grade, QAfterSortBy> thenByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -1248,6 +1512,13 @@ extension GradeQuerySortThenBy on QueryBuilder<Grade, Grade, QSortThenBy> {
 }
 
 extension GradeQueryWhereDistinct on QueryBuilder<Grade, Grade, QDistinct> {
+  QueryBuilder<Grade, Grade, QDistinct> distinctByArchivedYear(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'archivedYear', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Grade, Grade, QDistinct> distinctByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'date');
@@ -1299,6 +1570,12 @@ extension GradeQueryProperty on QueryBuilder<Grade, Grade, QQueryProperty> {
   QueryBuilder<Grade, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Grade, String?, QQueryOperations> archivedYearProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'archivedYear');
     });
   }
 

@@ -32,6 +32,14 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
+import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/pages/settings/subpages/archives_page.dart';
+import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
+import 'package:messagyre_client/services/archive_service.dart';
+import 'package:messagyre_client/utility/utility.dart';
 
 class _TemporaryPaths extends Fake with MockPlatformInterfaceMixin implements PathProviderPlatform {
   final String root;
@@ -201,6 +209,106 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   }
+
+  testWidgets("typing a message and tapping send stores it (the send button used to be covered)", (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    await tester.pumpWidget(_plain(const ChatPage(username: "noah.dubois"), Brightness.light));
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.enterText(find.byType(CupertinoTextField), "Oui je viens !");
+    await tester.pump();
+    final sendIcon = find.byWidgetPredicate((widget) => widget is HugeIcon && widget.icon == AppIcons.send);
+    // The tap must land on the send button itself, not on something drawn over it
+    final hit = tester.hitTestOnBinding(tester.getCenter(sendIcon));
+    expect(hit.path.first.target.toString(), isNot(contains("Opacity")));
+    await tester.tap(sendIcon);
+    await tester.pump();
+    expect(tester.widget<CupertinoTextField>(find.byType(CupertinoTextField)).controller?.text, isEmpty);
+    // The database writes in real time: alternate real waits and frames until the message is there
+    bool stored() => DatabaseService().messages.ofChat("noah.dubois").any((m) => m.isOwned && m.content == "Oui je viens !");
+    for (var i = 0; i < 40 && !stored(); i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    final sent = DatabaseService().messages.ofChat("noah.dubois").where((m) => m.isOwned).toList();
+    expect(sent.map((m) => m.content), contains("Oui je viens !"));
+    // Offline in the tests: it waits in the queue, to be sent at the next connection
+    expect(sent.last.status, MessageStatus.Sending);
+    for (var i = 0; i < 40 && find.text("Oui je viens !").evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text("Oui je viens !"), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets("a composite subject of three subjects averages them by periods per week", (tester) async {
+    final isar = DatabaseService().isar;
+    final subjects = [
+      for (final (code, name) in [("bio", "Biologie"), ("chimie", "Chimie"), ("physique", "Physique")])
+        Subject()
+          ..code = code
+          ..name = name
+          ..colorValue = AppColors.green.toARGB32(),
+    ];
+    final composite = CompositeSubject()
+      ..code = "sciences"
+      ..name = "Sciences"
+      ..firstSubjectPeriodsPerWeek = 2
+      ..secondSubjectPeriodsPerWeek = 1
+      ..thirdSubjectPeriodsPerWeek = 1;
+
+    await tester.runAsync(() async {
+      await isar.writeTxn(() => isar.subjects.putAll(subjects));
+      composite.firstSubject.value = subjects[0];
+      composite.secondSubject.value = subjects[1];
+      composite.thirdSubject.value = subjects[2];
+      await DatabaseService().compositeSubjects.save(composite);
+      for (final (subject, mark) in [(subjects[0], 6.0), (subjects[1], 4.0), (subjects[2], 3.0)]) {
+        final grade = Grade()
+          ..title = "Test"
+          ..grade = mark
+          ..date = DateTime.now();
+        grade.subject.value = subject;
+        await DatabaseService().grades.save(grade);
+      }
+    });
+
+    final stored = DatabaseService().compositeSubjects.getByCode("sciences")!;
+    stored.firstSubject.loadSync();
+    stored.secondSubject.loadSync();
+    stored.thirdSubject.loadSync();
+    expect(stored.parts.length, 3);
+    // (6×2 + 4×1 + 3×1) / 4
+    expect(calculateCompositeSubjectAverage(stored), closeTo(19 / 4, 1e-9));
+
+    await shoot(tester, _plain(NewCompositeSubjectPage(toEdit: stored), Brightness.light), "composite_three");
+  });
+
+  testWidgets("archiving the year hides grades and assignments without deleting them, and restoring brings them back", (tester) async {
+    final database = DatabaseService();
+    final gradesBefore = database.grades.getAll().length;
+    final assignmentsBefore = database.assignments.getAll().length;
+    expect(gradesBefore, greaterThan(0));
+
+    await tester.runAsync(() => ArchiveService().archive("2025-2026"));
+    expect(database.grades.getAll(), isEmpty);
+    expect(database.assignments.getAll(), isEmpty);
+    final archived = ArchiveService().archivedYears();
+    expect(archived.single.label, "2025-2026");
+    expect(archived.single.grades.length, gradesBefore);
+    expect(archived.single.assignments.length, assignmentsBefore);
+
+    await shoot(tester, _plain(const ArchivesPage(), Brightness.light), "archives");
+
+    await tester.runAsync(() => ArchiveService().restore("2025-2026"));
+    expect(database.grades.getAll().length, gradesBefore);
+    expect(database.assignments.getAll().length, assignmentsBefore);
+    expect(ArchiveService().archivedYears(), isEmpty);
+  });
 
   for (final brightness in Brightness.values) {
     final suffix = brightness.name;

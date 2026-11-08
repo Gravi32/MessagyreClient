@@ -2,6 +2,7 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
+import 'package:messagyre_client/utility/school_calendar.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,20 +30,11 @@ class GlobalsService {
 
   // #region -> Calendars
 
-  final _now = DateTime.now();
+  /// First day of the current school year (Vaud calendar)
+  DateTime get schoolStart => SchoolCalendar.yearStart(SchoolCalendar.startYearOf(DateTime.now()));
 
-  DateTime get schoolStart {
-    // August 18th of the current or previous year
-    final startYear = _now.month >= 8 ? _now.year : _now.year - 1;
-    final result = DateTime(startYear, 8, 18);
-
-    return result;
-  }
-
-  DateTime get schoolEnd {
-    final start = schoolStart;
-    return DateTime(start.year + 1, 6, 6);
-  }
+  /// Last day of the current school year (used to be a fixed 6 June: later dates couldn't be picked)
+  DateTime get schoolEnd => SchoolCalendar.yearEnd(SchoolCalendar.startYearOf(DateTime.now()) + 1);
 
   Future<Calendar?> getTargetCalendar() async {
     final calendarsResult = await DeviceCalendarPlugin().retrieveCalendars();

@@ -615,14 +615,18 @@ class _ChatPageState extends State<ChatPage> {
           Positioned(top: 0, left: 0, right: 0, child: buildTopBar()),
           Positioned(
             right: AppSpacing.page,
-            bottom: MediaQuery.paddingOf(context).bottom + AppSizes.compactControl + AppSpacing.xl + AppSpacing.s,
-            child: AnimatedSlide(
-              offset: showScrollDownButton ? Offset.zero : const Offset(0, 1.5),
-              duration: AppDurations.normal,
-              child: AnimatedOpacity(
-                opacity: showScrollDownButton ? 1 : 0,
+            bottom: MediaQuery.paddingOf(context).bottom + AppSizes.compactControl + AppSpacing.xl + AppSpacing.l,
+            // Hidden, it must not catch taps: it used to slide (invisible) over the send button and swallow them
+            child: IgnorePointer(
+              ignoring: !showScrollDownButton,
+              child: AnimatedScale(
+                scale: showScrollDownButton ? 1 : .6,
                 duration: AppDurations.normal,
-                child: SizedBox.square(dimension: AppSizes.iconButton, child: Button.icon(context, icon: AppIcons.scrollDown, onTap: scrollDown)),
+                child: AnimatedOpacity(
+                  opacity: showScrollDownButton ? 1 : 0,
+                  duration: AppDurations.normal,
+                  child: SizedBox.square(dimension: AppSizes.iconButton, child: Button.icon(context, icon: AppIcons.scrollDown, onTap: scrollDown)),
+                ),
               ),
             ),
           ),

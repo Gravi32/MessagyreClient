@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.0.0+1000
+version: 4.91.1002+1002
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -87,7 +87,14 @@ version: 4.0.0+1000
 # 3.81  Added grades by subject search bar
 # 3.82  Added recent grades page search bar
 # 3.83  Added assignments list page search bar
-# 4.0   Complete revamp: encrypted photos and files in chats, offline queue, delivery and read receipts, design system, assignments page fix
+# 4.84  Photos and files can be sent in chats (end-to-end encrypted)
+# 4.85  Messages written offline are sent at the next connection, failed ones can be resent
+# 4.86  Added delivery and read receipts (read receipts can be turned off)
+# 4.87  Conversations can be pinned and deleted, reported messages reach the team
+# 4.88  Consistent design in the whole app (spacing, typography, icons, texts)
+# 4.89  Added an admin page with the active users
+# 4.90  Grades and assignments can be archived at the end of the school year
+# 4.91  Composite subjects can be made of three subjects
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

@@ -9,7 +9,7 @@ class AssignmentRepository {
 
   List<Assignment> getAll() {
     try {
-      final allAssignments = isar.assignments.where().sortByDueDate().findAllSync();
+      final allAssignments = isar.assignments.filter().archivedYearIsNull().sortByDueDate().findAllSync();
       for (final assignment in allAssignments) {
         assignment.subject.loadSync();
       }
@@ -44,7 +44,7 @@ class AssignmentRepository {
   }
 
   Stream<List<Assignment>> watchAll() {
-    return isar.assignments.where().watch(fireImmediately: true).map((list) {
+    return isar.assignments.filter().archivedYearIsNull().watch(fireImmediately: true).map((list) {
       for (final a in list) {
         a.subject.loadSync();
       }

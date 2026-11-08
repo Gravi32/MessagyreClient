@@ -6,7 +6,15 @@ class CompositeSubjectRepository {
 
   CompositeSubjectRepository(this.isar);
 
-  List<CompositeSubject> getAll() => isar.compositeSubjects.where().sortByName().findAllSync();
+  List<CompositeSubject> getAll() {
+    final all = isar.compositeSubjects.where().sortByName().findAllSync();
+    for (final composite in all) {
+      composite.firstSubject.loadSync();
+      composite.secondSubject.loadSync();
+      composite.thirdSubject.loadSync();
+    }
+    return all;
+  }
 
   CompositeSubject? getByCode(String code) {
     return isar.compositeSubjects.filter().codeEqualTo(code).findFirstSync();
@@ -18,6 +26,7 @@ class CompositeSubjectRepository {
 
       await compositeSubject.firstSubject.save();
       await compositeSubject.secondSubject.save();
+      await compositeSubject.thirdSubject.save();
     });
   }
 
@@ -28,6 +37,7 @@ class CompositeSubjectRepository {
       for (final composite in compositeSubjects) {
         await composite.firstSubject.save();
         await composite.secondSubject.save();
+        await composite.thirdSubject.save();
       }
     });
   }

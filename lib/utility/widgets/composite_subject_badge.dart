@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
 
+/// The badges of the sub-subjects side by side, one vertical slice each (two or three)
 class CompositeSubjectBadge extends StatelessWidget {
   final CompositeSubject compositeSubject;
   final double size;
@@ -10,26 +11,21 @@ class CompositeSubjectBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subjects = compositeSubject.subjects;
+    final count = subjects.isEmpty ? 1 : subjects.length;
+
     return SizedBox.square(
       dimension: size,
       child: ClipRRect(
         borderRadius: .circular(size / 3.6),
         child: Stack(
           children: [
-            Align(
-              alignment: .centerLeft,
-              child: ClipRect(
-                clipper: _LeftHalfClipper(),
-                child: SubjectBadge(subject: compositeSubject.firstSubject.value, size: size),
+            if (subjects.isEmpty) SubjectBadge(subject: null, size: size),
+            for (var index = 0; index < subjects.length; index++)
+              ClipRect(
+                clipper: _SliceClipper(index, count),
+                child: SubjectBadge(subject: subjects[index], size: size),
               ),
-            ),
-            Align(
-              alignment: .centerRight,
-              child: ClipRect(
-                clipper: _RightHalfClipper(),
-                child: SubjectBadge(subject: compositeSubject.secondSubject.value, size: size),
-              ),
-            ),
           ],
         ),
       ),
@@ -37,16 +33,13 @@ class CompositeSubjectBadge extends StatelessWidget {
   }
 }
 
-class _LeftHalfClipper extends CustomClipper<Rect> {
-  @override
-  Rect getClip(Size size) => Rect.fromLTWH(0, 0, size.width / 2, size.height);
-  @override
-  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
-}
+class _SliceClipper extends CustomClipper<Rect> {
+  final int index, count;
+  _SliceClipper(this.index, this.count);
 
-class _RightHalfClipper extends CustomClipper<Rect> {
   @override
-  Rect getClip(Size size) => Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height);
+  Rect getClip(Size size) => Rect.fromLTWH(size.width * index / count, 0, size.width / count, size.height);
+
   @override
-  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) => false;
+  bool shouldReclip(covariant _SliceClipper oldClipper) => oldClipper.index != index || oldClipper.count != count;
 }

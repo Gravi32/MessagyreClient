@@ -59,10 +59,8 @@ class SubjectCard extends StatelessWidget {
 
     // If it's a composite subject
     if (compositeMode) {
-      final firstSubject = compositeSubject?.firstSubject.value;
-      final secondSubject = compositeSubject?.secondSubject.value;
-
-      if (firstSubject == null || secondSubject == null) return;
+      final subSubjects = compositeSubject?.subjects ?? [];
+      if (subSubjects.length < 2) return;
 
       showCupertinoModalPopup(
         context: context,
@@ -91,8 +89,7 @@ class SubjectCard extends StatelessWidget {
                   crossAxisAlignment: .stretch,
                   spacing: 8,
                   children: [
-                    Expanded(child: SubjectCard(subject: firstSubject)),
-                    Expanded(child: SubjectCard(subject: secondSubject)),
+                    for (final subSubject in subSubjects) Expanded(child: SubjectCard(subject: subSubject)),
                   ],
                 ),
               ),

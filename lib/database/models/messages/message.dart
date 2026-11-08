@@ -12,7 +12,7 @@ class Message {
   @Index(unique: true)
   late String uuid;
 
-  /// The other person of the conversation. Messages saved before 4.0 get it at the first start (ChatService.migrate).
+  /// The other person of the conversation. Messages saved before 4.84 get it at the first start (ChatService.migrate).
   @Index(composite: [CompositeIndex('sentAt')])
   String? chatUsername;
 

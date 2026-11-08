@@ -286,17 +286,18 @@ double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {boo
   final database = DatabaseService();
   final allGrades = database.grades.getAll();
 
-  final firstSubjectGrades = allGrades.where((g) => g.subject.value?.code == compositeSubject.firstSubject.value?.code).toList();
-  final secondSubjectGrades = allGrades.where((g) => g.subject.value?.code == compositeSubject.secondSubject.value?.code).toList();
+  final parts = compositeSubject.parts;
+  if (parts.length < 2) return null;
 
-  if (firstSubjectGrades.isEmpty || secondSubjectGrades.isEmpty) return null;
+  // Every sub-subject needs grades: each one weighs as many periods per week as it has
+  var weightedSum = 0.0;
+  for (final part in parts) {
+    final grades = allGrades.where((g) => g.subject.value?.code == part.subject.code).toList();
+    if (grades.isEmpty) return null;
+    weightedSum += calculateAverage(grades) * part.periods;
+  }
 
-  final firstAverage = calculateAverage(firstSubjectGrades);
-  final secondAverage = calculateAverage(secondSubjectGrades);
-
-  final result =
-      (firstAverage * compositeSubject.firstSubjectPeriodsPerWeek + secondAverage * compositeSubject.secondSubjectPeriodsPerWeek) /
-      compositeSubject.totalPeriodsPerWeek;
+  final result = weightedSum / compositeSubject.totalPeriodsPerWeek;
 
   return round ? result.roundToHalves() : result;
 }

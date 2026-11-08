@@ -7,7 +7,7 @@ class GradeRepository {
   GradeRepository(this.isar);
 
   List<Grade> getAll() {
-    final grades = isar.grades.where().findAllSync();
+    final grades = isar.grades.filter().archivedYearIsNull().findAllSync();
 
     for (final grade in grades) {
       grade.subject.loadSync();
@@ -32,6 +32,6 @@ class GradeRepository {
   }
 
   Stream<List<Grade>> watchAll() {
-    return isar.grades.where().watch(fireImmediately: true);
+    return isar.grades.filter().archivedYearIsNull().watch(fireImmediately: true);
   }
 }

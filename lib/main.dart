@@ -16,6 +16,7 @@ import 'package:messagyre_client/pages/grades/grades_list_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
+import 'package:messagyre_client/services/archive_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -247,6 +248,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       final mountedContext = context;
       if (!context.mounted) return;
       await askUserToAddTheirSubjects(mountedContext);
+
+      if (!mountedContext.mounted) return;
+      await ArchiveService().askToArchiveIfYearEnded(mountedContext);
     });
   }
 

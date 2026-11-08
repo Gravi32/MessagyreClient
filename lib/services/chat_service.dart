@@ -72,14 +72,14 @@ class ChatService {
     _migrate();
   }
 
-  /// Messages saved before 4.0 only knew their chat through IsarLinks
+  /// Messages saved before 4.84 only knew their chat through IsarLinks
   Future<void> _migrate() async {
     const flag = "MessagesHaveChatUsername";
     if (globals.persistent.getBool(flag) == true) return;
     try {
       final count = await database.chats.migrateLinkedMessages();
       await globals.persistent.setBool(flag, true);
-      debugPrint("[Chat] $count messages migrated to the 4.0 format");
+      debugPrint("[Chat] $count messages migrated to the 4.84 format");
     } catch (e) {
       debugPrint("[Chat] Migrating the messages failed: $e");
     }

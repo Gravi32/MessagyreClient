@@ -39,9 +39,11 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   late final TextEditingController titleController = TextEditingController(text: widget.toEdit?.name);
   late final TextEditingController firstSubjectFieldController = TextEditingController(text: firstSubject?.name);
   late final TextEditingController secondSubjectFieldController = TextEditingController(text: secondSubject?.name);
+  late final TextEditingController thirdSubjectFieldController = TextEditingController(text: thirdSubject?.name);
 
   final firstSubjectFocusNode = FocusNode();
   final secondSubjectFocusNode = FocusNode();
+  final thirdSubjectFocusNode = FocusNode();
   final titleFocusNode = FocusNode();
 
   late Subject? firstSubject = widget.toEdit?.firstSubject.value;
@@ -49,7 +51,24 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   late double firstSubjectPeriodsPerWeek = widget.toEdit?.firstSubjectPeriodsPerWeek.clamp(.5, 10) ?? 5;
   late double secondSubjectPeriodsPerWeek = widget.toEdit?.secondSubjectPeriodsPerWeek.clamp(.5, 10) ?? 5;
 
-  bool get canBeConfirmed => titleController.text.isNotEmpty && firstSubjectFieldController.text.isNotEmpty && secondSubjectFieldController.text.isNotEmpty;
+  /// The third sub-subject is optional
+  late bool hasThirdSubject = widget.toEdit?.thirdSubject.value != null && (widget.toEdit?.thirdSubjectPeriodsPerWeek ?? 0) > 0;
+  late Subject? thirdSubject = hasThirdSubject ? widget.toEdit?.thirdSubject.value : null;
+  late double thirdSubjectPeriodsPerWeek = hasThirdSubject ? widget.toEdit!.thirdSubjectPeriodsPerWeek.clamp(.5, 10) : 5;
+  bool isMissingThirdSubject = false;
+
+  bool get canBeConfirmed =>
+      titleController.text.isNotEmpty &&
+      firstSubject != null &&
+      secondSubject != null &&
+      (!hasThirdSubject || thirdSubject != null) &&
+      _distinctSubjects;
+
+  /// The same subject can't be used twice
+  bool get _distinctSubjects {
+    final codes = [firstSubject?.code, secondSubject?.code, if (hasThirdSubject) thirdSubject?.code].whereType<String>().toList();
+    return codes.toSet().length == codes.length;
+  }
 
   bool isMissingTitle = false;
   bool isMissingFirstSubject = false;
@@ -65,7 +84,9 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
       ..firstSubject.value = firstSubject
       ..secondSubject.value = secondSubject
       ..firstSubjectPeriodsPerWeek = firstSubjectPeriodsPerWeek
-      ..secondSubjectPeriodsPerWeek = secondSubjectPeriodsPerWeek;
+      ..secondSubjectPeriodsPerWeek = secondSubjectPeriodsPerWeek
+      ..thirdSubject.value = hasThirdSubject ? thirdSubject : null
+      ..thirdSubjectPeriodsPerWeek = hasThirdSubject ? thirdSubjectPeriodsPerWeek : 0;
 
     await database.compositeSubjects.save(compositeSubject);
 
@@ -76,6 +97,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   void unfocusFields() {
     firstSubjectFocusNode.unfocus();
     secondSubjectFocusNode.unfocus();
+    thirdSubjectFocusNode.unfocus();
     titleFocusNode.unfocus();
   }
 
@@ -97,10 +119,18 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
           missingInfos.add("la *deuxième sous-branche*");
           isMissingSecondSubject = true;
         }
+        if (hasThirdSubject && thirdSubject == null) {
+          missingInfos.add("la *troisième sous-branche*");
+          isMissingThirdSubject = true;
+        }
+
+        if (missingInfos.isEmpty && !_distinctSubjects) {
+          return const Dialog(title: "Sous-branches identiques", content: "Chaque sous-branche doit être *différente*.");
+        }
 
         return Dialog(
           title: "Informations manquantes",
-          content: "Pour créer ce devoir entrez ${missingInfos.join(" et ")} !",
+          content: "Pour créer cette branche, entrez ${missingInfos.join(" et ")} !",
           options: {"OK": () => setState(() {})},
         );
       },
@@ -180,6 +210,12 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
     );
   }
 
+  List<({Subject? subject, double periods})> get calculationParts => [
+    (subject: firstSubject, periods: firstSubjectPeriodsPerWeek),
+    (subject: secondSubject, periods: secondSubjectPeriodsPerWeek),
+    if (hasThirdSubject) (subject: thirdSubject, periods: thirdSubjectPeriodsPerWeek),
+  ];
+
   Widget buildCalculationsTile() {
     return ListSection(
       margin: .only(top: 24),
@@ -191,31 +227,17 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
             mainAxisSize: .min,
             spacing: 4,
             children: [
-              Row(
-                mainAxisAlignment: .center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 6,
+                runSpacing: 4,
                 children: [
-                  Text(firstSubjectPeriodsPerWeek.removeTrailingZero(), style: AppStyles.header(context).copyWith(color: firstSubject?.color)),
-                  Flexible(
-                    child: Text(
-                      firstSubject?.name ?? "Sous-branche 1",
-                      maxLines: 1,
-                      overflow: .ellipsis,
-                      style: AppStyles.secondaryHeader(context),
-                    ),
-                  ),
-
-                  Text("+", style: AppStyles.secondaryHeader(context)),
-
-                  Text(secondSubjectPeriodsPerWeek.removeTrailingZero(), style: AppStyles.header(context).copyWith(color: secondSubject?.color)),
-                  Flexible(
-                    child: Text(
-                      secondSubject?.name ?? "Sous-branche 2",
-                      maxLines: 1,
-                      overflow: .ellipsis,
-                      style: AppStyles.secondaryHeader(context),
-                    ),
-                  ),
+                  for (final (index, part) in calculationParts.indexed) ...[
+                    if (index > 0) Text("+", style: AppStyles.secondaryHeader(context)),
+                    Text(part.periods.removeTrailingZero(), style: AppStyles.header(context).copyWith(color: part.subject?.color)),
+                    Text(part.subject?.name ?? "Sous-branche ${index + 1}", maxLines: 1, overflow: .ellipsis, style: AppStyles.secondaryHeader(context)),
+                  ],
                 ],
               ),
               LayoutBuilder(
@@ -223,7 +245,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
                   return Container(height: 1, width: constraints.maxWidth * 0.8, color: AppColors.text.adaptTo(context));
                 },
               ),
-              Text((firstSubjectPeriodsPerWeek + secondSubjectPeriodsPerWeek).removeTrailingZero(), style: AppStyles.header(context)),
+              Text(calculationParts.fold(0.0, (total, part) => total + part.periods).removeTrailingZero(), style: AppStyles.header(context)),
             ],
           ),
         ),
@@ -242,8 +264,10 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
     titleController.dispose();
     firstSubjectFieldController.dispose();
     secondSubjectFieldController.dispose();
+    thirdSubjectFieldController.dispose();
     firstSubjectFocusNode.dispose();
     secondSubjectFocusNode.dispose();
+    thirdSubjectFocusNode.dispose();
     titleFocusNode.dispose();
     super.dispose();
   }
@@ -295,8 +319,56 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
             }),
             onPeriodsPerWeekChanged: (newAmount) => setState(() => secondSubjectPeriodsPerWeek = newAmount),
             isMissingInfo: isMissingSecondSubject,
-            showHint: true,
+            showHint: !hasThirdSubject,
           ),
+
+          if (hasThirdSubject) ...[
+            buildSubjectFields(
+              title: "Sous-branche 3",
+              subject: thirdSubject,
+              periodsPerWeek: thirdSubjectPeriodsPerWeek,
+              subjectFieldController: thirdSubjectFieldController,
+              subjectFieldFocusNode: thirdSubjectFocusNode,
+              onSubjectSelected: (selectedSubject) => setState(() {
+                thirdSubject = selectedSubject;
+                isMissingThirdSubject = false;
+              }),
+              onPeriodsPerWeekChanged: (newAmount) => setState(() => thirdSubjectPeriodsPerWeek = newAmount),
+              isMissingInfo: isMissingThirdSubject,
+              showHint: true,
+            ),
+            ListSection(
+              margin: const .only(top: 8),
+              children: [
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedRemoveCircle,
+                  title: "Retirer la troisième sous-branche",
+                  isDestructive: true,
+                  buildChevron: false,
+                  onTap: () => setState(() {
+                    hasThirdSubject = false;
+                    thirdSubject = null;
+                    thirdSubjectFieldController.clear();
+                    isMissingThirdSubject = false;
+                  }),
+                ),
+              ],
+            ),
+          ] else
+            ListSection(
+              margin: const .only(top: 16),
+              footer: "Une branche composée peut réunir deux ou trois sous-branches.",
+              children: [
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedAddCircle,
+                  title: "Ajouter une troisième sous-branche",
+                  buildChevron: false,
+                  onTap: () => setState(() => hasThirdSubject = true),
+                ),
+              ],
+            ),
 
           buildCalculationsTile(),
 

@@ -68,7 +68,7 @@ class ChatRepository {
     });
   }
 
-  /// Before 4.0 messages were only linked to their chat (IsarLinks, without order): gives them their chatUsername
+  /// Before 4.84 messages were only linked to their chat (IsarLinks, without order): gives them their chatUsername
   Future<int> migrateLinkedMessages() async {
     var migrated = 0;
     final chats = getAll();

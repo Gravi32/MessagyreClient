@@ -19,6 +19,11 @@ class Grade {
   String? groupName;
   String? referenceId;
 
+  /// The school year it was archived with ("2025-2026"), null while it is current. Archived ones are kept,
+  /// hidden from the lists and the averages (see ArchiveService).
+  @Index()
+  String? archivedYear;
+
   @override
   String toString() => '$title ($grade)';
 }

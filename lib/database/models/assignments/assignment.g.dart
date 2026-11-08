@@ -17,48 +17,53 @@ const AssignmentSchema = CollectionSchema(
   name: r'Assignment',
   id: 6342734841231534375,
   properties: {
-    r'content': PropertySchema(
+    r'archivedYear': PropertySchema(
       id: 0,
+      name: r'archivedYear',
+      type: IsarType.string,
+    ),
+    r'content': PropertySchema(
+      id: 1,
       name: r'content',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'getNotificationId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'getNotificationId',
       type: IsarType.long,
     ),
     r'isMarkedAsDone': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isMarkedAsDone',
       type: IsarType.bool,
     ),
     r'isShared': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isShared',
       type: IsarType.bool,
     ),
     r'notificationDate': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'notificationDate',
       type: IsarType.dateTime,
     ),
     r'referenceId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'referenceId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'title',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AssignmenttypeEnumValueMap,
@@ -69,7 +74,21 @@ const AssignmentSchema = CollectionSchema(
   deserialize: _assignmentDeserialize,
   deserializeProp: _assignmentDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'archivedYear': IndexSchema(
+      id: 5891172984522211230,
+      name: r'archivedYear',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'archivedYear',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {
     r'subject': LinkSchema(
       id: 9192562848683664721,
@@ -91,6 +110,12 @@ int _assignmentEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.archivedYear;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.content.length * 3;
   {
     final value = object.referenceId;
@@ -113,15 +138,16 @@ void _assignmentSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.content);
-  writer.writeDateTime(offsets[1], object.dueDate);
-  writer.writeLong(offsets[2], object.getNotificationId);
-  writer.writeBool(offsets[3], object.isMarkedAsDone);
-  writer.writeBool(offsets[4], object.isShared);
-  writer.writeDateTime(offsets[5], object.notificationDate);
-  writer.writeString(offsets[6], object.referenceId);
-  writer.writeString(offsets[7], object.title);
-  writer.writeByte(offsets[8], object.type.index);
+  writer.writeString(offsets[0], object.archivedYear);
+  writer.writeString(offsets[1], object.content);
+  writer.writeDateTime(offsets[2], object.dueDate);
+  writer.writeLong(offsets[3], object.getNotificationId);
+  writer.writeBool(offsets[4], object.isMarkedAsDone);
+  writer.writeBool(offsets[5], object.isShared);
+  writer.writeDateTime(offsets[6], object.notificationDate);
+  writer.writeString(offsets[7], object.referenceId);
+  writer.writeString(offsets[8], object.title);
+  writer.writeByte(offsets[9], object.type.index);
 }
 
 Assignment _assignmentDeserialize(
@@ -131,16 +157,17 @@ Assignment _assignmentDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Assignment();
-  object.content = reader.readString(offsets[0]);
-  object.dueDate = reader.readDateTime(offsets[1]);
+  object.archivedYear = reader.readStringOrNull(offsets[0]);
+  object.content = reader.readString(offsets[1]);
+  object.dueDate = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.isMarkedAsDone = reader.readBool(offsets[3]);
-  object.isShared = reader.readBool(offsets[4]);
-  object.notificationDate = reader.readDateTimeOrNull(offsets[5]);
-  object.referenceId = reader.readStringOrNull(offsets[6]);
-  object.title = reader.readStringOrNull(offsets[7]);
+  object.isMarkedAsDone = reader.readBool(offsets[4]);
+  object.isShared = reader.readBool(offsets[5]);
+  object.notificationDate = reader.readDateTimeOrNull(offsets[6]);
+  object.referenceId = reader.readStringOrNull(offsets[7]);
+  object.title = reader.readStringOrNull(offsets[8]);
   object.type =
-      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _AssignmenttypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
           AssignmentType.assignment;
   return object;
 }
@@ -153,22 +180,24 @@ P _assignmentDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (_AssignmenttypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AssignmentType.assignment) as P;
     default:
@@ -275,10 +304,230 @@ extension AssignmentQueryWhere
       ));
     });
   }
+
+  QueryBuilder<Assignment, Assignment, QAfterWhereClause> archivedYearIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'archivedYear',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterWhereClause>
+      archivedYearIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'archivedYear',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterWhereClause> archivedYearEqualTo(
+      String? archivedYear) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'archivedYear',
+        value: [archivedYear],
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterWhereClause>
+      archivedYearNotEqualTo(String? archivedYear) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [],
+              upper: [archivedYear],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [archivedYear],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [archivedYear],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'archivedYear',
+              lower: [],
+              upper: [archivedYear],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension AssignmentQueryFilter
     on QueryBuilder<Assignment, Assignment, QFilterCondition> {
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'archivedYear',
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'archivedYear',
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'archivedYear',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'archivedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'archivedYear',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'archivedYear',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterFilterCondition>
+      archivedYearIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'archivedYear',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterFilterCondition> contentEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1044,6 +1293,18 @@ extension AssignmentQueryLinks
 
 extension AssignmentQuerySortBy
     on QueryBuilder<Assignment, Assignment, QSortBy> {
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByArchivedYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByArchivedYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.desc);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterSortBy> sortByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -1158,6 +1419,18 @@ extension AssignmentQuerySortBy
 
 extension AssignmentQuerySortThenBy
     on QueryBuilder<Assignment, Assignment, QSortThenBy> {
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByArchivedYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByArchivedYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedYear', Sort.desc);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QAfterSortBy> thenByContent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'content', Sort.asc);
@@ -1284,6 +1557,13 @@ extension AssignmentQuerySortThenBy
 
 extension AssignmentQueryWhereDistinct
     on QueryBuilder<Assignment, Assignment, QDistinct> {
+  QueryBuilder<Assignment, Assignment, QDistinct> distinctByArchivedYear(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'archivedYear', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Assignment, Assignment, QDistinct> distinctByContent(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1348,6 +1628,12 @@ extension AssignmentQueryProperty
   QueryBuilder<Assignment, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Assignment, String?, QQueryOperations> archivedYearProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'archivedYear');
     });
   }
 

@@ -17,7 +17,7 @@ class ReportService {
   List<Grade> get allGrades => database.grades.getAll();
 
   List<Subject> get allSubjects {
-    final compositeCodes = allCompositeSubjects.expand((c) => [c.firstSubject.value?.code, c.secondSubject.value?.code]).whereType<String>().toSet();
+    final compositeCodes = allCompositeSubjects.expand((c) => c.subjects.map((s) => s.code)).toSet();
 
     return database.subjects.getAll().where((s) => !compositeCodes.contains(s.code)).sorted((a, b) {
       if (a.isLocked != b.isLocked) return a.isLocked ? 1 : -1;
