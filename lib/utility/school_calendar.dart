@@ -36,4 +36,8 @@ class SchoolCalendar {
 
   /// The school year that just ended (during [isArchivePeriod])
   static String endedYearLabel(DateTime now) => labelOf(now.year - 1);
+
+  /// The year that closing the year now would archive: the one that just ended during [isArchivePeriod],
+  /// the current one otherwise
+  static String yearToArchiveLabel(DateTime now) => isArchivePeriod(now) ? endedYearLabel(now) : labelOf(startYearOf(now));
 }

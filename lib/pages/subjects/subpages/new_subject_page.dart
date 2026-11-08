@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -280,7 +281,13 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   late final ValueNotifier<Color> colorNotifier = ValueNotifier(widget.toEdit?.color ?? AppColors.grey);
   late final ValueNotifier<IconData> iconNotifier = ValueNotifier(widget.toEdit?.icon ?? Icons.question_mark_rounded);
   late var isLocked = widget.toEdit?.isLocked ?? false;
-  late var grade = widget.toEdit?.lockedGrade ?? 4.0;
+  late var grade = widget.toEdit?.lockedGrade ?? currentAverage ?? 4.0;
+
+  /// The average of this subject's current grades, rounded to the half point: what it keeps once locked
+  late final double? currentAverage = () {
+    final grades = database.grades.getAll().where((grade) => grade.subject.value?.code == widget.toEdit?.code).toList();
+    return !editMode || grades.isEmpty ? null : clampDouble(calculateAverage(grades, round: true), 1, 6);
+  }();
 
   late final bool canBeDeleted =
       !(!editMode ||
@@ -297,7 +304,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
       ..iconCodePoint = iconNotifier.value.codePoint
       ..colorValue = colorNotifier.value.toInt()
       ..isLocked = isLocked
-      ..lockedGrade = isLocked ? grade : null;
+      ..lockedGrade = isLocked ? grade : null
+      ..lockedYear = isLocked ? widget.toEdit?.lockedYear : null;
 
     await database.subjects.save(subject);
 
@@ -423,8 +431,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
           ListSection(
             margin: .only(top: 16),
             footer: isLocked
-                ? "Choisissez la note qui sera attribuée à cette branche dans le bulletin. *Les branches bloquées ne peuvent pas être modifiées dans la page des notes.*"
-                : null,
+                ? "Une branche terminée garde cette note dans le bulletin et dans les branches composées${currentAverage != null ? " (moyenne actuelle arrondie : *${currentAverage!.removeTrailingZero()}*)" : ""}. *Les branches bloquées ne peuvent pas être modifiées dans la page des notes.*"
+                : "Pour une branche terminée : elle garde sa moyenne finale, arrondie au demi-point.",
             children: [
               ListTile.simple(
                 context,

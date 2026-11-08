@@ -42,8 +42,13 @@ const SubjectSchema = CollectionSchema(
       name: r'lockedGrade',
       type: IsarType.double,
     ),
-    r'name': PropertySchema(
+    r'lockedYear': PropertySchema(
       id: 5,
+      name: r'lockedYear',
+      type: IsarType.string,
+    ),
+    r'name': PropertySchema(
+      id: 6,
       name: r'name',
       type: IsarType.string,
     )
@@ -83,6 +88,12 @@ int _subjectEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.code.length * 3;
+  {
+    final value = object.lockedYear;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.name.length * 3;
   return bytesCount;
 }
@@ -98,7 +109,8 @@ void _subjectSerialize(
   writer.writeLong(offsets[2], object.iconCodePoint);
   writer.writeBool(offsets[3], object.isLocked);
   writer.writeDouble(offsets[4], object.lockedGrade);
-  writer.writeString(offsets[5], object.name);
+  writer.writeString(offsets[5], object.lockedYear);
+  writer.writeString(offsets[6], object.name);
 }
 
 Subject _subjectDeserialize(
@@ -114,7 +126,8 @@ Subject _subjectDeserialize(
   object.id = id;
   object.isLocked = reader.readBool(offsets[3]);
   object.lockedGrade = reader.readDoubleOrNull(offsets[4]);
-  object.name = reader.readString(offsets[5]);
+  object.lockedYear = reader.readStringOrNull(offsets[5]);
+  object.name = reader.readString(offsets[6]);
   return object;
 }
 
@@ -136,6 +149,8 @@ P _subjectDeserializeProp<P>(
     case 4:
       return (reader.readDoubleOrNull(offset)) as P;
     case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -739,6 +754,152 @@ extension SubjectQueryFilter
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lockedYear',
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lockedYear',
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lockedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lockedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lockedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lockedYear',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lockedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lockedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lockedYear',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lockedYear',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lockedYear',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition> lockedYearIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lockedYear',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -937,6 +1098,18 @@ extension SubjectQuerySortBy on QueryBuilder<Subject, Subject, QSortBy> {
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByLockedYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedYear', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByLockedYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedYear', Sort.desc);
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1024,6 +1197,18 @@ extension SubjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByLockedYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedYear', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByLockedYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lockedYear', Sort.desc);
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1070,6 +1255,13 @@ extension SubjectQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Subject, Subject, QDistinct> distinctByLockedYear(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lockedYear', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Subject, Subject, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1113,6 +1305,12 @@ extension SubjectQueryProperty
   QueryBuilder<Subject, double?, QQueryOperations> lockedGradeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lockedGrade');
+    });
+  }
+
+  QueryBuilder<Subject, String?, QQueryOperations> lockedYearProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lockedYear');
     });
   }
 

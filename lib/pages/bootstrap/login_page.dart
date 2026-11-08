@@ -94,6 +94,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
     // Connecting to the WebSocket
     network.isLoginPageOpen = false;
+    network.isSignedIn.value = globals.token != null;
     network.connect();
 
     // Closing the page

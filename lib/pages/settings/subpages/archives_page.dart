@@ -4,7 +4,9 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/pages/settings/subpages/year_end_page.dart';
 import 'package:messagyre_client/services/archive_service.dart';
+import 'package:messagyre_client/utility/school_calendar.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
@@ -31,12 +33,28 @@ class _ArchivesPageState extends State<ArchivesPage> {
     showCupertinoDialog(
       context: context,
       builder: (_) => Dialog.confirm(
-        content: "Les notes et les devoirs de *$label* reviendront avec ceux de l'année en cours.",
+        content: "Les notes et les devoirs de *$label* reviendront avec ceux de l'année en cours. Les branches bloquées à la fin de cette année seront débloquées.",
         onConfirm: () async {
           await archives.restore(label);
           if (mounted) setState(() => years = archives.archivedYears());
         },
       ),
+    );
+  }
+
+  Future<void> closeYear() async {
+    final archived = await showCupertinoSheet<bool>(context: context, builder: (_) => YearEndPage(label: SchoolCalendar.yearToArchiveLabel(DateTime.now())));
+    if (archived == true && mounted) setState(() => years = archives.archivedYears());
+  }
+
+  /// Closing the current year by hand (the app also offers it after the end of the school year)
+  Widget buildCloseYear() {
+    return ListSection(
+      margin: const .only(top: AppSpacing.s),
+      footer: "Archive les notes et les devoirs de *${SchoolCalendar.yearToArchiveLabel(DateTime.now())}*. Les branches terminées peuvent garder leur moyenne finale.",
+      children: [
+        ListTile.simple(context, icon: HugeIcons.strokeRoundedCalendarCheckOut02, title: "Clôturer l'année", onTap: closeYear),
+      ],
     );
   }
 
@@ -75,13 +93,22 @@ class _ArchivesPageState extends State<ArchivesPage> {
   Widget build(BuildContext context) {
     return Page(
       topBar: TopBar.tab(context, title: "Archives"),
-      child: years.isEmpty
-          ? const EmptyState(
-              icon: AppIcons.emptyList,
-              title: "Aucune année archivée",
-              subtitle: "À la fin de l'année scolaire, Messagyre vous proposera d'archiver vos notes et vos devoirs pour repartir de zéro.",
-            )
-          : ListView(children: [...years.map(buildYear), const BottomSpacing()]),
+      child: ListView(
+        children: [
+          if (archives.hasCurrentData) buildCloseYear(),
+          if (years.isEmpty)
+            const Padding(
+              padding: .only(top: AppSpacing.xl),
+              child: EmptyState(
+                icon: AppIcons.emptyList,
+                title: "Aucune année archivée",
+                subtitle: "À la fin de l'année scolaire, Messagyre vous proposera d'archiver vos notes et vos devoirs pour repartir de zéro.",
+              ),
+            ),
+          ...years.map(buildYear),
+          const BottomSpacing(),
+        ],
+      ),
     );
   }
 }

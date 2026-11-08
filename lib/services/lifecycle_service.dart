@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/services/backup_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 
 class LifecycleService extends StatefulWidget {
@@ -32,6 +33,7 @@ class _LifecycleServiceState extends State<LifecycleService> with WidgetsBinding
     }
 
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.detached) {
+      BackupService().flush(); // a change made just before leaving the app is saved now
       connection.disconnect();
       FocusManager.instance.primaryFocus?.unfocus();
     }

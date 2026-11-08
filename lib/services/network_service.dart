@@ -8,6 +8,7 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
+import 'package:messagyre_client/services/backup_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
@@ -43,6 +44,22 @@ class NetworkService {
 
   bool isLoginPageOpen = false;
 
+  /// True once an account is signed in (stored token found at the start, or the login page succeeded)
+  final isSignedIn = ValueNotifier(false);
+
+  /// Waits for an account to be signed in
+  Future<void> waitForSignIn() async {
+    if (isSignedIn.value) return;
+    final completer = Completer<void>();
+    void listener() {
+      if (isSignedIn.value && !completer.isCompleted) completer.complete();
+    }
+
+    isSignedIn.addListener(listener);
+    await completer.future;
+    isSignedIn.removeListener(listener);
+  }
+
   // #region -> Initialization
 
   dynamic getBackendUri({String? route, bool useWebsocket = false, bool forceLocalhost = false}) {
@@ -77,6 +94,8 @@ class NetworkService {
       onUnauthorized();
       return;
     }
+
+    isSignedIn.value = true;
 
     // Not awaited: the connection doesn't need it (and a new key pair takes a few seconds to make)
     uploadPublicKey();
@@ -215,6 +234,7 @@ class NetworkService {
       debugPrint("[WebSocket] Connected successfully!");
 
       uploadAppVersion();
+      BackupService().sync(); // reads the saved copy if the start had no connection
     } catch (e, s) {
       debugPrint("[WebSocket] Connection FAILED: $e, $s");
 
@@ -561,6 +581,9 @@ class NetworkService {
   }
 
   void logout() async {
+    isSignedIn.value = false;
+    await BackupService().stop(); // the last changes go first, while the token is still valid
+
     get("/auth/logout"); // Notifies the server
 
     disconnect();

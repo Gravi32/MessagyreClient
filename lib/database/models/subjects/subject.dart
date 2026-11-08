@@ -18,9 +18,14 @@ class Subject {
 
   int? colorValue;
 
+  /// A finished subject: it keeps [lockedGrade] in the report (its final average, rounded to the half point)
   bool isLocked = false;
 
   double? lockedGrade;
+
+  /// The school year it was locked with at the end of the year ("2025-2026"): restoring that year unlocks it.
+  /// Null when it was locked by hand.
+  String? lockedYear;
 
   Subject();
 

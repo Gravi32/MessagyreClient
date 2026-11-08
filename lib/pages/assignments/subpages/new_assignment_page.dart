@@ -80,14 +80,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   String? userClass;
 
-  String formatAssignmentType(AssignmentType type) {
-    return switch (type) {
-      AssignmentType.assignment => "devoir",
-      AssignmentType.test => "test",
-      AssignmentType.leave => "congé",
-    };
-  }
-
   void confirmAssignment() async {
     final assignment = widget.toEdit ?? Assignment();
     final effectiveReferenceId = assignment.referenceId ?? const Uuid().v4();
@@ -137,15 +129,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
 
     if (notificationDate != null && notificationDate?.isAfter(DateTime.now()) == true) {
-      await notifications.scheduleAssignmentNotification(
-        notificationId: stableId,
-        title: "📅 Rappel",
-        subtitle:
-            assignment.title ??
-            "${formatAssignmentType(assignment.type).capitalize()} ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? ""} à venir !",
-        body: (assignment.type == AssignmentType.assignment ? assignment.content : formatDate(assignment.dueDate, includeArticle: true)).capitalize(),
-        dueDate: notificationDate!,
-      );
+      await notifications.scheduleAssignmentReminder(assignment, notificationId: stableId, at: notificationDate!);
     } else {
       await notifications.cancel(stableId);
     }

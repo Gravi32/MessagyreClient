@@ -9,6 +9,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
@@ -31,12 +32,24 @@ class SubjectsListPage extends StatefulWidget {
 class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBindingObserver {
   final database = DatabaseService();
 
-  void onSkipButtonPressed() {
+  /// Closing the first-start sheet: later (it comes back in a few days) or never
+  void onCloseBootstrap() {
     showCupertinoDialog(
       context: context,
-      builder: (_) => Dialog.confirm(
-        content: "Êtes-vous sûr de vouloir *passer* ?\n*Vous ne pourrez pas ajouter de notes et de devoirs* pour les branches qui ne sont pas dans la liste.",
-        onConfirm: () => Navigator.pop(context),
+      builder: (_) => Dialog(
+        title: "Configurer plus tard ?",
+        content: "Vos branches servent à ajouter des *notes* et des *devoirs*. Vous pouvez aussi les gérer dans *Réglages → Branches*.",
+        options: {
+          "Plus tard": () {
+            SubjectsSetup.postpone();
+            Navigator.pop(context);
+          },
+          "Ne plus demander": () {
+            SubjectsSetup.markDone();
+            Navigator.pop(context);
+          },
+          "Annuler": () {},
+        },
       ),
     );
   }
@@ -46,12 +59,15 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
     return Page(
       topBar: TopBar.form(
         context,
-        onCloseConfirmed: widget.isBootstrap ? () => onSkipButtonPressed() : null,
+        onPop: widget.isBootstrap ? onCloseBootstrap : null,
         title: "Vos branches",
-        trailing: widget.isBootstrap && database.subjects.getAll().length >= 5
+        trailing: widget.isBootstrap
             ? CupertinoButton(
                 padding: .zero,
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  SubjectsSetup.markDone();
+                  Navigator.of(context).pop();
+                },
                 child: Text("Terminé", style: TextStyle(fontWeight: .w800)),
               )
             : null,
@@ -137,10 +153,35 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
   }
 }
 
+/// The "Vos branches" sheet for new users: shown at the start until they finish it or say never; "Plus tard"
+/// postpones it by a few days. Accounts that already have their subjects never see it.
+class SubjectsSetup {
+  static const _doneKey = "SubjectsSetupDone";
+  static const _postponedKey = "SubjectsSetupPostponedUntil";
+  static const postponement = Duration(days: 3);
+
+  static final _globals = GlobalsService();
+
+  static bool get isDone => _globals.persistent.getBool(_doneKey) ?? false;
+
+  static Future<void> markDone() => _globals.persistent.setBool(_doneKey, true);
+
+  static Future<void> postpone() => _globals.persistent.setInt(_postponedKey, DateTime.now().add(postponement).millisecondsSinceEpoch);
+
+  /// Whether to show it now, for this many subjects
+  static bool shouldAsk(int subjectsCount, DateTime now) {
+    if (isDone) return false;
+    if (subjectsCount > 5) return false; // set up before this sheet could be postponed
+    return now.millisecondsSinceEpoch >= (_globals.persistent.getInt(_postponedKey) ?? 0);
+  }
+}
+
 Future<void> askUserToAddTheirSubjects(BuildContext context) async {
   final database = DatabaseService();
 
-  if (database.subjects.getAll().length > 5) return;
+  final count = database.subjects.getAll().length;
+  if (count > 5 && !SubjectsSetup.isDone) await SubjectsSetup.markDone();
+  if (!SubjectsSetup.shouldAsk(count, DateTime.now())) return;
   if (!context.mounted) return;
 
   final defaultSubjects = [
@@ -163,14 +204,11 @@ Future<void> askUserToAddTheirSubjects(BuildContext context) async {
       ..colorValue = const Color(0xFF7B1FA2).toInt(),
   ];
 
-  // Only the missing ones: the code is a unique index, saving an existing one again throws
-  for (var subject in defaultSubjects) {
-    if (database.subjects.getByCode(subject.code) != null) continue;
-    await database.subjects.save(subject);
-  }
+  // A start for a new user only: subjects deleted on purpose don't come back
+  if (count == 0) await database.subjects.saveAll(defaultSubjects);
   if (!context.mounted) return;
 
-  Navigator.of(context).push(
+  await Navigator.of(context).push(
     PageRouteBuilder(
       opaque: false,
       pageBuilder: (context, animation, secondaryAnimation) => SubjectsListPage(isBootstrap: true),
@@ -184,4 +222,7 @@ Future<void> askUserToAddTheirSubjects(BuildContext context) async {
       },
     ),
   );
+
+  // Closed without an answer (Android's back button): like "Plus tard"
+  if (!SubjectsSetup.isDone) await SubjectsSetup.postpone();
 }

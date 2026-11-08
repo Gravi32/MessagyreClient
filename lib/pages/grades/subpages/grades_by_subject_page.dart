@@ -57,7 +57,8 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
           // A list of all the subjects with at least 1 grade
           final List<Subject> allActiveSubjects = [];
           for (final grade in allGrades) {
-            if (grade.subject.value != null && !allActiveSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
+            // A locked subject is listed with the locked ones only, even with grades left this year
+            if (grade.subject.value != null && !grade.subject.value!.isLocked && !allActiveSubjects.any((subject) => grade.subject.value?.code == subject.code)) {
               allActiveSubjects.add(grade.subject.value!);
             }
           }

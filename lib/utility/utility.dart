@@ -8,6 +8,7 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -201,6 +202,13 @@ extension DateTimeExtension on DateTime {
   DateTime withTheTimeOf(DateTime source) => copyWith(hour: source.hour, minute: source.minute, second: source.second);
 }
 
+/// "devoir", "test", "congé"
+String formatAssignmentType(AssignmentType type) => switch (type) {
+  AssignmentType.assignment => "devoir",
+  AssignmentType.test => "test",
+  AssignmentType.leave => "congé",
+};
+
 String formatDate(DateTime targetDate, {bool includeTime = false, bool includeArticle = false}) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
@@ -289,9 +297,15 @@ double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {boo
   final parts = compositeSubject.parts;
   if (parts.length < 2) return null;
 
-  // Every sub-subject needs grades: each one weighs as many periods per week as it has
+  // Every sub-subject needs grades: each one weighs as many periods per week as it has.
+  // A finished (locked) sub-subject counts with its final grade (ex: physics ended after the first year).
   var weightedSum = 0.0;
   for (final part in parts) {
+    final lockedGrade = part.subject.isLocked ? part.subject.lockedGrade : null;
+    if (lockedGrade != null) {
+      weightedSum += lockedGrade * part.periods;
+      continue;
+    }
     final grades = allGrades.where((g) => g.subject.value?.code == part.subject.code).toList();
     if (grades.isEmpty) return null;
     weightedSum += calculateAverage(grades) * part.periods;

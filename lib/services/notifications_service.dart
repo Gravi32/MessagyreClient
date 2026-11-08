@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:device_calendar/device_calendar.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -75,6 +76,19 @@ class NotificationsService {
     await file.writeAsBytes(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
 
     return file.path;
+  }
+
+  /// The reminder of an assignment (its subject loaded), at [at]
+  Future<void> scheduleAssignmentReminder(Assignment assignment, {required int notificationId, required DateTime at}) {
+    return scheduleAssignmentNotification(
+      notificationId: notificationId,
+      title: "📅 Rappel",
+      subtitle:
+          assignment.title ??
+          "${formatAssignmentType(assignment.type).capitalize()} ${assignment.subject.value?.name.withPreposition(lowercase: true) ?? ""} à venir !",
+      body: (assignment.type == AssignmentType.assignment ? assignment.content : formatDate(assignment.dueDate, includeArticle: true)).capitalize(),
+      dueDate: at,
+    );
   }
 
   Future<void> scheduleAssignmentNotification({
