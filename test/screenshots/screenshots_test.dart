@@ -498,4 +498,24 @@ void main() {
       testWidgets("gallery $name ($suffix)", (tester) async => shoot(tester, build(), "${name}_$suffix"));
     }
   }
+
+  testWidgets("the dock on a narrow phone with large text: long names end with an ellipsis", (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 160));
+    tester.view.physicalSize = const Size(640, 320);
+    tester.view.devicePixelRatio = 2;
+    final widget = MediaQuery(
+      data: const MediaQueryData(size: Size(320, 160), devicePixelRatio: 2, textScaler: TextScaler.linear(1.4)),
+      child: Builder(
+        builder: (context) => CupertinoApp(
+          debugShowCheckedModeBanner: false,
+          theme: appTheme(context, Brightness.dark),
+          home: const CupertinoPageScaffold(child: Align(alignment: Alignment.bottomCenter, child: BottomBar())),
+        ),
+      ),
+    );
+    await tester.pumpWidget(widget);
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.takeException(), isNull);
+    await expectLater(find.byWidget(widget), matchesGoldenFile("goldens/dock_narrow.png"));
+  });
 }

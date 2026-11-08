@@ -140,7 +140,16 @@ class _ProfilePictureDisplayState extends State<ProfilePictureDisplay> {
                 enabled: badge != null,
                 cutoutSize: cutoutSize,
                 childToCutout: adequateChild,
-                childInCutout: badge != null ? CustomIcon(icon: badge, color: AppColors.text.adaptTo(context), size: cutoutSize * 0.8) : null,
+                // The badge carries its own purple disc: readable on any background (a card, the purple profile card, a photo)
+                childInCutout: badge != null
+                    ? Container(
+                        width: cutoutSize * .86,
+                        height: cutoutSize * .86,
+                        alignment: .center,
+                        decoration: const BoxDecoration(shape: .circle, gradient: AppColors.accentGradient),
+                        child: CustomIcon(icon: badge, color: AppColors.white, size: cutoutSize * .52),
+                      )
+                    : null,
               ),
             ),
           );

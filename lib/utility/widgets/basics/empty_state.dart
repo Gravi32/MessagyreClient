@@ -41,7 +41,7 @@ class EmptyState extends StatelessWidget {
             child: Stack(
               alignment: .center,
               children: [
-                GymnaseMark(size: 130, color: MarkWatermark.faint(context)),
+                GymnaseMark(size: 130, color: MarkWatermark.faint(context, surface: AppColors.background.adaptTo(context))),
                 Container(
                   width: 80,
                   height: 80,

@@ -121,7 +121,7 @@ class RoundContainer extends StatelessWidget {
       child: watermark && child != null
           ? Stack(
               children: [
-                const MarkWatermark(),
+                MarkWatermark(color: fill.a == 1 ? MarkWatermark.faint(context, surface: fill) : null),
                 Padding(padding: padding ?? const .all(16), child: child),
               ],
             )

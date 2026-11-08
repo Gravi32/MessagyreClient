@@ -6,18 +6,15 @@ import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
-/// The tabs, in a floating dock: a purple pill (the app icon's gradient, with its Gymnase in watermark) slides with a
-/// little bounce under the selected tab, whose icon pops up. Opaque, so it needs no blur over the content under it.
+/// The tabs, in a floating dock stuck on the page like a sticker (solid lip, no blur). Each tab is an icon over its
+/// name; the selected one gets a purple capsule behind its icon that grows in with a bounce, and its name turns
+/// purple and bold. A name too long for a narrow phone ends with "…" (never shrunk, never cut mid-letter).
 class BottomBar extends StatelessWidget {
   const BottomBar({super.key});
 
   /// Height of the dock itself
-  static const double dockHeight = 66;
-
-  /// Room between the dock and the pill
-  static const double _inset = 6;
+  static const double dockHeight = 64;
 
   @override
   Widget build(BuildContext context) {
@@ -39,73 +36,32 @@ class BottomBar extends StatelessWidget {
       ),
       child: Container(
         height: dockHeight,
+        padding: const .symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: AppColors.secondaryBackground.adaptTo(context),
           borderRadius: .circular(AppRadius.xl),
           border: .all(color: AppColors.outline.adaptTo(context)),
-          // The same solid lip as the cards, a little thicker: the dock sits on the page like a sticker
           boxShadow: [BoxShadow(color: AppColors.cardLip.adaptTo(context), offset: const Offset(0, 4))],
         ),
         child: ValueListenableBuilder<int>(
           valueListenable: MainPage.pageIndex,
-          builder: (context, currentIndex, _) => LayoutBuilder(
-            builder: (context, constraints) {
-              final tabWidth = constraints.maxWidth / App.pages.length;
-              return Stack(
-                children: [
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 420),
-                    curve: Curves.easeOutBack,
-                    left: tabWidth * currentIndex + 3,
-                    top: _inset,
-                    bottom: _inset,
-                    width: tabWidth - 6,
-                    child: const _Pill(),
+          builder: (context, currentIndex, _) => Row(
+            children: App.pages
+                .mapIndexed(
+                  (index, page) => Expanded(
+                    child: _Tab(
+                      page: page,
+                      isSelected: index == currentIndex,
+                      onTap: () {
+                        if (MainPage.pageIndex.value != index) HapticFeedback.selectionClick();
+                        MainPage.pageIndex.value = index;
+                      },
+                    ),
                   ),
-                  Row(
-                    children: App.pages
-                        .mapIndexed(
-                          (index, page) => Expanded(
-                            child: _Tab(
-                              page: page,
-                              isSelected: index == currentIndex,
-                              onTap: () {
-                                if (MainPage.pageIndex.value != index) HapticFeedback.selectionClick();
-                                MainPage.pageIndex.value = index;
-                              },
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
-              );
-            },
+                )
+                .toList(),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// The selected tab's background: the icon's gradient with its Gymnase, faint, in the corner
-class _Pill extends StatelessWidget {
-  const _Pill();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: .antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: .circular(AppRadius.l),
-        gradient: AppColors.accentGradient,
-        boxShadow: const [BoxShadow(color: Color.fromRGBO(70, 8, 78, 1), offset: Offset(0, 3))],
-      ),
-      child: Stack(
-        clipBehavior: .hardEdge,
-        children: [
-          Positioned(right: -10, bottom: -14, child: GymnaseMark(size: 46, color: AppColors.white.withValues(alpha: .16))),
-        ],
       ),
     );
   }
@@ -118,59 +74,107 @@ class _Tab extends StatelessWidget {
 
   const _Tab({required this.page, required this.isSelected, required this.onTap});
 
+  static const double _capsuleWidth = 52, _capsuleHeight = 30;
+
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.white : AppColors.secondaryText.adaptTo(context);
+    final idle = AppColors.secondaryText.adaptTo(context);
+    final selectedText = AppColors.isDark(context) ? const Color.fromRGBO(214, 120, 226, 1) : AppColors.accent;
 
-    return CupertinoButton(
-      padding: .zero,
-      minimumSize: .zero,
-      pressedOpacity: .7,
-      onPressed: onTap,
+    return GestureDetector(
+      behavior: .opaque,
+      onTap: onTap,
       child: Column(
         mainAxisAlignment: .center,
-        spacing: 2,
+        spacing: 3,
         children: [
-          Stack(
-            clipBehavior: .none,
-            children: [
-              // The selected icon pops: a bigger, bolder icon, bounced in
-              AnimatedScale(
-                scale: isSelected ? 1.12 : 1,
-                duration: const Duration(milliseconds: 380),
-                curve: Curves.elasticOut,
-                child: HugeIcon(icon: page.icon, size: 22, strokeWidth: isSelected ? 2.2 : 1.7, color: color),
-              ),
-              // A dot for something new in that tab
-              ValueListenableBuilder(
-                valueListenable: page.showBadge,
-                builder: (context, showBadge, _) => !showBadge
-                    ? const SizedBox.shrink()
-                    : Positioned(
-                        top: -3,
-                        right: -5,
-                        child: Container(
-                          width: 11,
-                          height: 11,
-                          decoration: BoxDecoration(
-                            shape: .circle,
-                            color: isSelected ? AppColors.white : AppColors.accent,
-                            border: .all(color: isSelected ? AppColors.accent : AppColors.secondaryBackground.adaptTo(context), width: 2),
+          SizedBox(
+            width: _capsuleWidth,
+            height: _capsuleHeight + 3,
+            child: Stack(
+              clipBehavior: .none,
+              alignment: .topCenter,
+              children: [
+                // The capsule: grows from the icon with a bounce, on a darker lip like the buttons
+                AnimatedScale(
+                  scale: isSelected ? 1 : .4,
+                  duration: const Duration(milliseconds: 420),
+                  curve: isSelected ? Curves.elasticOut : Curves.easeIn,
+                  child: AnimatedOpacity(
+                    opacity: isSelected ? 1 : 0,
+                    duration: const Duration(milliseconds: 160),
+                    child: Container(
+                      width: _capsuleWidth,
+                      height: _capsuleHeight,
+                      decoration: BoxDecoration(
+                        borderRadius: .circular(_capsuleHeight / 2),
+                        gradient: AppColors.accentGradient,
+                        boxShadow: const [BoxShadow(color: Color.fromRGBO(70, 8, 78, 1), offset: Offset(0, 3))],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: _capsuleHeight,
+                  child: Center(
+                    child: Stack(
+                      clipBehavior: .none,
+                      children: [
+                        AnimatedScale(
+                          scale: isSelected ? 1.08 : 1,
+                          duration: const Duration(milliseconds: 380),
+                          curve: Curves.elasticOut,
+                          child: HugeIcon(
+                            icon: page.icon,
+                            size: 22,
+                            strokeWidth: isSelected ? 2.2 : 1.7,
+                            color: isSelected ? AppColors.white : idle,
                           ),
                         ),
-                      ),
-              ),
-            ],
+                        // A dot for something new in that tab
+                        ValueListenableBuilder(
+                          valueListenable: page.showBadge,
+                          builder: (context, showBadge, _) => !showBadge
+                              ? const SizedBox.shrink()
+                              : Positioned(
+                                  top: -3,
+                                  right: -5,
+                                  child: Container(
+                                    width: 11,
+                                    height: 11,
+                                    decoration: BoxDecoration(
+                                      shape: .circle,
+                                      color: isSelected ? AppColors.white : AppColors.red,
+                                      border: .all(color: isSelected ? AppColors.accent : AppColors.secondaryBackground.adaptTo(context), width: 2),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          // Shrinks a long name ("Conversations") to fit a narrow phone rather than cutting it
+          // On a narrow phone (or with large text) a long name ends with "…" instead of shrinking
           Padding(
-            padding: const .symmetric(horizontal: 8),
-            child: FittedBox(
-              fit: .scaleDown,
-              child: AnimatedDefaultTextStyle(
-                duration: AppDurations.fast,
-                style: AppStyles.caption(context).copyWith(fontFamily: AppStyles.titleFontFamily, fontWeight: isSelected ? .w600 : .w500, color: color),
-                child: Text(page.name, maxLines: 1),
+            padding: const .symmetric(horizontal: 2),
+            child: AnimatedDefaultTextStyle(
+              duration: AppDurations.fast,
+              style: AppStyles.caption(context).copyWith(
+                fontFamily: AppStyles.titleFontFamily,
+                fontWeight: isSelected ? .w700 : .w500,
+                color: isSelected ? selectedText : idle,
+                height: 1.1,
+              ),
+              child: Text(
+                page.name,
+                maxLines: 1,
+                overflow: .ellipsis,
+                softWrap: false,
+                textAlign: .center,
+                textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.2),
               ),
             ),
           ),

@@ -101,14 +101,17 @@ class MarkWatermark extends StatelessWidget {
   /// Size relative to the card's height
   final double scale;
 
-  /// By default a faint wash of the accent
+  /// By default the card's own color, a little lighter in dark mode, a little darker in light mode
   final Color? color;
 
   const MarkWatermark({super.key, this.scale = .9, this.color});
 
-  /// The default color: barely visible on a card, in both modes
-  static Color faint(BuildContext context) =>
-      AppColors.isDark(context) ? const Color.fromRGBO(203, 70, 218, .1) : const Color.fromRGBO(160, 20, 170, .055);
+  /// The decoration's color on [surface] (by default the cards' color): the same color, only a little lighter or
+  /// darker, never a different hue (no purple on blue)
+  static Color faint(BuildContext context, {Color? surface}) {
+    final base = surface ?? AppColors.secondaryBackground.adaptTo(context);
+    return AppColors.isDark(context) ? Color.lerp(base, AppColors.white, .05)! : Color.lerp(base, AppColors.black, .045)!;
+  }
 
   @override
   Widget build(BuildContext context) {
