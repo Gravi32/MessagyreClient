@@ -16,6 +16,9 @@ class Message {
   @Index(composite: [CompositeIndex('sentAt')])
   String? chatUsername;
 
+  /// Who wrote it, in a class chat (where [chatUsername] is the class, "#1M05"). Null in a conversation with one person.
+  String? senderUsername;
+
   late String content;
 
   late DateTime sentAt;
@@ -78,6 +81,7 @@ class Message {
   factory Message.custom({
     String? uuid,
     String? chatUsername,
+    String? senderUsername,
     required String content,
     required DateTime sentAt,
     required bool isOwned,
@@ -90,6 +94,7 @@ class Message {
     return Message()
       ..uuid = uuid ?? const Uuid().v4()
       ..chatUsername = chatUsername
+      ..senderUsername = senderUsername
       ..content = content
       ..sentAt = sentAt
       ..isOwned = isOwned

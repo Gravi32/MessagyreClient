@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/database_service.dart';
@@ -98,7 +99,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                   children: [
                     Row(
                       children: [
-                        ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 30),
+                        widget.senderUsername.startsWith("#") ? const ClassAvatar(size: 60) : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 30),
                         SizedBox(width: 10),
                         Expanded(
                           child: Column(

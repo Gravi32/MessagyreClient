@@ -76,6 +76,32 @@ void main() {
     expect(() => EncryptionService.decryptFile(encrypted.bytes, encrypted.key, encrypted.iv), throwsA(anything));
   });
 
+  test("a class message is encrypted once and each member reads it with their own key", () async {
+    // A second member: only their public key is used here
+    final stranger = RSAKeyGenerator()
+      ..init(ParametersWithRandom(RSAKeyGeneratorParameters(BigInt.parse('65537'), 2048, 64), FortunaRandom()..seed(KeyParameter(Uint8List(32)))));
+    final otherKey = stranger.generateKeyPair().publicKey as RSAPublicKey;
+
+    final attachment = jsonEncode({"Name": "exercices.pdf"});
+    final encrypted = EncryptionService().encryptForMany("Le TE est décalé à jeudi", {"me": keys.publicKey, "lea.martin": otherKey}, attachmentJson: attachment);
+    final encryptedKeys = encrypted["EncryptedKeys"] as Map<String, String>;
+    expect(encryptedKeys.keys, unorderedEquals(["me", "lea.martin"]));
+    expect(encrypted.containsKey("EncryptedKey"), isFalse);
+
+    // What the server delivers to "me": the shared text with my own key
+    final (content, attachmentJson) = await EncryptionService().decryptPayload(
+      encrypted["CipherText"] as String,
+      encrypted["Iv"] as String,
+      encryptedKeys["me"]!,
+      rawAttachment: encrypted["Attachment"] as String,
+    );
+    expect(content, "Le TE est décalé à jeudi");
+    expect(attachmentJson, attachment);
+
+    // Someone else's key opens nothing for me
+    expect(() => EncryptionService().decryptPayload(encrypted["CipherText"] as String, encrypted["Iv"] as String, encryptedKeys["lea.martin"]!), throwsA(anything));
+  });
+
   group("Push notifications", () {
     test("show the decrypted text and the sender's name without the server's emoji", () async {
       final encrypted = EncryptionService().encryptMessage("Tu viens samedi ?", keys.publicKey);
@@ -91,6 +117,14 @@ void main() {
       expect(content.senderName, "Léa Martin");
       expect(content.senderUsername, "lea.martin");
       expect(content.pictureUrl, isNull);
+    });
+
+    test("of a class message are grouped under the class", () async {
+      final content = await NotificationContent.fromData({"Title": "💬 Léa Martin", "Body": "Nouveau message !", "SenderUsername": "lea.martin", "Group": "1M05"});
+      expect(content.title, "Classe 1M05");
+      expect(content.senderName, "Léa Martin");
+      expect(content.chatId, "#1M05");
+      expect((await NotificationContent.fromData({"Title": "Noah", "SenderUsername": "noah"})).chatId, "noah");
     });
 
     test("fall back on the server's text when the message can't be decrypted", () async {

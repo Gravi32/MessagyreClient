@@ -74,6 +74,15 @@ class AppStrings {
   static const encryptionOff = "Cet utilisateur a une ancienne version de Messagyre qui ne supporte pas le chiffrement de bout en bout. L'envoi de photos et de fichiers est désactivé.";
   static const encryptionUnknown = "Vérification du chiffrement… Vos messages partiront dès que possible.";
   static const waitingForConnection = "En attente de connexion…";
+
+  // Class chats
+  static const classChatSubtitle = "Chat de la classe";
+  static String classMembersCount(int count) => count == 1 ? "1 membre" : "$count membres";
+  static const classChatLeft = "Vous n'êtes plus dans cette classe";
+  static const classChatReadOnly = "Vous n'êtes plus dans cette classe : la conversation reste lisible, mais vous ne pouvez plus y écrire.";
+  static const classChatHint = "Tous ceux qui ont choisi cette classe pour cette année scolaire en font partie. Vous pouvez changer de classe dans *Réglages → Ma classe*.";
+  static const classMembersHint = "Tous ceux qui ont choisi cette classe cette année. Un nouveau membre ne voit que les messages écrits après son arrivée.";
+  static const classEncryption = "Les messages et les fichiers de la classe sont chiffrés de bout en bout : seuls ses membres peuvent les lire.";
   static const supportWelcome =
       "Salut👋 !\n\nTu as une *question* sur *Messagyre* ou tu as rencontré un *problème* ? Je suis là pour t'aider !\n\nÉcris ici ce dont tu as besoin et je ferai de mon mieux pour te répondre le plus vite possible ! 😄\n\nLe support de Messagyre";
 

@@ -18,6 +18,8 @@ import 'package:messagyre_client/pages/search/search_page.dart';
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/backup_service.dart';
+import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
 import 'package:messagyre_client/services/archive_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
@@ -255,10 +257,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       // The saved copy of the school data comes first: on a new install it brings the subjects back, and
       // the "Vos branches" sheet then isn't needed. Without a connection the start doesn't wait for it.
       await network.waitForSignIn();
-      await BackupService().sync().timeout(const Duration(seconds: 8), onTimeout: () {});
+      ClassService().load();
+      await Future.wait([
+        BackupService().sync().timeout(const Duration(seconds: 8), onTimeout: () {}),
+        ClassService().refresh(),
+      ]);
 
       final mountedContext = context;
       if (!context.mounted) return;
+      // A new account (or a new school year) first chooses its class: it joins the class's conversation
+      await askUserForTheirClass(mountedContext);
+
+      if (!mountedContext.mounted) return;
       await askUserToAddTheirSubjects(mountedContext);
 
       if (!mountedContext.mounted) return;

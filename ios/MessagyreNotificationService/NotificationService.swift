@@ -31,14 +31,17 @@ class NotificationService: UNNotificationServiceExtension {
         // The server writes "💬 Name": the name alone, iOS shows that it is a message
         let senderName = Self.senderName(from: userInfo["Title"] as? String ?? content.title)
         let senderUsername = userInfo["SenderUsername"] as? String
-        content.title = senderName
-        if let senderUsername = senderUsername { content.threadIdentifier = senderUsername }
+        // A class chat (apps from 4.94): grouped under the class, with who wrote
+        let group = (userInfo["Group"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        content.title = group.map { "Classe \($0)" } ?? senderName
+        if group != nil { content.subtitle = senderName }
+        if let thread = group.map({ "#\($0)" }) ?? senderUsername { content.threadIdentifier = thread }
 
         let pictureURL = (userInfo["ProfilePictureURL"] as? String).flatMap { URL(string: $0) }
 
         loadImage(pictureURL) { imageData in
             if #available(iOSApplicationExtension 15.0, *) {
-                self.deliverAsCommunication(content, senderName: senderName, senderUsername: senderUsername, imageData: imageData)
+                self.deliverAsCommunication(content, senderName: senderName, senderUsername: senderUsername, group: group, imageData: imageData)
             } else {
                 self.deliver(content)
             }
@@ -61,7 +64,7 @@ class NotificationService: UNNotificationServiceExtension {
     // MARK: - Communication notification
 
     @available(iOSApplicationExtension 15.0, *)
-    private func deliverAsCommunication(_ content: UNMutableNotificationContent, senderName: String, senderUsername: String?, imageData: Data?) {
+    private func deliverAsCommunication(_ content: UNMutableNotificationContent, senderName: String, senderUsername: String?, group: String?, imageData: Data?) {
         let identifier = senderUsername ?? senderName
         let image = imageData.map { INImage(imageData: $0) }
 
@@ -74,12 +77,14 @@ class NotificationService: UNNotificationServiceExtension {
             customIdentifier: identifier
         )
 
+        // iOS shows a group conversation (its name, then who wrote) when it has a name and several recipients
+        let me = INPerson(personHandle: INPersonHandle(value: "me", type: .unknown), nameComponents: nil, displayName: nil, image: nil, contactIdentifier: nil, customIdentifier: "me", isMe: true)
         let intent = INSendMessageIntent(
-            recipients: nil,
+            recipients: group == nil ? nil : [me, sender],
             outgoingMessageType: .outgoingMessageText,
             content: content.body,
-            speakableGroupName: nil,
-            conversationIdentifier: identifier,
+            speakableGroupName: group.map { INSpeakableString(spokenPhrase: "Classe \($0)") },
+            conversationIdentifier: group.map { "#\($0)" } ?? identifier,
             serviceName: nil,
             sender: sender,
             attachments: nil

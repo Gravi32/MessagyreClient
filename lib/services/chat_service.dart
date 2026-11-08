@@ -9,6 +9,7 @@ import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/database/models/chats/chat.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
+import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -88,6 +89,7 @@ class ChatService {
   void _onConnectionStateChanged() {
     if (network.connectionState.value != ConnectionState.Connected) return;
     _seedReviewChats();
+    if (ClassService().current.value != null) unawaited(ClassService().loadMembers(force: true));
     resendPending();
     _resumeDownloads();
     final openChat = globals.openChatUsername;
@@ -127,7 +129,11 @@ class ChatService {
 
   // #region -> Sending
 
-  Future<Chat> _chatFor(String username) async => database.chats.getByUsername(username) ?? Chat.custom(username: username);
+  /// [chatId] is a username, or "#" and a class for a class chat (see [ClassService.chatIdOf])
+  Future<Chat> _chatFor(String chatId) async {
+    final className = ClassService.classOfChat(chatId);
+    return database.chats.getByUsername(chatId) ?? Chat.custom(username: chatId, displayUsername: className == null ? null : ClassService.chatTitleOf(className));
+  }
 
   Future<void> sendText(String username, String text) async {
     final content = text.trim();
@@ -235,6 +241,11 @@ class ChatService {
       // 2. The message: without a connection it waits for the next one (resendPending)
       if (!network.isConnected) return;
 
+      if (ClassService.isClassChat(username)) {
+        await _deliverToClass(message, attachment);
+        return;
+      }
+
       final key = await publicKeyOf(username);
       final encryptionState = encryptionStateOf(username).value;
       if (key == null && encryptionState == EncryptionState.unknown) {
@@ -266,6 +277,38 @@ class ChatService {
       await _setStatus(uuid, MessageStatus.Failed);
     } finally {
       _sending.remove(uuid);
+    }
+  }
+
+  /// A message of a class chat: encrypted once, its key encrypted for every member who has a key
+  Future<void> _deliverToClass(Message message, Attachment? attachment) async {
+    final className = ClassService.classOfChat(message.chatUsername!)!;
+    final classes = ClassService();
+
+    // Not (or no longer) in this class: the server would refuse it
+    if (classes.current.value?.name != className) {
+      await _setStatus(message.uuid, MessageStatus.Failed);
+      return;
+    }
+
+    final members = await classes.loadMembers();
+    final keys = {
+      for (final member in members)
+        if (member.username != globals.username && member.publicKey != null) member.username: member.publicKey!,
+    };
+
+    final payload = <String, dynamic>{
+      "CommunicationType": "GroupMessage",
+      "Uuid": message.uuid,
+      "Group": className,
+      ...encryption.encryptForMany(message.content, keys, attachmentJson: attachment?.toJson()),
+    };
+
+    final acknowledged = await network.sendAndWaitForAcknowledgement(message.uuid, payload);
+    if (acknowledged) {
+      await _setStatus(message.uuid, MessageStatus.Sent);
+    } else if (network.isConnected) {
+      await _setStatus(message.uuid, MessageStatus.Failed);
     }
   }
 
@@ -317,6 +360,7 @@ class ChatService {
     try {
       switch (data["CommunicationType"]) {
         case "Message":
+        case "GroupMessage":
           await _onMessage(data);
         case "Receipt":
           await _onReceipt(data);
@@ -333,6 +377,10 @@ class ChatService {
     final uuid = data["Uuid"]?.toString() ?? const Uuid().v4();
     final sentAt = DateTime.tryParse(data["SentAt"]?.toString() ?? "")?.toLocal() ?? DateTime.now();
     if (sender == null) return;
+
+    // A message of a class chat goes to the class's conversation, with who wrote it
+    final group = data["CommunicationType"] == "GroupMessage" ? data["Group"]?.toString() : null;
+    final chatId = group != null ? ClassService.chatIdOf(group) : sender;
 
     // Acknowledged even when ignored: otherwise the server would deliver it again at every connection
     void acknowledge() => network.sendRaw({"CommunicationType": "Acknowledgement", "Uuid": uuid});
@@ -361,7 +409,8 @@ class ChatService {
 
     final message = Message.custom(
       uuid: uuid,
-      chatUsername: sender,
+      chatUsername: chatId,
+      senderUsername: group != null ? sender : null,
       content: content,
       sentAt: sentAt,
       isOwned: false,
@@ -370,15 +419,15 @@ class ChatService {
       transfer: attachment != null ? TransferState.pending : TransferState.none,
     );
 
-    final isChatOpen = globals.openChatUsername == sender;
-    final added = await database.chats.addMessage(await _chatFor(sender), message, countAsUnread: !isChatOpen);
+    final isChatOpen = globals.openChatUsername == chatId;
+    final added = await database.chats.addMessage(await _chatFor(chatId), message, countAsUnread: !isChatOpen);
     acknowledge();
     if (!added) return;
 
     HapticFeedback.mediumImpact();
     incomingMessages.add(message);
 
-    if (isChatOpen) markRead(sender);
+    if (isChatOpen) markRead(chatId);
     if (attachment != null && attachment.isImage && attachment.size <= autoDownloadBytes) unawaited(download(message));
   }
 
@@ -404,11 +453,13 @@ class ChatService {
     final rawUuids = data["Uuids"];
     if (sender == null || rawUuids == null) return;
 
+    final group = data["Group"]?.toString();
     final uuids = rawUuids is List ? rawUuids.map((u) => u.toString()) : [rawUuids.toString()];
     for (final uuid in uuids) {
       final message = database.messages.getByUuid(uuid);
       // Only the sender can delete their message for everybody
-      if (message == null || message.isOwned || message.chatUsername != sender) continue;
+      if (message == null || message.isOwned) continue;
+      if (group != null ? (message.chatUsername != ClassService.chatIdOf(group) || message.senderUsername != sender) : message.chatUsername != sender) continue;
       await _deleteLocalFile(message);
       await database.messages.update(uuid, (m) {
         m.isDeleted = true;
@@ -427,7 +478,8 @@ class ChatService {
     final unread = database.messages.unreadReceived(username);
     if (unread.isEmpty) return;
 
-    if (globals.persistent.getBool("SendReadReceipts") ?? true) {
+    // No read receipts in a class chat
+    if (!ClassService.isClassChat(username) && (globals.persistent.getBool("SendReadReceipts") ?? true)) {
       // The newest 500 at most (the server's limit): older ones don't matter any more
       final uuids = unread.reversed.take(500).map((m) => m.uuid).toList();
       if (!network.sendRaw({"CommunicationType": "Read", "RecipientUsername": username, "Uuids": uuids})) return;
@@ -561,7 +613,12 @@ class ChatService {
       m.localPath = null;
       m.transfer = TransferState.none;
     });
-    network.sendMessageDelete([message.uuid], message.chatUsername!);
+    final className = ClassService.classOfChat(message.chatUsername!);
+    if (className != null) {
+      network.sendRaw({"CommunicationType": "Deletion", "Group": className, "Uuids": [message.uuid]});
+    } else {
+      network.sendMessageDelete([message.uuid], message.chatUsername!);
+    }
     if (fileId != null) unawaited(network.post("/files/delete", {"ID": fileId}));
   }
 
@@ -575,7 +632,7 @@ class ChatService {
   /// Sends the message to the team (the reporter chooses to share its content). Returns false when it failed.
   Future<bool> report(Message message, {String? reason}) async {
     final response = await network.post("/reports/add", {
-      "ReportedUsername": message.chatUsername,
+      "ReportedUsername": message.senderUsername ?? message.chatUsername,
       "MessageUuid": message.uuid,
       "Content": message.hasAttachment ? "[${message.attachment?.name}] ${message.displayText}" : message.content,
       "Reason": ?reason,

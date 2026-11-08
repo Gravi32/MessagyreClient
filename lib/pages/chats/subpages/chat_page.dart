@@ -18,6 +18,7 @@ import 'package:messagyre_client/pages/chats/widgets/attachment_actions.dart';
 import 'package:messagyre_client/pages/chats/widgets/message_bubble.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/chat_service.dart';
+import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -28,6 +29,7 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class ChatPage extends StatefulWidget {
@@ -62,8 +64,17 @@ class _ChatPageState extends State<ChatPage> {
   bool showScrollDownButton = false;
   bool isPickingAttachment = false;
 
+  final classes = ClassService();
+
+  /// A class chat ("#1M05"): no profile, a message's sender is shown above it
+  late final String? className = ClassService.classOfChat(username);
+  bool get isClassChat => className != null;
+
+  /// Still in this class (a class of an earlier school year stays readable)
+  bool get canWrite => !isClassChat || classes.current.value?.name == className;
+
   bool get isSupport => username == "support.messagyre";
-  bool get isBlocked => globals.blockedUsers.contains(username);
+  bool get isBlocked => !isClassChat && globals.blockedUsers.contains(username);
 
   // #region -> Lifecycle
 
@@ -73,7 +84,8 @@ class _ChatPageState extends State<ChatPage> {
 
     globals.openChatUsername = username;
     chats.initialize();
-    chats.publicKeyOf(username, refresh: true);
+    classes.current.addListener(onClassChanged);
+    classes.members.addListener(onClassChanged);
 
     incomingSubscription = chats.incomingMessages.stream.where((m) => m.chatUsername == username).listen((message) {
       if (!mounted) return;
@@ -87,6 +99,13 @@ class _ChatPageState extends State<ChatPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) => chats.markRead(username));
 
+    if (isClassChat) {
+      displayName = ClassService.chatTitleOf(className!);
+      if (canWrite) classes.loadMembers(force: true);
+      return;
+    }
+
+    chats.publicKeyOf(username, refresh: true);
     network.getAccount(username).then((result) async {
       if (result == null || !mounted) return;
       account = result;
@@ -106,6 +125,8 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     if (globals.openChatUsername == username) globals.openChatUsername = null;
     incomingSubscription?.cancel();
+    classes.current.removeListener(onClassChanged);
+    classes.members.removeListener(onClassChanged);
     globals.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
     fieldController.removeListener(onFieldChanged);
     scrollController.removeListener(onScroll);
@@ -117,6 +138,9 @@ class _ChatPageState extends State<ChatPage> {
 
   void onFieldChanged() => setState(() {});
   void onBlockedUsersChanged() => setState(() {});
+  void onClassChanged() {
+    if (mounted) setState(() {});
+  }
 
   void onScroll() {
     // The list is reversed: offset 0 is the newest message
@@ -134,6 +158,7 @@ class _ChatPageState extends State<ChatPage> {
   // #region -> Actions
 
   Future<void> openProfile() async {
+    if (isClassChat) return showMembers();
     if (account == null) {
       setState(() => isLoadingProfile = true);
       account = await network.getAccount(username);
@@ -144,6 +169,15 @@ class _ChatPageState extends State<ChatPage> {
       FocusManager.instance.primaryFocus?.unfocus();
       Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfilePage(account!, openedFromChat: true)));
     }
+  }
+
+  /// The members of the class chat
+  Future<void> showMembers() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (context) => _ClassMembersSheet(className: className!, isMember: canWrite),
+    );
   }
 
   void sendText() {
@@ -163,7 +197,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> showAttachmentMenu() async {
     FocusManager.instance.primaryFocus?.unfocus();
 
-    if (chats.encryptionStateOf(username).value == EncryptionState.unavailable) {
+    if (!isClassChat && chats.encryptionStateOf(username).value == EncryptionState.unavailable) {
       showError(AppStrings.encryptionOff);
       return;
     }
@@ -306,7 +340,7 @@ class _ChatPageState extends State<ChatPage> {
         message: const Text(AppStrings.reportContent, style: TextStyle(fontSize: 14)),
         actions: [
           _sheetAction(context, AppStrings.report, AppIcons.report, "report", isDestructive: true),
-          _sheetAction(context, AppStrings.reportAndBlock(username), AppIcons.block, "block", isDestructive: true),
+          _sheetAction(context, AppStrings.reportAndBlock(message.senderUsername ?? username), AppIcons.block, "block", isDestructive: true),
         ],
         cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text(AppStrings.cancel)),
       ),
@@ -314,7 +348,7 @@ class _ChatPageState extends State<ChatPage> {
     if (choice == null) return;
 
     final sent = await chats.report(message, reason: choice == "block" ? "Blocked" : null);
-    if (choice == "block") await globals.blockUser(username);
+    if (choice == "block") await globals.blockUser(message.senderUsername ?? username);
     if (!mounted) return;
     showCupertinoDialog(
       context: context,
@@ -368,7 +402,7 @@ class _ChatPageState extends State<ChatPage> {
                 Navigator.of(context).pop();
               },
             ),
-            ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
+            isClassChat ? const ClassAvatar(size: AppSizes.avatarSmall) : ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
             Expanded(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -384,21 +418,58 @@ class _ChatPageState extends State<ChatPage> {
                         Flexible(child: Text(displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context).copyWith(fontSize: 18))),
                       ],
                     ),
-                    Text(username, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.footnote(context)),
+                    Text(isClassChat ? classSubtitle : username, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.footnote(context)),
                   ],
                 ),
               ),
             ),
             if (isLoadingProfile) LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
-            Button.icon(context, icon: AppIcons.profile, onTap: openProfile),
+            Button.icon(context, icon: isClassChat ? AppIcons.members : AppIcons.profile, onTap: openProfile),
           ],
         ),
       ),
     );
   }
 
+  String get classSubtitle {
+    if (!canWrite) return AppStrings.classChatLeft;
+    final count = classes.members.value.length;
+    return count == 0 ? AppStrings.classChatSubtitle : AppStrings.classMembersCount(count);
+  }
+
+  /// At the top of a class chat: what it is, who can read it
+  Widget buildClassHeader() {
+    final tertiary = AppColors.tertiaryText.adaptTo(context);
+    return Column(
+      children: [
+        BlurredContainer(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.m),
+          padding: const EdgeInsets.all(AppSpacing.l),
+          child: Column(
+            children: [
+              const ClassAvatar(size: AppSizes.avatarLarge),
+              const SizedBox(height: AppSpacing.s),
+              Text(displayName, textAlign: TextAlign.center, style: AppStyles.header(context)),
+              Text(classSubtitle, style: AppStyles.secondaryText(context)),
+              const SizedBox(height: AppSpacing.s),
+              _Notice(icon: AppIcons.info, text: AppStrings.classChatHint, color: tertiary),
+            ],
+          ),
+        ),
+        BlurredContainer(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: AppSpacing.l),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
+          child: _Notice(icon: AppIcons.encrypted, text: AppStrings.classEncryption, color: tertiary),
+        ),
+      ],
+    );
+  }
+
   /// At the top of the conversation: who it is with and whether it is encrypted
   Widget buildHeader() {
+    if (isClassChat) return buildClassHeader();
     return Column(
       children: [
         BlurredContainer(
@@ -478,8 +549,9 @@ class _ChatPageState extends State<ChatPage> {
             final newer = index > 0 ? messages[index - 1] : null;
 
             final startsDay = older == null || !older.sentAt.isSameDayAs(message.sentAt);
-            final joinsPrevious = older != null && !startsDay && older.isOwned == message.isOwned;
-            final joinsNext = newer != null && newer.sentAt.isSameDayAs(message.sentAt) && newer.isOwned == message.isOwned;
+            final joinsPrevious = older != null && !startsDay && older.isOwned == message.isOwned && older.senderUsername == message.senderUsername;
+            final joinsNext = newer != null && newer.sentAt.isSameDayAs(message.sentAt) && newer.isOwned == message.isOwned && newer.senderUsername == message.senderUsername;
+            final sender = message.senderUsername;
 
             Widget bubble = MessageBubble(
               key: ValueKey(message.uuid),
@@ -488,6 +560,7 @@ class _ChatPageState extends State<ChatPage> {
               joinsNext: joinsNext,
               onTap: onBubbleTap,
               onLongPress: showMessageMenu,
+              senderName: isClassChat && sender != null ? classes.displayNameOf(sender) : null,
             );
 
             if (animatedUuids.contains(message.uuid)) bubble = _SlideIn(key: ValueKey("in-${message.uuid}"), fromRight: message.isOwned, child: bubble);
@@ -503,6 +576,15 @@ class _ChatPageState extends State<ChatPage> {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
     final background = AppColors.background.adaptTo(context);
     final canSend = fieldController.text.trim().isNotEmpty;
+
+    if (!canWrite) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.l, AppSpacing.page, bottomPadding + AppSpacing.l),
+        color: background,
+        child: Text(AppStrings.classChatReadOnly, textAlign: TextAlign.center, style: AppStyles.footnote(context)),
+      );
+    }
 
     return Container(
       padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.xl, AppSpacing.page, bottomPadding + AppSpacing.s),
@@ -541,7 +623,7 @@ class _ChatPageState extends State<ChatPage> {
                         builder: (context, state, _) => Button.icon(
                           context,
                           icon: AppIcons.attach,
-                          iconColor: state == EncryptionState.unavailable ? AppColors.inactive.adaptTo(context) : null,
+                          iconColor: !isClassChat && state == EncryptionState.unavailable ? AppColors.inactive.adaptTo(context) : null,
                           onTap: showAttachmentMenu,
                         ),
                       ),
@@ -689,6 +771,73 @@ class _SlideInState extends State<_SlideIn> with SingleTickerProviderStateMixin 
         child: Transform.translate(offset: Offset(0, 30 * (1 - animation.value)), child: child),
       ),
       child: widget.child,
+    );
+  }
+}
+
+/// Who is in a class chat (everybody who chose this class for this school year)
+class _ClassMembersSheet extends StatelessWidget {
+  final String className;
+  final bool isMember;
+  const _ClassMembersSheet({required this.className, required this.isMember});
+
+  @override
+  Widget build(BuildContext context) {
+    final classes = ClassService();
+    final globals = GlobalsService();
+
+    return CupertinoPopupSurface(
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .7),
+          child: ValueListenableBuilder(
+            valueListenable: classes.members,
+            builder: (context, members, _) => ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(AppSpacing.l),
+              children: [
+                Row(
+                  spacing: AppSpacing.m,
+                  children: [
+                    const ClassAvatar(size: AppSizes.avatarSmall),
+                    Expanded(child: Text(ClassService.chatTitleOf(className), style: AppStyles.header(context))),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s),
+                CustomText(isMember ? AppStrings.classMembersHint : AppStrings.classChatReadOnly, style: AppStyles.secondaryText(context)),
+                const SizedBox(height: AppSpacing.m),
+                if (isMember && members.isEmpty) const Padding(padding: EdgeInsets.all(AppSpacing.l), child: CupertinoActivityIndicator()),
+                if (isMember)
+                  for (final member in members)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                      child: Row(
+                        spacing: AppSpacing.m,
+                        children: [
+                          SizedBox.square(dimension: AppSizes.avatarSmall, child: ProfilePictureDisplay(accountUsername: member.username, pictureURL: member.pictureUrl)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  member.username == globals.username ? "${classes.displayNameOf(member.username)} (vous)" : classes.displayNameOf(member.username),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppStyles.primaryText(context),
+                                ),
+                                Text(member.username, style: AppStyles.footnote(context)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

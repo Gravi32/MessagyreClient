@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:http/http.dart' as http;
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/services/backup_service.dart';
+import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
@@ -583,6 +584,7 @@ class NetworkService {
   void logout() async {
     isSignedIn.value = false;
     await BackupService().stop(); // the last changes go first, while the token is still valid
+    await ClassService().forget();
 
     get("/auth/logout"); // Notifies the server
 

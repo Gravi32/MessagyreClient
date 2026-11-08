@@ -59,9 +59,9 @@ class FirebaseApi {
   Future<void> _onMessage(RemoteMessage message) async {
     try {
       final content = await NotificationContent.fromData(message.data, fallbackTitle: message.notification?.title, fallbackBody: message.notification?.body);
-      final sender = content.senderUsername;
+      final chatId = content.chatId;
       if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-        if (sender != null) notificationOverlays.spawn(content.senderName, content.body, sender);
+        if (chatId != null) notificationOverlays.spawn(content.title, content.group != null ? "${content.senderName} : ${content.body}" : content.body, chatId);
         notifications.resetBadge();
       }
     } catch (e) {
@@ -70,8 +70,12 @@ class FirebaseApi {
   }
 
   void _onMessageOpened(RemoteMessage message) {
-    final username = message.data['SenderUsername'];
-    if (username is String) NotificationsService.openChat(username);
+    final group = message.data['Group'], username = message.data['SenderUsername'];
+    if (group is String && group.isNotEmpty) {
+      NotificationsService.openChat("#$group");
+    } else if (username is String) {
+      NotificationsService.openChat(username);
+    }
     notifications.resetBadge();
   }
 
@@ -88,7 +92,16 @@ class NotificationContent {
   final String body;
   final String? pictureUrl;
 
-  NotificationContent(this.senderName, this.senderUsername, this.body, this.pictureUrl);
+  /// The class, for a message of a class chat (apps from 4.94)
+  final String? group;
+
+  NotificationContent(this.senderName, this.senderUsername, this.body, this.pictureUrl, {this.group});
+
+  /// The conversation it belongs to: the sender, or the class chat ("#1M05")
+  String? get chatId => group != null ? "#$group" : senderUsername;
+
+  /// The conversation's name: the sender, or the class
+  String get title => group != null ? "Classe $group" : senderName;
 
   static Future<NotificationContent> fromData(Map<String, dynamic> data, {String? fallbackTitle, String? fallbackBody}) async {
     final title = (data['Title'] ?? fallbackTitle ?? 'Messagyre').toString();
@@ -110,6 +123,7 @@ class NotificationContent {
       data['SenderUsername']?.toString(),
       body,
       picture is String && picture.isNotEmpty ? picture : null,
+      group: data['Group'] is String && (data['Group'] as String).isNotEmpty ? data['Group'] as String : null,
     );
   }
 }
@@ -138,12 +152,13 @@ const _maxMessagesPerNotification = 6;
 Future<void> showMessageNotification(Map<String, dynamic> data, {bool initializePlugin = false}) async {
   final content = await NotificationContent.fromData(data);
   final sender = content.senderUsername ?? content.senderName;
+  final conversation = content.chatId ?? sender;
 
   final plugin = FlutterLocalNotificationsPlugin();
   if (initializePlugin) await plugin.initialize(const InitializationSettings(android: AndroidInitializationSettings('ic_notification')));
   final android = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
-  final id = notificationIdFor(sender);
+  final id = notificationIdFor(conversation);
   final avatar = await _avatarWithBadge(content.pictureUrl, content.senderName);
   final person = Person(key: sender, name: content.senderName, icon: avatar != null ? ByteArrayAndroidIcon(avatar) : null, important: true);
 
@@ -167,14 +182,14 @@ Future<void> showMessageNotification(Map<String, dynamic> data, {bool initialize
       largeIcon: avatar != null ? ByteArrayAndroidBitmap(avatar) : null,
       styleInformation: MessagingStyleInformation(
         person,
-        conversationTitle: content.senderName,
-        groupConversation: false,
+        conversationTitle: content.title,
+        groupConversation: content.group != null,
         messages: messages.length > _maxMessagesPerNotification ? messages.sublist(messages.length - _maxMessagesPerNotification) : messages,
       ),
     ),
   );
 
-  await plugin.show(id, content.senderName, content.body, details, payload: jsonEncode({"Username": content.senderUsername}));
+  await plugin.show(id, content.title, content.body, details, payload: jsonEncode({"Username": conversation}));
 }
 
 /// The same number for the same conversation, in any isolate (String.hashCode isn't guaranteed to be)

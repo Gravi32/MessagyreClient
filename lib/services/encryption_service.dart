@@ -82,16 +82,31 @@ class EncryptionService {
   /// recipient's RSA key. The attachment's description (if any) uses the same key with its own nonce, sent as
   /// `nonce:cipherText` in base64.
   Map<String, String> encryptMessage(String content, RSAPublicKey recipientKey, {String? attachmentJson}) {
-    final random = Random.secure();
-    final aesKey = Uint8List.fromList(List<int>.generate(32, (_) => random.nextInt(256)));
-    final iv = _randomBytes(12);
+    final aesKey = _randomBytes(32);
+    return {..._encryptWith(aesKey, content, attachmentJson), "EncryptedKey": _encryptKey(aesKey, recipientKey)};
+  }
 
+  /// The same for a class chat: the message is encrypted once, its key once per member ("EncryptedKeys":
+  /// username → key). Each member's app reads it like a message sent to them alone.
+  Map<String, Object> encryptForMany(String content, Map<String, RSAPublicKey> recipientKeys, {String? attachmentJson}) {
+    final aesKey = _randomBytes(32);
+    return {
+      ..._encryptWith(aesKey, content, attachmentJson),
+      "EncryptedKeys": {for (final MapEntry(key: username, value: key) in recipientKeys.entries) username: _encryptKey(aesKey, key)},
+    };
+  }
+
+  static String _encryptKey(Uint8List aesKey, RSAPublicKey recipientKey) {
     final rsaEncryptor = OAEPEncoding(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(recipientKey));
+    return base64.encode(rsaEncryptor.process(aesKey));
+  }
+
+  static Map<String, String> _encryptWith(Uint8List aesKey, String content, String? attachmentJson) {
+    final iv = _randomBytes(12);
 
     final result = {
       "CipherText": base64.encode(_gcm(true, aesKey, iv, Uint8List.fromList(utf8.encode(content)))),
       "Iv": base64.encode(iv),
-      "EncryptedKey": base64.encode(rsaEncryptor.process(aesKey)),
     };
 
     if (attachmentJson != null) {

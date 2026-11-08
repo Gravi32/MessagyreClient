@@ -32,6 +32,7 @@ class AppIcons {
   static const report = HugeIcons.strokeRoundedFlag02;
   static const block = HugeIcons.strokeRoundedUserBlock01;
   static const profile = HugeIcons.strokeRoundedUser;
+  static const members = HugeIcons.strokeRoundedUserGroup;
   static const newChat = HugeIcons.strokeRoundedBubbleChatAdd;
   static const clear = HugeIcons.strokeRoundedCancel01;
   static const more = HugeIcons.strokeRoundedMoreHorizontal;

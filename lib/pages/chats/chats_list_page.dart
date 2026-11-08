@@ -12,6 +12,7 @@ import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/chat_service.dart';
+import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -24,6 +25,7 @@ import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/connection_status.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
@@ -139,7 +141,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
         child: Row(
           spacing: AppSpacing.l - 2,
           children: [
-            SizedBox.square(dimension: AppSizes.avatar, child: ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked)),
+            SizedBox.square(
+              dimension: AppSizes.avatar,
+              child: ClassService.isClassChat(chat.username) ? const ClassAvatar(size: AppSizes.avatar) : ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

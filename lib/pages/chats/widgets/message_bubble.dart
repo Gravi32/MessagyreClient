@@ -37,7 +37,20 @@ class MessageBubble extends StatelessWidget {
   final void Function(Message message)? onTap;
   final GlobalKey? bubbleKey;
 
-  const MessageBubble({super.key, required this.message, this.joinsPrevious = false, this.joinsNext = false, this.onLongPress, this.onTap, this.bubbleKey});
+  /// In a class chat: who wrote it, above the first bubble of their messages
+  final String? senderName;
+
+  const MessageBubble({super.key, required this.message, this.joinsPrevious = false, this.joinsNext = false, this.onLongPress, this.onTap, this.bubbleKey, this.senderName});
+
+  /// The same color for the same person in every class chat
+  static Color colorOf(String username) {
+    const palette = [AppColors.accent, AppColors.blue, AppColors.orange, AppColors.green, AppColors.pink, AppColors.indigo, AppColors.teal, AppColors.brown];
+    var hash = 0;
+    for (final unit in username.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    return palette[hash % palette.length];
+  }
 
   BorderRadius get _shape {
     const big = Radius.circular(AppRadius.bubble);
@@ -77,11 +90,28 @@ class MessageBubble extends StatelessWidget {
                   padding: EdgeInsets.only(right: AppSpacing.s),
                   child: HugeIcon(icon: AppIcons.statusFailed, color: AppColors.red, size: 22),
                 ),
-              Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                decoration: BoxDecoration(color: colors.background.withTransparency(message.isDeleted ? .6 : 1), borderRadius: _shape),
-                clipBehavior: Clip.antiAlias,
-                child: content,
+              Builder(
+                builder: (context) {
+                  final bubble = Container(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    decoration: BoxDecoration(color: colors.background.withTransparency(message.isDeleted ? .6 : 1), borderRadius: _shape),
+                    clipBehavior: Clip.antiAlias,
+                    child: content,
+                  );
+                  final sender = message.senderUsername;
+                  if (senderName == null || sender == null || message.isOwned || joinsPrevious) return bubble;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: AppSpacing.m, bottom: AppSpacing.xxs),
+                        child: Text(senderName!, style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: colorOf(sender))),
+                      ),
+                      bubble,
+                    ],
+                  );
+                },
               ),
             ],
           ),

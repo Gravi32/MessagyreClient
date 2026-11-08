@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
+import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -128,6 +130,16 @@ class _SettingsListPageState extends State<SettingsListPage> {
                     if (updated) getAccount();
                   });
                 },
+              ),
+              ListTile.simple(
+                context,
+                title: "Ma classe",
+                icon: HugeIcons.strokeRoundedSchool01,
+                trailing: Text(
+                  ClassService().current.value?.name ?? (ClassService().savedValue == SchoolClass.outside ? "Aucune" : "À choisir"),
+                  style: AppStyles.secondaryText(context),
+                ),
+                onTap: () => showCupertinoSheet(context: context, builder: (_) => const ClassPickerPage(), enableDrag: false).then((_) => setState(() {})),
               ),
               ListTile.simple(
                 context,
