@@ -3,7 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/graphics/cutout_widget.dart';
 
 class BottomBar extends StatefulWidget {
@@ -39,11 +40,31 @@ class _BottomBarState extends State<BottomBar> {
           children: App.pages.mapIndexed((index, page) {
             final isSelected = index == currentIndex;
             final color = (isSelected ? AppColors.text : AppColors.secondaryText).adaptTo(context);
-            final button = Button.icon(
-              context,
-              icon: page.icon,
-              iconColor: isSelected ? null : AppColors.secondaryButton.adaptTo(context),
-              onTap: () => MainPage.pageIndex.value = index,
+            // The selected tab looks like the app icon: a rounded square with its gradient
+            final button = CupertinoButton(
+              padding: .zero,
+              minimumSize: .zero,
+              pressedOpacity: .6,
+              onPressed: () => MainPage.pageIndex.value = index,
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: LayoutBuilder(
+                  builder: (context, constraints) => AnimatedContainer(
+                    duration: AppDurations.normal,
+                    curve: Curves.easeOutCubic,
+                    margin: const .all(2),
+                    decoration: BoxDecoration(
+                      borderRadius: .circular(constraints.maxWidth * (isSelected ? .3 : .5)),
+                      // Opaque (the old see-through fill, already mixed with the background): no blur needed over the content
+                      color: isSelected ? null : Color.alphaBlend(AppColors.secondaryBackground.adaptTo(context).withTransparency(.5), AppColors.background.adaptTo(context)),
+                      gradient: isSelected ? AppColors.accentGradient : null,
+                      boxShadow: isSelected ? [BoxShadow(color: AppColors.accent.withValues(alpha: .3), blurRadius: 10, offset: const Offset(0, 3))] : null,
+                    ),
+                    alignment: .center,
+                    child: HugeIcon(icon: page.icon, color: isSelected ? AppColors.white : AppColors.secondaryButton.adaptTo(context)),
+                  ),
+                ),
+              ),
             );
 
             return Padding(

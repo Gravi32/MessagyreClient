@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Theme;
 import 'package:in_app_review/in_app_review.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
@@ -166,7 +166,7 @@ class SearchPageState extends State<SearchPage> {
             ),
             if (usernameBeingLoaded == result.username) ...[
               SizedBox(width: 10),
-              LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+              GymnaseLoader(size: 18),
             ],
           ],
         ),
@@ -179,7 +179,7 @@ class SearchPageState extends State<SearchPage> {
 
     if (!isShortQuery) {
       return isSearching
-          ? Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14))
+          ? Center(child: GymnaseLoader(size: 18))
           : const EmptyState(icon: AppIcons.noResults, title: AppStrings.searchNoResults, padding: EdgeInsets.only(top: AppSpacing.xl));
     }
 

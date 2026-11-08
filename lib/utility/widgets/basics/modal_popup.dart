@@ -15,6 +15,7 @@ class ModalPopup extends StatelessWidget {
     return SafeArea(
       top: false,
       child: RoundContainer(
+        blur: true,
         padding: .all(16).copyWith(top: topBar == null ? null : 0),
         margin: topBar == null ? .zero : .all(10),
         child: Column(

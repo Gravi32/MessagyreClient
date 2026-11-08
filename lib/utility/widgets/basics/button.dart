@@ -1,13 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
 class Button extends StatefulWidget {
   final bool transparent;
+
+  /// Blurs what is behind (expensive): only for buttons floating over scrolling content
+  final bool blur;
   final bool enabled;
   final bool isLoading;
 
@@ -32,6 +35,7 @@ class Button extends StatefulWidget {
     super.key,
     this.text,
     this.transparent = false,
+    this.blur = false,
     this.enabled = true,
     this.isLoading = false,
 
@@ -60,6 +64,7 @@ class Button extends StatefulWidget {
     Color? color,
     Color? iconColor,
     bool transparent = true,
+    bool blur = false,
     bool enabled = true,
     bool isLoading = false,
     bool isDestructive = false,
@@ -71,6 +76,7 @@ class Button extends StatefulWidget {
       legacyIcon: legacyIcon,
       onTap: onTap,
       transparent: transparent,
+      blur: blur,
       enabled: enabled,
       isLoading: isLoading,
       margin: margin,
@@ -117,6 +123,8 @@ class _ButtonState extends State<Button> {
         pressedOpacity: widget.pressedOpacity ?? .4,
         child: RoundContainer(
           transparent: widget.transparent,
+          blur: widget.blur,
+          gradient: !widget.transparent && widget.enabled && widget.color == null ? AppColors.accentGradient : null,
           enabled: widget.enabled,
           padding: widget.padding ?? const .all(12),
           margin: widget.margin,
@@ -131,7 +139,7 @@ class _ButtonState extends State<Button> {
               if (!isIconOnly)
                 widget.isLoading
                     ? Expanded(
-                        child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
+                        child: Center(child: GymnaseLoader(color: widget.transparent ? null : AppColors.white)),
                       )
                     : Expanded(
                         child: widget.rawChild != null

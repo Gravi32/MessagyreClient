@@ -190,7 +190,7 @@ class _PageState extends State<Page> {
                 right: AppSpacing.page + 3,
                 child: SizedBox(
                   height: AppSizes.control,
-                  child: Button.icon(context, icon: AppIcons.add, onTap: () => widget.onFloatingButtonTap!()),
+                  child: Button.icon(context, icon: AppIcons.add, blur: true, onTap: () => widget.onFloatingButtonTap!()),
                 ),
               ),
 

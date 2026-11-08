@@ -232,6 +232,7 @@ class _SubjectAutocompleteState extends State<SubjectAutocomplete> {
         final options = rawOptions.toList();
 
         return RoundContainer(
+          blur: true,
           margin: const .only(bottom: 8),
           padding: .zero,
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),

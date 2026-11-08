@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -75,7 +75,7 @@ class _ListTileState extends State<ListTile> {
           children: widget.isLoading
               ? [
                   Expanded(
-                    child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
+                    child: Center(child: GymnaseLoader(size: 18)),
                   ),
                 ]
               : [

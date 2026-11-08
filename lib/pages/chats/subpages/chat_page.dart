@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
@@ -423,7 +422,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
             ),
-            if (isLoadingProfile) LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+            if (isLoadingProfile) GymnaseLoader(size: 18),
             Button.icon(context, icon: isClassChat ? AppIcons.members : AppIcons.profile, onTap: openProfile),
           ],
         ),
@@ -605,7 +604,7 @@ class _ChatPageState extends State<ChatPage> {
                       spacing: AppSpacing.s,
                       children: [
                         Text(AppStrings.waitingForConnection, style: AppStyles.footnote(context)),
-                        LoadingAnimationWidget.waveDots(color: AppColors.tertiaryText.adaptTo(context), size: 12),
+                        GymnaseLoader(size: 16),
                       ],
                     ),
                   ),

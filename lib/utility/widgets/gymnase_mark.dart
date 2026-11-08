@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 
@@ -29,16 +31,60 @@ class ClassAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color.fromRGBO(196, 40, 204, 1), AppColors.accent, Color.fromRGBO(120, 6, 150, 1)],
-        ),
-      ),
+      decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.accentGradient),
       alignment: Alignment.center,
       child: GymnaseMark(size: size * .58, color: AppColors.white),
+    );
+  }
+}
+
+/// The app icon itself: the white Gymnase on the icon's gradient, in a rounded square
+class AppIconTile extends StatelessWidget {
+  final double size;
+  const AppIconTile({super.key, this.size = 72});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(size * .23),
+        gradient: AppColors.accentGradient,
+        boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: .35), blurRadius: size * .3, offset: Offset(0, size * .08))],
+      ),
+      alignment: Alignment.center,
+      child: GymnaseMark(size: size * .66, color: AppColors.white),
+    );
+  }
+}
+
+/// Loading: the icon's two blocks light up one after the other. Repaints only itself (no rebuild).
+class GymnaseLoader extends StatefulWidget {
+  final double size;
+  final Color? color;
+  const GymnaseLoader({super.key, this.size = 18, this.color});
+
+  @override
+  State<GymnaseLoader> createState() => _GymnaseLoaderState();
+}
+
+class _GymnaseLoaderState extends State<GymnaseLoader> with SingleTickerProviderStateMixin {
+  late final controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: SizedBox.square(
+        dimension: widget.size,
+        child: CustomPaint(painter: _GymnasePainter(widget.color ?? AppColors.accent, null, progress: controller)),
+      ),
     );
   }
 }
@@ -46,7 +92,11 @@ class ClassAvatar extends StatelessWidget {
 class _GymnasePainter extends CustomPainter {
   final Color color;
   final Gradient? gradient;
-  _GymnasePainter(this.color, this.gradient);
+
+  /// For the loader: each block's opacity follows this animation, half a turn apart
+  final Animation<double>? progress;
+
+  _GymnasePainter(this.color, this.gradient, {this.progress}) : super(repaint: progress);
 
   /// The two blocks of the icon, in the SVG's coordinates (y going up, 5000 units)
   static const _paths = [
@@ -62,10 +112,12 @@ class _GymnasePainter extends CustomPainter {
         "-136 76 -206 55z",
   ];
 
+  static final List<Path> _blocks = [for (final data in _paths) _parse(data)];
+
   static final Path _shape = () {
     final path = Path();
-    for (final data in _paths) {
-      path.addPath(_parse(data), Offset.zero);
+    for (final block in _blocks) {
+      path.addPath(block, Offset.zero);
     }
     return path;
   }();
@@ -121,10 +173,20 @@ class _GymnasePainter extends CustomPainter {
     } else {
       paint.color = color;
     }
-    canvas.drawPath(_shape, paint);
+
+    final animation = progress;
+    if (animation == null) {
+      canvas.drawPath(_shape, paint);
+    } else {
+      for (var index = 0; index < _blocks.length; index++) {
+        final wave = (math.cos((animation.value - index / 2) * 2 * math.pi) + 1) / 2;
+        paint.color = color.withValues(alpha: color.a * (.25 + .75 * wave));
+        canvas.drawPath(_blocks[index], paint);
+      }
+    }
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_GymnasePainter oldDelegate) => oldDelegate.color != color || oldDelegate.gradient != gradient;
+  bool shouldRepaint(_GymnasePainter oldDelegate) => oldDelegate.color != color || oldDelegate.gradient != gradient || oldDelegate.progress != progress;
 }

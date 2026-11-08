@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.94.1006+1006
+version: 4.95.1007+1007
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -98,6 +98,7 @@ version: 4.94.1006+1006
 # 4.92  Notifications show the message and the sender's photo
 # 4.93  School data saved per account, finished subjects keep their final average, postponable subjects sheet
 # 4.94  Class chosen at sign-up (asked again every school year) and class group chats
+# 4.95  Personal look: the Gymnase of the app icon in titles, tabs, empty states and loaders; lighter (no needless blur)
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

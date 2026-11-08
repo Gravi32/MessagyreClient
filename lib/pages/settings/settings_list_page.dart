@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
 import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/pages/bootstrap/privacy_policy.dart';
 import 'package:messagyre_client/pages/bootstrap/terms_of_service.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
@@ -76,6 +77,82 @@ class _SettingsListPageState extends State<SettingsListPage> {
     getAccount();
   }
 
+  Future<void> openProfile() async {
+    if (account == null) return;
+    if (account!.username != globals.username) await getAccount();
+    if (!mounted) return;
+
+    Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
+      if (updated == true) getAccount();
+    });
+  }
+
+  /// Who is signed in, on the app icon's gradient with the Gymnase in the corner
+  Widget buildProfileCard(BuildContext context) {
+    final white = AppColors.white;
+    final schoolClass = ClassService().current.value?.name;
+    final isLoading = account == null || globals.username == null;
+
+    return Padding(
+      padding: const .only(top: AppSpacing.l),
+      child: CupertinoButton(
+        padding: .zero,
+        minimumSize: .zero,
+        pressedOpacity: .8,
+        onPressed: isLoading ? null : openProfile,
+        child: Container(
+          height: 112,
+          clipBehavior: .antiAlias,
+          decoration: BoxDecoration(borderRadius: .circular(AppRadius.l), gradient: AppColors.accentGradient),
+          child: Stack(
+            children: [
+              Positioned(right: -18, bottom: -34, child: GymnaseMark(size: 132, color: white.withValues(alpha: .13))),
+              Padding(
+                padding: const .all(AppSpacing.l),
+                child: isLoading
+                    ? Center(child: GymnaseLoader(size: 22, color: white))
+                    : Row(
+                        spacing: AppSpacing.l,
+                        children: [
+                          Container(
+                            padding: const .all(2),
+                            decoration: BoxDecoration(shape: .circle, color: white.withValues(alpha: .35)),
+                            child: SizedBox.square(dimension: 64, child: ProfilePictureDisplay(accountUsername: globals.username!)),
+                          ),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: .center,
+                              crossAxisAlignment: .start,
+                              children: [
+                                Text(
+                                  account!.displayName ?? account!.defaultDisplayName,
+                                  maxLines: 1,
+                                  overflow: .ellipsis,
+                                  style: AppStyles.header(context).copyWith(color: white),
+                                ),
+                                Text(globals.username!, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context).copyWith(color: white.withValues(alpha: .8))),
+                                if (schoolClass != null) ...[
+                                  const SizedBox(height: AppSpacing.xs + 2),
+                                  Container(
+                                    padding: const .symmetric(horizontal: AppSpacing.s, vertical: AppSpacing.xxs),
+                                    decoration: BoxDecoration(borderRadius: .circular(AppRadius.s), color: white.withValues(alpha: .2)),
+                                    child: Text("Classe $schoolClass", style: AppStyles.badge(context)),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: white.withValues(alpha: .8), size: AppSizes.smallIcon),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (account == null) getAccount();
@@ -87,50 +164,10 @@ class _SettingsListPageState extends State<SettingsListPage> {
         physics: const NeverScrollableScrollPhysics(),
         padding: .zero,
         children: [
+          buildProfileCard(context),
           ListSection(
-            title: "Votre compte",
-            margin: .only(top: 16),
+            margin: .only(top: 12),
             children: [
-              ListTile(
-                child: (account == null || globals.username == null)
-                    ? SizedBox(
-                        height: 39,
-                        child: Center(child: LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14)),
-                      )
-                    : AspectRatio(
-                        aspectRatio: 4,
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: .symmetric(vertical: 6),
-                              child: ProfilePictureDisplay(accountUsername: globals.username!),
-                            ),
-
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: .center,
-                                crossAxisAlignment: .start,
-                                children: [
-                                  Text(account!.displayName ?? account!.defaultDisplayName, style: AppStyles.header(context)),
-                                  const SizedBox(height: 4),
-                                  Text(globals.username!, style: TextStyle(color: CupertinoColors.systemGrey.resolveFrom(context), fontSize: 16)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                onTap: () async {
-                  if (account!.username != globals.username) await getAccount();
-
-                  if (!context.mounted) return;
-
-                  Navigator.of(context).push(CupertinoPageRoute(builder: (context) => ProfilePage(account!))).then((updated) {
-                    if (updated) getAccount();
-                  });
-                },
-              ),
               ListTile.simple(
                 context,
                 title: "Ma classe",

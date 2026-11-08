@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart' hide ConnectionState;
 import 'package:hugeicons/hugeicons.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -30,7 +30,7 @@ class _ConnectionStatusState extends State<ConnectionStatus> {
                 ),
                 network.isLocalhost
                     ? CustomIcon(icon: HugeIcons.strokeRoundedAlert02, color: AppColors.red, size: 20, strokeWidth: 1.5)
-                    : LoadingAnimationWidget.waveDots(color: AppColors.secondaryText.adaptTo(context), size: 14),
+                    : GymnaseLoader(size: 18),
               ],
             )
           : SizedBox.shrink(),

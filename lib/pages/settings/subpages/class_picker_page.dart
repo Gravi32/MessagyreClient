@@ -127,11 +127,7 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
       padding: const EdgeInsets.all(AppSpacing.l),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.l),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color.fromRGBO(196, 40, 204, 1), AppColors.accent, Color.fromRGBO(110, 6, 140, 1)],
-        ),
+        gradient: AppColors.accentGradient,
       ),
       child: Stack(
         clipBehavior: Clip.none,

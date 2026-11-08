@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
 /// What a page or a list shows when it has nothing to show: an icon, a title, a sentence and an optional action.
 class EmptyState extends StatelessWidget {
@@ -33,7 +34,17 @@ class EmptyState extends StatelessWidget {
         mainAxisSize: .min,
         mainAxisAlignment: .center,
         children: [
-          HugeIcon(icon: icon, strokeWidth: 1.5, size: 48, color: AppColors.tertiaryText.adaptTo(context)),
+          // The icon on the Gymnase's shape, faint
+          SizedBox.square(
+            dimension: 104,
+            child: Stack(
+              alignment: .center,
+              children: [
+                GymnaseMark(size: 104, color: AppColors.accent.withValues(alpha: .12)),
+                HugeIcon(icon: icon, strokeWidth: 1.5, size: 44, color: AppColors.accent),
+              ],
+            ),
+          ),
           const SizedBox(height: AppSpacing.m),
           Text(title, textAlign: .center, style: AppStyles.secondaryHeader(context).copyWith(fontWeight: .w600, color: AppColors.secondaryText.adaptTo(context))),
           if (subtitle != null) ...[

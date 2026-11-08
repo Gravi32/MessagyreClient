@@ -32,6 +32,29 @@ class BlurredContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A BackdropFilter costs a full read of the screen behind it even with a zero blur: without blur, none at all
+    if (!enabled || blur <= 0) {
+      return Padding(
+        padding: margin ?? .zero,
+        child: ClipRRect(
+          borderRadius: borderRadius ?? .circular(24),
+          child: Stack(
+            children: [
+              if (blurredChild != null) Positioned.fill(child: blurredChild!),
+              Container(
+                padding: padding,
+                height: height,
+                width: width,
+                constraints: constraints,
+                decoration: BoxDecoration(borderRadius: borderRadius, border: border),
+                child: child ?? SizedBox.expand(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: margin ?? .zero,
       child: ClipRRect(
@@ -40,7 +63,7 @@ class BlurredContainer extends StatelessWidget {
           children: [
             if (blurredChild != null) Positioned.fill(child: blurredChild!),
             BackdropFilter(
-              filter: enabled ? ImageFilter.blur(sigmaX: blur, sigmaY: blur) : ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+              filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
               child: Container(
                 padding: padding,
                 height: height,

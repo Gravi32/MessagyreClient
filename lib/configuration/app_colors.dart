@@ -4,6 +4,14 @@ class AppColors {
   // Accent
   static const accent = Color.fromRGBO(171, 12, 179, 1.0);
 
+  /// The app icon's background (sampled from assets/icons/full.png): the brand's color for the surfaces that carry
+  /// the Gymnase's shape, the main buttons and the selected tab
+  static const accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color.fromRGBO(175, 0, 184, 1.0), Color.fromRGBO(99, 25, 104, 1.0)],
+  );
+
   // Backgrounds
   static const background = AppColor(light: Color.fromRGBO(242, 242, 247, 1.0), dark: Color.fromRGBO(16, 25, 34, 1.0));
   static const secondaryBackground = AppColor(light: Color.fromRGBO(232, 232, 237, 1.0), dark: Color.fromRGBO(24, 31, 48, 1.0));

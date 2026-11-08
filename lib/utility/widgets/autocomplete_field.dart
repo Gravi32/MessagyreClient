@@ -130,6 +130,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
       },
       optionsViewBuilder: (context, onSelected, options) {
         return RoundContainer(
+          blur: true,
           margin: const .only(top: 8),
           padding: .all(8),
           constraints: BoxConstraints(maxHeight: widget.optionsMaxHeight),

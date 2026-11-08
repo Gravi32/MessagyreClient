@@ -6,6 +6,7 @@ import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class TopBar extends StatefulWidget {
@@ -14,6 +15,9 @@ class TopBar extends StatefulWidget {
   final Widget? trailing;
   final Field? field;
   final bool isSliver;
+
+  /// The title of a sliver bar once collapsed, when [middle] (its large title) is more than a text
+  final Widget? collapsedMiddle;
 
   /// Hero animation between routes. Must be off for the bars of the main tabs: they live
   /// together in the same PageView, and several bars with the default hero tag in one
@@ -27,6 +31,7 @@ class TopBar extends StatefulWidget {
     this.trailing,
     this.field,
     this.isSliver = false,
+    this.collapsedMiddle,
     this.transitionBetweenRoutes = true,
   });
 
@@ -70,9 +75,17 @@ class TopBar extends StatefulWidget {
     );
   }
 
+  /// The bar of the main tabs: a large title signed with the app icon's shape
   factory TopBar.sliver({required String title, Widget? leading, Widget? trailing, Field? field}) {
     return TopBar(
-      middle: Text(title),
+      middle: Row(
+        mainAxisSize: .min,
+        children: [
+          const Padding(padding: .only(right: 10, top: 2), child: GymnaseMark(size: 28)),
+          Flexible(child: Text(title, maxLines: 1, overflow: .ellipsis)),
+        ],
+      ),
+      collapsedMiddle: Text(title),
       leading: leading,
       trailing: trailing,
       field: field,
@@ -107,6 +120,8 @@ class _TopBarState extends State<TopBar> {
       return CupertinoSliverNavigationBar(
         leading: widget.leading,
         largeTitle: widget.middle,
+        middle: widget.collapsedMiddle,
+        alwaysShowMiddle: widget.collapsedMiddle == null,
         trailing: widget.trailing,
         transitionBetweenRoutes: widget.transitionBetweenRoutes,
         backgroundColor: AppColors.background.adaptTo(context),
