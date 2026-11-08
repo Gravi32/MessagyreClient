@@ -1,3 +1,4 @@
+import 'package:hugeicons/hugeicons.dart';
 import 'package:animated_line_through/animated_line_through.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
@@ -11,7 +12,6 @@ import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/tag.dart';
 import 'package:messagyre_client/utility/widgets/subject_badge.dart';
@@ -65,24 +65,40 @@ class _AssignmentTileState extends State<AssignmentTile> {
       padding: widget.padding,
       onTap: () => showCupertinoSheet(context: context, builder: (context) => NewAssignmentPage(toEdit: assignment), enableDrag: false),
       trailing: assignment.type == AssignmentType.assignment
-          ? Button.icon(
-              context,
-              size: AppSizes.control,
-              icon: AppIcons.done,
-              color: AppColors.tertiaryBackground.adaptTo(context),
-              iconColor: isDone ? AppColors.green : AppColors.tertiaryBackground.adaptTo(context),
-              enabled: widget.enabled,
-              onTap: () async {
-                setState(() => isDone = !isDone);
-                await database.assignments.markDone(assignment, isDone);
-              },
+          ? CupertinoButton(
+              padding: const .all(AppSpacing.xs),
+              minimumSize: .zero,
+              onPressed: widget.enabled
+                  ? () async {
+                      setState(() => isDone = !isDone);
+                      await database.assignments.markDone(assignment, isDone);
+                    }
+                  : null,
+              // A circle to tick: empty with an outline, then filled in green
+              child: AnimatedContainer(
+                duration: AppDurations.normal,
+                curve: Curves.easeOutCubic,
+                width: 30,
+                height: 30,
+                alignment: .center,
+                decoration: BoxDecoration(
+                  shape: .circle,
+                  color: isDone ? AppColors.green : AppColors.transparent,
+                  border: .all(color: isDone ? AppColors.green : AppColors.tertiaryText.adaptTo(context), width: 2),
+                ),
+                child: AnimatedOpacity(
+                  duration: AppDurations.fast,
+                  opacity: isDone ? 1 : 0,
+                  child: const HugeIcon(icon: AppIcons.done, color: AppColors.white, size: 18, strokeWidth: 2.5),
+                ),
+              ),
             )
           : null,
       child: Opacity(
         opacity: widget.dim ? .6 : 1,
         child: Column(
           crossAxisAlignment: .start,
-          spacing: AppSpacing.s,
+          spacing: AppSpacing.xs + 2,
           children: [
             Row(
               spacing: AppSpacing.s + 2,
@@ -99,7 +115,7 @@ class _AssignmentTileState extends State<AssignmentTile> {
                     duration: animationDuration,
                     child: Text(
                       assignment.type == AssignmentType.test ? (assignment.title ?? AppStrings.untitledTest) : assignment.content,
-                      style: AppStyles.secondaryHeader(context).copyWith(color: assignment.type == AssignmentType.test ? AppColors.red : null),
+                      style: AppStyles.strongText(context).copyWith(fontSize: 18, color: assignment.type == AssignmentType.test ? AppColors.red : null),
                       softWrap: true,
                       maxLines: 2,
                       overflow: .ellipsis,
@@ -116,8 +132,8 @@ class _AssignmentTileState extends State<AssignmentTile> {
               Row(
                 spacing: AppSpacing.s,
                 children: [
-                  if (subject != null) SubjectBadge(subject: subject, size: 22),
-                  Expanded(child: Text(details, style: AppStyles.secondaryText(context))),
+                  if (subject != null) SubjectBadge(subject: subject, size: 20),
+                  Expanded(child: Text(details, style: AppStyles.subheadline(context))),
                 ],
               ),
           ],
@@ -157,7 +173,7 @@ class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
               Expanded(
                 child: Text(
                   assignment.displayTitle,
-                  style: AppStyles.secondaryHeader(context).copyWith(color: assignment.type == AssignmentType.test ? AppColors.red : null),
+                  style: AppStyles.strongText(context).copyWith(fontSize: 18, color: assignment.type == AssignmentType.test ? AppColors.red : null),
                   softWrap: true,
                   maxLines: 2,
                   overflow: .ellipsis,

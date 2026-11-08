@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/services/biometrics_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -46,7 +47,7 @@ class _PrivacySettingsState extends State<PrivacySettings> {
                 title: "FaceID pour voir les notes",
                 isLoading: canAuthenticate == null,
                 enabled: canAuthenticate ?? false,
-                trailing: CupertinoSwitch(
+                trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                   value: globals.persistent.getBool("GradesPageRequiresFaceId") ?? false,
                   onChanged: (enableFaceID) async {
                     if (enableFaceID) if (!await biometrics.authenticate()) return;
@@ -67,7 +68,7 @@ class _PrivacySettingsState extends State<PrivacySettings> {
                 icon: HugeIcons.strokeRoundedTickDouble02,
                 title: "Confirmations de lecture",
                 buildChevron: false,
-                trailing: CupertinoSwitch(
+                trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                   value: globals.persistent.getBool("SendReadReceipts") ?? true,
                   onChanged: (enabled) async {
                     await globals.persistent.setBool("SendReadReceipts", enabled);

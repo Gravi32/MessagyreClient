@@ -23,24 +23,24 @@ class ListSection extends StatelessWidget {
         children: [
           if (title != null)
             Padding(
-              padding: .symmetric(horizontal: 16).add(.only(bottom: 8)),
-              child: Text(title!, style: useLargeTitle ? AppStyles.header(context) : AppStyles.secondaryHeader(context)),
+              padding: .symmetric(horizontal: 6).add(.only(bottom: 8)),
+              child: Text(title!, style: useLargeTitle ? AppStyles.header(context) : AppStyles.section(context)),
             ),
           RoundContainer(
             padding: .zero,
-            borderOnly: true,
+            borderRadius: 20,
             child: ListView.separated(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               padding: .zero,
               itemCount: children?.length ?? 0,
               itemBuilder: (context, index) => children?[index],
-              separatorBuilder: (context, _) => Divider(thickness: .5, height: 0, color: AppColors.tertiaryBackground.adaptTo(context)),
+              separatorBuilder: (context, _) => Container(height: .5, margin: const .only(left: 16), color: AppColors.separator.adaptTo(context)),
             ),
           ),
           if (footer != null)
             Padding(
-              padding: .symmetric(horizontal: 16).add(.only(top: 8)),
+              padding: .symmetric(horizontal: 6).add(.only(top: 8)),
               child: CustomText(footer!, style: AppStyles.footer(context)),
             ),
         ],

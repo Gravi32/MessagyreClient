@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/composite_subjects/composite_subject.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
@@ -18,6 +17,7 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/grade_bar.dart';
@@ -132,36 +132,11 @@ class _GradesListPageState extends State<GradesListPage> {
               children: [
                 GradesTopCard(),
 
-                Row(
-                  mainAxisAlignment: .spaceBetween,
-                  children: [
-                    Text("Par branche", style: AppStyles.header(context)),
-                    Button.icon(
-                      context,
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: AppColors.secondaryBackground.adaptTo(context),
-                      onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => GradesBySubjectPage())),
-                      size: 45,
-                    ),
-                  ],
-                ),
+                SectionHeader("Par branche", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => GradesBySubjectPage()))),
                 buildSubjectsGrid(allSubjects, allCompositeSubjects),
 
                 if (allGrades.isNotEmpty) ...[
-                  SizedBox(),
-                  Row(
-                    mainAxisAlignment: .spaceBetween,
-                    children: [
-                      Text("Récentes", style: AppStyles.header(context)),
-                      Button.icon(
-                        context,
-                        icon: HugeIcons.strokeRoundedArrowRight01,
-                        color: AppColors.secondaryBackground.adaptTo(context),
-                        onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage())),
-                        size: 45,
-                      ),
-                    ],
-                  ),
+                  SectionHeader("Récentes", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RecentGradesPage()))),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 350),
                     child: ShaderMask(

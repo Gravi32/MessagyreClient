@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
 class PagedCard extends StatefulWidget {
@@ -48,11 +48,17 @@ class _PagedCardState extends State<PagedCard> {
             mainAxisAlignment: .center,
             children: List.generate(widget.pages.length, (index) {
               final isActive = index == _currentPage;
-              return Container(
-                width: isActive ? 5 : 4,
-                height: isActive ? 5 : 4,
-                margin: const .symmetric(horizontal: 4),
-                decoration: BoxDecoration(color: isActive ? AppColors.white : AppColors.white.withAlpha(0.4.toByte()), shape: .circle),
+              // The current page is a short bar of the accent
+              return AnimatedContainer(
+                duration: AppDurations.normal,
+                curve: Curves.easeOutCubic,
+                width: isActive ? 16 : 6,
+                height: 6,
+                margin: const .symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  color: isActive ? AppColors.tint.adaptTo(context) : AppColors.separator.adaptTo(context),
+                  borderRadius: .circular(3),
+                ),
               );
             }),
           ),

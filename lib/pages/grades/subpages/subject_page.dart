@@ -17,6 +17,7 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
@@ -170,7 +171,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
               spacing: 8,
               children: [
                 SubjectBadge(subject: widget.subject, size: 24),
-                Text("Moyenne", style: AppStyles.header(context)),
+                Text("Moyenne", style: AppStyles.secondaryHeader(context)),
                 Spacer(),
                 Text(average.toStringAsFixed(2), style: AppStyles.header(context).copyWith(color: widget.subject.color)),
               ],
@@ -198,7 +199,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
         Column(
           crossAxisAlignment: .stretch,
           children: [
-            Text("Évolution des notes", style: AppStyles.header(context)),
+            Text("Évolution des notes", style: AppStyles.secondaryHeader(context)),
             Expanded(
               child: Padding(
                 padding: .only(top: 10, bottom: 8, left: 4),
@@ -223,7 +224,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             Row(
               spacing: 8,
               children: [
-                Text("Objectifs", style: AppStyles.header(context)),
+                Text("Objectifs", style: AppStyles.secondaryHeader(context)),
                 Spacer(),
                 Text(average.toStringAsFixed(2), style: AppStyles.header(context).copyWith(color: widget.subject.color)),
               ],
@@ -326,7 +327,7 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
             buildTopCard(),
 
             // All grades
-            if (thisSubjectGrades.isNotEmpty) Text("Notes", style: AppStyles.header(context)),
+            if (thisSubjectGrades.isNotEmpty) const SectionHeader("Notes"),
             ...thisSubjectGrades
                 .where((grade) => grade.groupName == null)
                 .toList()
@@ -342,15 +343,13 @@ class _GradesSubjectPageState extends State<GradesSubjectPage> {
 
             // Groups
             if (groups.isNotEmpty) ...[
-              SizedBox(),
-              Text("Groupes", style: AppStyles.header(context)),
+              const SectionHeader("Groupes"),
               ...groups.keys.map((groupName) => buildGroupBar(groupName)),
             ],
 
             // Incoming grades
             if (incomingGrades.isNotEmpty) ...[
-              SizedBox(),
-              Text("Notes prévues", style: AppStyles.header(context)),
+              const SectionHeader("Notes prévues"),
               ...incomingGrades.map((assignment) {
                 final grade = Grade()
                   ..title = assignment.title ?? assignment.content

@@ -100,16 +100,9 @@ class _SettingsListPageState extends State<SettingsListPage> {
         minimumSize: .zero,
         pressedOpacity: .8,
         onPressed: isLoading ? null : openProfile,
-        child: Container(
+        child: BrandCard(
           height: 112,
-          clipBehavior: .antiAlias,
-          decoration: BoxDecoration(borderRadius: .circular(AppRadius.l), gradient: AppColors.accentGradient),
-          child: Stack(
-            children: [
-              Positioned(right: -18, bottom: -34, child: GymnaseMark(size: 132, color: white.withValues(alpha: .13))),
-              Padding(
-                padding: const .all(AppSpacing.l),
-                child: isLoading
+          child: isLoading
                     ? Center(child: GymnaseLoader(size: 22, color: white))
                     : Row(
                         spacing: AppSpacing.l,
@@ -145,9 +138,6 @@ class _SettingsListPageState extends State<SettingsListPage> {
                           HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: white.withValues(alpha: .8), size: AppSizes.smallIcon),
                         ],
                       ),
-              ),
-            ],
-          ),
         ),
       ),
     );

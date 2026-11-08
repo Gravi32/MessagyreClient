@@ -10,6 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/search/subpages/ideas_page.dart';
@@ -196,7 +197,7 @@ class SearchPageState extends State<SearchPage> {
         children: [
           Padding(
             padding: .symmetric(horizontal: 10, vertical: 8),
-            child: Text(AppStrings.shortcuts, style: AppStyles.header(context)),
+            child: Text(AppStrings.shortcuts, style: AppStyles.section(context)),
           ),
           Row(
             spacing: 8,
@@ -226,7 +227,7 @@ class SearchPageState extends State<SearchPage> {
                           spacing: 2,
                           children: [
                             Expanded(
-                              child: Text(shortcut.name, maxLines: 1, softWrap: false, overflow: .fade, style: AppStyles.secondaryHeader(context)),
+                              child: Text(shortcut.name, maxLines: 1, softWrap: false, overflow: .fade, style: AppStyles.strongText(context)),
                             ),
                             HugeIcon(icon: AppIcons.chevronRight, size: AppStyles.tertiaryText(context).fontSize, color: AppColors.tertiaryText.adaptTo(context)),
                           ],
@@ -243,7 +244,7 @@ class SearchPageState extends State<SearchPage> {
 
           Padding(
             padding: .symmetric(horizontal: 10, vertical: 8),
-            child: Text(AppStrings.announcements, style: AppStyles.header(context)),
+            child: Text(AppStrings.announcements, style: AppStyles.section(context)),
           ),
           ...newsContent.map((newsBox) {
             final Map<String, dynamic>? metadata = tryJsonDecode(newsBox["Metadata"] ?? "{}");
@@ -322,28 +323,19 @@ class SearchPageState extends State<SearchPage> {
             padding: .all(16),
             color: AppColors.secondaryBackground.adaptTo(context),
             transparent: true,
-            rawChild: Column(
-              crossAxisAlignment: .stretch,
+            rawChild: Row(
+              spacing: AppSpacing.m + 2,
               children: [
-                Row(
-                  spacing: 2,
-
-                  children: [
-                    Expanded(child: Text(AppStrings.leaveReview, style: AppStyles.header(context))),
-                    ...List.generate(
-                      5,
-                      (_) => HugeIcon(
-                        icon: HugeIcons.strokeRoundedStar,
-                        size: AppStyles.secondaryHeader(context).fontSize,
-                        color: AppColors.tertiaryText.adaptTo(context),
-                      ),
-                    ),
-                  ],
-                ),
-
-                Text(
-                  AppStrings.leaveReviewContent(Theme.of(context).platform == .android),
-                  style: AppStyles.tertiaryText(context),
+                ListTile.iconTile(context, icon: HugeIcons.strokeRoundedStar, color: AppColors.orange),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .stretch,
+                    spacing: 2,
+                    children: [
+                      Text(AppStrings.leaveReview, style: AppStyles.strongText(context).copyWith(fontSize: 18)),
+                      Text(AppStrings.leaveReviewContent(Theme.of(context).platform == .android), style: AppStyles.subheadline(context)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -364,26 +356,24 @@ class SearchPageState extends State<SearchPage> {
 
           Button(
             margin: .only(bottom: 16),
-            padding: .zero,
+            padding: .all(16),
             color: AppColors.secondaryBackground.adaptTo(context),
             transparent: true,
-            rawChild: Stack(
+            rawChild: Row(
+              spacing: AppSpacing.m + 2,
               children: [
-                Padding(
-                  padding: .all(16),
+                ListTile.iconTile(context, icon: HugeIcons.strokeRoundedIdea01),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: .stretch,
+                    spacing: 2,
                     children: [
-                      Text(AppStrings.ideasBox, style: AppStyles.header(context)),
-                      Text(AppStrings.ideasBoxContent, style: AppStyles.tertiaryText(context)),
+                      Text(AppStrings.ideasBox, style: AppStyles.strongText(context).copyWith(fontSize: 18)),
+                      Text(AppStrings.ideasBoxContent, style: AppStyles.subheadline(context)),
                     ],
                   ),
                 ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Button.icon(context, icon: HugeIcons.strokeRoundedArrowRight01, size: 40, color: AppColors.secondaryBackground.adaptTo(context)),
-                ),
+                HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
               ],
             ),
             onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => IdeasPage())),

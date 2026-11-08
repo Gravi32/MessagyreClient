@@ -94,7 +94,13 @@ class MessageBubble extends StatelessWidget {
                 builder: (context) {
                   final bubble = Container(
                     constraints: BoxConstraints(maxWidth: maxWidth),
-                    decoration: BoxDecoration(color: colors.background.withTransparency(message.isDeleted ? .6 : 1), borderRadius: _shape),
+                    decoration: BoxDecoration(
+                      color: colors.background.withTransparency(message.isDeleted ? .6 : 1),
+                      gradient: message.isOwned && !message.isDeleted ? AppColors.sentGradient : null,
+                      borderRadius: _shape,
+                      // The received bubbles are cards: a hairline keeps them apart from a light wallpaper
+                      border: message.isOwned ? null : Border.all(color: AppColors.outline.adaptTo(context), width: .5),
+                    ),
                     clipBehavior: Clip.antiAlias,
                     child: content,
                   );

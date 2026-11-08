@@ -22,9 +22,9 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
-import 'package:messagyre_client/utility/graphics/blurred_container.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
+import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
@@ -381,12 +381,13 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget buildTopBar() {
     final topPadding = MediaQuery.paddingOf(context).top;
-    final background = AppColors.background.adaptTo(context);
 
+    // A solid bar (no blur, no fade): the messages scroll under it without ever showing through
     return Container(
-      padding: EdgeInsets.fromLTRB(AppSpacing.page, topPadding + AppSpacing.xs, AppSpacing.page, AppSpacing.l),
+      padding: EdgeInsets.fromLTRB(AppSpacing.page, topPadding + AppSpacing.xs, AppSpacing.page, AppSpacing.s),
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [background.withTransparency(0), background.withTransparency(.92), background], stops: const [0, .35, .6]),
+        color: AppColors.secondaryBackground.adaptTo(context),
+        border: Border(bottom: BorderSide(color: AppColors.separator.adaptTo(context), width: .5)),
       ),
       child: SizedBox(
         height: AppSizes.iconButton,
@@ -441,7 +442,7 @@ class _ChatPageState extends State<ChatPage> {
     final tertiary = AppColors.tertiaryText.adaptTo(context);
     return Column(
       children: [
-        BlurredContainer(
+        RoundContainer(
           width: double.infinity,
           margin: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.m),
           padding: const EdgeInsets.all(AppSpacing.l),
@@ -456,8 +457,9 @@ class _ChatPageState extends State<ChatPage> {
             ],
           ),
         ),
-        BlurredContainer(
+        RoundContainer(
           width: double.infinity,
+          borderRadius: AppRadius.m,
           margin: const EdgeInsets.only(bottom: AppSpacing.l),
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
           child: _Notice(icon: AppIcons.encrypted, text: AppStrings.classEncryption, color: tertiary),
@@ -471,7 +473,7 @@ class _ChatPageState extends State<ChatPage> {
     if (isClassChat) return buildClassHeader();
     return Column(
       children: [
-        BlurredContainer(
+        RoundContainer(
           width: double.infinity,
           margin: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.m),
           padding: const EdgeInsets.all(AppSpacing.l),
@@ -490,8 +492,9 @@ class _ChatPageState extends State<ChatPage> {
         ),
         ValueListenableBuilder(
           valueListenable: chats.encryptionStateOf(username),
-          builder: (context, state, _) => BlurredContainer(
+          builder: (context, state, _) => RoundContainer(
             width: double.infinity,
+            borderRadius: AppRadius.m,
             margin: const EdgeInsets.only(bottom: AppSpacing.l),
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
             child: switch (state) {
@@ -514,10 +517,10 @@ class _ChatPageState extends State<ChatPage> {
         : formatDate(date).capitalize();
 
     return Center(
-      child: BlurredContainer(
+      child: RoundContainer(
         margin: const EdgeInsets.only(top: AppSpacing.l, bottom: AppSpacing.m),
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs + 1, horizontal: AppSpacing.m),
-        borderRadius: BorderRadius.circular(AppRadius.s),
+        borderRadius: AppRadius.s,
         child: Text(text, style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: AppColors.secondaryText.adaptTo(context))),
       ),
     );
@@ -573,23 +576,22 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget buildInputBar() {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
-    final background = AppColors.background.adaptTo(context);
+    final surface = AppColors.secondaryBackground.adaptTo(context);
+    final separator = BorderSide(color: AppColors.separator.adaptTo(context), width: .5);
     final canSend = fieldController.text.trim().isNotEmpty;
 
     if (!canWrite) {
       return Container(
         width: double.infinity,
         padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.l, AppSpacing.page, bottomPadding + AppSpacing.l),
-        color: background,
+        decoration: BoxDecoration(color: surface, border: Border(top: separator)),
         child: Text(AppStrings.classChatReadOnly, textAlign: TextAlign.center, style: AppStyles.footnote(context)),
       );
     }
 
     return Container(
-      padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.xl, AppSpacing.page, bottomPadding + AppSpacing.s),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [background.withTransparency(0), background], stops: const [0, .35]),
-      ),
+      padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.s, AppSpacing.page, bottomPadding + AppSpacing.s),
+      decoration: BoxDecoration(color: surface, border: Border(top: separator)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -629,6 +631,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
               Expanded(
                 child: Field(
+                  sunken: true,
                   placeholder: AppStrings.messagePlaceholder,
                   controller: fieldController,
                   focusNode: fieldFocusNode,
@@ -645,7 +648,7 @@ class _ChatPageState extends State<ChatPage> {
                   context,
                   icon: AppIcons.send,
                   transparent: !canSend,
-                  color: canSend ? AppColors.accent : null,
+                  color: canSend ? null : AppColors.tertiaryBackground.adaptTo(context),
                   iconColor: canSend ? AppColors.white : AppColors.tertiaryText.adaptTo(context),
                   onTap: canSend ? sendText : null,
                 ),

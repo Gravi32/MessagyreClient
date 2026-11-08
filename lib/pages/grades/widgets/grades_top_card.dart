@@ -34,7 +34,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
   Widget buildGeneralAverageTab() {
     final generalAverage = calculateAverage(grades.toList());
-    final color = getGradeColor(generalAverage);
+    final color = getGradeColor(generalAverage, defaultColor: AppColors.tint.adaptTo(context));
 
     grades.sort((a, b) => a.date.compareTo(b.date));
 
@@ -78,10 +78,9 @@ class _GradesTopCardState extends State<GradesTopCard> {
                 ),
               ),
 
-              RoundContainer(
-                borderRadius: 1000,
-                padding: .zero,
-                blurOnly: true,
+              // The card's color under the ring hides the start of the chart
+              Container(
+                decoration: BoxDecoration(shape: .circle, color: AppColors.secondaryBackground.adaptTo(context)),
                 child: Center(
                   child: GradeDisplay(
                     grade: generalAverage,
@@ -95,7 +94,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
             ],
           ),
         ),
-        Text("Moyenne générale", style: AppStyles.header(context)),
+        Text("Moyenne générale", style: AppStyles.secondaryHeader(context)),
       ],
     );
   }
@@ -152,11 +151,11 @@ class _GradesTopCardState extends State<GradesTopCard> {
           mainAxisAlignment: .spaceBetween,
           crossAxisAlignment: .center,
           children: [
-            Text("Bulletin", style: AppStyles.header(context)),
+            Text("Bulletin", style: AppStyles.secondaryHeader(context)),
             Button.icon(
               context,
               icon: HugeIcons.strokeRoundedArrowRight01,
-              color: AppColors.secondaryBackground.adaptTo(context),
+              color: AppColors.tertiaryBackground.adaptTo(context),
               onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => ReportCardPage())).then((_) {
                 if (mounted) setState(() {});
               }),
@@ -168,13 +167,15 @@ class _GradesTopCardState extends State<GradesTopCard> {
         Expanded(
           child: RoundContainer(
             padding: .zero,
+            borderRadius: 18,
+            color: AppColors.tertiaryBackground.adaptTo(context),
             child: ListView.separated(
               padding: .symmetric(vertical: 8),
               physics: ClampingScrollPhysics(),
               itemCount: stats.length,
               shrinkWrap: true,
               itemBuilder: (context, index) => stats[index],
-              separatorBuilder: (context, index) => Divider(height: 16, color: AppColors.secondaryBackground.adaptTo(context)),
+              separatorBuilder: (context, index) => Divider(height: 16, color: AppColors.separator.adaptTo(context)),
             ),
           ),
         ),
@@ -186,19 +187,20 @@ class _GradesTopCardState extends State<GradesTopCard> {
     Widget buildBox(String title, String value) {
       return RoundContainer(
         margin: const .all(4),
+        borderRadius: 16,
         padding: const .symmetric(vertical: 10, horizontal: 6),
-        color: AppColors.secondaryBackground.adaptTo(context),
+        color: AppColors.tertiaryBackground.adaptTo(context),
         child: Column(
           mainAxisAlignment: .center,
           crossAxisAlignment: .stretch,
           spacing: 4,
           children: [
             Expanded(
-              child: Text(title, style: AppStyles.tertiaryText(context), textAlign: .center),
+              child: Text(title, style: AppStyles.subheadline(context), textAlign: .center),
             ),
             Expanded(
               flex: 2,
-              child: Text(value, style: AppStyles.header(context), textAlign: .center),
+              child: Text(value, style: AppStyles.secondaryHeader(context).copyWith(fontSize: 22), textAlign: .center),
             ),
           ],
         ),
@@ -245,7 +247,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
         Row(
           crossAxisAlignment: .center,
           children: [
-            Text("Statistiques", style: AppStyles.header(context)),
+            Text("Statistiques", style: AppStyles.secondaryHeader(context)),
             SizedBox(height: 40),
           ],
         ),

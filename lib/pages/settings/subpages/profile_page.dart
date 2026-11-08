@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
+import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +16,6 @@ import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
-import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -329,45 +330,52 @@ class _ProfilePageState extends State<ProfilePage> {
           : TopBar.tab(context, title: account.username),
 
       children: [
-        RoundContainer(
+        // The person, on the app icon's gradient (like the profile card of the settings)
+        BrandCard(
+          padding: const .all(AppSpacing.l + 2),
+          markScale: .9,
           child: Column(
-            spacing: 10,
+            crossAxisAlignment: .start,
+            spacing: AppSpacing.m,
             children: [
               Row(
-                spacing: 16,
+                spacing: AppSpacing.l,
                 children: [
-                  SizedBox(
-                    height: 60,
-                    child: ProfilePictureDisplay(
-                      accountUsername: chosenPicturePath != null ? null : account.username,
-                      picturePath: chosenPicturePath,
-                      isBlocked: isBlocked,
+                  Container(
+                    padding: const .all(2),
+                    decoration: BoxDecoration(shape: .circle, color: AppColors.white.withValues(alpha: .35)),
+                    child: SizedBox.square(
+                      dimension: 68,
+                      child: ProfilePictureDisplay(
+                        accountUsername: chosenPicturePath != null ? null : account.username,
+                        picturePath: chosenPicturePath,
+                        isBlocked: isBlocked,
+                      ),
                     ),
                   ),
-                  Column(
-                    spacing: 2,
-                    crossAxisAlignment: .start,
-                    children: [
-                      Text(account.displayName ?? account.defaultDisplayName, style: AppStyles.header(context)),
-
-                      Row(
-                        spacing: 6,
-                        children: [
-                          CustomIcon(icon: HugeIcons.strokeRoundedUserAccount, size: 18, color: AppColors.secondaryText.adaptTo(context)),
-                          CustomText("${account.username} - ${account.classOrRole ?? "*Nouveau compte*"}", style: AppStyles.secondaryText(context)),
-                        ],
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      spacing: 2,
+                      crossAxisAlignment: .start,
+                      children: [
+                        Text(account.displayName ?? account.defaultDisplayName, maxLines: 2, overflow: .ellipsis, style: AppStyles.header(context).copyWith(color: AppColors.white)),
+                        Text(account.username, maxLines: 1, overflow: .ellipsis, style: AppStyles.subheadline(context).copyWith(color: AppColors.white.withValues(alpha: .8))),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Container(
+                          padding: const .symmetric(horizontal: AppSpacing.s, vertical: AppSpacing.xxs),
+                          decoration: BoxDecoration(borderRadius: .circular(AppRadius.s), color: AppColors.white.withValues(alpha: .2)),
+                          child: Text(account.classOrRole ?? "Nouveau compte", style: AppStyles.badge(context)),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(),
-
               CustomText(
                 profile["Bio"] ?? "Pas de biographie",
-                style: AppStyles.primaryText(context).copyWith(fontStyle: profile["Bio"] == null ? .italic : null),
+                style: AppStyles.primaryText(context).copyWith(color: AppColors.white, fontStyle: profile["Bio"] == null ? .italic : null),
               ),
-              Text("Membre depuis : ${formatDate(account.creationDate ?? DateTime.now())}.", style: AppStyles.footer(context)),
+              Text("Membre depuis ${formatDate(account.creationDate ?? DateTime.now(), includeArticle: true)}", style: AppStyles.footnote(context).copyWith(color: AppColors.white.withValues(alpha: .75))),
             ],
           ),
         ),

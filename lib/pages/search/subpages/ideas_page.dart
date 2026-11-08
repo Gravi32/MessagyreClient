@@ -178,7 +178,7 @@ class _IdeasPageState extends State<IdeasPage> {
                           Button.icon(
                             context,
                             icon: HugeIcons.strokeRoundedThumbsUp,
-                            color: myVote == 1 ? AppColors.accent : null,
+                            color: myVote == 1 ? AppColors.tint.adaptTo(context) : null,
                             iconColor: myVote == 1 ? AppColors.white : null,
                             onTap: () => voteIdea(id, 1),
                           ),
@@ -186,7 +186,7 @@ class _IdeasPageState extends State<IdeasPage> {
                           Button.icon(
                             context,
                             icon: HugeIcons.strokeRoundedThumbsDown,
-                            color: myVote == -1 ? AppColors.accent : null,
+                            color: myVote == -1 ? AppColors.tint.adaptTo(context) : null,
                             iconColor: myVote == -1 ? AppColors.white : null,
                             onTap: () => voteIdea(id, -1),
                           ),

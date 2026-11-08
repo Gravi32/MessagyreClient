@@ -40,16 +40,16 @@ class EmptyState extends StatelessWidget {
             child: Stack(
               alignment: .center,
               children: [
-                GymnaseMark(size: 104, color: AppColors.accent.withValues(alpha: .12)),
-                HugeIcon(icon: icon, strokeWidth: 1.5, size: 44, color: AppColors.accent),
+                GymnaseMark(size: 104, color: AppColors.accentSoft.adaptTo(context)),
+                HugeIcon(icon: icon, strokeWidth: 1.5, size: 44, color: AppColors.tint.adaptTo(context)),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.m),
-          Text(title, textAlign: .center, style: AppStyles.secondaryHeader(context).copyWith(fontWeight: .w600, color: AppColors.secondaryText.adaptTo(context))),
+          Text(title, textAlign: .center, style: AppStyles.secondaryHeader(context)),
           if (subtitle != null) ...[
             const SizedBox(height: AppSpacing.xs),
-            Text(subtitle!, textAlign: .center, style: AppStyles.tertiaryText(context)),
+            Text(subtitle!, textAlign: .center, style: AppStyles.secondaryText(context).copyWith(fontSize: 16)),
           ],
           if (actionText != null && onAction != null)
             CupertinoButton(
@@ -59,8 +59,8 @@ class EmptyState extends StatelessWidget {
                 mainAxisSize: .min,
                 spacing: AppSpacing.s - 2,
                 children: [
-                  Text(actionText!, style: AppStyles.primaryText(context).copyWith(color: AppColors.accent)),
-                  if (actionIcon != null) HugeIcon(icon: actionIcon!, size: AppSizes.smallIcon, color: AppColors.accent),
+                  Text(actionText!, style: AppStyles.strongText(context).copyWith(color: AppColors.tint.adaptTo(context))),
+                  if (actionIcon != null) HugeIcon(icon: actionIcon!, size: AppSizes.smallIcon, color: AppColors.tint.adaptTo(context)),
                 ],
               ),
             ),

@@ -85,7 +85,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
               context,
               title: "Fond d'écran par défaut",
               icon: HugeIcons.strokeRoundedBackground,
-              trailing: CupertinoSwitch(
+              trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                 value: globals.persistent.getBool("useDefaultWallpaper") ?? true,
                 onChanged: (newValue) {
                   setState(() {

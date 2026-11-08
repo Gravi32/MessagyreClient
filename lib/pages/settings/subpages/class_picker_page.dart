@@ -111,7 +111,8 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
       itemExtent: 40,
       squeeze: 1.1,
       diameterRatio: 1.4,
-      selectionOverlay: const CupertinoPickerDefaultSelectionOverlay(capStartEdge: false, capEndEdge: false),
+      // The selection band is drawn once, under the three wheels
+      selectionOverlay: null,
       onSelectedItemChanged: (index) => setState(() => onChanged(index)),
       children: [for (var index = 0; index < count; index++) Center(child: itemBuilder(index))],
     );
@@ -122,19 +123,12 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
     final schoolClass = selected;
     final count = countOf(schoolClass);
 
-    return Container(
-      margin: const EdgeInsets.only(top: AppSpacing.m),
-      padding: const EdgeInsets.all(AppSpacing.l),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.l),
-        gradient: AppColors.accentGradient,
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // The icon's shape, large and faint, in the corner: the Gymnase seen from above
-          Positioned(right: -24, bottom: -40, child: GymnaseMark(size: 150, color: AppColors.white.withValues(alpha: .14))),
-          Column(
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.m),
+      child: BrandCard(
+        padding: const EdgeInsets.all(AppSpacing.l),
+        markScale: 1.1,
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Gymnase de Renens", style: AppStyles.subheadline(context).copyWith(color: AppColors.white.withValues(alpha: .8), fontWeight: FontWeight.w600)),
@@ -155,8 +149,7 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
                 style: AppStyles.footnote(context).copyWith(color: AppColors.white.withValues(alpha: .85)),
               ),
             ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -183,9 +176,19 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
           ),
           buildPreview(),
           const SizedBox(height: AppSpacing.l),
-          SizedBox(
+          Container(
             height: 180,
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s),
+            decoration: BoxDecoration(
+              color: AppColors.secondaryBackground.adaptTo(context),
+              borderRadius: BorderRadius.circular(AppRadius.l),
+              border: Border.all(color: AppColors.outline.adaptTo(context)),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(height: 40, decoration: BoxDecoration(color: AppColors.accentSoft.adaptTo(context), borderRadius: BorderRadius.circular(AppRadius.s))),
+                Row(
               children: [
                 Expanded(
                   flex: 3,
@@ -219,12 +222,14 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
                         spacing: AppSpacing.xs,
                         children: [
                           Text(schoolClass.school == "M" ? (index + 1).toString().padLeft(2, "0") : "${index + 1}", style: text),
-                          if (count > 0) Text("· $count", style: AppStyles.footnote(context).copyWith(color: AppColors.accent, fontWeight: FontWeight.w600)),
+                          if (count > 0) Text("· $count", style: AppStyles.footnote(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: FontWeight.w600)),
                         ],
                       );
                     },
                     onChanged: (index) => section = index + 1,
                   ),
+                ),
+              ],
                 ),
               ],
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 
@@ -22,7 +23,7 @@ class GradePicker extends StatelessWidget {
           IgnorePointer(
             child: Align(
               alignment: .center,
-              child: RoundContainer(width: 60, height: 80, color: AppColors.tertiaryBackground.adaptTo(context)),
+              child: RoundContainer(width: 60, height: 80, borderRadius: AppRadius.m, color: AppColors.accentSoft.adaptTo(context)),
             ),
           ),
           RotatedBox(

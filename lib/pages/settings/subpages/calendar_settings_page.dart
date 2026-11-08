@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
@@ -33,7 +34,7 @@ class _CalendarSettingsPageState extends State<CalendarSettingsPage> {
               context,
               title: "Inclure les week-ends",
               icon: HugeIcons.strokeRoundedCalendarFavorite01,
-              trailing: CupertinoSwitch(
+              trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                 value: globals.persistent.getBool("includeWeekends") ?? false,
                 onChanged: (newValue) {
                   globals.persistent.setBool("includeWeekends", newValue);

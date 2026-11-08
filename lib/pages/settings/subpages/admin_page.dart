@@ -105,7 +105,7 @@ class _AdminPageState extends State<AdminPage> {
           children: [
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(value, maxLines: 1, style: AppStyles.largeTitle(context).copyWith(color: AppColors.accent)),
+              child: Text(value, maxLines: 1, style: AppStyles.largeTitle(context).copyWith(color: AppColors.tint.adaptTo(context))),
             ),
             Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppStyles.footnote(context)),
           ],
@@ -187,7 +187,7 @@ class _AdminPageState extends State<AdminPage> {
                   BarChartRodData(
                     toY: point.users.toDouble(),
                     width: range == "month" ? 6 : (range == "week" ? 22 : 8),
-                    color: AppColors.accent,
+                    gradient: const LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color.fromRGBO(99, 25, 104, 1), Color.fromRGBO(190, 30, 200, 1)]),
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                   ),
                 ],

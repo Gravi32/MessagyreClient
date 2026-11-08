@@ -188,7 +188,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(flex: 3),
         Text(
           "Adresse e-mail",
-          style: AppStyles.header(context).copyWith(color: AppColors.accent),
+          style: AppStyles.header(context).copyWith(color: AppColors.tint.adaptTo(context)),
           textAlign: .center,
         ),
         SizedBox(height: 12),
@@ -247,7 +247,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(flex: 3),
         Text(
           "Code de vérification",
-          style: AppStyles.header(context).copyWith(color: AppColors.accent),
+          style: AppStyles.header(context).copyWith(color: AppColors.tint.adaptTo(context)),
           textAlign: .center,
         ),
         SizedBox(height: 12),
@@ -318,7 +318,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(),
         Text(
           "Mot de passe",
-          style: AppStyles.header(context).copyWith(color: AppColors.accent),
+          style: AppStyles.header(context).copyWith(color: AppColors.tint.adaptTo(context)),
           textAlign: .center,
         ),
         SizedBox(height: 12),

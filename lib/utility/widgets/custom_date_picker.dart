@@ -181,21 +181,24 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                   : .25,
                               child: Button(
                                 onTap: isEnabled ? () => setState(() => tempDate = dayDate) : null,
-                                transparent: true,
+                                // The chosen day looks like the app icon
+                                transparent: !isSelected,
                                 pressedOpacity: 1,
-                                color: isSelected
-                                    ? AppColors.accent
-                                    : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
+                                color: isSelected ? null : (widget.isPreviewMode ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
                                 padding: .all(2).copyWith(bottom: 4),
                                 rawChild: Column(
                                   mainAxisSize: .max,
                                   mainAxisAlignment: .center,
                                   children: [
-                                    Expanded(child: isToday ? Text("Auj.", style: TextStyle(fontSize: 13)) : SizedBox()),
+                                    Expanded(
+                                      child: isToday
+                                          ? Text("Auj.", style: AppStyles.caption(context).copyWith(color: isSelected ? AppColors.white : AppColors.tint.adaptTo(context), fontWeight: .w600))
+                                          : SizedBox(),
+                                    ),
 
                                     Text(
                                       dayNumber.toString(),
-                                      style: AppStyles.secondaryHeader(context).copyWith(fontWeight: isToday ? .w800 : null),
+                                      style: AppStyles.secondaryHeader(context).copyWith(fontWeight: isToday ? .w800 : .w600, color: isSelected ? AppColors.white : null),
                                       overflow: .visible,
                                     ),
 
@@ -210,7 +213,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                           return Container(
                                             width: 4,
                                             height: 4,
-                                            decoration: BoxDecoration(color: thisPin, shape: .circle),
+                                            decoration: BoxDecoration(color: isSelected ? AppColors.white : thisPin, shape: .circle),
                                           );
                                         }),
                                       ),

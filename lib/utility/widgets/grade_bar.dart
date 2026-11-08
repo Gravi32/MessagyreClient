@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/database/models/grades/grade.dart';
 import 'package:messagyre_client/utility/utility.dart';
@@ -31,10 +34,17 @@ class GradeBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final daysDistance = DateTime.now().difference(gradeData.date).inDays;
 
+    // A card per grade, like the rest of the app's lists
     return CupertinoPressable(
-      padding: .only(left: 1.5),
       onTap: onTap,
-      child: Row(
+      child: Container(
+        padding: const .fromLTRB(AppSpacing.m, AppSpacing.s + 2, AppSpacing.m, AppSpacing.s),
+        decoration: BoxDecoration(
+          color: AppColors.secondaryBackground.adaptTo(context),
+          borderRadius: .circular(AppRadius.m),
+          border: .all(color: AppColors.outline.adaptTo(context)),
+        ),
+        child: Row(
         spacing: 6,
         children: [
           // Grade Display
@@ -59,7 +69,7 @@ class GradeBar extends StatelessWidget {
                   padding: .only(right: 20),
                   child: CustomText(
                     gradeData.title,
-                    style: TextStyle(fontWeight: .w500, fontSize: 18, color: AppColors.text.adaptTo(context)),
+                    style: AppStyles.strongText(context),
                     overflow: .ellipsis,
                   ),
                 ),
@@ -70,7 +80,7 @@ class GradeBar extends StatelessWidget {
                     padding: EdgeInsetsGeometry.only(right: 20),
                     child: CustomText(
                       gradeData.details!,
-                      style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 17),
+                      style: AppStyles.subheadline(context),
                       maxLines: 2,
                       overflow: .ellipsis,
                     ),
@@ -85,7 +95,7 @@ class GradeBar extends StatelessWidget {
                           Expanded(
                             child: Text(
                               "${gradeData.subject.value?.name ?? "Pas de branche"} • ${formatDate(gradeData.date)}",
-                              style: TextStyle(fontSize: 18, fontWeight: .w400, color: AppColors.secondaryText.adaptTo(context)),
+                              style: AppStyles.subheadline(context),
                               maxLines: 1,
                             ),
                           ),
@@ -98,7 +108,7 @@ class GradeBar extends StatelessWidget {
                         maxLines: 2,
                         overflow: .fade,
                         softWrap: true,
-                        style: TextStyle(color: AppColors.secondaryText.adaptTo(context), fontSize: 15),
+                        style: AppStyles.subheadline(context),
                       ),
               ],
             ),
@@ -111,8 +121,9 @@ class GradeBar extends StatelessWidget {
               size: 20,
               color: AppColors.tertiaryText.adaptTo(context),
             ),
-          CupertinoListTileChevron(),
+          HugeIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
         ],
+      ),
       ),
     );
   }

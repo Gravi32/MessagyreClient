@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart' hide Page;
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
@@ -122,7 +123,7 @@ En continuant a utiliser Messagyre, l'utilisateur confirme accepter sans reserve
                   context,
                   title: hasScrolledToEnd ? "J'ai lu et j'accepte les conditions" : "Lire le document pour continuer",
                   buildChevron: false,
-                  trailing: hasScrolledToEnd ? CupertinoSwitch(value: accepted, onChanged: (v) => setState(() => accepted = v)) : null,
+                  trailing: hasScrolledToEnd ? CupertinoSwitch(activeTrackColor: AppColors.accent, value: accepted, onChanged: (v) => setState(() => accepted = v)) : null,
                 ),
               ],
             ),

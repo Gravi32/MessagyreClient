@@ -92,11 +92,11 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                 children: [
                   ...allSubjects.map(
                     (subject) => ListTile(
-                      leading: SubjectBadge(subject: subject),
+                      leading: SubjectBadge(subject: subject, size: 32),
                       child: Row(
                         spacing: 6,
                         children: [
-                          Text(subject.name, style: AppStyles.secondaryHeader(context)),
+                          Text(subject.name, style: AppStyles.strongText(context)),
                           if (subject.isLocked) HugeIcon(icon: AppIcons.locked, size: 18, color: AppColors.tertiaryText.adaptTo(context)),
                         ],
                       ),
@@ -116,8 +116,8 @@ class _SubjectsListPageState extends State<SubjectsListPage> with WidgetsBinding
                   children: [
                     ...allCompositeSubjects.map(
                       (compositeSubject) => ListTile(
-                        leading: CompositeSubjectBadge(compositeSubject: compositeSubject),
-                        child: Text(compositeSubject.name, style: AppStyles.secondaryHeader(context)),
+                        leading: CompositeSubjectBadge(compositeSubject: compositeSubject, size: 32),
+                        child: Text(compositeSubject.name, style: AppStyles.strongText(context)),
                         onTap: () => showCupertinoSheet(
                           context: context,
                           builder: (context) => NewCompositeSubjectPage(toEdit: compositeSubject),

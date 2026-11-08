@@ -3,7 +3,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
-import 'package:messagyre_client/utility/utility.dart';
 
 class ListTile extends StatefulWidget {
   final Widget? child;
@@ -39,9 +38,7 @@ class ListTile extends StatefulWidget {
     bool enabled = true,
   }) {
     return ListTile(
-      leading: icon != null
-          ? HugeIcon(icon: icon, color: enabled ? (isDestructive ? AppColors.red : AppColors.accent) : AppColors.inactive.adaptTo(context))
-          : null,
+      leading: icon != null ? ListTile.iconTile(context, icon: icon, color: enabled ? (isDestructive ? AppColors.red : null) : AppColors.inactive.adaptTo(context)) : null,
       onTap: onTap,
       trailing: trailing,
       isLoading: isLoading,
@@ -53,6 +50,21 @@ class ListTile extends StatefulWidget {
               style: AppStyles.primaryText(context).copyWith(color: enabled ? (isDestructive ? AppColors.red : null) : AppColors.inactive.adaptTo(context)),
             )
           : null,
+    );
+  }
+
+  /// A row's icon, in a small rounded square tinted with its color (the accent by default), like the app icon
+  static Widget iconTile(BuildContext context, {required List<List> icon, Color? color}) {
+    final foreground = color ?? AppColors.tint.adaptTo(context);
+    return Container(
+      width: 32,
+      height: 32,
+      alignment: .center,
+      decoration: BoxDecoration(
+        borderRadius: .circular(10),
+        color: color == null ? AppColors.accentSoft.adaptTo(context) : color.withValues(alpha: AppColors.isDark(context) ? .2 : .12),
+      ),
+      child: HugeIcon(icon: icon, size: 19, color: foreground),
     );
   }
 
@@ -68,14 +80,14 @@ class _ListTileState extends State<ListTile> {
       minimumSize: .fromHeight(36),
       onPressed: widget.enabled ? widget.onTap : null,
       child: Container(
-        color: AppColors.secondaryBackground.adaptTo(context).withTransparency(widget.enabled ? .5 : .25),
-        padding: widget.padding ?? .symmetric(horizontal: 24, vertical: 14),
+        color: AppColors.secondaryBackground.adaptTo(context),
+        padding: widget.padding ?? .symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          spacing: 12,
+          spacing: 14,
           children: widget.isLoading
               ? [
                   Expanded(
-                    child: Center(child: GymnaseLoader(size: 18)),
+                    child: Center(child: GymnaseLoader(size: 22)),
                   ),
                 ]
               : [

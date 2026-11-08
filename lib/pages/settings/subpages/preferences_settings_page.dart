@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/settings/subpages/calendar_settings_page.dart';
@@ -36,7 +35,7 @@ class PreferencesSettingsPage extends StatelessWidget {
                       child: Row(
                         spacing: 12,
                         children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedPhoneDeveloperMode, color: AppColors.accent),
+                          ListTile.iconTile(context, icon: HugeIcons.strokeRoundedPhoneDeveloperMode),
                           Text("Page initiale", style: AppStyles.primaryText(context)),
                         ],
                       ),

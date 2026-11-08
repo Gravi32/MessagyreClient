@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
@@ -79,7 +80,7 @@ class _YearEndPageState extends State<YearEndPage> {
                       SubjectBadge(subject: subject, size: 28),
                       Expanded(child: Text(subject.name, style: AppStyles.primaryText(context))),
                       Text(grade.removeTrailingZero(), style: AppStyles.strongText(context)),
-                      CupertinoSwitch(
+                      CupertinoSwitch(activeTrackColor: AppColors.accent, 
                         value: finished.contains(subject),
                         onChanged: (value) => setState(() => value ? finished.add(subject) : finished.remove(subject)),
                       ),

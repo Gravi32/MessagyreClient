@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 
 class GradeDisplay extends StatefulWidget {
@@ -83,9 +82,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                         ),
                         child: SizedBox.square(dimension: 200),
                       )
-                    : RoundContainer(
-                        blurOnly: true,
-                        padding: .zero,
+                    : SizedBox.expand(
                         child: Stack(
                           fit: .expand,
                           children: [
@@ -97,7 +94,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                                   value: 1 - gradeAlpha,
                                   strokeWidth: widget.strokeWidth,
                                   strokeCap: .round,
-                                  color: AppColors.secondaryBackground.adaptTo(context),
+                                  color: AppColors.tertiaryBackground.adaptTo(context),
                                 ),
                               ),
                             ),
@@ -106,7 +103,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                               value: gradeAlpha,
                               strokeWidth: widget.strokeWidth,
                               strokeCap: .round,
-                              color: getGradeColor(widget.grade).withTransparency(transparency),
+                              color: getGradeColor(widget.grade, defaultColor: AppColors.tint.adaptTo(context)).withTransparency(transparency),
                             ),
                           ],
                         ),
@@ -143,7 +140,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: .circular(4),
-                        boxShadow: [BoxShadow(color: AppColors.background.adaptTo(context).withAlpha(200), blurRadius: 4, offset: const Offset(0, 2))],
+                        boxShadow: [BoxShadow(color: AppColors.secondaryBackground.adaptTo(context).withAlpha(220), blurRadius: 4, offset: const Offset(0, 2))],
                       ),
                       padding: const .symmetric(horizontal: 4),
                       child: Text(
@@ -161,7 +158,7 @@ class _GradeDisplayState extends State<GradeDisplay> {
                   bottom: 5,
                   right: 0,
                   child: Container(
-                    decoration: BoxDecoration(shape: .circle, color: AppColors.background.adaptTo(context)),
+                    decoration: BoxDecoration(shape: .circle, color: AppColors.secondaryBackground.adaptTo(context)),
                     padding: const .only(left: 4, top: 5),
                     child: CustomIcon(
                       icon: badge,

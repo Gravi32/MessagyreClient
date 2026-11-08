@@ -3,6 +3,7 @@ import 'package:http/http.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
@@ -74,14 +75,19 @@ class Dialog extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 300),
         margin: .all(40),
-        padding: .all(16).add(.only(top: 8)),
-        decoration: BoxDecoration(color: AppColors.secondaryBackground.adaptTo(context), borderRadius: .circular(40)),
+        padding: .all(16).add(.only(top: 10)),
+        decoration: BoxDecoration(
+          color: AppColors.secondaryBackground.adaptTo(context),
+          borderRadius: .circular(AppRadius.xl),
+          border: .all(color: AppColors.outline.adaptTo(context)),
+          boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: .18), blurRadius: 40, offset: const Offset(0, 12))],
+        ),
         child: Column(
           spacing: 12,
           mainAxisSize: .min,
           children: [
             // Title
-            if (title != null) Text(title!, style: AppStyles.header(context)),
+            if (title != null) Text(title!, textAlign: .center, style: AppStyles.secondaryHeader(context).copyWith(fontSize: 21)),
 
             if ((content ?? field) != null)
               ConstrainedAspectRatio(
@@ -92,7 +98,7 @@ class Dialog extends StatelessWidget {
                         padding: .symmetric(horizontal: 10),
                         child: SingleChildScrollView(
                           // Content
-                          child: CustomText(content!.trim(), textAlign: .center, style: AppStyles.primaryText(context).copyWith(fontSize: 19, height: 1.5)),
+                          child: CustomText(content!.trim(), textAlign: .center, style: AppStyles.primaryText(context).copyWith(height: 1.45, color: AppColors.secondaryText.adaptTo(context))),
                         ),
                       ),
               ),
@@ -106,7 +112,7 @@ class Dialog extends StatelessWidget {
                 Widget button = Button(
                   text: option.key,
                   transparent: true,
-                  color: option.key == AppStrings.cancel ? AppColors.secondaryButton.adaptTo(context) : (isDestructive ? AppColors.red : null),
+                  color: option.key == AppStrings.cancel ? AppColors.tertiaryBackground.adaptTo(context) : (isDestructive ? AppColors.red : null),
                   onTap: () {
                     Navigator.of(context).pop();
                     option.value();

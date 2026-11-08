@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 
+/// The app's palette. Every neutral is a shade of the icon's purple (barely tinted), so that light and dark mode look
+/// like the same app; the [accent] fills, the [tint] colors text and icons (lighter in dark mode, to stay readable).
 class AppColors {
   // Accent
+  /// The brand's purple, for filled surfaces with white on top (buttons, sent bubbles, badges)
   static const accent = Color.fromRGBO(171, 12, 179, 1.0);
+
+  /// The accent for text and icons on the app's backgrounds: readable in both modes
+  static const tint = AppColor(light: Color.fromRGBO(150, 8, 160, 1.0), dark: Color.fromRGBO(226, 136, 240, 1.0));
+
+  /// A faint wash of the accent, behind a tinted icon or a selected item
+  static const accentSoft = AppColor(light: Color.fromRGBO(171, 12, 179, .09), dark: Color.fromRGBO(190, 60, 205, .22));
 
   /// The app icon's background (sampled from assets/icons/full.png): the brand's color for the surfaces that carry
   /// the Gymnase's shape, the main buttons and the selected tab
@@ -12,26 +21,41 @@ class AppColors {
     colors: [Color.fromRGBO(175, 0, 184, 1.0), Color.fromRGBO(99, 25, 104, 1.0)],
   );
 
+  /// The sent bubbles: the icon's gradient, softened so a long message stays easy to read
+  static const sentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color.fromRGBO(178, 22, 187, 1.0), Color.fromRGBO(132, 18, 143, 1.0)],
+  );
+
   // Backgrounds
-  static const background = AppColor(light: Color.fromRGBO(242, 242, 247, 1.0), dark: Color.fromRGBO(16, 25, 34, 1.0));
-  static const secondaryBackground = AppColor(light: Color.fromRGBO(232, 232, 237, 1.0), dark: Color.fromRGBO(24, 31, 48, 1.0));
-  static const tertiaryBackground = AppColor(light: Color.fromRGBO(223, 223, 228, 1.0), dark: Color.fromRGBO(32, 41, 54, 1.0));
-  static const separator = AppColor(light: Color.fromRGBO(0, 0, 0, 0.2), dark: Color.fromRGBO(255, 255, 255, 0.2));
+  /// The pages
+  static const background = AppColor(light: Color.fromRGBO(245, 243, 248, 1.0), dark: Color.fromRGBO(15, 12, 20, 1.0));
+
+  /// The cards, lists and controls laid on a page (lighter than it, in both modes)
+  static const secondaryBackground = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(29, 25, 36, 1.0));
+
+  /// What sits inside a card: fields, the track of a switch, a selected segment
+  static const tertiaryBackground = AppColor(light: Color.fromRGBO(238, 234, 243, 1.0), dark: Color.fromRGBO(43, 37, 52, 1.0));
+  static const separator = AppColor(light: Color.fromRGBO(30, 16, 40, .11), dark: Color.fromRGBO(255, 255, 255, .09));
+
+  /// The hairline around a card, so it stands out from the page
+  static const outline = AppColor(light: Color.fromRGBO(30, 16, 40, .07), dark: Color.fromRGBO(255, 255, 255, .06));
 
   // Text
-  static const text = AppColor(light: Color.fromRGBO(80, 80, 80, 1.0), dark: Color.fromRGBO(229, 229, 234, 1.0));
-  static const secondaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.6), dark: Color.fromRGBO(255, 255, 255, 0.6));
-  static const tertiaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.4), dark: Color.fromRGBO(255, 255, 255, 0.4));
-  static const quaternaryText = AppColor(light: Color.fromRGBO(80, 80, 80, 0.33), dark: Color.fromRGBO(255, 255, 255, 0.33));
-  static const placeholderText = AppColor(light: Color.fromRGBO(60, 60, 67, .5), dark: Color.fromRGBO(142, 142, 147, 1.0));
+  static const text = AppColor(light: Color.fromRGBO(28, 22, 34, 1.0), dark: Color.fromRGBO(244, 240, 248, 1.0));
+  static const secondaryText = AppColor(light: Color.fromRGBO(28, 22, 34, .64), dark: Color.fromRGBO(244, 240, 248, .66));
+  static const tertiaryText = AppColor(light: Color.fromRGBO(28, 22, 34, .44), dark: Color.fromRGBO(244, 240, 248, .44));
+  static const quaternaryText = AppColor(light: Color.fromRGBO(28, 22, 34, .3), dark: Color.fromRGBO(244, 240, 248, .3));
+  static const placeholderText = AppColor(light: Color.fromRGBO(28, 22, 34, .38), dark: Color.fromRGBO(244, 240, 248, .38));
 
   // Buttons
-  static const secondaryButton = AppColor(light: Color.fromRGBO(192, 192, 197, 1.0), dark: Color.fromRGBO(54, 61, 78, 1.0));
+  static const secondaryButton = AppColor(light: Color.fromRGBO(229, 223, 235, 1.0), dark: Color.fromRGBO(54, 47, 64, 1.0));
 
   // Chat bubbles
-  // Sent: white text on the accent; received: the normal text color on a neutral bubble (readable in both modes)
-  static const sentBubble = AppColor(light: Color.fromRGBO(162, 16, 170, 1.0), dark: Color.fromRGBO(146, 0, 168, 1.0));
-  static const receivedBubble = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(40, 46, 62, 1.0));
+  // Sent: white text on the accent; received: the normal text color on the cards' color (readable in both modes)
+  static const sentBubble = AppColor(light: Color.fromRGBO(162, 16, 170, 1.0), dark: Color.fromRGBO(140, 22, 156, 1.0));
+  static const receivedBubble = AppColor(light: Color.fromRGBO(255, 255, 255, 1.0), dark: Color.fromRGBO(40, 34, 49, 1.0));
 
   // Vivid colors
   static const white = Color.fromRGBO(255, 255, 255, 1.0);
@@ -63,7 +87,9 @@ class AppColors {
 
   // Special colors
   static const transparent = Color.fromRGBO(0, 0, 0, 0.0);
-  static const inactive = AppColor(light: Color.fromRGBO(142, 142, 147, 1.0), dark: Color.fromRGBO(99, 99, 102, 1.0));
+  static const inactive = AppColor(light: Color.fromRGBO(160, 154, 167, 1.0), dark: Color.fromRGBO(94, 87, 102, 1.0));
+
+  static bool isDark(BuildContext context) => MediaQuery.maybePlatformBrightnessOf(context) == .dark;
 
   // Getter
   static Color? fromName(String? name, {BuildContext? context}) => switch (name?.toLowerCase()) {
@@ -101,5 +127,5 @@ class AppColor extends Color {
   const AppColor({required this.light, required this.dark}) : super(0);
 
   /// Adapts the color to the current platform brightness.
-  Color adaptTo(BuildContext context) => MediaQuery.maybePlatformBrightnessOf(context) == .dark ? dark : light;
+  Color adaptTo(BuildContext context) => AppColors.isDark(context) ? dark : light;
 }

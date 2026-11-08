@@ -12,11 +12,14 @@ class GymnaseMark extends StatelessWidget {
 
   const GymnaseMark({super.key, this.size = 24, this.color, this.gradient});
 
+  /// The accent, a little brighter on a dark background (the accent itself is too dark there)
+  static Color defaultColor(BuildContext context) => AppColors.isDark(context) ? const Color.fromRGBO(203, 70, 218, 1) : AppColors.accent;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: CustomPaint(painter: _GymnasePainter(color ?? AppColors.accent, gradient)),
+      child: CustomPaint(painter: _GymnasePainter(color ?? GymnaseMark.defaultColor(context), gradient)),
     );
   }
 }
@@ -51,10 +54,53 @@ class AppIconTile extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(size * .23),
         gradient: AppColors.accentGradient,
-        boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: .35), blurRadius: size * .3, offset: Offset(0, size * .08))],
+        boxShadow: AppColors.isDark(context) ? null : [BoxShadow(color: AppColors.accent.withValues(alpha: .3), blurRadius: size * .3, offset: Offset(0, size * .1))],
       ),
       alignment: Alignment.center,
       child: GymnaseMark(size: size * .66, color: AppColors.white),
+    );
+  }
+}
+
+/// A card on the icon's gradient with the Gymnase, large and faint, in its corner (the profile, the class). The
+/// decoration is always cut by the rounded corners: it can never stick out of the card.
+class BrandCard extends StatelessWidget {
+  final Widget child;
+  final double? height;
+  final EdgeInsets padding;
+  final double borderRadius;
+
+  /// Size of the decoration, relative to the card's height
+  final double markScale;
+
+  const BrandCard({super.key, required this.child, this.height, this.padding = const EdgeInsets.all(16), this.borderRadius = 24, this.markScale = 1.25});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        gradient: AppColors.accentGradient,
+        boxShadow: AppColors.isDark(context) ? null : [BoxShadow(color: AppColors.accent.withValues(alpha: .22), blurRadius: 18, offset: const Offset(0, 6))],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final size = constraints.maxHeight * markScale;
+                return Stack(
+                  clipBehavior: Clip.hardEdge,
+                  children: [Positioned(right: -size * .16, bottom: -size * .3, child: GymnaseMark(size: size, color: AppColors.white.withValues(alpha: .12)))],
+                );
+              },
+            ),
+          ),
+          Padding(padding: padding, child: child),
+        ],
+      ),
     );
   }
 }
@@ -83,7 +129,7 @@ class _GymnaseLoaderState extends State<GymnaseLoader> with SingleTickerProvider
     return RepaintBoundary(
       child: SizedBox.square(
         dimension: widget.size,
-        child: CustomPaint(painter: _GymnasePainter(widget.color ?? AppColors.accent, null, progress: controller)),
+        child: CustomPaint(painter: _GymnasePainter(widget.color ?? GymnaseMark.defaultColor(context), null, progress: controller)),
       ),
     );
   }

@@ -1,115 +1,126 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/configuration/app_colors.dart';
-import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/utility/utility.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
-import 'package:messagyre_client/utility/graphics/cutout_widget.dart';
+import 'package:messagyre_client/main.dart';
 
-class BottomBar extends StatefulWidget {
+/// The tabs, in a floating dock: the selected one looks like the app icon (a rounded square with its gradient).
+/// Opaque, so it needs no blur over the content scrolling under it.
+class BottomBar extends StatelessWidget {
   const BottomBar({super.key});
 
-  @override
-  State<BottomBar> createState() => _BottomBarState();
-}
+  /// Height of the dock itself
+  static const double dockHeight = 66;
 
-class _BottomBarState extends State<BottomBar> {
   @override
   Widget build(BuildContext context) {
-    double bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
+    final background = AppColors.background.adaptTo(context);
+    final isDark = AppColors.isDark(context);
 
-    return ValueListenableBuilder<int>(
-      valueListenable: MainPage.pageIndex,
-      builder: (context, currentIndex, _) => Container(
-        height: bottomPadding + 80,
-        alignment: .bottomCenter,
-        padding: .only(bottom: bottomPadding + 10, top: 2, left: 2, right: 2),
+    return Container(
+      height: bottomPadding + AppSizes.bottomBar,
+      alignment: .bottomCenter,
+      padding: .only(bottom: bottomPadding > 0 ? bottomPadding : AppSpacing.m, left: AppSpacing.m, right: AppSpacing.m),
+      // The content fades out under the dock
+      decoration: BoxDecoration(
+        gradient: LinearGradient(begin: .topCenter, end: .bottomCenter, colors: [background.withValues(alpha: 0), background.withValues(alpha: .92)], stops: const [0, .55]),
+      ),
+      child: Container(
+        height: dockHeight,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: .topCenter,
-            end: .bottomCenter,
-            colors: [AppColors.background.adaptTo(context).withTransparency(0), AppColors.background.adaptTo(context)],
-            stops: [0, .4],
+          color: AppColors.secondaryBackground.adaptTo(context),
+          borderRadius: .circular(AppRadius.l),
+          border: .all(color: AppColors.outline.adaptTo(context)),
+          boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: isDark ? .35 : .06), blurRadius: 18, offset: const Offset(0, 4))],
+        ),
+        child: ValueListenableBuilder<int>(
+          valueListenable: MainPage.pageIndex,
+          builder: (context, currentIndex, _) => Row(
+            children: App.pages.mapIndexed((index, page) => Expanded(child: _Tab(page: page, isSelected: index == currentIndex, onTap: () => MainPage.pageIndex.value = index))).toList(),
           ),
         ),
+      ),
+    );
+  }
+}
 
-        child: Row(
-          mainAxisAlignment: .spaceAround,
-          crossAxisAlignment: .stretch,
-          children: App.pages.mapIndexed((index, page) {
-            final isSelected = index == currentIndex;
-            final color = (isSelected ? AppColors.text : AppColors.secondaryText).adaptTo(context);
-            // The selected tab looks like the app icon: a rounded square with its gradient
-            final button = CupertinoButton(
-              padding: .zero,
-              minimumSize: .zero,
-              pressedOpacity: .6,
-              onPressed: () => MainPage.pageIndex.value = index,
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: LayoutBuilder(
-                  builder: (context, constraints) => AnimatedContainer(
-                    duration: AppDurations.normal,
-                    curve: Curves.easeOutCubic,
-                    margin: const .all(2),
-                    decoration: BoxDecoration(
-                      borderRadius: .circular(constraints.maxWidth * (isSelected ? .3 : .5)),
-                      // Opaque (the old see-through fill, already mixed with the background): no blur needed over the content
-                      color: isSelected ? null : Color.alphaBlend(AppColors.secondaryBackground.adaptTo(context).withTransparency(.5), AppColors.background.adaptTo(context)),
-                      gradient: isSelected ? AppColors.accentGradient : null,
-                      boxShadow: isSelected ? [BoxShadow(color: AppColors.accent.withValues(alpha: .3), blurRadius: 10, offset: const Offset(0, 3))] : null,
-                    ),
-                    alignment: .center,
-                    child: HugeIcon(icon: page.icon, color: isSelected ? AppColors.white : AppColors.secondaryButton.adaptTo(context)),
-                  ),
+class _Tab extends StatelessWidget {
+  final AppPage page;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _Tab({required this.page, required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final idle = AppColors.secondaryText.adaptTo(context);
+
+    return CupertinoButton(
+      padding: .zero,
+      minimumSize: .zero,
+      pressedOpacity: .6,
+      onPressed: onTap,
+      child: Column(
+        mainAxisAlignment: .center,
+        spacing: 3,
+        children: [
+          Stack(
+            clipBehavior: .none,
+            children: [
+              AnimatedContainer(
+                duration: AppDurations.normal,
+                curve: Curves.easeOutCubic,
+                width: 40,
+                height: 32,
+                decoration: BoxDecoration(
+                  borderRadius: .circular(11),
+                  gradient: isSelected ? AppColors.accentGradient : null,
+                  boxShadow: isSelected ? [BoxShadow(color: AppColors.accent.withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 3))] : null,
                 ),
+                alignment: .center,
+                child: HugeIcon(icon: page.icon, size: 21, color: isSelected ? AppColors.white : idle),
               ),
-            );
-
-            return Padding(
-              padding: .all(2),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: ValueListenableBuilder(
-                  valueListenable: page.showBadge,
-                  builder: (context, showNotification, _) {
-                    return Column(
-                      mainAxisAlignment: .center,
-                      crossAxisAlignment: .center,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: CutoutWidget(
-                            enabled: showNotification,
-                            cutoutSize: 20,
-                            childToCutout: button,
-                            childInCutout: Container(
-                              margin: .all(4),
-                              decoration: BoxDecoration(color: AppColors.accent.withBrightness(.05), shape: .circle),
-                            ),
-                            cutoutAlignment: .topRight,
+              // A dot for something new in that tab
+              ValueListenableBuilder(
+                valueListenable: page.showBadge,
+                builder: (context, showBadge, _) => !showBadge
+                    ? const SizedBox.shrink()
+                    : Positioned(
+                        top: -3,
+                        right: -3,
+                        child: Container(
+                          width: 11,
+                          height: 11,
+                          decoration: BoxDecoration(
+                            shape: .circle,
+                            color: isSelected ? AppColors.white : AppColors.accent,
+                            border: .all(color: AppColors.secondaryBackground.adaptTo(context), width: 2),
                           ),
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: Center(
-                            child: Text(
-                              page.name,
-                              overflow: .fade,
-                              softWrap: false,
-                              style: TextStyle(fontSize: 10, color: color),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                      ),
+              ),
+            ],
+          ),
+          // Shrinks a long name ("Conversations") to fit a narrow phone rather than cutting it
+          Padding(
+            padding: const .symmetric(horizontal: 2),
+            child: FittedBox(
+              fit: .scaleDown,
+              child: Text(
+                page.name,
+                maxLines: 1,
+                style: AppStyles.caption(context).copyWith(
+                  fontSize: 10.5,
+                  fontWeight: isSelected ? .w600 : .w500,
+                  color: isSelected ? AppColors.tint.adaptTo(context) : idle,
                 ),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

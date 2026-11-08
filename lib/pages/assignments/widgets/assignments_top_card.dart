@@ -61,12 +61,20 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                   textAlign: .center,
                   overflow: .fade,
                   maxLines: 1,
-                  style: isToday ? TextStyle(color: AppColors.accent, fontWeight: .w600) : TextStyle(color: AppColors.secondaryText.adaptTo(context)),
+                  style: AppStyles.footnote(context).copyWith(
+                    fontSize: 14,
+                    color: (isToday ? AppColors.tint : AppColors.secondaryText).adaptTo(context),
+                    fontWeight: isToday ? .w700 : .w500,
+                  ),
                 ),
                 Expanded(
+                  // Today looks like the app icon
                   child: RoundContainer(
                     padding: .all(2),
-                    opacity: (thisDay.weekday + 1) % 7 < 2 ? .4 : 1,
+                    borderRadius: 16,
+                    color: AppColors.tertiaryBackground.adaptTo(context),
+                    gradient: isToday ? AppColors.accentGradient : null,
+                    opacity: (thisDay.weekday + 1) % 7 < 2 ? .45 : 1,
                     child: Column(
                       mainAxisAlignment: .center,
                       crossAxisAlignment: .stretch,
@@ -77,7 +85,7 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                           textAlign: .center,
                           overflow: .fade,
                           maxLines: 1,
-                          style: AppStyles.header(context).copyWith(fontWeight: isToday ? .w700 : .w500),
+                          style: AppStyles.header(context).copyWith(fontSize: 22, fontWeight: isToday ? .w700 : .w600, color: isToday ? AppColors.white : null),
                         ),
                         Expanded(
                           flex: 2,
@@ -94,9 +102,9 @@ class _AssignmentsTopCardState extends State<AssignmentsTopCard> {
                               return thisDaysAssignment.type == AssignmentType.leave
                                   ? Icon(Icons.star_rounded, color: AppColors.orange, size: 7)
                                   : Container(
-                                      width: 4,
-                                      height: 4,
-                                      decoration: BoxDecoration(color: thisDaysAssignmentSubject?.color, shape: .circle),
+                                      width: 5,
+                                      height: 5,
+                                      decoration: BoxDecoration(color: isToday ? AppColors.white : thisDaysAssignmentSubject?.color, shape: .circle),
                                     );
                             }),
                           ),

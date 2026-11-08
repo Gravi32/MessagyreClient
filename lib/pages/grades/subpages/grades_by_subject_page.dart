@@ -104,7 +104,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                   ),
 
                 if (allLockedSubjects.isNotEmpty) ...[
-                  Text("Branches bloquées", style: AppStyles.header(context)),
+                  Text("Branches bloquées", style: AppStyles.section(context)),
                   GridView.builder(
                     padding: .only(bottom: 16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -124,7 +124,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
                 ],
 
                 if (allInactiveSubjects.isNotEmpty) ...[
-                  Text("Branches sans notes", style: AppStyles.header(context)),
+                  Text("Branches sans notes", style: AppStyles.section(context)),
                   GridView.builder(
                     padding: .only(bottom: 16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

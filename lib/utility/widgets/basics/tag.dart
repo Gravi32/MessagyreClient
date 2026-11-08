@@ -12,13 +12,15 @@ class Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     return RoundContainer(
       color: color,
-      padding: .symmetric(horizontal: 8, vertical: 4),
+      transparent: false,
+      borderRadius: 10,
+      padding: .symmetric(horizontal: 8, vertical: 3),
       child: Text(
         text,
         maxLines: 1,
         softWrap: false,
         overflow: .fade,
-        style: TextStyle(fontSize: 14, letterSpacing: .3, fontWeight: .w900, color: AppColors.white),
+        style: TextStyle(fontSize: 13, letterSpacing: .4, fontWeight: .w800, color: AppColors.white),
       ),
     );
   }

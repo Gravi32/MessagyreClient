@@ -17,6 +17,24 @@ import 'package:image/image.dart' as img;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:isar/isar.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
+import 'package:messagyre_client/pages/grades/grades_list_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/subject_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/report_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/new_grade_page.dart';
+import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.dart';
+import 'package:messagyre_client/pages/settings/settings_list_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
+import 'package:messagyre_client/pages/search/search_page.dart';
+import 'package:messagyre_client/pages/bootstrap/login_page.dart';
+import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
+import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
+import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
+import 'package:messagyre_client/pages/bootstrap/registration_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/wallpaper_settings_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/preferences_settings_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/grades_by_subject_page.dart';
+import 'package:messagyre_client/pages/grades/subpages/recent_grades_page.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/chats/chat.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
@@ -150,6 +168,28 @@ Future<void> _seed(Isar isar, String root) async {
     for (final assignment in assignments) {
       await assignment.subject.save();
     }
+
+    Grade g(Subject subject, String title, double mark, int daysAgo, {double weight = 1}) {
+      final grade = Grade()
+        ..title = title
+        ..grade = mark
+        ..weight = weight
+        ..date = now.subtract(Duration(days: daysAgo));
+      grade.subject.value = subject;
+      return grade;
+    }
+
+    final grades = [
+      g(maths, "Test fonctions", 5, 3, weight: 2),
+      g(maths, "Série 10", 4.5, 12),
+      g(maths, "TE dérivées", 5.5, 30, weight: 2),
+      g(french, "Dissertation", 4, 6, weight: 2),
+      g(french, "Lecture Candide", 5.5, 20),
+    ];
+    await isar.grades.putAll(grades);
+    for (final grade in grades) {
+      await grade.subject.save();
+    }
   });
 }
 
@@ -174,6 +214,7 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
     await initializeDateFormatting('fr_CH');
     await _loadFonts();
+    AppStyles.fontFamily = "Roboto";
 
     SharedPreferences.setMockInitialValues({"MessagesHaveChatUsername": true, "DefaultPage": 2});
     FlutterSecureStorage.setMockInitialValues({});
@@ -316,5 +357,33 @@ void main() {
     testWidgets("chats list ($suffix)", (tester) async => shoot(tester, _app(const ChatsListPage(), brightness), "chats_$suffix"));
     testWidgets("chat ($suffix)", (tester) async => shoot(tester, _plain(const ChatPage(username: "lea.martin"), brightness), "chat_$suffix"));
     testWidgets("assignments ($suffix)", (tester) async => shoot(tester, _app(AssignmentsListPage(key: GlobalKey()), brightness), "assignments_$suffix"));
+  }
+
+  // Every other page, to look at the design (run with --plain-name "gallery")
+  for (final brightness in Brightness.values) {
+    final suffix = brightness.name;
+    Subject maths() => DatabaseService().isar.subjects.filter().codeEqualTo("maths").findFirstSync()!;
+    final pages = <String, Widget Function()>{
+      "grades": () => _app(const GradesListPage(), brightness),
+      "settings": () => _app(const SettingsListPage(), brightness),
+      "search": () => _app(const SearchPage(), brightness),
+      "subject": () => _plain(GradesSubjectPage(subject: maths()), brightness),
+      "report": () => _plain(const ReportCardPage(), brightness),
+      "new_grade": () => _plain(const NewGradePage(), brightness),
+      "new_assignment": () => _plain(const NewAssignmentPage(), brightness),
+      "login": () => _plain(const LoginPage(), brightness),
+      "class_picker": () => _plain(const ClassPickerPage(isOnboarding: true), brightness),
+      "subjects": () => _plain(const SubjectsListPage(), brightness),
+      "new_subject": () => _plain(const NewSubjectPage(), brightness),
+      "registration": () => _plain(const RegistrationPage(), brightness),
+      "wallpaper": () => _plain(const WallpaperSettingsPage(), brightness),
+      "preferences": () => _plain(PreferencesSettingsPage(), brightness),
+      "by_subject": () => _plain(const GradesBySubjectPage(), brightness),
+      "recent": () => _plain(const RecentGradesPage(), brightness),
+      "dialog": () => _plain(Dialog.confirm(content: "Voulez-vous vraiment supprimer cette note ?", isDestructive: true), brightness),
+    };
+    for (final MapEntry(key: name, value: build) in pages.entries) {
+      testWidgets("gallery $name ($suffix)", (tester) async => shoot(tester, build(), "${name}_$suffix"));
+    }
   }
 }

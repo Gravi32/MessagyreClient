@@ -169,7 +169,8 @@ class _NewGradePageState extends State<NewGradePage> {
       onTap: onTap,
       padding: .symmetric(horizontal: 16, vertical: 12),
       transparent: true,
-      color: (value == selectedWeight ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
+      // The chosen weight in the accent, the others sunken in the card
+      color: value == selectedWeight ? AppColors.accent : AppColors.tertiaryBackground.adaptTo(context),
       text: label,
     ),
   );
@@ -445,7 +446,7 @@ class _NewGradePageState extends State<NewGradePage> {
           children: [
             ListTile(
               onTap: () => subjectFocusNode.requestFocus(),
-              leading: CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
+              leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02, color: referenceId == null ? null : AppColors.inactive.adaptTo(context)),
               trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
               enabled: referenceId == null,
               child: SubjectAutocomplete(
@@ -479,7 +480,7 @@ class _NewGradePageState extends State<NewGradePage> {
                 context,
                 icon: HugeIcons.strokeRoundedSelect01,
                 title: "Fait partie d'un groupe",
-                trailing: CupertinoSwitch(
+                trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                   value: isInGroup,
                   onChanged: (value) {
                     setState(() {

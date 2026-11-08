@@ -166,7 +166,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                         Text(
                           lastMessage.sentAt.isSameDayAs(DateTime.now()) ? DateFormat('HH:mm').format(lastMessage.sentAt) : formatDate(lastMessage.sentAt),
                           style: AppStyles.subheadline(context).copyWith(
-                            color: hasUnread ? AppColors.accent : AppColors.tertiaryText.adaptTo(context),
+                            color: hasUnread ? AppColors.tint.adaptTo(context) : AppColors.tertiaryText.adaptTo(context),
                             fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
@@ -214,7 +214,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
                         Container(
                           constraints: const BoxConstraints(minWidth: 22),
                           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s - 2, vertical: AppSpacing.xxs),
-                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(AppRadius.s)),
+                          decoration: BoxDecoration(gradient: AppColors.accentGradient, borderRadius: BorderRadius.circular(AppRadius.s)),
                           child: Text(chat.unreadMessages > 99 ? "99+" : chat.unreadMessages.toString(), textAlign: TextAlign.center, style: AppStyles.badge(context)),
                         ),
                     ],
@@ -282,11 +282,12 @@ class _ChatsListPageState extends State<ChatsListPage> {
 class _ActionRow extends StatelessWidget {
   final String text;
   final List<List<dynamic>> icon;
-  final Color color;
-  const _ActionRow({required this.text, required this.icon, this.color = AppColors.accent});
+  final Color? color;
+  const _ActionRow({required this.text, required this.icon, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? AppColors.tint.adaptTo(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

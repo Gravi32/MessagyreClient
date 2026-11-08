@@ -207,7 +207,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                           if (usingRestrictedGroup && (restrictedGroupSubjects.isNotEmpty || restrictedGroupCompositeSubjects.isNotEmpty)) ...[
                             Padding(
                               padding: .only(top: 18),
-                              child: Text("Groupe restreint", style: AppStyles.header(context)),
+                              child: Text("Groupe restreint", style: AppStyles.section(context)),
                             ),
 
                             () {
@@ -417,7 +417,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                         ListTile.simple(
                           context,
                           title: "Double compensation",
-                          trailing: CupertinoSwitch(
+                          trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                             value: report.usingDoubleCompensation,
                             onChanged: (newValue) {
                               globals.persistent.setBool("UseDoubleCompensation", newValue);
@@ -435,7 +435,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
                           ListTile.simple(
                             context,
                             title: "Groupe restreint",
-                            trailing: CupertinoSwitch(
+                            trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 
                               value: usingRestrictedGroup,
                               onChanged: (newValue) {
                                 globals.persistent.setBool("UseRestrictedGroup", newValue);

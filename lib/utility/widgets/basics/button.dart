@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/utility/extensions/widget_extensions.dart';
-import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 
@@ -91,8 +91,7 @@ class Button extends StatefulWidget {
   factory Button.destructive(BuildContext context, {required String text, Function()? onTap}) {
     return Button(
       text: text,
-      textColor: AppColors.red,
-      color: AppColors.secondaryBackground.adaptTo(context),
+      color: AppColors.red,
       transparent: true,
       icon: HugeIcons.strokeRoundedDelete01,
       onTap: onTap,
@@ -104,14 +103,22 @@ class Button extends StatefulWidget {
 }
 
 class _ButtonState extends State<Button> {
+  /// A tonal button (a soft wash of a vivid color) writes in that color; the accent in its readable shade
+  Color? _tonalForeground(BuildContext context) {
+    final color = widget.color ?? (widget.transparent ? AppColors.accent : null);
+    if (!widget.transparent || color == null || RoundContainer.isNeutral(color) || color.a < 1) return null;
+    return color == AppColors.accent ? AppColors.tint.adaptTo(context) : color;
+  }
+
   @override
   Widget build(BuildContext context) {
     final finalIcon = widget.icon ?? widget.legacyIcon;
-    final finalIconColor = widget.iconColor ?? (widget.transparent ? (widget.textColor ?? AppColors.text.adaptTo(context)) : AppColors.white);
+    final tonal = _tonalForeground(context);
+    final finalIconColor = widget.iconColor ?? (widget.transparent ? (widget.textColor ?? tonal ?? AppColors.text.adaptTo(context)) : AppColors.white);
 
     final usingLegacyIcon = widget.icon == null && widget.legacyIcon != null;
     final isIconOnly = widget.text == null && finalIcon != null;
-    final finalTextColor = widget.textColor ?? (widget.transparent ? AppColors.text.adaptTo(context) : AppColors.white);
+    final finalTextColor = widget.textColor ?? (widget.transparent ? (tonal ?? AppColors.text.adaptTo(context)) : AppColors.white);
 
     return SizedBox(
       height: widget.height,
@@ -139,7 +146,7 @@ class _ButtonState extends State<Button> {
               if (!isIconOnly)
                 widget.isLoading
                     ? Expanded(
-                        child: Center(child: GymnaseLoader(color: widget.transparent ? null : AppColors.white)),
+                        child: Center(child: GymnaseLoader(color: widget.transparent ? (tonal ?? AppColors.tint.adaptTo(context)) : AppColors.white)),
                       )
                     : Expanded(
                         child: widget.rawChild != null
@@ -147,11 +154,7 @@ class _ButtonState extends State<Button> {
                             : Text(
                                 widget.text ?? "Tap",
                                 textAlign: .center,
-                                style: TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: .w600,
-                                  color: widget.enabled ? finalTextColor : AppColors.inactive.adaptTo(context).withBrightness(.2),
-                                ),
+                                style: AppStyles.button(context).copyWith(color: widget.enabled ? finalTextColor : AppColors.tertiaryText.adaptTo(context)),
                               ),
                       ),
 

@@ -438,7 +438,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                 context,
                 title: "Branche bloquée",
                 icon: isLocked ? HugeIcons.strokeRoundedSquareLock02 : HugeIcons.strokeRoundedSquareUnlock02,
-                trailing: CupertinoSwitch(value: isLocked, onChanged: (value) => setState(() => isLocked = value)),
+                trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: isLocked, onChanged: (value) => setState(() => isLocked = value)),
               ),
 
               if (isLocked)

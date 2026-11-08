@@ -87,20 +87,24 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
         },
         child: SafeArea(
           child: ClipRRect(
-            borderRadius: .all(.circular(12)),
+            borderRadius: .all(.circular(22)),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
               child: Container(
-                padding: .symmetric(horizontal: 10, vertical: 8),
-                color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.75.toByte()),
+                padding: .fromLTRB(12, 12, 12, 8),
+                decoration: BoxDecoration(
+                  borderRadius: .circular(22),
+                  color: AppColors.secondaryBackground.adaptTo(context).withAlpha(.86.toByte()),
+                  border: .all(color: AppColors.separator.adaptTo(context)),
+                ),
                 child: Column(
                   mainAxisAlignment: .spaceBetween,
                   spacing: 8,
                   children: [
                     Row(
                       children: [
-                        widget.senderUsername.startsWith("#") ? const ClassAvatar(size: 60) : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 30),
-                        SizedBox(width: 10),
+                        widget.senderUsername.startsWith("#") ? const ClassAvatar(size: 48) : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 24),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: .start,
@@ -121,7 +125,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                                     Container(
                                       margin: .only(top: 4),
                                       padding: .symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: AppColors.accent, borderRadius: .circular(12)),
+                                      decoration: BoxDecoration(gradient: AppColors.accentGradient, borderRadius: .circular(12)),
                                       child: Text("${unreadMessages - 1}", style: TextStyle(color: AppColors.white, fontSize: 14, fontWeight: .w500)),
                                     ),
                                 ],
@@ -139,7 +143,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                       ],
                     ),
                     Container(
-                      width: 100,
+                      width: 40,
                       height: 4,
                       decoration: BoxDecoration(borderRadius: .circular(12), color: AppColors.quaternaryText.adaptTo(context)),
                     ),

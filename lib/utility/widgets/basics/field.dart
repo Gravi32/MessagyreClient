@@ -5,7 +5,6 @@ import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
-import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 
 /// The app's text field. A single-line field always has the same height ([AppSizes.control], or
@@ -30,6 +29,9 @@ class Field extends StatefulWidget {
   final int? maxLines;
   final int? minLines;
   final bool thin;
+
+  /// Filled with the sunken color, for a field laid on a card or a bar rather than on the page
+  final bool sunken;
   final bool isPassword;
   final bool isSearch;
   final bool alwaysHidePassword;
@@ -57,6 +59,7 @@ class Field extends StatefulWidget {
     this.maxLines = 1,
     this.minLines = 1,
     this.thin = false,
+    this.sunken = false,
     this.isPassword = false,
     this.isSearch = false,
     this.alwaysHidePassword = false,
@@ -116,14 +119,38 @@ class Field extends StatefulWidget {
 class _FieldState extends State<Field> {
   late bool _obscureText = widget.isPassword;
   TextEditingController? _ownController;
+  FocusNode? _ownFocusNode;
+  bool _hasFocus = false;
 
   TextEditingController get _controller => widget.controller ?? (_ownController ??= TextEditingController());
+  FocusNode get _focusNode => widget.focusNode ?? (_ownFocusNode ??= FocusNode());
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant Field oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      (oldWidget.focusNode ?? _ownFocusNode)?.removeListener(_onFocusChanged);
+      _focusNode.addListener(_onFocusChanged);
+    }
+  }
+
+  void _onFocusChanged() {
+    if (mounted && _focusNode.hasFocus != _hasFocus) setState(() => _hasFocus = _focusNode.hasFocus);
+  }
 
   bool get _isSingleLine => widget.maxLines == 1 && (widget.minLines ?? 1) <= 1;
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
     _ownController?.dispose();
+    _ownFocusNode?.dispose();
     super.dispose();
   }
 
@@ -139,12 +166,11 @@ class _FieldState extends State<Field> {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = AppColors.secondaryButton.adaptTo(context);
     final isNumeric = widget.keyboardType == .number;
     final showingError = (widget.error ?? "").isNotEmpty;
     final height = Field.heightOf(thin: widget.thin);
-    // A single-line field has a fixed height: its text is centered in it (2 × 2 px of border, ~26 px of text line)
-    final verticalPadding = _isSingleLine ? ((height - 4 - 26) / 2).clamp(0.0, AppSpacing.l) : (widget.thin ? AppSpacing.s + 2 : AppSpacing.l);
+    // A single-line field has a fixed height: its text is centered in it (2 × 1 px of border, ~26 px of text line)
+    final verticalPadding = _isSingleLine ? ((height - 2 - 26) / 2).clamp(0.0, AppSpacing.l) : (widget.thin ? AppSpacing.s + 2 : AppSpacing.l);
 
     final textField = CupertinoTextField(
       padding: .only(left: widget.icon != null ? AppSpacing.s : AppSpacing.l, right: AppSpacing.l, top: verticalPadding, bottom: verticalPadding),
@@ -162,7 +188,7 @@ class _FieldState extends State<Field> {
       onSubmitted: widget.onSubmitted,
       onChanged: widget.onChanged,
       obscureText: _obscureText,
-      focusNode: widget.focusNode,
+      focusNode: _focusNode,
       autofocus: widget.autofocus,
       enabled: widget.enabled,
       scrollPhysics: widget.scrollPhysics,
@@ -177,9 +203,17 @@ class _FieldState extends State<Field> {
       height: _isSingleLine ? height : null,
       constraints: _isSingleLine ? null : BoxConstraints(minHeight: height),
       decoration: BoxDecoration(
-        color: borderColor.withTransparency(widget.enabled ? 0.25 : 0.75),
-        border: .all(color: showingError ? AppColors.red : borderColor, width: 2),
-        borderRadius: .circular(widget.thin ? height / 2 : AppRadius.l),
+        color: (widget.enabled && !widget.sunken ? AppColors.secondaryBackground : AppColors.tertiaryBackground).adaptTo(context),
+        border: .all(
+          color: showingError
+              ? AppColors.red
+              : _hasFocus
+              ? AppColors.tint.adaptTo(context).withValues(alpha: .7)
+              : widget.sunken
+              ? AppColors.transparent
+              : AppColors.separator.adaptTo(context),
+        ),
+        borderRadius: .circular(widget.thin ? height / 2 : AppRadius.m),
       ),
       child: Row(
         crossAxisAlignment: _isSingleLine ? .center : .end,

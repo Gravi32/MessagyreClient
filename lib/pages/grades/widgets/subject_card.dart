@@ -151,7 +151,7 @@ class SubjectCard extends StatelessWidget {
         (compositeSubjectMode ? calculateCompositeSubjectAverage(compositeSubject!, round: true) : calculateAverage(subjectGrades, round: true));
 
     return Button(
-      color: AppColors.secondaryBackground.adaptTo(context).withTransparency(isSubjectLocked ? .5 : 1),
+      color: (isSubjectLocked ? AppColors.tertiaryBackground : AppColors.secondaryBackground).adaptTo(context),
       transparent: true,
       padding: .all(10).copyWith(bottom: 8),
       onTap: () => onTap(context, isSubjectLocked, compositeSubjectMode),
@@ -191,7 +191,7 @@ class SubjectCard extends StatelessWidget {
               if (!isSubjectLocked && (average ?? 0) != 0) {
                 return Chart(
                   padding: .symmetric(vertical: 3),
-                  backgroundColor: AppColors.background.adaptTo(context),
+                  backgroundColor: AppColors.tertiaryBackground.adaptTo(context),
                   color: subject?.color ?? compositeSubject?.firstSubject.value?.color ?? AppColors.accent,
                   showLines: false,
                   showDots: false,

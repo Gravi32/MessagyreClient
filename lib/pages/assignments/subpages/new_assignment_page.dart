@@ -20,7 +20,6 @@ import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/subject_autocomplete.dart';
-import 'package:messagyre_client/utility/wrappers/custom_icon.dart';
 import 'package:uuid/uuid.dart';
 
 class NewAssignmentPage extends StatefulWidget {
@@ -278,7 +277,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
               if (mode != .leave)
                 ListTile(
                   onTap: () => subjectFocusNode.requestFocus(),
-                  leading: const CustomIcon(icon: HugeIcons.strokeRoundedBookBookmark02),
+                  leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedBookBookmark02),
                   trailing: isMissingSubject ? const HugeIcon(icon: AppIcons.missing, color: AppColors.red, size: 18) : null,
 
                   child: SubjectAutocomplete(
@@ -325,7 +324,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   context,
                   icon: HugeIcons.strokeRoundedCheckmarkBadge04,
                   title: "Partager avec vôtre classe",
-                  trailing: CupertinoSwitch(value: isShared, onChanged: (value) => setState(() => isShared = value)),
+                  trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: isShared, onChanged: (value) => setState(() => isShared = value)),
                 ),
               ],
             ),
@@ -369,7 +368,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
                   context,
                   icon: HugeIcons.strokeRoundedCheckmarkBadge04,
                   title: "Suggérer dans la page des notes",
-                  trailing: CupertinoSwitch(value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
+                  trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: addingToGradesPage, onChanged: (value) => setState(() => addingToGradesPage = value)),
                 ),
             ],
           ),
