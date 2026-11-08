@@ -15,7 +15,20 @@ class TopBar extends StatefulWidget {
   final Field? field;
   final bool isSliver;
 
-  const TopBar({super.key, this.leading, this.middle, this.trailing, this.field, this.isSliver = false});
+  /// Hero animation between routes. Must be off for the bars of the main tabs: they live
+  /// together in the same PageView, and several bars with the default hero tag in one
+  /// route make Flutter throw "multiple heroes that share the same tag".
+  final bool transitionBetweenRoutes;
+
+  const TopBar({
+    super.key,
+    this.leading,
+    this.middle,
+    this.trailing,
+    this.field,
+    this.isSliver = false,
+    this.transitionBetweenRoutes = true,
+  });
 
   factory TopBar.form(BuildContext context, {String? title, void Function()? onPop, void Function()? onCloseConfirmed, Widget? trailing}) {
     return TopBar(
@@ -58,7 +71,14 @@ class TopBar extends StatefulWidget {
   }
 
   factory TopBar.sliver({required String title, Widget? leading, Widget? trailing, Field? field}) {
-    return TopBar(middle: Text(title), leading: leading, trailing: trailing, field: field, isSliver: true);
+    return TopBar(
+      middle: Text(title),
+      leading: leading,
+      trailing: trailing,
+      field: field,
+      isSliver: true,
+      transitionBetweenRoutes: false,
+    );
   }
 
   factory TopBar.sliverWithChevron(BuildContext context, {required String title, List<List>? icon, Widget? trailing}) {
@@ -88,6 +108,7 @@ class _TopBarState extends State<TopBar> {
         leading: widget.leading,
         largeTitle: widget.middle,
         trailing: widget.trailing,
+        transitionBetweenRoutes: widget.transitionBetweenRoutes,
         backgroundColor: AppColors.background.adaptTo(context),
         bottom: widget.field != null
             ? PreferredSize(

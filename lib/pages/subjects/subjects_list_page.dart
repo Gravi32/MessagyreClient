@@ -163,9 +163,12 @@ Future<void> askUserToAddTheirSubjects(BuildContext context) async {
       ..colorValue = const Color(0xFF7B1FA2).toInt(),
   ];
 
+  // Only the missing ones: the code is a unique index, saving an existing one again throws
   for (var subject in defaultSubjects) {
-    database.subjects.save(subject);
+    if (database.subjects.getByCode(subject.code) != null) continue;
+    await database.subjects.save(subject);
   }
+  if (!context.mounted) return;
 
   Navigator.of(context).push(
     PageRouteBuilder(
