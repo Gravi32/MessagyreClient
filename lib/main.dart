@@ -37,7 +37,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:stac/stac.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+// Not final: a new account gets a new one (see NetworkService.restartForAccount). Phoenix alone isn't enough: with
+// the same GlobalKey Flutter takes the old Navigator back, pages and login page included, and nothing restarts.
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class BootProcedure {
   /// Overrides "debugPrint" to send output to the app's debug page as well
@@ -256,8 +258,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       ClassService().load();
       await Future.wait([BackupService().sync().timeout(const Duration(seconds: 8), onTimeout: () {}), ClassService().refresh()]);
 
+      // A login or a logout starts the app again: this page may be gone by now
+      if (!mounted) return;
       final mountedContext = context;
-      if (!context.mounted) return;
+      if (!mountedContext.mounted) return;
       // A new account (or a new school year) first chooses its class: it joins the class's conversation
       await askUserForTheirClass(mountedContext);
 

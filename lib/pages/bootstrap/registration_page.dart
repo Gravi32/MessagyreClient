@@ -145,20 +145,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       final refreshToken = responseData["RefreshToken"];
       final username = responseData["Username"];
 
-      globals.token = accessToken;
-      globals.username = username;
-      isWaitingForResponse = true;
-
-      await secureStorage.write(key: "AccessToken", value: accessToken);
-      await secureStorage.write(key: "RefreshToken", value: refreshToken);
-
-      await globals.persistent.setString("Username", username);
+      setState(() => isWaitingForResponse = true);
       clearRegistrationCache();
 
-      isWaitingForResponse = false;
-
       // The app starts again with the new account (the login and registration pages close with it)
-      network.didSignIn();
+      await network.signIn(accessToken: accessToken, refreshToken: refreshToken, username: username);
     }
   }
 

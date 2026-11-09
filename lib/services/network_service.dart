@@ -15,6 +15,7 @@ import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
+import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/secure_storage_service.dart';
@@ -86,8 +87,10 @@ class NetworkService {
   }
 
   Future<void> start() async {
+    // Just after a login the tokens are already in memory: the keychain only matters when the app starts cold
     try {
-      globals.token = await secureStorage.read(key: "AccessToken");
+      final stored = await secureStorage.read(key: "AccessToken"); // no timeout: the first start after an update migrates the storage (several seconds on Android)
+      if (stored != null) globals.token = stored;
     } catch (e) {
       debugPrint("[NetworkService] The access token couldn't be read: $e");
     }
@@ -462,7 +465,15 @@ class NetworkService {
   }
 
   Future<http.Response> _refreshAccessToken() async {
-    final refreshToken = await secureStorage.read(key: "RefreshToken");
+    var refreshToken = globals.refreshToken;
+    if (refreshToken == null) {
+      try {
+        refreshToken = await secureStorage.read(key: "RefreshToken");
+        globals.refreshToken = refreshToken;
+      } catch (e) {
+        debugPrint("[RefreshToken] The keychain couldn't be read: $e");
+      }
+    }
 
     if (refreshToken == null) {
       debugPrint("[RefreshToken] No refresh token found in SecureStorage.");
@@ -475,9 +486,9 @@ class NetworkService {
       try {
         final results = jsonDecode(response.body);
         globals.token = results["AccessToken"];
+        globals.refreshToken = results["RefreshToken"];
 
-        await secureStorage.write(key: "AccessToken", value: globals.token);
-        await secureStorage.write(key: "RefreshToken", value: results["RefreshToken"]);
+        await _storeTokens();
       } catch (e) {
         debugPrint("[RefreshToken] Failed decoding server response: ${response.body} -> $e");
       }
@@ -618,16 +629,62 @@ class NetworkService {
 
   /// After the login or the registration: the app starts again from scratch, so that every page (profile card,
   /// shared assignments, class, conversations) loads the new account instead of keeping what it had before
+  static const _keychainTimeout = Duration(seconds: 5);
+
+  /// Saves the tokens in the keychain for the next start. It never blocks: if the keychain doesn't answer or
+  /// refuses (as on an iPad during App Review), this session goes on with the tokens in memory.
+  Future<void> _storeTokens() async {
+    try {
+      await Future.wait([
+        secureStorage.write(key: "AccessToken", value: globals.token),
+        secureStorage.write(key: "RefreshToken", value: globals.refreshToken),
+      ]).timeout(_keychainTimeout);
+    } catch (e) {
+      debugPrint("[Keychain] The tokens couldn't be saved: $e");
+    }
+  }
+
+  /// After a login or a registration: keeps the session in memory, saves it and starts the app again with it.
+  Future<void> signIn({required String accessToken, required String refreshToken, required String username}) async {
+    globals.token = accessToken;
+    globals.refreshToken = refreshToken;
+    globals.username = username;
+
+    await _storeTokens();
+    try {
+      await globals.persistent.setString("Username", username).timeout(_keychainTimeout);
+    } catch (e) {
+      debugPrint("[Access] The username couldn't be saved: $e");
+    }
+
+    didSignIn();
+  }
+
+  /// Starts the app again from scratch for another account (or none). The global keys are renewed first: with the
+  /// same keys Flutter would reuse the old Navigator and its pages, and the login page would stay on screen.
+  void _restartForAccount(BuildContext context) {
+    navigatorKey = GlobalKey<NavigatorState>();
+    assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
+    Phoenix.rebirth(context);
+  }
+
   void didSignIn() {
     isLoginPageOpen = false;
     final context = navigatorKey.currentContext;
     if (context != null && context.mounted) {
-      Phoenix.rebirth(context);
-    } else {
-      isSignedIn.value = true;
-      uploadPublicKey();
-      connect();
+      try {
+        _restartForAccount(context);
+        return;
+      } catch (e, s) {
+        debugPrint("[Access] The app couldn't start again: $e\n$s");
+      }
     }
+
+    // Without a restart: the login and registration pages close and the session starts here
+    navigatorKey.currentState?.popUntil((route) => route.isFirst);
+    isSignedIn.value = true;
+    uploadPublicKey();
+    connect();
   }
 
   void logout() async {
@@ -641,6 +698,7 @@ class NetworkService {
 
     globals.username = null;
     globals.token = null;
+    globals.refreshToken = null;
 
     await secureStorage.delete(key: "AccessToken");
     await secureStorage.delete(key: "RefreshToken");
@@ -653,7 +711,7 @@ class NetworkService {
     isLoginPageOpen = false;
     final context = navigatorKey.currentContext;
     if (context != null && context.mounted) {
-      Phoenix.rebirth(context);
+      _restartForAccount(context);
     } else {
       onUnauthorized();
     }

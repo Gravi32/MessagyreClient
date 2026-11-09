@@ -56,13 +56,13 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
     var response = await network.post("/auth/login", {"Username": username, "Password": password});
 
-    setState(() => isWaitingForResponse = false);
-
+    String accessToken, refreshToken;
     try {
       // A refusal is sometimes plain text ("Internal error" without connection): it is shown, not decoded
       final responseData = tryJsonDecode(response.body);
       // Handling failure
       if (response.statusCode != 200) {
+        isWaitingForResponse = false;
         debugPrint("[Login failed] Error ${response.statusCode}: $responseData");
 
         setState(() {
@@ -83,26 +83,22 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         return;
       }
 
-      // Saving the received AccessToken
-      final accessToken = responseData["AccessToken"];
-      final refreshToken = responseData["RefreshToken"];
-      globals.token = accessToken;
-      globals.username = username;
-
-      await secureStorage.write(key: "AccessToken", value: accessToken);
-      await secureStorage.write(key: "RefreshToken", value: refreshToken);
-
-      await globals.persistent.setString("Username", username);
+      accessToken = responseData["AccessToken"] as String;
+      refreshToken = responseData["RefreshToken"] as String;
     } catch (e, s) {
       debugPrint("[Access] Error decoding response: '$e'. Stack trace: $s");
-      setState(() => usernameError = "La réponse du serveur est illisible ($e). Réessayez dans un instant.");
+      setState(() {
+        isWaitingForResponse = false;
+        usernameError = "La réponse du serveur est illisible ($e). Réessayez dans un instant.";
+      });
       return;
     }
 
-    debugPrint("[Login successful] Token received and stored.");
+    debugPrint("[Login successful] Token received.");
 
-    // The app starts again with the new account (this page closes with it)
-    network.didSignIn();
+    // The button stays disabled: the app starts again with the new account (this page closes with it). The
+    // keychain can't hold this up any more: the session goes on from memory if it doesn't answer.
+    await network.signIn(accessToken: accessToken, refreshToken: refreshToken, username: username);
   }
 
   void tryToResetPassword() async {

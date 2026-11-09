@@ -23,7 +23,8 @@ import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
-final assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
+// Not final: renewed with the account, like navigatorKey in main.dart
+var assignmentListPageKey = GlobalKey<AssignmentsListPageState>();
 
 class AssignmentsListPage extends StatefulWidget {
   const AssignmentsListPage({super.key});

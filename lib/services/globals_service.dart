@@ -13,6 +13,8 @@ class GlobalsService {
   GlobalsService._internal();
 
   String? token;
+  // Kept in memory too: the session never depends on reading the keychain back (it can be slow or refuse on iOS)
+  String? refreshToken;
   String? username;
 
   final secureStorage = SecureStorageService();
