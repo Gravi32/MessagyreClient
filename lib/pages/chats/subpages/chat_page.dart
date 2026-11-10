@@ -1159,13 +1159,20 @@ class SwipeToReply extends StatefulWidget {
 }
 
 class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderStateMixin {
-  late final AnimationController controller = AnimationController(vsync: this, duration: AppDurations.fast)
-    ..addListener(() => setState(() => offset = releasedAt * (1 - Curves.easeOut.transform(controller.value))));
+  // Made in initState, never lazily: a bubble never swiped would create it in dispose(), when its context is gone
+  late final AnimationController controller;
   double offset = 0;
 
   /// Where the message was let go: it slides back from there
   double releasedAt = 0;
   bool passed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(vsync: this, duration: AppDurations.fast)
+      ..addListener(() => setState(() => offset = releasedAt * (1 - Curves.easeOut.transform(controller.value))));
+  }
 
   @override
   void dispose() {

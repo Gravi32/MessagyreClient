@@ -16,6 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:isar_community/isar.dart';
+import 'package:messagyre_client/database/models/messages/message_reply.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/grades/grades_list_page.dart';
@@ -209,9 +210,20 @@ Future<void> _seed(Isar isar, String root) async {
     ),
   ];
 
+  // The global chat: several people, an answer, a photo (blurred until touched)
+  final globalMessages = [
+    Message.custom(uuid: "g1", chatUsername: "@general", senderUsername: "lea.martin", content: "Quelqu'un a les corrigés du test de chimie ?", sentAt: now.subtract(const Duration(minutes: 40)), isOwned: false, status: MessageStatus.Delivered),
+    Message.custom(uuid: "g2", chatUsername: "@general", senderUsername: "noah.dubois", content: "Oui, je les poste ce soir", sentAt: now.subtract(const Duration(minutes: 35)), isOwned: false, status: MessageStatus.Delivered,
+        reply: MessageReply.of(uuid: "g1", sender: "lea.martin", text: "Quelqu'un a les corrigés du test de chimie ?")),
+    Message.custom(uuid: "g3", chatUsername: "@general", content: "Merci beaucoup !", sentAt: now.subtract(const Duration(minutes: 30)), isOwned: true, status: MessageStatus.Sent,
+        reply: MessageReply.of(uuid: "g2", sender: "noah.dubois", text: "Oui, je les poste ce soir")),
+  ];
+
   await isar.writeTxn(() async {
     await isar.subjects.putAll([maths, french]);
+    await isar.messages.putAll(globalMessages);
     await isar.chats.putAll([
+      Chat.custom(username: "@general", displayUsername: "Conversation générale", isPinned: true, unreadMessages: 2),
       Chat.custom(username: "lea.martin", displayUsername: "Léa Martin"),
       Chat.custom(username: "noah.dubois", displayUsername: "Noah", unreadMessages: 1),
       Chat.custom(username: "support.messagyre", displayUsername: "Support Messagyre", isPinned: true),
@@ -440,6 +452,7 @@ void main() {
 
     testWidgets("chats list ($suffix)", (tester) async => shoot(tester, _app(const ChatsListPage(), brightness), "chats_$suffix"));
     testWidgets("chat ($suffix)", (tester) async => shoot(tester, _plain(const ChatPage(username: "lea.martin"), brightness), "chat_$suffix"));
+    testWidgets("global chat ($suffix)", (tester) async => shoot(tester, _plain(const ChatPage(username: "@general"), brightness), "global_$suffix"));
     testWidgets("assignments ($suffix)", (tester) async => shoot(tester, _app(AssignmentsListPage(key: GlobalKey()), brightness), "assignments_$suffix"));
   }
 
