@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import '../models/assignments/assignment.dart';
 
 class AssignmentRepository {

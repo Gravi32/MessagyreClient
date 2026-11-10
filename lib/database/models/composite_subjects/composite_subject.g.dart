@@ -7,7 +7,7 @@ part of 'composite_subject.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetCompositeSubjectCollection on Isar {
   IsarCollection<CompositeSubject> get compositeSubjects => this.collection();
@@ -17,21 +17,13 @@ const CompositeSubjectSchema = CollectionSchema(
   name: r'CompositeSubject',
   id: -6647909848621739095,
   properties: {
-    r'code': PropertySchema(
-      id: 0,
-      name: r'code',
-      type: IsarType.string,
-    ),
+    r'code': PropertySchema(id: 0, name: r'code', type: IsarType.string),
     r'firstSubjectPeriodsPerWeek': PropertySchema(
       id: 1,
       name: r'firstSubjectPeriodsPerWeek',
       type: IsarType.double,
     ),
-    r'name': PropertySchema(
-      id: 2,
-      name: r'name',
-      type: IsarType.string,
-    ),
+    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
     r'secondSubjectPeriodsPerWeek': PropertySchema(
       id: 3,
       name: r'secondSubjectPeriodsPerWeek',
@@ -46,8 +38,9 @@ const CompositeSubjectSchema = CollectionSchema(
       id: 5,
       name: r'totalPeriodsPerWeek',
       type: IsarType.double,
-    )
+    ),
   },
+
   estimateSize: _compositeSubjectEstimateSize,
   serialize: _compositeSubjectSerialize,
   deserialize: _compositeSubjectDeserialize,
@@ -64,9 +57,9 @@ const CompositeSubjectSchema = CollectionSchema(
           name: r'code',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {
     r'firstSubject': LinkSchema(
@@ -86,13 +79,14 @@ const CompositeSubjectSchema = CollectionSchema(
       name: r'thirdSubject',
       target: r'Subject',
       single: true,
-    )
+    ),
   },
   embeddedSchemas: {},
+
   getId: _compositeSubjectGetId,
   getLinks: _compositeSubjectGetLinks,
   attach: _compositeSubjectAttach,
-  version: '3.1.0+1',
+  version: '3.4.1',
 );
 
 int _compositeSubjectEstimateSize(
@@ -169,14 +163,29 @@ List<IsarLinkBase<dynamic>> _compositeSubjectGetLinks(CompositeSubject object) {
 }
 
 void _compositeSubjectAttach(
-    IsarCollection<dynamic> col, Id id, CompositeSubject object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  CompositeSubject object,
+) {
   object.id = id;
-  object.firstSubject
-      .attach(col, col.isar.collection<Subject>(), r'firstSubject', id);
-  object.secondSubject
-      .attach(col, col.isar.collection<Subject>(), r'secondSubject', id);
-  object.thirdSubject
-      .attach(col, col.isar.collection<Subject>(), r'thirdSubject', id);
+  object.firstSubject.attach(
+    col,
+    col.isar.collection<Subject>(),
+    r'firstSubject',
+    id,
+  );
+  object.secondSubject.attach(
+    col,
+    col.isar.collection<Subject>(),
+    r'secondSubject',
+    id,
+  );
+  object.thirdSubject.attach(
+    col,
+    col.isar.collection<Subject>(),
+    r'thirdSubject',
+    id,
+  );
 }
 
 extension CompositeSubjectByIndex on IsarCollection<CompositeSubject> {
@@ -228,8 +237,10 @@ extension CompositeSubjectByIndex on IsarCollection<CompositeSubject> {
     return putAllByIndex(r'code', objects);
   }
 
-  List<Id> putAllByCodeSync(List<CompositeSubject> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByCodeSync(
+    List<CompositeSubject> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'code', objects, saveLinks: saveLinks);
   }
 }
@@ -246,17 +257,15 @@ extension CompositeSubjectQueryWhereSort
 extension CompositeSubjectQueryWhere
     on QueryBuilder<CompositeSubject, CompositeSubject, QWhereClause> {
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterWhereClause> idEqualTo(
-      Id id) {
+    Id id,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterWhereClause>
-      idNotEqualTo(Id id) {
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -279,7 +288,7 @@ extension CompositeSubjectQueryWhere
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -288,7 +297,7 @@ extension CompositeSubjectQueryWhere
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterWhereClause>
-      idLessThan(Id id, {bool include = false}) {
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -303,56 +312,65 @@ extension CompositeSubjectQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterWhereClause>
-      codeEqualTo(String code) {
+  codeEqualTo(String code) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'code',
-        value: [code],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'code', value: [code]),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterWhereClause>
-      codeNotEqualTo(String code) {
+  codeNotEqualTo(String code) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'code',
-              lower: [],
-              upper: [code],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'code',
-              lower: [code],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'code',
+                lower: [],
+                upper: [code],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'code',
+                lower: [code],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'code',
-              lower: [code],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'code',
-              lower: [],
-              upper: [code],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'code',
+                lower: [code],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'code',
+                lower: [],
+                upper: [code],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -361,53 +379,56 @@ extension CompositeSubjectQueryWhere
 extension CompositeSubjectQueryFilter
     on QueryBuilder<CompositeSubject, CompositeSubject, QFilterCondition> {
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  codeEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'code',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'code',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeLessThan(
+  codeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'code',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeBetween(
+  codeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  codeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -415,135 +436,146 @@ extension CompositeSubjectQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'code',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'code',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  codeStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'code',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  codeEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'code',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeContains(String value, {bool caseSensitive = true}) {
+  codeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'code',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'code',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeMatches(String pattern, {bool caseSensitive = true}) {
+  codeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'code',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'code',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeIsEmpty() {
+  codeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'code',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'code', value: ''),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      codeIsNotEmpty() {
+  codeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'code',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'code', value: ''),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectPeriodsPerWeekEqualTo(
+  firstSubjectPeriodsPerWeekEqualTo(
     double value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'firstSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'firstSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectPeriodsPerWeekGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'firstSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectPeriodsPerWeekLessThan(
+  firstSubjectPeriodsPerWeekGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'firstSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'firstSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectPeriodsPerWeekBetween(
+  firstSubjectPeriodsPerWeekLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'firstSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  firstSubjectPeriodsPerWeekBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -551,121 +583,126 @@ extension CompositeSubjectQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'firstSubjectPeriodsPerWeek',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'firstSubjectPeriodsPerWeek',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      idEqualTo(Id value) {
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      idBetween(
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  nameEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameLessThan(
+  nameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameBetween(
+  nameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  nameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -673,135 +710,146 @@ extension CompositeSubjectQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'name',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'name',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  nameStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  nameEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameContains(String value, {bool caseSensitive = true}) {
+  nameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameMatches(String pattern, {bool caseSensitive = true}) {
+  nameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'name',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'name',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameIsEmpty() {
+  nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'name', value: ''),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      nameIsNotEmpty() {
+  nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'name', value: ''),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectPeriodsPerWeekEqualTo(
+  secondSubjectPeriodsPerWeekEqualTo(
     double value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'secondSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'secondSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectPeriodsPerWeekGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'secondSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectPeriodsPerWeekLessThan(
+  secondSubjectPeriodsPerWeekGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'secondSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'secondSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectPeriodsPerWeekBetween(
+  secondSubjectPeriodsPerWeekLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'secondSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  secondSubjectPeriodsPerWeekBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -809,65 +857,77 @@ extension CompositeSubjectQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'secondSubjectPeriodsPerWeek',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'secondSubjectPeriodsPerWeek',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      thirdSubjectPeriodsPerWeekEqualTo(
+  thirdSubjectPeriodsPerWeekEqualTo(
     double value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'thirdSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'thirdSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      thirdSubjectPeriodsPerWeekGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'thirdSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      thirdSubjectPeriodsPerWeekLessThan(
+  thirdSubjectPeriodsPerWeekGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'thirdSubjectPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'thirdSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      thirdSubjectPeriodsPerWeekBetween(
+  thirdSubjectPeriodsPerWeekLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'thirdSubjectPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  thirdSubjectPeriodsPerWeekBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -875,65 +935,74 @@ extension CompositeSubjectQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'thirdSubjectPeriodsPerWeek',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'thirdSubjectPeriodsPerWeek',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      totalPeriodsPerWeekEqualTo(
-    double value, {
-    double epsilon = Query.epsilon,
-  }) {
+  totalPeriodsPerWeekEqualTo(double value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'totalPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'totalPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      totalPeriodsPerWeekGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'totalPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      totalPeriodsPerWeekLessThan(
+  totalPeriodsPerWeekGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'totalPeriodsPerWeek',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'totalPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      totalPeriodsPerWeekBetween(
+  totalPeriodsPerWeekLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'totalPeriodsPerWeek',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  totalPeriodsPerWeekBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -941,14 +1010,17 @@ extension CompositeSubjectQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'totalPeriodsPerWeek',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'totalPeriodsPerWeek',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 }
@@ -959,42 +1031,42 @@ extension CompositeSubjectQueryObject
 extension CompositeSubjectQueryLinks
     on QueryBuilder<CompositeSubject, CompositeSubject, QFilterCondition> {
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubject(FilterQuery<Subject> q) {
+  firstSubject(FilterQuery<Subject> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'firstSubject');
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      firstSubjectIsNull() {
+  firstSubjectIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'firstSubject', 0, true, 0, true);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubject(FilterQuery<Subject> q) {
+  secondSubject(FilterQuery<Subject> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'secondSubject');
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      secondSubjectIsNull() {
+  secondSubjectIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'secondSubject', 0, true, 0, true);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      thirdSubject(FilterQuery<Subject> q) {
+  thirdSubject(FilterQuery<Subject> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'thirdSubject');
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
-      thirdSubjectIsNull() {
+  thirdSubjectIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'thirdSubject', 0, true, 0, true);
     });
@@ -1010,21 +1082,21 @@ extension CompositeSubjectQuerySortBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByCodeDesc() {
+  sortByCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'code', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByFirstSubjectPeriodsPerWeek() {
+  sortByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByFirstSubjectPeriodsPerWeekDesc() {
+  sortByFirstSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.desc);
     });
@@ -1037,49 +1109,49 @@ extension CompositeSubjectQuerySortBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByNameDesc() {
+  sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortBySecondSubjectPeriodsPerWeek() {
+  sortBySecondSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortBySecondSubjectPeriodsPerWeekDesc() {
+  sortBySecondSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByThirdSubjectPeriodsPerWeek() {
+  sortByThirdSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thirdSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByThirdSubjectPeriodsPerWeekDesc() {
+  sortByThirdSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thirdSubjectPeriodsPerWeek', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByTotalPeriodsPerWeek() {
+  sortByTotalPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      sortByTotalPeriodsPerWeekDesc() {
+  sortByTotalPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalPeriodsPerWeek', Sort.desc);
     });
@@ -1095,21 +1167,21 @@ extension CompositeSubjectQuerySortThenBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByCodeDesc() {
+  thenByCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'code', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByFirstSubjectPeriodsPerWeek() {
+  thenByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByFirstSubjectPeriodsPerWeekDesc() {
+  thenByFirstSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.desc);
     });
@@ -1122,7 +1194,7 @@ extension CompositeSubjectQuerySortThenBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByIdDesc() {
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
@@ -1135,49 +1207,49 @@ extension CompositeSubjectQuerySortThenBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByNameDesc() {
+  thenByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenBySecondSubjectPeriodsPerWeek() {
+  thenBySecondSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenBySecondSubjectPeriodsPerWeekDesc() {
+  thenBySecondSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'secondSubjectPeriodsPerWeek', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByThirdSubjectPeriodsPerWeek() {
+  thenByThirdSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thirdSubjectPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByThirdSubjectPeriodsPerWeekDesc() {
+  thenByThirdSubjectPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'thirdSubjectPeriodsPerWeek', Sort.desc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByTotalPeriodsPerWeek() {
+  thenByTotalPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalPeriodsPerWeek', Sort.asc);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
-      thenByTotalPeriodsPerWeekDesc() {
+  thenByTotalPeriodsPerWeekDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalPeriodsPerWeek', Sort.desc);
     });
@@ -1186,43 +1258,45 @@ extension CompositeSubjectQuerySortThenBy
 
 extension CompositeSubjectQueryWhereDistinct
     on QueryBuilder<CompositeSubject, CompositeSubject, QDistinct> {
-  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct> distinctByCode(
-      {bool caseSensitive = true}) {
+  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct> distinctByCode({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'code', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
-      distinctByFirstSubjectPeriodsPerWeek() {
+  distinctByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'firstSubjectPeriodsPerWeek');
     });
   }
 
-  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct> distinctByName(
-      {bool caseSensitive = true}) {
+  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct> distinctByName({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
-      distinctBySecondSubjectPeriodsPerWeek() {
+  distinctBySecondSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'secondSubjectPeriodsPerWeek');
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
-      distinctByThirdSubjectPeriodsPerWeek() {
+  distinctByThirdSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'thirdSubjectPeriodsPerWeek');
     });
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
-      distinctByTotalPeriodsPerWeek() {
+  distinctByTotalPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'totalPeriodsPerWeek');
     });
@@ -1244,7 +1318,7 @@ extension CompositeSubjectQueryProperty
   }
 
   QueryBuilder<CompositeSubject, double, QQueryOperations>
-      firstSubjectPeriodsPerWeekProperty() {
+  firstSubjectPeriodsPerWeekProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'firstSubjectPeriodsPerWeek');
     });
@@ -1257,21 +1331,21 @@ extension CompositeSubjectQueryProperty
   }
 
   QueryBuilder<CompositeSubject, double, QQueryOperations>
-      secondSubjectPeriodsPerWeekProperty() {
+  secondSubjectPeriodsPerWeekProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'secondSubjectPeriodsPerWeek');
     });
   }
 
   QueryBuilder<CompositeSubject, double, QQueryOperations>
-      thirdSubjectPeriodsPerWeekProperty() {
+  thirdSubjectPeriodsPerWeekProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'thirdSubjectPeriodsPerWeek');
     });
   }
 
   QueryBuilder<CompositeSubject, double, QQueryOperations>
-      totalPeriodsPerWeekProperty() {
+  totalPeriodsPerWeekProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'totalPeriodsPerWeek');
     });

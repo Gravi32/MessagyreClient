@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 
 part 'composite_subject.g.dart';

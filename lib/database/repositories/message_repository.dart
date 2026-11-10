@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 
 class MessageRepository {

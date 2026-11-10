@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import '../subjects/subject.dart';
 
 part 'assignment.g.dart';
