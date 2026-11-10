@@ -4,19 +4,47 @@ import 'package:messagyre_client/services/class_service.dart';
 void main() {
   group("A class", () {
     test("is written like the school writes it", () {
-      expect(const SchoolClass(1, "M", 5).name, "1M05");
-      expect(const SchoolClass(3, "M", 12).name, "3M12");
-      expect(const SchoolClass(2, "EC", 3).name, "2EC3");
-      expect(const SchoolClass(1, "C", 2).name, "1C2");
+      expect(const SchoolClass(1, "M", "05").name, "1M05");
+      expect(const SchoolClass(3, "M", "b11").name, "3Mb11");
+      expect(const SchoolClass(2, "EC", "3").name, "2EC3");
+      expect(const SchoolClass(2, "C", "ci1").name, "2Cci1");
     });
 
-    test("is read with or without the leading zero, and nothing else is a class", () {
-      expect(SchoolClass.tryParse("1M05"), const SchoolClass(1, "M", 5));
-      expect(SchoolClass.tryParse("1m5"), const SchoolClass(1, "M", 5));
-      expect(SchoolClass.tryParse("4EC15")?.name, "4EC15");
-      for (final value in ["5M01", "1M16", "1M00", "2Cci1", "Externe", "Enseignant", "", null]) {
+    test("every class of the school's list (gyre.ch, 2026-2027) is a class", () {
+      const list = [
+        "1M01", "1M10", "2M09", "3M10", "3Mb11", "3Mb17", // maturité
+        "1EC1", "2EC2", "3EC3", "4EC1", // commerce
+        "1C1", "1C4", "2Cadts", "2Cci1", "2Cci3", "2Csa", "3Cad", "3Cci2", "3Csa", "3Cts", // culture générale
+      ];
+      for (final value in list) {
+        expect(SchoolClass.tryParse(value)?.name, value, reason: value);
+        expect(SchoolClass.sectionsOf(int.parse(value[0]), SchoolClass.tryParse(value)!.school), contains(SchoolClass.tryParse(value)!.section));
+      }
+    });
+
+    test("is read however it is written", () {
+      expect(SchoolClass.tryParse("1m5")?.name, "1M05");
+      expect(SchoolClass.tryParse("3MB11")?.name, "3Mb11");
+      expect(SchoolClass.tryParse(" 2cci1 ")?.name, "2Cci1");
+      expect(SchoolClass.tryParse("2CTsAd")?.name, "2Cadts");
+      expect(SchoolClass.tryParse("2CSA")?.name, "2Csa");
+    });
+
+    test("nothing else is a class", () {
+      for (final value in [
+        "4M01", "1M00", "1M21", "1Mb11", "5EC1", "1EC", "1Cci1", "4C1", "2C1", "2Cxx", "2Ccici", "2Cadts1", "2Cci4", "1C9",
+        "Externe", "Enseignant", "", null,
+      ]) {
         expect(SchoolClass.tryParse(value), isNull, reason: "$value");
       }
+    });
+
+    test("says what it is", () {
+      expect(SchoolClass.tryParse("1EC1")!.description, "École de commerce");
+      expect(SchoolClass.tryParse("1C2")!.description, "École de culture générale");
+      expect(SchoolClass.tryParse("2Cci1")!.description, "Communication et information");
+      expect(SchoolClass.tryParse("2Cadts")!.description, "Arts et design et Travail social");
+      expect(SchoolClass.tryParse("3Mb11")!.description, "École de maturité, bilingue");
     });
 
     test("is chosen for a school year that changes in the middle of August", () {

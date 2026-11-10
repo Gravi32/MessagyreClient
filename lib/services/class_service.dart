@@ -13,38 +13,109 @@ import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:pointycastle/export.dart' show RSAPublicKey;
 
-/// A class of the Gymnase de Renens, written `AbC`: the year (1 to 4), the school ([schools]) and the section
-/// (1 to [maxSection]; on two digits for the maturité, "1M05", like the school writes them).
+/// A class of the Gymnase de Renens, written like the school writes it (gyre.ch, "Maîtrises de classe"): the year,
+/// the school ([schools]) and the [section]:
+/// - École de maturité (3 years): "1M05", "3M10"; the bilingual classes (from the 2nd year) have a "b": "3Mb11".
+/// - École de commerce (4 years, the 4th is the stage): "1EC1", "4EC1".
+/// - École de culture générale (3 years): "1C3" in the 1st year; from the 2nd, the professional domain ([domains])
+///   and a number when there are several classes: "2Cci1", "3Csa". Two small domains can share a class: "2Cadts"
+///   (the domains in alphabetical order; the school also writes "2CTsAd").
+///
+/// The server checks the same rules (ClassesService.Normalize).
 @immutable
 class SchoolClass {
   final int year;
   final String school;
-  final int section;
+
+  /// What comes after the school: "05", "b11", "1", "ci1", "adts"
+  final String section;
 
   const SchoolClass(this.year, this.school, this.section);
 
-  static const years = [1, 2, 3, 4];
-  static const schools = {"M": "École de maturité", "C": "École de commerce", "EC": "École de culture générale"};
-  static const maxSection = 15;
+  static const schools = {"M": "École de maturité", "EC": "École de commerce", "C": "École de culture générale"};
+  static const shortSchools = {"M": "Maturité", "EC": "Commerce", "C": "Culture g."};
+
+  /// The professional domains of the école de culture générale, chosen at the end of the 1st year
+  static const domains = {
+    "ad": "Arts et design",
+    "ci": "Communication et information",
+    "mu": "Musique",
+    "pe": "Pédagogie",
+    "sa": "Santé",
+    "ts": "Travail social",
+  };
+
+  static List<int> yearsOf(String school) => school == "EC" ? const [1, 2, 3, 4] : const [1, 2, 3];
+
+  /// Every class of a year of a school, in the order of the picker's wheel
+  static List<String> sectionsOf(int year, String school) {
+    String twoDigits(int number) => number.toString().padLeft(2, "0");
+    switch (school) {
+      case "M":
+        return [for (var number = 1; number <= 20; number++) twoDigits(number), if (year > 1) for (var number = 1; number <= 20; number++) "b${twoDigits(number)}"];
+      case "EC":
+        return [for (var number = 1; number <= 6; number++) "$number"];
+      default:
+        if (year == 1) return [for (var number = 1; number <= 8; number++) "$number"];
+        final codes = domains.keys.toList();
+        return [
+          for (final domain in codes) ...[domain, for (var number = 1; number <= 3; number++) "$domain$number"],
+          for (var first = 0; first < codes.length; first++)
+            for (var second = first + 1; second < codes.length; second++) "${codes[first]}${codes[second]}",
+        ];
+    }
+  }
 
   /// What someone who isn't at the Gymnase de Renens chooses (the value the accounts already had)
   static const outside = "Externe";
 
-  static final _pattern = RegExp(r'^([1-4])(M|EC|C)(\d{1,2})$');
+  static final _pattern = RegExp(r'^([1-4])(EC|M|C)([A-Za-z]*)(\d{0,2})$', caseSensitive: false);
 
-  /// "1M05", "1M5", "2EC1"... Null for anything else ("Externe", "Enseignant", "2Cci1"...)
+  /// "1M05", "1m5", "3MB11", "2EC1", "2cci1", "2CTsAd" (→ "2Cadts")... Null for anything else ("Externe",
+  /// "Enseignant", "4M01"...)
   static SchoolClass? tryParse(String? value) {
-    final match = _pattern.firstMatch(value?.trim().toUpperCase() ?? "");
+    final match = _pattern.firstMatch(value?.trim() ?? "");
     if (match == null) return null;
-    final section = int.parse(match.group(3)!);
-    if (section < 1 || section > maxSection) return null;
-    return SchoolClass(int.parse(match.group(1)!), match.group(2)!, section);
+    final year = int.parse(match.group(1)!);
+    final school = match.group(2)!.toUpperCase();
+    final letters = match.group(3)!.toLowerCase();
+    final digits = match.group(4)!;
+    final number = digits.isEmpty ? null : int.parse(digits);
+    if (!yearsOf(school).contains(year)) return null;
+
+    String? section;
+    switch (school) {
+      case "M":
+        if ((letters == "" || (letters == "b" && year > 1)) && number != null) section = "$letters${number.toString().padLeft(2, "0")}";
+      case "EC":
+        if (letters == "" && number != null) section = "$number";
+      default:
+        if (year == 1) {
+          if (letters == "" && number != null) section = "$number";
+        } else if (letters.length == 2 || letters.length == 4) {
+          final parts = [for (var index = 0; index < letters.length; index += 2) letters.substring(index, index + 2)]..sort();
+          final isValid = parts.every(domains.containsKey) && parts.toSet().length == parts.length && (parts.length == 1 || number == null);
+          if (isValid) section = "${parts.join()}${number ?? ""}";
+        }
+    }
+    if (section == null || !sectionsOf(year, school).contains(section)) return null;
+    return SchoolClass(year, school, section);
   }
 
   /// The class as the school (and the server) writes it
-  String get name => "$year$school${school == "M" ? section.toString().padLeft(2, "0") : section}";
+  String get name => "$year$school$section";
 
   String get yearName => year == 1 ? "1re année" : "${year}e année";
+
+  /// "École de maturité, bilingue", "Communication et information", "Arts et design et Travail social"...
+  String get description {
+    if (school == "M" && section.startsWith("b")) return "École de maturité, bilingue";
+    if (school == "C" && year > 1) {
+      final letters = section.replaceAll(RegExp(r'\d'), "");
+      return [for (var index = 0; index < letters.length; index += 2) domains[letters.substring(index, index + 2)]].join(" et ");
+    }
+    return schools[school]!;
+  }
 
   /// The school year of a date ("2026-2027"). It changes in the middle of August, when the classes are known
   /// (the server uses the same rule: ClassesService.YearLabel).
