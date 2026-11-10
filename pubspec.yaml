@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.106.1016+1016
+version: 4.107.1017+1017
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -110,6 +110,7 @@ version: 4.106.1016+1016
 # 4.104 Decorations in the card's own color (no purple on blue), profile badges on their own purple disc
 # 4.105 Class chats get a profile (picture, description, elected delegates, media, members), assignments can be sent in chats, flat tab dock, softer grade colors
 # 4.106 Class picker with the real classes of the Gymnase: domains of the ECG (2Cci1, 3Cts, 2Cadts), bilingual maturité classes (3Mb11), 4EC; commerce (EC) and culture générale (C) no longer swapped
+# 4.107 Classes from the server (GET /classes/catalog: the list changes without an app release), app versions in the admin page, more space in the wallpaper page
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

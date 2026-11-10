@@ -37,68 +37,79 @@ class ClassPickerPage extends StatefulWidget {
 
 class _ClassPickerPageState extends State<ClassPickerPage> {
   final classes = ClassService();
-  static final schoolCodes = SchoolClass.schools.keys.toList();
 
-  late int schoolIndex, yearIndex, sectionIndex;
-  late final FixedExtentScrollController schoolController, yearController, sectionController;
+  /// The classes that exist this year (from the server), null while it is read
+  ClassCatalog? catalog;
+
+  int schoolIndex = 0, yearIndex = 0, sectionIndex = 0;
+  FixedExtentScrollController? schoolController, yearController, sectionController;
 
   Map<String, int>? counts;
   bool isSaving = false;
 
-  String get school => schoolCodes[schoolIndex];
-  List<int> get years => SchoolClass.yearsOf(school);
+  CatalogSchool get school => catalog!.schools[schoolIndex];
+  List<int> get years => school.years;
   int get year => years[yearIndex];
-  List<String> get sections => SchoolClass.sectionsOf(year, school);
+  List<String> get sections => school.classes[year]!;
 
-  SchoolClass get selected => SchoolClass(year, school, sections[sectionIndex]);
+  SchoolClass get selected => SchoolClass.tryParse(sections[sectionIndex], catalog: catalog)!;
 
   @override
   void initState() {
     super.initState();
-
-    // The class already chosen, or last year's moved up one year (same class when it still exists: 2Cci1 → 3Cci1)
-    final saved = SchoolClass.tryParse(classes.savedValue);
-    final isLastYear = saved != null && classes.savedYear != SchoolClass.yearLabel(DateTime.now());
-    schoolIndex = saved == null ? 0 : schoolCodes.indexOf(saved.school).clamp(0, schoolCodes.length - 1);
-    final wantedYear = saved == null ? 1 : (isLastYear ? saved.year + 1 : saved.year);
-    yearIndex = years.indexOf(wantedYear.clamp(years.first, years.last));
-    sectionIndex = saved == null ? 0 : sections.indexOf(saved.section).clamp(0, sections.length - 1);
-
-    schoolController = FixedExtentScrollController(initialItem: schoolIndex);
-    yearController = FixedExtentScrollController(initialItem: yearIndex);
-    sectionController = FixedExtentScrollController(initialItem: sectionIndex);
-
+    classes.loadCatalog().then((loaded) {
+      if (mounted) setState(() => setUp(loaded));
+    });
     classes.counts().then((value) {
       if (mounted) setState(() => counts = value);
     });
   }
 
+  /// Puts the wheels on the class already chosen, or on last year's moved up one year (2Cci1 → 3Cci1 when it exists)
+  void setUp(ClassCatalog loaded) {
+    catalog = loaded;
+    if (loaded.schools.isEmpty) return;
+    final saved = SchoolClass.tryParse(classes.savedValue, catalog: loaded);
+    final isLastYear = saved != null && classes.savedYear != SchoolClass.yearLabel(DateTime.now());
+    final savedSchool = saved == null ? -1 : loaded.schools.indexWhere((school) => school.code == saved.school);
+    schoolIndex = savedSchool < 0 ? 0 : savedSchool;
+    final wantedYear = saved == null || savedSchool < 0 ? years.first : (isLastYear ? saved.year + 1 : saved.year);
+    yearIndex = years.indexOf(wantedYear.clamp(years.first, years.last));
+    if (yearIndex < 0) yearIndex = 0;
+    final wanted = saved == null ? "" : "$year${saved.school}${saved.section}";
+    sectionIndex = sections.indexWhere((name) => name.toLowerCase() == wanted.toLowerCase());
+    if (sectionIndex < 0) sectionIndex = 0;
+
+    schoolController = FixedExtentScrollController(initialItem: schoolIndex);
+    yearController = FixedExtentScrollController(initialItem: yearIndex);
+    sectionController = FixedExtentScrollController(initialItem: sectionIndex);
+  }
+
   @override
   void dispose() {
-    schoolController.dispose();
-    yearController.dispose();
-    sectionController.dispose();
+    schoolController?.dispose();
+    yearController?.dispose();
+    sectionController?.dispose();
     super.dispose();
   }
 
-  /// Another school or year has other years and classes: keeps the same ones when they exist there, and moves the
+  /// Another school or year has other years and classes: keeps the same year when it exists there, and moves the
   /// wheels that changed
   void change({int? school, int? yearPosition}) {
     final previousYear = year;
-    final previousSection = sections[sectionIndex];
     setState(() {
       if (school != null) {
         schoolIndex = school;
         yearIndex = years.contains(previousYear) ? years.indexOf(previousYear) : years.length - 1;
       }
       if (yearPosition != null) yearIndex = yearPosition;
-      final kept = sections.indexOf(previousSection);
-      sectionIndex = kept < 0 ? 0 : kept;
+      sectionIndex = 0;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (yearController.hasClients && yearController.selectedItem != yearIndex) yearController.jumpToItem(yearIndex);
-      if (sectionController.hasClients && sectionController.selectedItem != sectionIndex) sectionController.jumpToItem(sectionIndex);
+      final years = yearController, sections = sectionController;
+      if (years != null && years.hasClients && years.selectedItem != yearIndex) years.jumpToItem(yearIndex);
+      if (sections != null && sections.hasClients && sections.selectedItem != sectionIndex) sections.jumpToItem(sectionIndex);
     });
   }
 
@@ -175,10 +186,7 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
                 style: AppStyles.display(context).copyWith(color: AppColors.white),
               ),
             ),
-            Text(
-              "${schoolClass.yearName} · ${schoolClass.description}",
-              style: AppStyles.subheadline(context).copyWith(color: AppColors.white),
-            ),
+            Text("${schoolClass.yearName} · ${schoolClass.describe(catalog)}", style: AppStyles.subheadline(context).copyWith(color: AppColors.white)),
             const SizedBox(height: AppSpacing.s),
             Text(
               counts == null
@@ -200,12 +208,13 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
   Widget build(BuildContext context) {
     final text = AppStyles.primaryText(context);
     final schoolClassYear = SchoolClass.yearLabel(DateTime.now());
+    final isReady = catalog != null && catalog!.schools.isNotEmpty;
 
     return Page(
       topBar: TopBar.form(
         context,
         title: "Votre classe",
-        trailing: Button.icon(context, icon: HugeIcons.strokeRoundedTick02, isLoading: isSaving, onTap: () => save(selected.name)),
+        trailing: Button.icon(context, icon: HugeIcons.strokeRoundedTick02, isLoading: isSaving || !isReady, onTap: isReady ? () => save(selected.name) : null),
       ),
       child: ListView(
         children: [
@@ -216,77 +225,83 @@ class _ClassPickerPageState extends State<ClassPickerPage> {
             style: AppStyles.secondaryText(context),
             padding: const EdgeInsets.only(top: AppSpacing.m),
           ),
-          buildPreview(),
-          const SizedBox(height: AppSpacing.l),
-          Container(
-            height: 180,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s),
-            decoration: BoxDecoration(
-              color: AppColors.secondaryBackground.adaptTo(context),
-              borderRadius: BorderRadius.circular(AppRadius.l),
-              border: Border.all(color: AppColors.outline.adaptTo(context)),
+          if (!isReady)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl * 3),
+              child: Center(child: GymnaseLoader(size: 40)),
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  height: 40,
-                  decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(AppRadius.s)),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: buildWheel(
-                        controller: schoolController,
-                        count: schoolCodes.length,
-                        itemBuilder: (index) => Text(SchoolClass.shortSchools[schoolCodes[index]]!, style: text),
-                        onChanged: (index) => change(school: index),
+          if (isReady) buildPreview(),
+          if (isReady) const SizedBox(height: AppSpacing.l),
+          if (isReady)
+            Container(
+              height: 180,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s),
+              decoration: BoxDecoration(
+                color: AppColors.secondaryBackground.adaptTo(context),
+                borderRadius: BorderRadius.circular(AppRadius.l),
+                border: Border.all(color: AppColors.outline.adaptTo(context)),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 40,
+                    decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: BorderRadius.circular(AppRadius.s)),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: buildWheel(
+                          controller: schoolController!,
+                          count: catalog!.schools.length,
+                          itemBuilder: (index) => Text(catalog!.schools[index].shortName, style: text),
+                          onChanged: (index) => change(school: index),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: buildWheel(
-                        controller: yearController,
-                        count: years.length,
-                        itemBuilder: (index) => Text(years[index] == 1 ? "1re" : "${years[index]}e", style: text),
-                        onChanged: (index) => change(yearPosition: index),
+                      Expanded(
+                        flex: 2,
+                        child: buildWheel(
+                          controller: yearController!,
+                          count: years.length,
+                          itemBuilder: (index) => Text(years[index] == 1 ? "1re" : "${years[index]}e", style: text),
+                          onChanged: (index) => change(yearPosition: index),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: buildWheel(
-                        controller: sectionController,
-                        count: sections.length,
-                        // A dot next to the classes that already have members
-                        itemBuilder: (index) {
-                          final schoolClass = SchoolClass(year, school, sections[index]);
-                          final count = countOf(schoolClass);
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: AppSpacing.xs,
-                            children: [
-                              Text(schoolClass.name, style: text),
-                              if (count > 0)
-                                Text(
-                                  "· $count",
-                                  style: AppStyles.footnote(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: FontWeight.w600),
-                                ),
-                            ],
-                          );
-                        },
-                        onChanged: (index) => setState(() => sectionIndex = index),
+                      Expanded(
+                        flex: 4,
+                        child: buildWheel(
+                          controller: sectionController!,
+                          count: sections.length,
+                          // A dot next to the classes that already have members
+                          itemBuilder: (index) {
+                            final name = sections[index];
+                            final count = counts?[name] ?? 0;
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: AppSpacing.xs,
+                              children: [
+                                Text(name, style: text),
+                                if (count > 0)
+                                  Text(
+                                    "· $count",
+                                    style: AppStyles.footnote(context).copyWith(color: AppColors.tint.adaptTo(context), fontWeight: FontWeight.w600),
+                                  ),
+                              ],
+                            );
+                          },
+                          onChanged: (index) => setState(() => sectionIndex = index),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
           ListSection(
             margin: const EdgeInsets.only(top: AppSpacing.m),
             footer:
-                "Le Gymnase ne publie pas la liste des classes : n'importe qui peut choisir une classe. Ne partagez rien de privé dans la conversation de classe.",
+                "Votre classe n'est pas dans la liste ? Écrivez à support.messagyre. N'importe qui peut choisir une classe : ne partagez rien de privé dans la conversation de classe.",
             children: [ListTile.simple(context, title: "Je ne suis pas au Gymnase de Renens", icon: HugeIcons.strokeRoundedSchool01, onTap: confirmOutside)],
           ),
           const BottomSpacing(),

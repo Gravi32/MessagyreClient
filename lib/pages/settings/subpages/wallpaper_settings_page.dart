@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -99,11 +100,13 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
         if (!(globals.persistent.getBool("useDefaultWallpaper") ?? true)) ...[
           ListSection(
             title: "Vos fonds d'écran",
+            margin: const EdgeInsets.only(top: AppSpacing.section),
+            footer: "Touchez une image pour la choisir, maintenez-la pour supprimer des images.",
             children: [
               ListTile(
                 buildChevron: false,
                 child: SizedBox(
-                  height: 200,
+                  height: 220,
                   child: ListView.builder(
                     scrollDirection: .horizontal,
                     itemCount: savedWallpapers.length + 1,
@@ -118,7 +121,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                                     onTap: () => pickImage(ImageSource.gallery),
                                     behavior: HitTestBehavior.opaque,
                                     child: Padding(
-                                      padding: EdgeInsetsGeometry.symmetric(vertical: 10, horizontal: 5),
+                                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.m, horizontal: AppSpacing.s),
                                       child: DottedBorder(
                                         options: RoundedRectDottedBorderOptions(
                                           color: AppColors.secondaryText.adaptTo(context),
@@ -148,7 +151,7 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                               child: Stack(
                                 children: [
                                   Container(
-                                    margin: .symmetric(vertical: 10, horizontal: 5),
+                                    margin: const EdgeInsets.symmetric(vertical: AppSpacing.m, horizontal: AppSpacing.s),
                                     decoration: currentWallpaper == path
                                         ? BoxDecoration(
                                             border: .all(color: AppColors.accent, strokeAlign: BorderSide.strokeAlignOutside),
@@ -197,11 +200,11 @@ class _WallpaperSettingsPageState extends State<WallpaperSettingsPage> {
                 ),
             ],
           ),
-
           ListSection(
+            margin: const EdgeInsets.only(top: AppSpacing.section),
             children: [
               ListTile.simple(context, title: "Prenez une photo", icon: HugeIcons.strokeRoundedCamera01, onTap: () => pickImage(.camera)),
-              ListTile.simple(context, title: "Ajoutez une photo depuis la galérie", icon: HugeIcons.strokeRoundedImageAdd02, onTap: () => pickImage(.gallery)),
+              ListTile.simple(context, title: "Ajoutez une photo depuis la galerie", icon: HugeIcons.strokeRoundedImageAdd02, onTap: () => pickImage(.gallery)),
             ],
           ),
         ],

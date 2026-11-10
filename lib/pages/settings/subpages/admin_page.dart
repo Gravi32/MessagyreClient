@@ -40,11 +40,14 @@ class _ActiveUser {
   final String? displayName;
   final String? classOrRole;
   final String? pictureUrl;
+
+  /// The version of the app they last used ("4.105.1015"), null when it never told it
+  final String? appVersion;
   final DateTime lastSeen;
 
   /// In how many hours of the period they were online
   final int hours;
-  _ActiveUser(this.username, this.displayName, this.classOrRole, this.pictureUrl, this.lastSeen, this.hours);
+  _ActiveUser(this.username, this.displayName, this.classOrRole, this.pictureUrl, this.appVersion, this.lastSeen, this.hours);
 }
 
 /// A class this school year, with its delegates (to name them by hand)
@@ -83,6 +86,7 @@ class _Stats {
               user["DisplayName"]?.toString(),
               user["ClassOrRole"]?.toString(),
               user["ProfilePictureURL"]?.toString(),
+              (user["AppVersion"] as String?)?.trim().isNotEmpty == true ? user["AppVersion"] as String : null,
               DateTime.tryParse(user["LastSeen"]?.toString() ?? "")?.toLocal() ?? DateTime.now(),
               (user["Hours"] as num?)?.toInt() ?? 0,
             ),
@@ -112,6 +116,25 @@ class _AdminPageState extends State<AdminPage> {
 
   /// Show every active user of the period, not only the first ones
   bool showAllUsers = false;
+
+  /// How many active users are on each version, the newest first (unknown: apps that never told it, last)
+  static List<(String?, int)> versionCounts(List<_ActiveUser> users) {
+    final counts = <String?, int>{};
+    for (final user in users) {
+      counts[user.appVersion] = (counts[user.appVersion] ?? 0) + 1;
+    }
+    List<int> parts(String version) => [for (final part in version.split(RegExp(r'[.+]'))) int.tryParse(part) ?? 0];
+    int compare(String? a, String? b) {
+      if (a == null || b == null) return a == b ? 0 : (a == null ? 1 : -1);
+      final (left, right) = (parts(a), parts(b));
+      for (var index = 0; index < left.length && index < right.length; index++) {
+        if (left[index] != right[index]) return right[index].compareTo(left[index]);
+      }
+      return right.length.compareTo(left.length);
+    }
+
+    return [for (final version in counts.keys.toList()..sort(compare)) (version, counts[version]!)];
+  }
 
   List<_AdminClass>? classes;
   String? classesError;
@@ -415,7 +438,7 @@ class _AdminPageState extends State<AdminPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(lastSeenLabel(user.lastSeen), style: AppStyles.subheadline(context)),
-                            Text("${user.hours} h", style: AppStyles.footnote(context)),
+                            Text([if (user.appVersion != null) "v${user.appVersion}", "${user.hours} h"].join(" · "), style: AppStyles.footnote(context)),
                           ],
                         ),
                       ],
@@ -431,6 +454,21 @@ class _AdminPageState extends State<AdminPage> {
                   ),
               ],
             ),
+            if (current.users.isNotEmpty)
+              ListSection(
+                title: "Versions de l'app $shortRangeName",
+                margin: const EdgeInsets.only(top: AppSpacing.section),
+                footer: "La dernière version utilisée par chaque personne active, de la plus récente à la plus ancienne.",
+                children: [
+                  for (final (version, count) in versionCounts(current.users))
+                    ListTile.simple(
+                      context,
+                      title: version == null ? "Inconnue" : "v$version",
+                      buildChevron: false,
+                      trailing: Text(count == 1 ? "1 personne" : "$count personnes", style: AppStyles.subheadline(context)),
+                    ),
+                ],
+              ),
             ListSection(
               title: "Délégués des classes",
               margin: const EdgeInsets.only(top: AppSpacing.section),

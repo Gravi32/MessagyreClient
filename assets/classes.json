@@ -1,0 +1,114 @@
+{
+  "Year": "2026-2027",
+  "Source": "https://gyre.ch/accueil/equipe/classes.html",
+  "Schools": [
+    {
+      "Code": "M",
+      "Name": "École de maturité",
+      "Short": "Maturité",
+      "Classes": {
+        "1": [
+          "1M01",
+          "1M02",
+          "1M03",
+          "1M04",
+          "1M05",
+          "1M06",
+          "1M07",
+          "1M08",
+          "1M09",
+          "1M10"
+        ],
+        "2": [
+          "2M01",
+          "2M02",
+          "2M03",
+          "2M04",
+          "2M05",
+          "2M06",
+          "2M07",
+          "2M08",
+          "2M09"
+        ],
+        "3": [
+          "3M01",
+          "3M02",
+          "3M03",
+          "3M04",
+          "3M05",
+          "3M06",
+          "3M07",
+          "3M08",
+          "3M09",
+          "3M10",
+          "3Mb11",
+          "3Mb12",
+          "3Mb13",
+          "3Mb14",
+          "3Mb15",
+          "3Mb16",
+          "3Mb17"
+        ]
+      }
+    },
+    {
+      "Code": "EC",
+      "Name": "École de commerce",
+      "Short": "Commerce",
+      "Classes": {
+        "1": [
+          "1EC1"
+        ],
+        "2": [
+          "2EC1",
+          "2EC2"
+        ],
+        "3": [
+          "3EC1",
+          "3EC2",
+          "3EC3"
+        ],
+        "4": [
+          "4EC1",
+          "4EC2",
+          "4EC3"
+        ]
+      }
+    },
+    {
+      "Code": "C",
+      "Name": "École de culture générale",
+      "Short": "Culture g.",
+      "Classes": {
+        "1": [
+          "1C1",
+          "1C2",
+          "1C3",
+          "1C4"
+        ],
+        "2": [
+          "2Cadts",
+          "2Cci1",
+          "2Cci2",
+          "2Cci3",
+          "2Csa"
+        ],
+        "3": [
+          "3Cad",
+          "3Cci1",
+          "3Cci2",
+          "3Csa",
+          "3Cts"
+        ]
+      }
+    }
+  ],
+  "Domains": {
+    "ad": "Arts et design",
+    "ci": "Communication et information",
+    "mu": "Musique",
+    "pe": "Pédagogie",
+    "sa": "Santé",
+    "ts": "Travail social"
+  }
+}
