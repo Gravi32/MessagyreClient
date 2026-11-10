@@ -101,6 +101,9 @@ class ImageViewerPage extends StatelessWidget {
             top: padding.top + AppSpacing.s,
             left: AppSpacing.page,
             right: AppSpacing.page,
+            // The round buttons are square (AspectRatio): without a height they couldn't be laid out, and the X
+            // to close the photo wasn't there
+            height: AppSizes.iconButton,
             child: Row(
               children: [
                 Button.icon(context, icon: AppIcons.close, color: AppColors.black.withTransparency(.5), iconColor: AppColors.white, onTap: () => Navigator.pop(context)),

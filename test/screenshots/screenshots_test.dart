@@ -52,6 +52,7 @@ import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/pages/assignments/assignments_list_page.dart';
 import 'package:messagyre_client/pages/chats/chats_list_page.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
+import 'package:messagyre_client/pages/chats/widgets/attachment_actions.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/widgets/bottom_bar.dart';
@@ -370,6 +371,31 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   }
+
+  testWidgets("a photo opened from a chat closes with its X (it used to stay open)", (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    final photo = DatabaseService().messages.ofChat("lea.martin").firstWhere((message) => message.attachment?.isImage == true && message.localPath != null);
+    await tester.pumpWidget(_plain(const ChatPage(username: "lea.martin"), Brightness.light));
+    await tester.pump(const Duration(seconds: 1));
+
+    // As openAttachment opens it
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+    navigator.push(CupertinoPageRoute(fullscreenDialog: true, builder: (_) => ImageViewerPage(message: photo)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    debugPrint("[viewer] navigators: ${find.byType(Navigator).evaluate().length}, pages: ${find.byType(ImageViewerPage, skipOffstage: false).evaluate().length}");
+    expect(find.byType(ImageViewerPage), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: "the page lays out (the buttons had no height)");
+
+    final close = find.byWidgetPredicate((widget) => widget is HugeIcon && widget.icon == AppIcons.close);
+    debugPrint("[viewer] close at ${tester.getCenter(close)} size ${tester.getSize(close)}");
+    debugPrint("[viewer] hit: ${tester.hitTestOnBinding(tester.getCenter(close)).path.take(12).map((entry) => entry.target.runtimeType).join(" < ")}");
+    await tester.tap(close);
+    for (var frame = 0; frame < 10; frame++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ImageViewerPage), findsNothing, reason: "the X closes it");
+  });
 
   testWidgets("typing a message and tapping send stores it (the send button used to be covered)", (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
