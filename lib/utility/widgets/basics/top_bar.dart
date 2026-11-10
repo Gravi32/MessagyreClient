@@ -60,8 +60,9 @@ class TopBar extends StatefulWidget {
     );
   }
 
-  factory TopBar.tab(BuildContext context, {String? title, bool buildChevron = true}) {
+  factory TopBar.tab(BuildContext context, {String? title, bool buildChevron = true, Widget? trailing}) {
     return TopBar(
+      trailing: trailing,
       leading: buildChevron ? Button.icon(context, icon: AppIcons.back, onTap: () => Navigator.pop(context)) : null,
       middle: title != null
           ? Padding(

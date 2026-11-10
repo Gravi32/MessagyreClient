@@ -1,3 +1,4 @@
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
@@ -90,7 +91,7 @@ class _ListTileState extends State<ListTile> {
               : [
                   if (widget.leading != null) widget.leading!,
                   Expanded(child: widget.child ?? SizedBox()),
-                  if (widget.enabled && (widget.trailing != null || widget.buildChevron)) widget.trailing ?? const CupertinoListTileChevron(),
+                  if (widget.enabled && (widget.trailing != null || widget.buildChevron)) widget.trailing ?? AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
                 ],
         ),
       ),

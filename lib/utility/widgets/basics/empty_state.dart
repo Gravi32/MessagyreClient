@@ -52,7 +52,7 @@ class EmptyState extends StatelessWidget {
                     border: .all(color: AppColors.outline.adaptTo(context)),
                     boxShadow: [BoxShadow(color: AppColors.cardLip.adaptTo(context), offset: const Offset(0, 3))],
                   ),
-                  child: AppIcon(icon: icon, strokeWidth: 1.8, size: 36, color: AppColors.tint.adaptTo(context)),
+                  child: _Float(child: AppIcon(icon: icon, strokeWidth: 1.8, size: 36, color: AppColors.tint.adaptTo(context))),
                 ),
               ],
             ),
@@ -80,4 +80,22 @@ class EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Pops in once with a little bounce (an endless movement would keep the phone drawing for nothing)
+class _Float extends StatelessWidget {
+  final Widget child;
+  const _Float({required this.child});
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: const Duration(milliseconds: 700),
+    curve: Curves.easeOutBack,
+    child: child,
+    builder: (context, value, child) => Transform.translate(
+      offset: Offset(0, 8 * (1 - value)),
+      child: Transform.scale(scale: .8 + .2 * value, child: child),
+    ),
+  );
 }

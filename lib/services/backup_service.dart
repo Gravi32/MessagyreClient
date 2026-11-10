@@ -40,6 +40,11 @@ class BackupService {
     "UseRestrictedGroup",
     "RestrictedGroupSubjects",
     "MaxFailingSubjects",
+    "UseMaxNegativePoints",
+    "MaxNegativePoints",
+    "MinTotalPoints",
+    "LimitsOnRestrictedGroup",
+    "ReportPreset",
     "SubjectsSetupDone",
     "ArchivePromptAnsweredFor",
   ];

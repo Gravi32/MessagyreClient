@@ -24,7 +24,8 @@ class NotificationService: UNNotificationServiceExtension {
 
         let userInfo = content.userInfo
 
-        if let text = decryptedBody(userInfo) {
+        let decrypted = decryptedBody(userInfo)
+        if let text = decrypted {
             content.body = text
         }
 
@@ -38,7 +39,8 @@ class NotificationService: UNNotificationServiceExtension {
         let chat = (userInfo["Chat"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         content.title = chatName ?? group.map { "Classe \($0)" } ?? senderName
         if group != nil || chatName != nil { content.subtitle = senderName }
-        if let text = userInfo["Body"] as? String, chatName != nil { content.body = text }
+        // The global chat isn't encrypted: its text is in "Body" (a group's is the decrypted text above)
+        if let text = userInfo["Body"] as? String, chatName != nil, decrypted == nil { content.body = text }
         if let thread = chat ?? group.map({ "#\($0)" }) ?? senderUsername { content.threadIdentifier = thread }
 
         let pictureURL = (userInfo["ProfilePictureURL"] as? String).flatMap { URL(string: $0) }

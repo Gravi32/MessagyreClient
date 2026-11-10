@@ -1,5 +1,6 @@
+import 'package:messagyre_client/utility/widgets/appear.dart';
 import 'package:messagyre_client/utility/widgets/app_icon.dart';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
@@ -10,6 +11,9 @@ import 'package:messagyre_client/database/models/composite_subjects/composite_su
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/report_service.dart';
+import 'package:messagyre_client/services/report_presets.dart';
+import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/pages/grades/widgets/report_tutorial.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -34,7 +38,7 @@ class ReportCardPage extends StatefulWidget {
   State<ReportCardPage> createState() => _ReportCardPageState();
 }
 
-class _ReportCardPageState extends State<ReportCardPage> {
+class _ReportCardPageState extends State<ReportCardPage> with AppearOnOpen {
   final globals = GlobalsService();
   final report = ReportService();
 
@@ -165,39 +169,136 @@ class _ReportCardPageState extends State<ReportCardPage> {
     setState(() {});
   }
 
-  void chooseMaxFailingSubjects() {
-    int maxFailingSubjects = report.maxFailingGrades;
-    final pickerController = FixedExtentScrollController(initialItem: maxFailingSubjects);
+  /// A wheel to choose one of [labels]; [onChosen] gets its index. Changing a rule by hand leaves the class's preset.
+  void choose({required String title, required List<String> labels, required int selected, required Future<void> Function(int) onChosen}) {
+    var chosen = selected.clamp(0, labels.length - 1);
+    final pickerController = FixedExtentScrollController(initialItem: chosen);
 
     showCupertinoModalPopup(
       context: context,
       builder: (context) => ModalPopup(
         topBar: TopBar.form(
           context,
-          title: "Insuffisances permises",
+          title: title,
           trailing: Button.icon(
             context,
             icon: HugeIcons.strokeRoundedTick02,
             onTap: () async {
-              globals.persistent.setInt("MaxFailingSubjects", maxFailingSubjects);
-              setState(() {});
-              Navigator.pop(context);
+              await onChosen(chosen);
+              await globals.persistent.remove("ReportPreset");
+              if (mounted) setState(() {});
+              if (context.mounted) Navigator.pop(context);
             },
           ),
         ),
         height: 180,
-        child: StatefulBuilder(
-          builder: (context, setPopupState) {
-            return Picker(
-              controller: pickerController,
-              onChanged: (index) {
-                setPopupState(() {
-                  maxFailingSubjects = index;
-                });
-              },
-              children: [for (int index = 0; index <= 10; index++) Center(child: Text(index.toString(), style: AppStyles.primaryText(context)))],
-            );
-          },
+        child: Picker(
+          controller: pickerController,
+          onChanged: (index) => chosen = index,
+          children: [for (final label in labels) Center(child: Text(label, style: AppStyles.primaryText(context)))],
+        ),
+      ),
+    );
+  }
+
+  void chooseMaxFailingSubjects() => choose(
+    title: "Insuffisances permises",
+    labels: [for (int index = 0; index <= 10; index++) index.toString()],
+    selected: report.maxFailingGrades,
+    onChosen: (index) => globals.persistent.setInt("MaxFailingSubjects", index),
+  );
+
+  static final _minimumChoices = [0, for (int points = 20; points <= 80; points += 4) points];
+
+  void chooseMinimumTotal() => choose(
+    title: "Total minimum",
+    labels: [for (final points in _minimumChoices) points == 0 ? "Auto (4 par branche)" : "$points points (${points ~/ 4} moyennes)"],
+    selected: math.max(0, _minimumChoices.indexOf(report.fixedMinTotalPoints?.round() ?? 0)),
+    onChosen: (index) => globals.persistent.setInt("MinTotalPoints", _minimumChoices[index]),
+  );
+
+  static final _negativeChoices = [for (int half = 1; half <= 12; half++) half / 2];
+
+  void chooseMaxNegativePoints() => choose(
+    title: "Points négatifs max.",
+    labels: [for (final value in _negativeChoices) value.removeTrailingZero().replaceAll(".", ",")],
+    selected: math.max(0, _negativeChoices.indexOf(report.maxNegativePoints)),
+    onChosen: (index) => globals.persistent.setDouble("MaxNegativePoints", _negativeChoices[index]),
+  );
+
+  Future<void> setRule(String key, bool value) async {
+    await globals.persistent.setBool(key, value);
+    await globals.persistent.remove("ReportPreset");
+    if (mounted) setState(() {});
+  }
+
+  /// The rules of each school and year: choosing one sets them all
+  void choosePreset() {
+    final mine = ReportPreset.forClass(ClassService().current.value);
+    final presets = [?mine, ...ReportPreset.all.where((preset) => preset != mine)];
+    final current = ReportPreset.current;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (popupContext) => ModalPopup(
+        topBar: TopBar.form(popupContext, title: "Régler pour ma classe"),
+        height: 560,
+        child: ListView(
+          padding: const .only(top: AppSpacing.s),
+          children: [
+            for (final preset in presets)
+              Padding(
+                padding: const .only(bottom: AppSpacing.s),
+                child: CupertinoButton(
+                  padding: .zero,
+                  minimumSize: .zero,
+                  pressedOpacity: .6,
+                  onPressed: () async {
+                    await preset.apply();
+                    if (mounted) setState(() {});
+                    if (popupContext.mounted) Navigator.pop(popupContext);
+                    if (preset.todo != null && mounted) {
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => Dialog(title: "Encore une chose", content: preset.todo, options: {"Compris": () {}}),
+                      );
+                    }
+                  },
+                  child: AnimatedContainer(
+                    duration: AppDurations.normal,
+                    padding: const .all(AppSpacing.m),
+                    decoration: BoxDecoration(
+                      color: preset == current ? AppColors.accentSoft.adaptTo(context) : AppColors.tertiaryBackground.adaptTo(context),
+                      borderRadius: .circular(AppRadius.m),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      spacing: 2,
+                      children: [
+                        Row(
+                          spacing: AppSpacing.s,
+                          children: [
+                            Expanded(child: Text(preset.title, style: AppStyles.strongText(context))),
+                            if (preset == mine) Text("Votre classe", style: AppStyles.footnote(context).copyWith(color: AppColors.tint.adaptTo(context))),
+                            if (preset == current) AppIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02, size: 18, color: AppColors.tint.adaptTo(context)),
+                          ],
+                        ),
+                        Text(preset.subtitle, style: AppStyles.footnote(context)),
+                        const SizedBox(height: AppSpacing.xs),
+                        for (final rule in preset.rules) Text("·  $rule", style: AppStyles.secondaryText(context)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const .symmetric(vertical: AppSpacing.s),
+              child: Text(
+                "D'après le règlement des gymnases vaudois. Votre gymnase peut avoir des règles en plus : en cas de doute, demandez à votre maître de classe.",
+                style: AppStyles.footnote(context),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -236,7 +337,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
           value: report.totalPoints.removeTrailingZero(),
           status: isLower ? "Encore $difference point${difference == "1" ? "" : "s"}" : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum",
           isMet: !isLower,
-          progress: max(0, report.maxTotalPoints == 0 ? 0 : report.totalPoints / report.maxTotalPoints),
+          progress: math.max(0, report.maxTotalPoints == 0 ? 0 : report.totalPoints / report.maxTotalPoints),
           lowerBound: "0",
           upperBound: "min. ${report.minTotalPoints.removeTrailingZero()} · max. ${report.maxTotalPoints.removeTrailingZero()}",
         ),
@@ -250,6 +351,18 @@ class _ReportCardPageState extends State<ReportCardPage> {
           status: report.failingGrades <= report.maxFailingGrades ? "Dans la limite" : "Au-dessus de la limite",
           isMet: report.failingGrades <= report.maxFailingGrades,
           progress: (report.failingGrades / report.maxFailingGrades).clamp(0, 1),
+        ),
+      );
+    }
+    if (report.usingMaxNegativePoints) {
+      final isMet = report.negativePoints <= report.maxNegativePoints;
+      criteria.add(
+        buildCriterion(
+          title: "Points négatifs",
+          value: "${report.negativePoints.removeTrailingZero()} / ${report.maxNegativePoints.removeTrailingZero()}",
+          status: isMet ? "Dans la limite" : "Au-dessus de la limite",
+          isMet: isMet,
+          progress: report.maxNegativePoints == 0 ? 1 : (report.negativePoints / report.maxNegativePoints).clamp(0, 1),
         ),
       );
     }
@@ -279,7 +392,7 @@ class _ReportCardPageState extends State<ReportCardPage> {
           value: report.restrictedGroupPoints.removeTrailingZero(),
           status: isLower ? "Encore $difference point${difference == "1" ? "" : "s"}" : "$difference point${difference == "1" ? "" : "s"} au-dessus du minimum",
           isMet: !isLower,
-          progress: max(0, report.maxRestrictedGroupPoints == 0 ? 0 : report.restrictedGroupPoints / report.maxRestrictedGroupPoints),
+          progress: math.max(0, report.maxRestrictedGroupPoints == 0 ? 0 : report.restrictedGroupPoints / report.maxRestrictedGroupPoints),
           lowerBound: "0",
           upperBound: "min. ${report.minRestrictedGroupPoints.removeTrailingZero()} · max. ${report.maxRestrictedGroupPoints.removeTrailingZero()}",
         ),
@@ -287,15 +400,35 @@ class _ReportCardPageState extends State<ReportCardPage> {
     }
 
     return Page(
-      topBar: TopBar.tab(context, title: "Bulletin"),
+      topBar: TopBar.tab(
+        context,
+        title: "Bulletin",
+        trailing: Button.icon(context, icon: HugeIcons.strokeRoundedHelpCircle, onTap: () => ReportTutorial.show(context)),
+      ),
       child: ListView(
         padding: const .only(top: AppSpacing.s),
         children: [
-          CardGroup(children: criteria),
+          // Nobody knew the rules had to be set: proposed until a school's rules are chosen
+          AnimatedSize(
+            duration: AppDurations.slow,
+            curve: Curves.easeOutCubic,
+            child: ReportPreset.current != null
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const .only(bottom: AppSpacing.l),
+                    child: _SetUpCard(onSetUp: choosePreset, onExplain: () => ReportTutorial.show(context)),
+                  ),
+          ),
+
+          Appear(enabled: isOpening, child: CardGroup(children: criteria)),
 
           if (mainList.isNotEmpty) ...[
             sectionTitle("Moyennes"),
-            CardGroup(separatorInset: AppSpacing.l + 32 + AppSpacing.m, children: [for (final subject in mainList) subjectRow(subject)]),
+            Appear(
+              index: 2,
+              enabled: isOpening,
+              child: CardGroup(separatorInset: AppSpacing.l + 32 + AppSpacing.m, children: [for (final subject in mainList) subjectRow(subject)]),
+            ),
           ],
 
           if (usingRestrictedGroup && restrictedList.isNotEmpty) ...[
@@ -305,8 +438,36 @@ class _ReportCardPageState extends State<ReportCardPage> {
 
           sectionTitle("Règles"),
           ListSection(
-            footer: "Les règles de promotion de votre école : elles changent les conditions ci-dessus.",
+            footer: "Les règles de promotion de votre école : elles changent les conditions ci-dessus. Touchez « ? » en haut pour voir comment les régler.",
             children: [
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedSchool,
+                title: "Régler pour ma classe",
+                trailing: Row(
+                  mainAxisSize: .min,
+                  spacing: 6,
+                  children: [
+                    Text(ReportPreset.current?.id ?? "À la main", style: AppStyles.secondaryText(context)),
+                    AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                  ],
+                ),
+                onTap: choosePreset,
+              ),
+              ListTile.simple(
+                context,
+                icon: HugeIcons.strokeRoundedCalculator,
+                title: "Total minimum",
+                trailing: Row(
+                  mainAxisSize: .min,
+                  spacing: 6,
+                  children: [
+                    Text(report.fixedMinTotalPoints?.removeTrailingZero() ?? "Auto", style: AppStyles.secondaryText(context)),
+                    AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                  ],
+                ),
+                onTap: chooseMinimumTotal,
+              ),
               ListTile.simple(
                 context,
                 icon: HugeIcons.strokeRoundedAlertCircle,
@@ -323,15 +484,37 @@ class _ReportCardPageState extends State<ReportCardPage> {
               ),
               ListTile.simple(
                 context,
+                icon: HugeIcons.strokeRoundedRemoveCircle,
+                title: "Points négatifs max.",
+                trailing: CupertinoSwitch(
+                  activeTrackColor: AppColors.accent,
+                  value: report.usingMaxNegativePoints,
+                  onChanged: (newValue) => setRule("UseMaxNegativePoints", newValue),
+                ),
+              ),
+              if (report.usingMaxNegativePoints)
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedRuler,
+                  title: "Limite des points négatifs",
+                  trailing: Row(
+                    mainAxisSize: .min,
+                    spacing: 6,
+                    children: [
+                      Text(report.maxNegativePoints.removeTrailingZero().replaceAll(".", ","), style: AppStyles.secondaryText(context)),
+                      AppIcon(icon: AppIcons.chevronRight, size: 18, color: AppColors.quaternaryText.adaptTo(context)),
+                    ],
+                  ),
+                  onTap: chooseMaxNegativePoints,
+                ),
+              ListTile.simple(
+                context,
                 icon: HugeIcons.strokeRoundedBalanceScale,
                 title: "Double compensation",
                 trailing: CupertinoSwitch(
                   activeTrackColor: AppColors.accent,
                   value: report.usingDoubleCompensation,
-                  onChanged: (newValue) {
-                    globals.persistent.setBool("UseDoubleCompensation", newValue);
-                    setState(() {});
-                  },
+                  onChanged: (newValue) => setRule("UseDoubleCompensation", newValue),
                 ),
               ),
               if (allSubjects.length > 3)
@@ -342,10 +525,18 @@ class _ReportCardPageState extends State<ReportCardPage> {
                   trailing: CupertinoSwitch(
                     activeTrackColor: AppColors.accent,
                     value: usingRestrictedGroup,
-                    onChanged: (newValue) {
-                      globals.persistent.setBool("UseRestrictedGroup", newValue);
-                      setState(() {});
-                    },
+                    onChanged: (newValue) => setRule("UseRestrictedGroup", newValue),
+                  ),
+                ),
+              if (usingRestrictedGroup && allSubjects.length > 3)
+                ListTile.simple(
+                  context,
+                  icon: HugeIcons.strokeRoundedFilter,
+                  title: "Limites sur le groupe seulement",
+                  trailing: CupertinoSwitch(
+                    activeTrackColor: AppColors.accent,
+                    value: report.limitsOnRestrictedGroup,
+                    onChanged: (newValue) => setRule("LimitsOnRestrictedGroup", newValue),
                   ),
                 ),
             ],
@@ -390,6 +581,58 @@ class _ReportCardPageState extends State<ReportCardPage> {
           ],
 
           const BottomSpacing(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Proposed at the top of the bulletin until the rules of a school and year are chosen
+class _SetUpCard extends StatelessWidget {
+  final VoidCallback onSetUp;
+  final VoidCallback onExplain;
+
+  const _SetUpCard({required this.onSetUp, required this.onExplain});
+
+  @override
+  Widget build(BuildContext context) {
+    final mine = ReportPreset.forClass(ClassService().current.value);
+    return Container(
+      padding: const .all(AppSpacing.card),
+      decoration: BoxDecoration(gradient: AppColors.accentGradient, borderRadius: .circular(AppRadius.card)),
+      child: Column(
+        crossAxisAlignment: .start,
+        spacing: AppSpacing.s,
+        children: [
+          Text("Votre bulletin est-il bien réglé ?", style: AppStyles.secondaryHeader(context).copyWith(color: AppColors.white)),
+          Text(
+            mine != null
+                ? "Les règles changent selon l'école et l'année. Prenez celles de ${mine.title} en un geste."
+                : "Les règles changent selon l'école et l'année : total minimum, insuffisances, points négatifs…",
+            style: AppStyles.secondaryText(context).copyWith(color: AppColors.white.withValues(alpha: .85)),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.s,
+            runSpacing: AppSpacing.xs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              CupertinoButton(
+                padding: const .symmetric(horizontal: 16, vertical: 9),
+                minimumSize: .zero,
+                color: AppColors.white,
+                borderRadius: .circular(AppRadius.l),
+                onPressed: onSetUp,
+                child: Text("Régler pour ma classe", style: AppStyles.button(context).copyWith(color: AppColors.accent)),
+              ),
+              CupertinoButton(
+                padding: const .symmetric(horizontal: 8, vertical: 9),
+                minimumSize: .zero,
+                onPressed: onExplain,
+                child: Text("Comment ça marche ?", style: AppStyles.button(context).copyWith(color: AppColors.white)),
+              ),
+            ],
+          ),
         ],
       ),
     );

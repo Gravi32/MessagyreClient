@@ -146,6 +146,13 @@ class _GradesTopCardState extends State<GradesTopCard> {
       _Figure(label: "Points", value: report.totalPoints.removeTrailingZero(), alignment: .start),
       if (report.maxFailingGrades > 0)
         _Figure(label: "Insuffisantes", value: "${report.failingGrades} / ${report.maxFailingGrades}", valueColor: failingColor, alignment: .start),
+      if (report.usingMaxNegativePoints)
+        _Figure(
+          label: "Points nég.",
+          value: "${report.negativePoints.removeTrailingZero()} / ${report.maxNegativePoints.removeTrailingZero()}",
+          valueColor: (report.negativePoints <= report.maxNegativePoints ? AppColors.gradeGood : AppColors.gradeLow).adaptTo(context),
+          alignment: .start,
+        ),
       if (report.usingRestrictedGroup) _Figure(label: "Groupe restreint", value: report.restrictedGroupPoints.removeTrailingZero(), alignment: .start),
       if (report.usingDoubleCompensation)
         _Figure(

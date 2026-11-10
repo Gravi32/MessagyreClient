@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.108.1019+1019
+version: 4.109.1020+1020
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -112,6 +112,7 @@ version: 4.108.1019+1019
 # 4.106 Class picker with the real classes of the Gymnase: domains of the ECG (2Cci1, 3Cts, 2Cadts), bilingual maturité classes (3Mb11), 4EC; commerce (EC) and culture générale (C) no longer swapped
 # 4.107 Classes from the server (GET /classes/catalog: the list changes without an app release), app versions in the admin page, more space in the wallpaper page
 # 4.108 Global chat (moderated, photos blurred, silenceable), answers to messages (swipe or long press), send button and bubble fixes, previous account's chats removed, file types restricted, texts corrected, idea box removed
+# 4.109 Group chats (picture, description, admins, members, media and files tabs), bulletin rules per school and year with animated tutorials and a maximum of negative points, icons fixed (chevrons, subject icons), keyboard closed when leaving a page, soft animations
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
@@ -122,6 +123,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  # Flutter's Cupertino widgets draw their own icons (chevrons, search, clear) with this font: never remove it
+  cupertino_icons: ^1.0.8
   web_socket_channel: ^3.0.3
   intl: ^0.20.2
   image_picker: ^1.0.4

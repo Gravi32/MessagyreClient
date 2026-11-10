@@ -12,6 +12,7 @@ import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/database/models/messages/message_reply.dart';
 import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/services/group_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/global_chat_service.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
@@ -120,6 +121,7 @@ class ChatService {
     if (network.connectionState.value != ConnectionState.Connected) return;
     _seedReviewChats();
     unawaited(GlobalChatService().onConnected());
+    unawaited(GroupService().refresh());
     if (ClassService().current.value != null) unawaited(ClassService().loadMembers(force: true));
     resendPending();
     _resumeDownloads();
@@ -160,11 +162,22 @@ class ChatService {
 
   // #region -> Sending
 
-  /// [chatId] is a username, or "#" and a class for a class chat (see [ClassService.chatIdOf])
+  /// [chatId] is a username, "#" and a class for a class chat (see [ClassService.chatIdOf]), "#g-..." for a group
   Future<Chat> _chatFor(String chatId) async {
+    final existing = database.chats.getByUsername(chatId);
+    if (existing != null) return existing;
     final className = ClassService.classOfChat(chatId);
-    return database.chats.getByUsername(chatId) ?? Chat.custom(username: chatId, displayUsername: className == null ? null : ClassService.chatTitleOf(className));
+    if (GroupService.isGroupChat(chatId)) {
+      // A group I was just added to: its name comes with the next reading
+      final group = GroupService().groupOfChatId(chatId);
+      if (group == null) unawaited(GroupService().refresh());
+      return Chat.custom(username: chatId, displayUsername: group?.name ?? "Groupe");
+    }
+    return Chat.custom(username: chatId, displayUsername: className == null ? null : ClassService.chatTitleOf(className));
   }
+
+  /// The class or group a shared chat's messages travel to ("1M05", "g-..."), null for a conversation with one person
+  static String? sharedGroupOf(String? chatId) => chatId != null && chatId.startsWith("#") ? chatId.substring(1) : null;
 
   Future<void> sendText(String username, String text, {MessageReply? replyTo}) async {
     final content = text.trim();
@@ -292,6 +305,11 @@ class ChatService {
         return;
       }
 
+      if (GroupService.isGroupChat(username)) {
+        await _deliverToGroup(message, attachment);
+        return;
+      }
+
       if (ClassService.isClassChat(username)) {
         await _deliverToClass(message, attachment);
         return;
@@ -366,6 +384,32 @@ class ChatService {
     }
   }
 
+  /// A message of a group chat: like a class's, for the group's members
+  Future<void> _deliverToGroup(Message message, Attachment? attachment) async {
+    final groups = GroupService();
+    var groupId = GroupService.groupOfChat(message.chatUsername)!;
+    // Not (or no longer) in this group: the server would refuse it
+    if (groups.groups.value[groupId] == null) await groups.refresh();
+    if (groups.groups.value[groupId] == null) {
+      await _setStatus(message.uuid, MessageStatus.Failed);
+      return;
+    }
+
+    final payload = <String, dynamic>{
+      "CommunicationType": "GroupMessage",
+      "Uuid": message.uuid,
+      "Group": groupId,
+      ...encryption.encryptForMany(message.content, groups.keysOf(groupId), attachmentJson: _extraJson(message, attachment)),
+    };
+
+    final acknowledged = await network.sendAndWaitForAcknowledgement(message.uuid, payload);
+    if (acknowledged) {
+      await _setStatus(message.uuid, MessageStatus.Sent);
+    } else if (network.isConnected) {
+      await _setStatus(message.uuid, MessageStatus.Failed);
+    }
+  }
+
   /// Uploads the encrypted file and returns its ID on the server (null after a failure, already saved in the message)
   Future<String?> _upload(Message message, Attachment attachment, Uint8List? encryptedBytes) async {
     final progress = progressOf(message.uuid);
@@ -426,6 +470,8 @@ class ChatService {
           await _onReceipt(data);
         case "Deletion":
           await _onDeletion(data);
+        case "GroupChanged":
+          await GroupService().handleCommunication(data);
         case "GlobalMessage" || "GlobalDeletion" || "GlobalRejected" || "GlobalStatus":
           await GlobalChatService().handleCommunication(data);
       }
@@ -546,8 +592,8 @@ class ChatService {
     final unread = database.messages.unreadReceived(username);
     if (unread.isEmpty) return;
 
-    // No read receipts in a class chat
-    if (!ClassService.isClassChat(username) && !GlobalChatService.isGlobal(username) && (globals.persistent.getBool("SendReadReceipts") ?? true)) {
+    // No read receipts in a class chat or a group
+    if (sharedGroupOf(username) == null && !GlobalChatService.isGlobal(username) && (globals.persistent.getBool("SendReadReceipts") ?? true)) {
       // The newest 500 at most (the server's limit): older ones don't matter any more
       final uuids = unread.reversed.take(500).map((m) => m.uuid).toList();
       if (!network.sendRaw({"CommunicationType": "Read", "RecipientUsername": username, "Uuids": uuids})) return;
@@ -700,7 +746,7 @@ class ChatService {
       m.localPath = null;
       m.transfer = TransferState.none;
     });
-    final className = ClassService.classOfChat(message.chatUsername!);
+    final className = sharedGroupOf(message.chatUsername);
     if (GlobalChatService.isGlobal(message.chatUsername)) {
       GlobalChatService().deleteForEveryone(message);
       return;

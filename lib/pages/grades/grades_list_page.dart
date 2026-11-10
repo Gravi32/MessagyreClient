@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/appear.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:hugeicons/hugeicons.dart';
@@ -27,7 +28,7 @@ class GradesListPage extends StatefulWidget {
   State<StatefulWidget> createState() => _GradesListPageState();
 }
 
-class _GradesListPageState extends State<GradesListPage> {
+class _GradesListPageState extends State<GradesListPage> with AppearOnOpen {
   final database = DatabaseService();
   final globals = GlobalsService();
 
@@ -77,33 +78,41 @@ class _GradesListPageState extends State<GradesListPage> {
             padding: .zero,
             children: [
               const SizedBox(height: AppSpacing.s),
-              const GradesTopCard(),
+              Appear(enabled: isOpening, child: const GradesTopCard()),
 
               if (subjects.isNotEmpty || compositeSubjects.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.section),
                 SectionHeader("Branches", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const GradesBySubjectPage()))),
-                CardGroup(
-                  separatorInset: SubjectCard.separatorInset,
-                  children: [
-                    for (final subject in subjects) SubjectCard(subject: subject),
-                    for (final composite in compositeSubjects) SubjectCard(compositeSubject: composite),
-                  ],
+                Appear(
+                  index: 1,
+                  enabled: isOpening,
+                  child: CardGroup(
+                    separatorInset: SubjectCard.separatorInset,
+                    children: [
+                      for (final subject in subjects) SubjectCard(subject: subject),
+                      for (final composite in compositeSubjects) SubjectCard(compositeSubject: composite),
+                    ],
+                  ),
                 ),
               ],
 
               if (allGrades.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.section),
                 SectionHeader("Récentes", onAction: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const RecentGradesPage()))),
-                CardGroup(
-                  separatorInset: GradeBar.separatorInset,
-                  children: [
-                    for (final grade in allGrades.take(4))
-                      GradeBar(
-                        gradeData: grade,
-                        showSubject: true,
-                        onTap: () => showNewGradePopup(toEdit: grade),
-                      ),
-                  ],
+                Appear(
+                  index: 2,
+                  enabled: isOpening,
+                  child: CardGroup(
+                    separatorInset: GradeBar.separatorInset,
+                    children: [
+                      for (final grade in allGrades.take(4))
+                        GradeBar(
+                          gradeData: grade,
+                          showSubject: true,
+                          onTap: () => showNewGradePopup(toEdit: grade),
+                        ),
+                    ],
+                  ),
                 ),
               ],
 

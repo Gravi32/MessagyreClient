@@ -379,11 +379,12 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
 
                           return CupertinoPressable(
                             decoration: BoxDecoration(
-                              color: isSelected ? colorNotifier.value : AppColors.secondaryBackground.adaptTo(context),
+                              color: isSelected ? colorNotifier.value : AppColors.tertiaryBackground.adaptTo(context),
                               border: .all(color: isSelected ? colorNotifier.value.withBrightness(-.15) : AppColors.transparent),
                               borderRadius: .circular(10),
                             ),
-                            child: Center(child: Icon(thisIcon, size: 23, color: AppColors.white)),
+                            // Unselected icons are drawn in the text's grey: white on the card's white couldn't be seen
+                            child: Center(child: Icon(thisIcon, size: 23, color: isSelected ? AppColors.white : AppColors.secondaryText.adaptTo(context))),
                             onTap: () => iconNotifier.value = thisIcon,
                           );
                         },

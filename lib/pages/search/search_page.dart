@@ -228,18 +228,8 @@ class SearchPageState extends State<SearchPage> {
                       child: Column(
                         spacing: AppSpacing.s,
                         children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            clipBehavior: .antiAlias,
-                            padding: const .all(4),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: .circular(15),
-                              border: .all(color: AppColors.separator.adaptTo(context)),
-                            ),
-                            child: Image.asset(shortcut.iconPath),
-                          ),
+                          // The icons have their own outline: nothing is drawn around them
+                          SizedBox.square(dimension: 56, child: Image.asset(shortcut.iconPath, fit: .contain)),
                           Text(
                             shortcut.name,
                             maxLines: 1,

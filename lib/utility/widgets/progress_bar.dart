@@ -12,6 +12,15 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: progress),
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeOutCubic,
+      builder: (context, animated, _) => _build(context, animated),
+    );
+  }
+
+  Widget _build(BuildContext context, double progress) {
     return Container(
       height: height ?? 8,
       decoration: BoxDecoration(color: AppColors.tertiaryBackground.adaptTo(context), borderRadius: .circular(24)),

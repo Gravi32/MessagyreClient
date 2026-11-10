@@ -23,6 +23,9 @@ import 'package:messagyre_client/pages/settings/subpages/admin_page.dart' show a
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/services/group_service.dart';
+import 'package:messagyre_client/pages/chats/subpages/group_profile_page.dart';
+import 'package:messagyre_client/utility/widgets/chat_avatar.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/global_chat_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -98,17 +101,27 @@ class _ChatPageState extends State<ChatPage> {
   final global = GlobalChatService();
   StreamSubscription? rejectionSubscription;
 
+  /// A group chat ("#g-..."): chosen members, admins (see GroupService)
+  late final String? groupId = GroupService.groupOfChat(username);
+  bool get isGroupChat => groupId != null;
+  final groups = GroupService();
+  ChatGroup? get group => groups.groups.value[groupId];
+
   /// A chat of several people: who wrote each message is shown above it
-  bool get isShared => isClassChat || isGlobalChat;
+  bool get isShared => isClassChat || isGlobalChat || isGroupChat;
 
   /// The global chat's photos touched to be seen (blurred until then)
   final Set<String> revealedPhotos = {};
 
   /// Still in this class (a class of an earlier school year stays readable), not kept out of the global chat
-  bool get canWrite => isGlobalChat ? global.status.value.cantWrite == null : (!isClassChat || classes.current.value?.name == className);
+  bool get canWrite => isGlobalChat
+      ? global.status.value.cantWrite == null
+      : isGroupChat
+      ? group != null
+      : (!isClassChat || classes.current.value?.name == className);
 
   bool get isSupport => username == "support.messagyre";
-  bool get isBlocked => !isClassChat && globals.blockedUsers.contains(username);
+  bool get isBlocked => !isClassChat && !isGroupChat && globals.blockedUsers.contains(username);
 
   // #region -> Lifecycle
 
@@ -142,6 +155,13 @@ class _ChatPageState extends State<ChatPage> {
       return;
     }
 
+    if (isGroupChat) {
+      displayName = group?.name ?? database.chats.getByUsername(username)?.displayUsername ?? "Groupe";
+      groups.groups.addListener(onGroupChanged);
+      unawaited(groups.refresh());
+      return;
+    }
+
     if (isClassChat) {
       displayName = ClassService.chatTitleOf(className!);
       if (canWrite) classes.loadMembers(force: true);
@@ -171,6 +191,7 @@ class _ChatPageState extends State<ChatPage> {
     classes.current.removeListener(onClassChanged);
     classes.members.removeListener(onClassChanged);
     global.status.removeListener(onClassChanged);
+    groups.groups.removeListener(onGroupChanged);
     rejectionSubscription?.cancel();
     globals.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
     fieldController.removeListener(onFieldChanged);
@@ -186,6 +207,12 @@ class _ChatPageState extends State<ChatPage> {
   void onBlockedUsersChanged() => setState(() {});
   void onClassChanged() {
     if (mounted) setState(() {});
+  }
+
+  /// The group was renamed, its members changed, or I left it
+  void onGroupChanged() {
+    if (!mounted) return;
+    setState(() => displayName = group?.name ?? displayName);
   }
 
   void onScroll() {
@@ -206,6 +233,12 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> openProfile() async {
     if (isGlobalChat) return showGlobalInfo();
     if (isClassChat) return showMembers();
+    if (isGroupChat) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      await Navigator.push(context, CupertinoPageRoute(builder: (context) => GroupProfilePage(groupId: groupId!)));
+      if (mounted) setState(() {});
+      return;
+    }
     if (account == null) {
       setState(() => isLoadingProfile = true);
       account = await network.getAccount(username);
@@ -273,6 +306,7 @@ class _ChatPageState extends State<ChatPage> {
     if (author == globals.username) return "Vous";
     if (isGlobalChat) return global.displayNameOf(author);
     if (isClassChat) return classes.displayNameOf(author);
+    if (isGroupChat) return groups.displayNameOf(username, author);
     return author == username ? displayName : Account.getDefaultDisplayName(author);
   }
 
@@ -549,10 +583,8 @@ class _ChatPageState extends State<ChatPage> {
                 Navigator.of(context).pop();
               },
             ),
-            isGlobalChat
-                ? const GlobalChatAvatar(size: AppSizes.avatarSmall)
-                : isClassChat
-                ? ClassAvatar(className: className!, size: AppSizes.avatarSmall)
+            isGlobalChat || isClassChat || isGroupChat
+                ? ChatAvatar(chatId: username, size: AppSizes.avatarSmall)
                 : ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
             Expanded(
               child: GestureDetector(
@@ -572,7 +604,11 @@ class _ChatPageState extends State<ChatPage> {
                       ],
                     ),
                     Text(
-                      isGlobalChat ? (global.status.value.isMuted ? "Ouverte à tous · silencieuse" : "Ouverte à tous · non chiffrée") : (isClassChat ? classSubtitle : username),
+                      isGlobalChat
+                          ? (global.status.value.isMuted ? "Ouverte à tous · silencieuse" : "Ouverte à tous · non chiffrée")
+                          : isGroupChat
+                          ? groupSubtitle
+                          : (isClassChat ? classSubtitle : username),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppStyles.footnote(context),
@@ -582,10 +618,54 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
             if (isLoadingProfile) GymnaseLoader(size: 18),
-            Button.icon(context, icon: isGlobalChat ? (global.status.value.isMuted ? AppIcons.muted : AppIcons.info) : (isClassChat ? AppIcons.members : AppIcons.profile), onTap: openProfile),
+            Button.icon(context, icon: isGlobalChat ? (global.status.value.isMuted ? AppIcons.muted : AppIcons.info) : (isClassChat || isGroupChat ? AppIcons.members : AppIcons.profile), onTap: openProfile),
           ],
         ),
       ),
+    );
+  }
+
+  String get groupSubtitle {
+    final current = group;
+    if (current == null) return "Vous ne faites plus partie du groupe";
+    final names = current.members.where((member) => member.username != globals.username).map((member) => member.name.split(" ").first).toList();
+    return names.isEmpty ? "Seulement vous" : "Vous, ${names.join(", ")}";
+  }
+
+  /// At the top of a group chat: its picture, its members, its encryption
+  Widget buildGroupHeader() {
+    final tertiary = AppColors.tertiaryText.adaptTo(context);
+    final current = group;
+    return Column(
+      children: [
+        RoundContainer(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.m),
+          padding: const EdgeInsets.all(AppSpacing.l),
+          child: Column(
+            children: [
+              GroupAvatar(groupId: groupId!, size: AppSizes.avatarLarge),
+              const SizedBox(height: AppSpacing.s),
+              Text(displayName, textAlign: TextAlign.center, style: AppStyles.header(context)),
+              Text(
+                current == null ? "Vous ne faites plus partie du groupe" : "Groupe · ${current.members.length} membre${current.members.length > 1 ? "s" : ""}",
+                style: AppStyles.secondaryText(context),
+              ),
+              if (current?.description != null) ...[
+                const SizedBox(height: AppSpacing.s),
+                Text(current!.description!, textAlign: TextAlign.center, style: AppStyles.footnote(context)),
+              ],
+            ],
+          ),
+        ),
+        RoundContainer(
+          width: double.infinity,
+          borderRadius: AppRadius.m,
+          margin: const EdgeInsets.only(bottom: AppSpacing.l),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
+          child: _Notice(icon: AppIcons.encrypted, text: "Les messages du groupe sont *chiffrés de bout en bout* : seuls ses membres peuvent les lire.", color: tertiary),
+        ),
+      ],
     );
   }
 
@@ -661,6 +741,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget buildHeader() {
     if (isGlobalChat) return buildGlobalHeader();
     if (isClassChat) return buildClassHeader();
+    if (isGroupChat) return buildGroupHeader();
     return Column(
       children: [
         RoundContainer(
@@ -765,7 +846,7 @@ class _ChatPageState extends State<ChatPage> {
               joinsNext: joinsNext,
               onTap: onBubbleTap,
               onLongPress: showMessageMenu,
-              senderName: sender == null ? null : (isGlobalChat ? global.displayNameOf(sender) : (isClassChat ? classes.displayNameOf(sender) : null)),
+              senderName: sender == null ? null : (isGlobalChat ? global.displayNameOf(sender) : (isClassChat ? classes.displayNameOf(sender) : (isGroupChat ? groups.displayNameOf(username, sender) : null))),
               blurPhoto: isGlobalChat && !revealedPhotos.contains(message.uuid),
               replyAuthorName: message.reply == null ? null : nameOf(message.reply!.sender),
               onReplyTap: scrollToMessage,

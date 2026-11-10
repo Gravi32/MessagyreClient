@@ -1,7 +1,7 @@
+import 'package:messagyre_client/utility/widgets/chat_avatar.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
@@ -9,7 +9,6 @@ import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/notification_overlays_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 
 class NotificationOverlay extends StatefulWidget {
   final String title;
@@ -104,9 +103,7 @@ class _NotificationPopupsState extends State<NotificationOverlay> {
                   children: [
                     Row(
                       children: [
-                        widget.senderUsername.startsWith("#")
-                            ? ClassAvatar(className: widget.senderUsername.substring(1), size: 48)
-                            : ProfilePictureDisplay(accountUsername: widget.senderUsername, radius: 24),
+                        ChatAvatar(chatId: widget.senderUsername, size: 48),
                         SizedBox(width: 12),
                         Expanded(
                           child: Column(

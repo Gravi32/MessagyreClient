@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/widgets/appear.dart';
 import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Page;
 import 'package:flutter/services.dart';
@@ -12,7 +13,6 @@ import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/chat_service.dart';
-import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/global_chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -26,8 +26,9 @@ import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/connection_status.dart';
 import 'package:messagyre_client/utility/widgets/custom_text.dart';
-import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
-import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:messagyre_client/pages/chats/subpages/new_group_page.dart';
+import 'package:messagyre_client/utility/widgets/chat_avatar.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
 
 class ChatsListPage extends StatefulWidget {
@@ -40,11 +41,10 @@ class ChatsListPage extends StatefulWidget {
 /// A conversation with its last message, for the list
 typedef _ChatEntry = ({Chat chat, Message? lastMessage});
 
-class _ChatsListPageState extends State<ChatsListPage> {
+class _ChatsListPageState extends State<ChatsListPage> with AppearOnOpen {
   final globals = GlobalsService();
   final database = DatabaseService();
   final chats = ChatService();
-
 
   void onBlockedUsersChanged() => setState(() {});
 
@@ -70,6 +70,23 @@ class _ChatsListPageState extends State<ChatsListPage> {
       return (b.lastMessage?.sentAt ?? epoch).compareTo(a.lastMessage?.sentAt ?? epoch);
     });
     return entries;
+  }
+
+  /// A conversation with someone (the search tab) or a new group
+  Future<void> startSomething() async {
+    final choice = await ActionSheet.show<String>(
+      context,
+      actions: const [
+        SheetAction("Nouvelle conversation", icon: AppIcons.newChat, value: "chat"),
+        SheetAction("Nouveau groupe", icon: HugeIcons.strokeRoundedUserGroup, value: "group"),
+      ],
+    );
+    if (!mounted) return;
+    if (choice == "chat") MainPage.pageIndex.value = 3;
+    if (choice == "group") {
+      final chatId = await Navigator.of(context, rootNavigator: true).push<String>(CupertinoPageRoute(builder: (_) => const NewGroupPage()));
+      if (chatId != null && mounted) openChat(chatId);
+    }
   }
 
   void openChat(String username) {
@@ -134,11 +151,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
           children: [
             SizedBox.square(
               dimension: AppSizes.avatar,
-              child: GlobalChatService.isGlobal(chat.username)
-                  ? const GlobalChatAvatar(size: AppSizes.avatar)
-                  : ClassService.isClassChat(chat.username)
-                  ? ClassAvatar(className: ClassService.classOfChat(chat.username)!, size: AppSizes.avatar)
-                  : ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked),
+              child: ChatAvatar(chatId: chat.username, size: AppSizes.avatar, isBlocked: isBlocked),
             ),
             Expanded(
               child: Column(
@@ -222,14 +235,21 @@ class _ChatsListPageState extends State<ChatsListPage> {
                           child: AppIcon(icon: AppIcons.pin, size: 16, color: secondary),
                         ),
                       if (hasUnread)
-                        Container(
-                          constraints: const BoxConstraints(minWidth: 22),
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s - 2, vertical: AppSpacing.xxs),
-                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(AppRadius.s)),
-                          child: Text(
-                            chat.unreadMessages > 99 ? "99+" : chat.unreadMessages.toString(),
-                            textAlign: TextAlign.center,
-                            style: AppStyles.badge(context),
+                        TweenAnimationBuilder<double>(
+                          key: ValueKey(chat.unreadMessages),
+                          tween: Tween(begin: .6, end: 1),
+                          duration: AppDurations.slow,
+                          curve: Curves.elasticOut,
+                          builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+                          child: Container(
+                            constraints: const BoxConstraints(minWidth: 22),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s - 2, vertical: AppSpacing.xxs),
+                            decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(AppRadius.s)),
+                            child: Text(
+                              chat.unreadMessages > 99 ? "99+" : chat.unreadMessages.toString(),
+                              textAlign: TextAlign.center,
+                              style: AppStyles.badge(context),
+                            ),
                           ),
                         ),
                     ],
@@ -249,7 +269,7 @@ class _ChatsListPageState extends State<ChatsListPage> {
       topBar: TopBar.sliver(
         title: AppStrings.tabChats,
         leading: const ConnectionStatus(),
-        trailing: Button.icon(context, icon: AppIcons.newChat, onTap: () => MainPage.pageIndex.value = 3),
+        trailing: Button.icon(context, icon: AppIcons.newChat, onTap: startSomething),
       ),
       // Any change of a chat or a message refreshes the list
       body: StreamBuilder(
@@ -278,7 +298,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
             return ListView.separated(
               padding: const EdgeInsets.only(top: AppSpacing.s),
               itemCount: entries.length + 1,
-              itemBuilder: (context, index) => index == entries.length ? const BottomSpacing(includeBottomBar: true) : buildChatTile(entries[index]),
+              itemBuilder: (context, index) => index == entries.length
+                  ? const BottomSpacing(includeBottomBar: true)
+                  : Appear(index: index, enabled: isOpening && index < 12, child: buildChatTile(entries[index])),
               separatorBuilder: (context, index) => index == entries.length - 1
                   ? const SizedBox.shrink()
                   : Container(

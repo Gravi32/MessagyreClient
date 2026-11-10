@@ -1,3 +1,4 @@
+import 'package:messagyre_client/utility/keyboard_closer.dart';
 import 'dart:async';
 
 import 'package:device_preview/device_preview.dart';
@@ -20,6 +21,7 @@ import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/services/backup_service.dart';
 import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/services/group_service.dart';
 import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
 import 'package:messagyre_client/services/archive_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
@@ -169,6 +171,7 @@ class App extends StatelessWidget {
 
     return CupertinoApp(
       navigatorKey: navigatorKey,
+      navigatorObservers: [KeyboardCloser()],
 
       //locale: DevicePreview.locale(context),
       //builder: DevicePreview.appBuilder,
@@ -218,6 +221,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   bool isAnimating = false;
 
   void swipeToPage() async {
+    KeyboardCloser.close();
     if (isAnimating) {
       pageController.jumpToPage(MainPage.pageIndex.value);
       return;
@@ -259,6 +263,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       // the "Vos branches" sheet then isn't needed. Without a connection the start doesn't wait for it.
       await network.waitForSignIn();
       ClassService().load();
+      GroupService().load();
       await Future.wait([BackupService().sync().timeout(const Duration(seconds: 8), onTimeout: () {}), ClassService().refresh()]);
 
       // A login or a logout starts the app again: this page may be gone by now

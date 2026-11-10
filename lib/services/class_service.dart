@@ -251,9 +251,9 @@ class ClassService {
 
   // #region -> Chat identifiers
 
-  /// A class chat is a Chat whose "username" is "#" and the class
+  /// A class chat is a Chat whose "username" is "#" and the class ("#g-..." is a group chat: GroupService)
   static String chatIdOf(String className) => "#$className";
-  static bool isClassChat(String? chatId) => chatId != null && chatId.startsWith("#");
+  static bool isClassChat(String? chatId) => chatId != null && chatId.startsWith("#") && !chatId.startsWith("#g-");
   static String? classOfChat(String chatId) => isClassChat(chatId) ? chatId.substring(1) : null;
   static String chatTitleOf(String className) => "Classe $className";
 

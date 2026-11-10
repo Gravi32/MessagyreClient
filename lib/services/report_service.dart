@@ -35,9 +35,27 @@ class ReportService {
   List<CompositeSubject> get restrictedGroupCompositeSubjects => allCompositeSubjects.where((c) => restrictedGroupCodes.contains(c.code)).toList();
   List<double> get restrictedGroupAverages => restrictedGroupCodes.map((code) => allAverages[code]).whereType<double>().toList();
 
+  /// The averages the limits (insufficient grades, negative points) are counted on: all of them, or only the
+  /// restricted group's (the école de commerce counts them on the maturité professionnelle's subjects)
+  Iterable<double> get _limitedAverages =>
+      usingRestrictedGroup && limitsOnRestrictedGroup && restrictedGroupCodes.isNotEmpty ? restrictedGroupAverages : allAverages.values;
+
+  bool get limitsOnRestrictedGroup => globals.persistent.getBool("LimitsOnRestrictedGroup") ?? false;
+
   // Failing grades
-  int get failingGrades => allAverages.values.where((grade) => grade < 3.75).length;
+  int get failingGrades => _limitedAverages.where((grade) => grade < 3.75).length;
   int get maxFailingGrades => globals.persistent.getInt("MaxFailingSubjects") ?? 4;
+
+  // Negative points: how far below 4 the insufficient averages are, added up (at most 2 in the ECG and the EC)
+  bool get usingMaxNegativePoints => globals.persistent.getBool("UseMaxNegativePoints") ?? false;
+  double get maxNegativePoints => _number("MaxNegativePoints") ?? 2;
+  double get negativePoints => _limitedAverages.where((v) => v < 4).fold(0.0, (sum, v) => sum + (4 - v));
+
+  /// A number saved as an int or a double (a backup can turn 2.0 into 2)
+  double? _number(String key) {
+    final value = globals.persistent.get(key);
+    return value is num ? value.toDouble() : null;
+  }
 
   // Restricted group points
   double get restrictedGroupPoints => restrictedGroupAverages.sum;
@@ -46,8 +64,15 @@ class ReportService {
 
   // Total points
   double get totalPoints => allAverages.values.sum;
-  double get maxTotalPoints => allAverages.length * 6;
-  double get minTotalPoints => allAverages.length * 4;
+  double get maxTotalPoints => fixedMinTotalPoints != null ? fixedMinTotalPoints! / 4 * 6 : allAverages.length * 6;
+
+  /// 4 points per average of the bulletin. Chosen by the user (36 for the 9 averages of the 1st year of the ECG),
+  /// otherwise 4 times the subjects that have an average (the missing ones would be forgotten early in the year)
+  double get minTotalPoints => fixedMinTotalPoints ?? allAverages.length * 4.0;
+  double? get fixedMinTotalPoints {
+    final value = _number("MinTotalPoints");
+    return value == null || value <= 0 ? null : value;
+  }
 
   // Double compensation
   double get surplus => allAverages.values.where((v) => v > 4).fold(0.0, (sum, v) => sum + (v - 4));

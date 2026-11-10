@@ -16,6 +16,7 @@ import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/services/backup_service.dart';
 import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/services/group_service.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/main.dart';
@@ -718,6 +719,7 @@ class NetworkService {
     isSignedIn.value = false;
     await BackupService().stop(); // the last changes go first, while the token is still valid
     await ClassService().forget();
+    await GroupService().forget();
 
     get("/auth/logout"); // Notifies the server
 

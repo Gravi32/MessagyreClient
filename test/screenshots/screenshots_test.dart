@@ -17,6 +17,10 @@ import 'package:image/image.dart' as img;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:isar_community/isar.dart';
 import 'package:messagyre_client/database/models/messages/message_reply.dart';
+import 'package:messagyre_client/services/group_service.dart';
+import 'package:messagyre_client/pages/chats/subpages/group_profile_page.dart';
+import 'package:messagyre_client/pages/chats/subpages/new_group_page.dart';
+import 'package:messagyre_client/pages/grades/widgets/report_tutorial.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/pages/grades/grades_list_page.dart';
@@ -219,11 +223,31 @@ Future<void> _seed(Isar isar, String root) async {
         reply: MessageReply.of(uuid: "g2", sender: "noah.dubois", text: "Oui, je les poste ce soir")),
   ];
 
+  // A group chat: three members, I am an admin
+  GroupService().groups.value = {
+    "g-volley2026": const ChatGroup(
+      id: "g-volley2026",
+      name: "Volley du jeudi",
+      description: "Entraînement le jeudi à 17h, salle 2.",
+      members: [
+        GroupMember(username: "test.1", displayName: "Moi", isAdmin: true),
+        GroupMember(username: "lea.martin", displayName: "Léa Martin"),
+        GroupMember(username: "noah.dubois", displayName: "Noah Dubois"),
+      ],
+    ),
+  };
+  final groupMessages = [
+    Message.custom(uuid: "v1", chatUsername: "#g-volley2026", senderUsername: "lea.martin", content: "On s'entraîne quand même jeudi ?", sentAt: now.subtract(const Duration(minutes: 20)), isOwned: false, status: MessageStatus.Delivered),
+    Message.custom(uuid: "v2", chatUsername: "#g-volley2026", content: "Oui, je prends les ballons", sentAt: now.subtract(const Duration(minutes: 18)), isOwned: true, status: MessageStatus.Sent),
+  ];
+
   await isar.writeTxn(() async {
     await isar.subjects.putAll([maths, french]);
     await isar.messages.putAll(globalMessages);
+    await isar.messages.putAll(groupMessages);
     await isar.chats.putAll([
       Chat.custom(username: "@general", displayUsername: "Conversation générale", isPinned: true, unreadMessages: 2),
+      Chat.custom(username: "#g-volley2026", displayUsername: "Volley du jeudi", unreadMessages: 1),
       Chat.custom(username: "lea.martin", displayUsername: "Léa Martin"),
       Chat.custom(username: "noah.dubois", displayUsername: "Noah", unreadMessages: 1),
       Chat.custom(username: "support.messagyre", displayUsername: "Support Messagyre", isPinned: true),
@@ -453,6 +477,7 @@ void main() {
     testWidgets("chats list ($suffix)", (tester) async => shoot(tester, _app(const ChatsListPage(), brightness), "chats_$suffix"));
     testWidgets("chat ($suffix)", (tester) async => shoot(tester, _plain(const ChatPage(username: "lea.martin"), brightness), "chat_$suffix"));
     testWidgets("global chat ($suffix)", (tester) async => shoot(tester, _plain(const ChatPage(username: "@general"), brightness), "global_$suffix"));
+    testWidgets("group chat ($suffix)", (tester) async => shoot(tester, _plain(const ChatPage(username: "#g-volley2026"), brightness), "group_$suffix"));
     testWidgets("assignments ($suffix)", (tester) async => shoot(tester, _app(AssignmentsListPage(key: GlobalKey()), brightness), "assignments_$suffix"));
   }
 
@@ -505,6 +530,10 @@ void main() {
         ),
         brightness,
       ),
+      "group_profile": () => _plain(const GroupProfilePage(groupId: "g-volley2026"), brightness),
+      "new_group": () => _plain(const NewGroupPage(), brightness),
+      "tutorial_points": () => _plain(const CupertinoPageScaffold(child: Align(alignment: Alignment.bottomCenter, child: ReportTutorial(initialStep: 1))), brightness),
+      "tutorial_negative": () => _plain(const CupertinoPageScaffold(child: Align(alignment: Alignment.bottomCenter, child: ReportTutorial(initialStep: 3))), brightness),
       "dialog": () => _plain(Dialog.confirm(content: "Voulez-vous vraiment supprimer cette note ?", isDestructive: true), brightness),
     };
     for (final MapEntry(key: name, value: build) in pages.entries) {
