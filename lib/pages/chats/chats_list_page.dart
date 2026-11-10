@@ -13,9 +13,9 @@ import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/chats/subpages/chat_page.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/class_service.dart';
+import 'package:messagyre_client/services/global_chat_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
@@ -41,12 +41,10 @@ class ChatsListPage extends StatefulWidget {
 typedef _ChatEntry = ({Chat chat, Message? lastMessage});
 
 class _ChatsListPageState extends State<ChatsListPage> {
-  final network = NetworkService();
   final globals = GlobalsService();
   final database = DatabaseService();
   final chats = ChatService();
 
-  int lastSentChatsCount = -1;
 
   void onBlockedUsersChanged() => setState(() {});
 
@@ -136,7 +134,9 @@ class _ChatsListPageState extends State<ChatsListPage> {
           children: [
             SizedBox.square(
               dimension: AppSizes.avatar,
-              child: ClassService.isClassChat(chat.username)
+              child: GlobalChatService.isGlobal(chat.username)
+                  ? const GlobalChatAvatar(size: AppSizes.avatar)
+                  : ClassService.isClassChat(chat.username)
                   ? ClassAvatar(className: ClassService.classOfChat(chat.username)!, size: AppSizes.avatar)
                   : ProfilePictureDisplay(accountUsername: chat.username, isBlocked: isBlocked),
             ),
@@ -149,6 +149,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     spacing: AppSpacing.xs + 2,
                     children: [
                       if (isBlocked) AppIcon(icon: AppIcons.blocked, size: 16, color: secondary),
+                      if (GlobalChatService.isGlobal(chat.username) && GlobalChatService().status.value.isMuted)
+                        AppIcon(icon: AppIcons.muted, size: 16, color: secondary),
                       Expanded(
                         child: Text(
                           chat.displayUsername ?? Account.getDefaultDisplayName(chat.username),
@@ -257,11 +259,6 @@ class _ChatsListPageState extends State<ChatsListPage> {
           builder: (context, _) {
             final entries = loadEntries();
             final hasUnread = entries.any((entry) => entry.chat.unreadMessages > 0);
-
-            if (lastSentChatsCount != entries.length) {
-              lastSentChatsCount = entries.length;
-              network.post("/analytics/upload-chats-count", {"Chats": entries.length});
-            }
 
             if (App.pages[2].showBadge.value != hasUnread) {
               WidgetsBinding.instance.addPostFrameCallback((_) => App.pages[2].showBadge.value = hasUnread);

@@ -43,7 +43,7 @@ class GradeBar extends StatelessWidget {
         ? "${isIncoming ? "Passé" : "Prévu pour"} ${formatDate(gradeData.date, includeArticle: true)}${isIncoming && daysDistance > 1 ? " · il y a $daysDistance jours" : ""}"
         : showSubject
         ? "${subject?.name ?? "Pas de branche"} · ${formatDate(gradeData.date)}"
-        : "Reçu ${formatDate(gradeData.date, includeArticle: true)}";
+        : "Reçue ${formatDate(gradeData.date, includeArticle: true)}";
 
     return CupertinoButton(
       padding: .zero,

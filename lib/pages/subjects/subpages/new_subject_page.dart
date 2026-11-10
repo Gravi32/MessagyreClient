@@ -453,7 +453,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
           if (editMode)
             ListSection(
               margin: .only(top: 16),
-              footer: canBeDeleted ? null : "Cette branche ne peut pas être supprimée ! Supprimez ses notes ses notes et devoirs d'abord.",
+              footer: canBeDeleted ? null : "Cette branche ne peut pas être supprimée : supprimez d'abord ses notes et ses devoirs.",
               children: [
                 ListTile.simple(
                   context,
@@ -465,7 +465,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                     showCupertinoDialog(
                       context: context,
                       builder: (_) => Dialog.confirm(
-                        content: "Êtes-vous sûr de vouloir *supprimer cette note* ?",
+                        content: "Êtes-vous sûr de vouloir *supprimer cette branche* ?",
                         isDestructive: true,
                         onConfirm: () {
                           database.subjects.delete(widget.toEdit!);

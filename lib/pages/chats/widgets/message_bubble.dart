@@ -46,6 +46,18 @@ class MessageBubble extends StatelessWidget {
   /// In a class chat: who wrote it, above the first bubble of their messages
   final String? senderName;
 
+  /// The name of who wrote the message this one answers ("Vous" for me)
+  final String? replyAuthorName;
+
+  /// Touching the quote of the message answered: [String] is its UUID
+  final void Function(String uuid)? onReplyTap;
+
+  /// Lit up for a moment after a quote led to it
+  final bool isHighlighted;
+
+  /// The global chat: its photos are blurred until touched (anyone can send one)
+  final bool blurPhoto;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -55,6 +67,10 @@ class MessageBubble extends StatelessWidget {
     this.onTap,
     this.bubbleKey,
     this.senderName,
+    this.replyAuthorName,
+    this.onReplyTap,
+    this.isHighlighted = false,
+    this.blurPhoto = false,
   });
 
   /// The same color for the same person in every class chat
@@ -83,66 +99,151 @@ class MessageBubble extends StatelessWidget {
 
     final sharedAssignment = message.isDeleted ? null : message.sharedAssignment;
 
-    final Widget content = sharedAssignment != null
+    final Widget body = sharedAssignment != null
         ? _AssignmentContent(message: message, assignment: sharedAssignment, colors: colors)
         : attachment == null
         ? _TextContent(message: message, colors: colors)
         : attachment.isImage
-        ? _ImageContent(message: message, attachment: attachment, colors: colors, shape: _shape, maxWidth: maxWidth)
+        ? _ImageContent(message: message, attachment: attachment, colors: colors, shape: _shape, maxWidth: maxWidth, blur: blurPhoto)
         : _FileContent(message: message, attachment: attachment, colors: colors);
 
-    return Align(
-      alignment: message.isOwned ? Alignment.centerRight : Alignment.centerLeft,
-      child: GestureDetector(
-        key: bubbleKey,
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap == null ? null : () => onTap!(message),
-        onLongPress: onLongPress == null ? null : () => onLongPress!(message),
-        child: Padding(
-          padding: EdgeInsets.only(bottom: joinsNext ? AppSpacing.xxs : AppSpacing.s),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (message.isOwned && message.isFailed && !message.isDeleted)
-                const Padding(
-                  padding: EdgeInsets.only(right: AppSpacing.s),
-                  child: AppIcon(icon: AppIcons.statusFailed, color: AppColors.red, size: 22),
+    final reply = message.isDeleted ? null : message.reply;
+    final Widget content = reply == null
+        ? body
+        // As wide as the widest of the quote and the message: the time stays in the bottom right corner
+        : IntrinsicWidth(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ReplyQuote(
+                  author: replyAuthorName ?? reply.sender,
+                  authorUsername: reply.sender,
+                  text: reply.text,
+                  isOwned: message.isOwned,
+                  colors: colors,
+                  maxWidth: maxWidth,
+                  onTap: onReplyTap == null ? null : () => onReplyTap!(reply.uuid),
                 ),
-              Builder(
-                builder: (context) {
-                  final bubble = Container(
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    decoration: BoxDecoration(
-                      color: colors.background.withTransparency(message.isDeleted ? .6 : 1),
-                      gradient: message.isOwned && !message.isDeleted ? AppColors.sentGradient : null,
-                      borderRadius: _shape,
-                      // The received bubbles are cards: a hairline keeps them apart from a light wallpaper
-                      border: message.isOwned ? null : Border.all(color: AppColors.outline.adaptTo(context), width: .5),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: content,
-                  );
-                  final sender = message.senderUsername;
-                  if (senderName == null || sender == null || message.isOwned || joinsPrevious) return bubble;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: AppSpacing.m, bottom: AppSpacing.xxs),
-                        child: Text(
-                          senderName!,
-                          style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: colorOf(sender)),
-                        ),
+                body,
+              ],
+            ),
+          );
+
+    // Lit up across the whole row for a moment after a quote led to it
+    return AnimatedContainer(
+      duration: AppDurations.normal,
+      color: isHighlighted ? AppColors.accent.withValues(alpha: .16) : AppColors.accent.withValues(alpha: 0),
+      child: Align(
+        alignment: message.isOwned ? Alignment.centerRight : Alignment.centerLeft,
+        child: GestureDetector(
+          key: bubbleKey,
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap == null ? null : () => onTap!(message),
+          onLongPress: onLongPress == null ? null : () => onLongPress!(message),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: joinsNext ? AppSpacing.xxs : AppSpacing.s),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (message.isOwned && message.isFailed && !message.isDeleted)
+                  const Padding(
+                    padding: EdgeInsets.only(right: AppSpacing.s),
+                    child: AppIcon(icon: AppIcons.statusFailed, color: AppColors.red, size: 22),
+                  ),
+                Builder(
+                  builder: (context) {
+                    final bubble = Container(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      decoration: BoxDecoration(
+                        color: colors.background.withTransparency(message.isDeleted ? .6 : 1),
+                        gradient: message.isOwned && !message.isDeleted ? AppColors.sentGradient : null,
+                        borderRadius: _shape,
+                        // The received bubbles are cards: a hairline keeps them apart from a light wallpaper
+                        border: message.isOwned ? null : Border.all(color: AppColors.outline.adaptTo(context), width: .5),
                       ),
-                      bubble,
-                    ],
-                  );
-                },
-              ),
-            ],
+                      clipBehavior: Clip.antiAlias,
+                      child: content,
+                    );
+                    final sender = message.senderUsername;
+                    if (senderName == null || sender == null || message.isOwned || joinsPrevious) return bubble;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: AppSpacing.m, bottom: AppSpacing.xxs),
+                          child: Text(
+                            senderName!,
+                            style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w600, color: colorOf(sender)),
+                          ),
+                        ),
+                        bubble,
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// At the top of an answer: the message it answers (who wrote it, the beginning of it). Touching it goes to it.
+class _ReplyQuote extends StatelessWidget {
+  final String author;
+  final String authorUsername;
+  final String text;
+  final bool isOwned;
+  final BubbleColors colors;
+  final double maxWidth;
+  final VoidCallback? onTap;
+  const _ReplyQuote({
+    required this.author,
+    required this.authorUsername,
+    required this.text,
+    required this.isOwned,
+    required this.colors,
+    required this.maxWidth,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = isOwned ? AppColors.white : MessageBubble.colorOf(authorUsername);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        constraints: BoxConstraints(maxWidth: maxWidth - AppSpacing.s * 2, minWidth: 120),
+        margin: const EdgeInsets.fromLTRB(AppSpacing.s - 2, AppSpacing.s - 2, AppSpacing.s - 2, 0),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.s + 2, AppSpacing.xs + 1, AppSpacing.s + 2, AppSpacing.xs + 2),
+        decoration: BoxDecoration(
+          color: isOwned ? AppColors.white.withValues(alpha: .16) : AppColors.tertiaryBackground.adaptTo(context),
+          borderRadius: BorderRadius.circular(AppRadius.bubble - AppSpacing.s),
+          border: Border(left: BorderSide(color: accent, width: 3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              author,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w700, color: accent),
+            ),
+            Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppStyles.subheadline(context).copyWith(color: colors.secondary),
+            ),
+          ],
         ),
       ),
     );
@@ -242,13 +343,20 @@ class _AssignmentContentState extends State<_AssignmentContent> {
                     ),
                   ],
                 ),
-                Text(assignment.headline, maxLines: 4, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context).copyWith(color: colors.text)),
-                if (assignment.type == AssignmentType.test && assignment.content.trim().isNotEmpty)
-                  Text(assignment.content.trim(), maxLines: 4, overflow: TextOverflow.ellipsis, style: AppStyles.subheadline(context).copyWith(color: colors.secondary)),
                 Text(
-                  "Pour ${formatDate(assignment.dueDate, includeArticle: true)}",
-                  style: AppStyles.footnote(context).copyWith(color: colors.secondary),
+                  assignment.headline,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppStyles.strongText(context).copyWith(color: colors.text),
                 ),
+                if (assignment.type == AssignmentType.test && assignment.content.trim().isNotEmpty)
+                  Text(
+                    assignment.content.trim(),
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppStyles.subheadline(context).copyWith(color: colors.secondary),
+                  ),
+                Text("Pour ${formatDate(assignment.dueDate, includeArticle: true)}", style: AppStyles.footnote(context).copyWith(color: colors.secondary)),
               ],
             ),
           ),
@@ -301,7 +409,11 @@ class _AssignmentContentState extends State<_AssignmentContent> {
           ],
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.xs, right: AppSpacing.xxs),
-            child: Align(alignment: Alignment.centerRight, widthFactor: 1, child: MessageFooter(message: widget.message, color: colors.secondary)),
+            child: Align(
+              alignment: Alignment.centerRight,
+              widthFactor: 1,
+              child: MessageFooter(message: widget.message, color: colors.secondary),
+            ),
           ),
         ],
       ),
@@ -410,7 +522,8 @@ class _ImageContent extends StatelessWidget {
   final BubbleColors colors;
   final BorderRadius shape;
   final double maxWidth;
-  const _ImageContent({required this.message, required this.attachment, required this.colors, required this.shape, required this.maxWidth});
+  final bool blur;
+  const _ImageContent({required this.message, required this.attachment, required this.colors, required this.shape, required this.maxWidth, this.blur = false});
 
   @override
   Widget build(BuildContext context) {
@@ -422,7 +535,29 @@ class _ImageContent extends StatelessWidget {
     final pixelWidth = (width * MediaQuery.devicePixelRatioOf(context)).round();
 
     Widget picture;
-    if (isReady) {
+    if (isReady && blur) {
+      // Blurred until touched: nobody sees an unwanted photo by surprise
+      picture = Stack(
+        fit: StackFit.expand,
+        children: [
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 28, sigmaY: 28, tileMode: TileMode.decal),
+            child: Image.file(File(localPath), fit: BoxFit.cover, cacheWidth: 64, gaplessPlayback: true),
+          ),
+          Container(color: AppColors.black.withTransparency(.25)),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: AppSpacing.xs,
+              children: [
+                const AppIcon(icon: AppIcons.photo, color: AppColors.white, size: 28),
+                Text("Touchez pour afficher", style: AppStyles.footnote(context).copyWith(color: AppColors.white, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else if (isReady) {
       picture = Image.file(File(localPath), fit: BoxFit.cover, cacheWidth: pixelWidth, gaplessPlayback: true);
     } else if (attachment.thumbnail != null) {
       picture = ImageFiltered(

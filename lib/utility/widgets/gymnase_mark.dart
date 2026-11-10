@@ -140,6 +140,23 @@ class _NameAvatar extends StatelessWidget {
   }
 }
 
+/// The global chat ("Conversation générale"): the white Gymnase on the icon's gradient, in a circle
+class GlobalChatAvatar extends StatelessWidget {
+  final double size;
+  const GlobalChatAvatar({super.key, this.size = 44});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.accentGradient),
+      alignment: Alignment.center,
+      child: GymnaseMark(size: size * .62, color: AppColors.white),
+    );
+  }
+}
+
 /// The app icon itself: the white Gymnase on the icon's gradient, in a rounded square
 class AppIconTile extends StatelessWidget {
   final double size;

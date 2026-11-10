@@ -30,6 +30,10 @@ class Attachment {
   /// The text typed with the photo or file
   final String? caption;
 
+  /// A photo of the global chat: not encrypted (everyone reads that chat), checked and re-encoded by the server,
+  /// downloaded from /global/photo with [fileId]. [key] and [iv] are empty.
+  final bool isPublic;
+
   const Attachment({
     required this.kind,
     this.fileId,
@@ -42,7 +46,25 @@ class Attachment {
     this.height,
     this.thumbnail,
     this.caption,
+    this.isPublic = false,
   });
+
+  /// The kinds of files that can be sent and opened: documents, photos, sound and video. Programs, scripts, web
+  /// pages and archives (which can hide them) are refused, sent or received: they could harm the phone or the
+  /// computer they are opened on.
+  static const allowedExtensions = {
+    "pdf", "doc", "docx", "odt", "rtf", "txt", "md", "pages", "epub",
+    "xls", "xlsx", "ods", "csv", "numbers",
+    "ppt", "pptx", "odp", "key",
+    "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "bmp", "tif", "tiff",
+    "mp3", "m4a", "wav", "aac", "ogg", "flac", "opus",
+    "mp4", "mov", "m4v", "webm", "3gp", "avi", "mkv",
+  };
+
+  static bool isAllowedName(String name) => allowedExtensions.contains(p.extension(name).replaceFirst('.', '').toLowerCase());
+
+  /// A file of a kind that is never opened (sent by an app before 4.108, which didn't check)
+  bool get isBlocked => !isImage && !isAllowedName(name);
 
   bool get isImage => kind == AttachmentKind.image;
 
@@ -65,7 +87,7 @@ class Attachment {
     _ => isImage ? AppIcons.photo : AppIcons.file,
   };
 
-  Attachment copyWith({String? fileId, String? caption}) => Attachment(
+  Attachment copyWith({String? fileId, String? caption, int? width, int? height}) => Attachment(
     kind: kind,
     fileId: fileId ?? this.fileId,
     key: key,
@@ -73,10 +95,11 @@ class Attachment {
     name: name,
     mimeType: mimeType,
     size: size,
-    width: width,
-    height: height,
+    width: width ?? this.width,
+    height: height ?? this.height,
     thumbnail: thumbnail,
     caption: caption ?? this.caption,
+    isPublic: isPublic,
   );
 
   Map<String, dynamic> toMap() => {
@@ -92,6 +115,7 @@ class Attachment {
     if (height != null) "Height": height,
     if (thumbnail != null) "Thumbnail": thumbnail,
     if (caption != null) "Caption": caption,
+    if (isPublic) "Public": true,
   };
 
   String toJson() => jsonEncode(toMap());
@@ -119,6 +143,7 @@ class Attachment {
         height: (map["Height"] as num?)?.toInt(),
         thumbnail: map["Thumbnail"] as String?,
         caption: map["Caption"] as String?,
+        isPublic: map["Public"] == true,
       );
     } catch (_) {
       return null;

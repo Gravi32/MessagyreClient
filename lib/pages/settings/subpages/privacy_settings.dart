@@ -44,7 +44,7 @@ class _PrivacySettingsState extends State<PrivacySettings> {
               ListTile.simple(
                 context,
                 icon: HugeIcons.strokeRoundedFaceId,
-                title: "FaceID pour voir les notes",
+                title: "Face ID pour voir les notes",
                 isLoading: canAuthenticate == null,
                 enabled: canAuthenticate ?? false,
                 trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, 

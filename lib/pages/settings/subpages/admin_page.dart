@@ -98,6 +98,39 @@ class _Stats {
   }
 }
 
+/// What an account put in the app (GET /admin/usage, from the Analytics table: the app sends its counts at every start)
+class _Usage {
+  final String username;
+  final String? displayName;
+  final String? classOrRole;
+  final int grades, assignments, chats, messages, onlineSeconds;
+  _Usage(this.username, this.displayName, this.classOrRole, this.grades, this.assignments, this.chats, this.messages, this.onlineSeconds);
+
+  static int _int(Object? value) => value is num ? value.toInt() : 0;
+
+  static _Usage? fromJson(Object? json) {
+    if (json is! Map || json["Username"] == null) return null;
+    return _Usage(
+      json["Username"].toString(),
+      json["DisplayName"]?.toString(),
+      json["ClassOrRole"]?.toString(),
+      _int(json["Grades"]),
+      _int(json["Assignments"]),
+      _int(json["Chats"]),
+      _int(json["Messages"]),
+      _int(json["OnlineSeconds"]),
+    );
+  }
+
+  int valueOf(String key) => switch (key) {
+    "Grades" => grades,
+    "Assignments" => assignments,
+    "Messages" => messages,
+    "Chats" => chats,
+    _ => onlineSeconds,
+  };
+}
+
 /// Who is connected now and how many people used the app: for the developer and the test accounts only
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -138,6 +171,273 @@ class _AdminPageState extends State<AdminPage> {
 
   List<_AdminClass>? classes;
   String? classesError;
+
+  /// How the server's reading of the school's list of classes went (GET /admin/catalog)
+  Map? catalogStatus;
+  String? catalogError;
+  bool isRefreshingCatalog = false;
+
+  Future<void> loadCatalogStatus({bool refresh = false}) async {
+    if (refresh) setState(() => isRefreshingCatalog = true);
+    final response = refresh ? await network.post("/admin/catalog/refresh", {}) : await network.get("/admin/catalog");
+    if (!mounted) return;
+    final data = response.statusCode == 200 ? tryJsonDecode(response.body) : null;
+    setState(() {
+      isRefreshingCatalog = false;
+      catalogStatus = data is Map ? data : catalogStatus;
+      catalogError = data is Map ? null : AppStrings.errorFor(response);
+    });
+  }
+
+  Widget buildCatalogStatus() {
+    final status = catalogStatus;
+    String when(Object? value) {
+      final time = DateTime.tryParse(value?.toString() ?? "")?.toLocal();
+      return time == null ? "jamais" : "${lastSeenLabel(time)}${time.isSameDayAs(DateTime.now()) ? "" : " à ${DateFormat("HH:mm").format(time)}"}";
+    }
+
+    final problem = status?["Error"]?.toString();
+    return ListSection(
+      title: "Liste des classes",
+      margin: const EdgeInsets.only(top: AppSpacing.section),
+      footer: catalogError ??
+          (problem != null
+              ? "Problème à la dernière lecture : $problem. La liste précédente reste utilisée."
+              : "Lue automatiquement toutes les 6 heures sur le site du Gymnase (Maîtrises de classe) : les classes de la nouvelle année arrivent toutes seules."),
+      children: [
+        if (status != null) ...[
+          ListTile.simple(
+            context,
+            title: "Classes",
+            buildChevron: false,
+            trailing: Text("${status["Classes"]} · ${status["FromSchool"] == true ? "site du Gymnase" : "copie de l'app"}", style: AppStyles.subheadline(context)),
+          ),
+          ListTile.simple(context, title: "Dernière lecture", buildChevron: false, trailing: Text(when(status["CheckedAt"]), style: AppStyles.subheadline(context))),
+          ListTile.simple(context, title: "Dernier changement", buildChevron: false, trailing: Text(when(status["ChangedAt"]), style: AppStyles.subheadline(context))),
+        ],
+        ListTile.simple(
+          context,
+          title: "Lire maintenant",
+          icon: AppIcons.retry,
+          buildChevron: false,
+          isLoading: isRefreshingCatalog,
+          onTap: isRefreshingCatalog ? null : () => loadCatalogStatus(refresh: true),
+        ),
+      ],
+    );
+  }
+
+  /// The people reported in the global chat (GET /admin/global)
+  List<Map>? reported;
+  String? reportedError;
+
+  Future<void> loadReported() async {
+    final response = await network.get("/admin/global");
+    if (!mounted) return;
+    final data = response.statusCode == 200 ? tryJsonDecode(response.body) : null;
+    setState(() {
+      reported = data is List ? data.whereType<Map>().toList() : reported;
+      reportedError = data is List ? null : AppStrings.errorFor(response);
+    });
+  }
+
+  Future<void> pardon(String username) async {
+    final response = await network.post("/admin/global/pardon", {"Username": username});
+    if (!mounted) return;
+    if (response.statusCode != 200) {
+      showCupertinoDialog(context: context, builder: (_) => Dialog.networkError(response));
+      return;
+    }
+    loadReported();
+  }
+
+  Widget buildReported() {
+    final rows = reported ?? const [];
+    return ListSection(
+      title: "Conversation générale",
+      margin: const EdgeInsets.only(top: AppSpacing.section),
+      footer: reportedError ??
+          (rows.isEmpty
+              ? "Personne n'a été signalé."
+              : "Signalée par 3 personnes, une personne ne peut plus écrire pendant 3 jours ; par 5, elle est exclue. Touchez pour lui pardonner (signalements effacés)."),
+      children: [
+        for (final row in rows)
+          ListTile(
+            buildChevron: false,
+            onTap: () => showCupertinoDialog(
+              context: context,
+              builder: (_) => Dialog.confirm(
+                content: "Pardonner à *${row["Username"]}* ? Ses signalements sont effacés et ses sanctions levées.",
+                onConfirm: () => pardon(row["Username"].toString()),
+              ),
+            ),
+            child: Row(
+              spacing: AppSpacing.m,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        row["DisplayName"]?.toString() ?? Account.getDefaultDisplayName(row["Username"].toString()),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppStyles.strongText(context),
+                      ),
+                      Text(
+                        [
+                          row["Username"].toString(),
+                          if (row["Banned"] == true) "exclu",
+                          if (row["Banned"] != true && DateTime.tryParse(row["MutedUntil"]?.toString() ?? "")?.isAfter(DateTime.now()) == true)
+                            "sans écrire jusqu'au ${DateFormat("d MMM HH:mm", "fr_CH").format(DateTime.parse(row["MutedUntil"].toString()).toLocal())}",
+                        ].join(" · "),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppStyles.footnote(context),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  "${row["Reports"]} signalement${(row["Reports"] as num? ?? 0) > 1 ? "s" : ""}",
+                  style: AppStyles.subheadline(context).copyWith(color: row["Banned"] == true ? AppColors.red : null),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  List<_Usage>? usage;
+  String? usageError;
+  String usageSort = "Grades";
+  bool showAllUsage = false;
+
+  Future<void> loadUsage() async {
+    final response = await network.get("/admin/usage");
+    if (!mounted) return;
+    final data = response.statusCode == 200 ? tryJsonDecode(response.body) : null;
+    setState(() {
+      if (data is List) {
+        usage = [for (final item in data) ?_Usage.fromJson(item)];
+        usageError = null;
+      } else {
+        usageError = AppStrings.errorFor(response);
+      }
+    });
+  }
+
+  /// "2 h 05", "12 min", "40 s"
+  static String durationLabel(int seconds) {
+    if (seconds >= 3600) return "${seconds ~/ 3600} h ${((seconds % 3600) ~/ 60).toString().padLeft(2, "0")}";
+    if (seconds >= 60) return "${seconds ~/ 60} min";
+    return "$seconds s";
+  }
+
+  Widget buildUsage() {
+    final rows = usage;
+    if (rows == null) {
+      return ListSection(
+        title: "Utilisation",
+        margin: const EdgeInsets.only(top: AppSpacing.section),
+        footer: usageError,
+        children: [if (usageError == null) const ListTile(buildChevron: false, child: Center(child: GymnaseLoader(size: 18)))],
+      );
+    }
+
+    String plural(int count, String one, String many) => "$count ${count == 1 ? one : many}";
+    ListTile total(String title, int sum, int accounts) => ListTile.simple(
+      context,
+      title: title,
+      buildChevron: false,
+      trailing: Text("$sum · ${plural(accounts, "compte", "comptes")}", style: AppStyles.subheadline(context)),
+    );
+    int sumOf(int Function(_Usage) value) => rows.fold(0, (sum, row) => sum + value(row));
+    int accountsWith(int Function(_Usage) value) => rows.where((row) => value(row) > 0).length;
+
+    final sorted = rows.where((row) => row.valueOf(usageSort) > 0).toList()..sort((a, b) => b.valueOf(usageSort).compareTo(a.valueOf(usageSort)));
+    final shown = showAllUsage ? sorted : sorted.take(30);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListSection(
+          title: "Utilisation",
+          margin: const EdgeInsets.only(top: AppSpacing.section),
+          footer: "Au total, et combien de comptes en ont au moins un. Envoyé par l'app à chaque démarrage (les versions avant la 4.108 seulement en ouvrant les pages).",
+          children: [
+            total("Notes", sumOf((row) => row.grades), accountsWith((row) => row.grades)),
+            total("Devoirs", sumOf((row) => row.assignments), accountsWith((row) => row.assignments)),
+            total("Conversations", sumOf((row) => row.chats), accountsWith((row) => row.chats)),
+            total("Messages", sumOf((row) => row.messages), accountsWith((row) => row.messages)),
+            ListTile.simple(
+              context,
+              title: "Temps en ligne",
+              buildChevron: false,
+              trailing: Text(durationLabel(sumOf((row) => row.onlineSeconds)), style: AppStyles.subheadline(context)),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.l),
+        SegmentedControl<String>(
+          options: const {"Notes": "Grades", "Devoirs": "Assignments", "Messages": "Messages", "Temps": "Online"},
+          onTap: (value) => setState(() {
+            usageSort = value;
+            showAllUsage = false;
+          }),
+        ),
+        ListSection(
+          margin: const EdgeInsets.only(top: AppSpacing.m),
+          footer: sorted.isEmpty ? "Personne pour l'instant." : "Les comptes qui en ont, du plus au moins.",
+          children: [
+            for (final row in shown)
+              ListTile(
+                buildChevron: false,
+                child: Row(
+                  spacing: AppSpacing.m,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(row.displayName ?? Account.getDefaultDisplayName(row.username), maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context)),
+                          Text(
+                            [
+                              row.username,
+                              ?row.classOrRole,
+                              plural(row.grades, "note", "notes"),
+                              plural(row.assignments, "devoir", "devoirs"),
+                              plural(row.messages, "message", "messages"),
+                              durationLabel(row.onlineSeconds),
+                            ].join(" · "),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppStyles.footnote(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      usageSort == "Online" ? durationLabel(row.onlineSeconds) : row.valueOf(usageSort).toString(),
+                      style: AppStyles.strongText(context).copyWith(color: AppColors.tint.adaptTo(context)),
+                    ),
+                  ],
+                ),
+              ),
+            if (!showAllUsage && sorted.length > 30)
+              ListTile.simple(
+                context,
+                title: "Afficher les ${sorted.length - 30} autres",
+                icon: AppIcons.chevronDown,
+                buildChevron: false,
+                onTap: () => setState(() => showAllUsage = true),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
 
   Future<void> loadClasses() async {
     final response = await network.get("/admin/classes");
@@ -216,6 +516,9 @@ class _AdminPageState extends State<AdminPage> {
     super.initState();
     load();
     loadClasses();
+    loadUsage();
+    loadCatalogStatus();
+    loadReported();
     refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) => load());
   }
 
@@ -469,6 +772,9 @@ class _AdminPageState extends State<AdminPage> {
                     ),
                 ],
               ),
+            buildUsage(),
+            buildCatalogStatus(),
+            buildReported(),
             ListSection(
               title: "Délégués des classes",
               margin: const EdgeInsets.only(top: AppSpacing.section),

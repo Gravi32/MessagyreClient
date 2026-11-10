@@ -16,7 +16,6 @@ import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
 import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/main.dart';
-import 'package:messagyre_client/pages/search/subpages/ideas_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -216,7 +215,7 @@ class SearchPageState extends State<SearchPage> {
             child: Row(
               children: [
                 for (final shortcut in [
-                  (name: "Hermes II", iconPath: "assets/icons/hermesII.webp", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
+                  (name: "Hermès II", iconPath: "assets/icons/hermesII.webp", url: "https://hermes.edu-vaud.ch/absences/synoptiques/eleve/"),
                   (name: "Teams", iconPath: "assets/icons/teams.webp", url: "https://teams.microsoft.com/v2/"),
                   (name: "Moodle", iconPath: "assets/icons/moodle.webp", url: "https://moodle.eduvaud.ch/my/"),
                 ])
@@ -331,18 +330,6 @@ class SearchPageState extends State<SearchPage> {
           ListSection(
             title: "Messagyre",
             children: [
-              ListTile(
-                leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedIdea01),
-                onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => const IdeasPage())),
-                child: Column(
-                  crossAxisAlignment: .start,
-                  spacing: 2,
-                  children: [
-                    Text(AppStrings.ideasBox, style: AppStyles.primaryText(context)),
-                    Text(AppStrings.ideasBoxContent, style: AppStyles.footnote(context)),
-                  ],
-                ),
-              ),
               ListTile(
                 leading: ListTile.iconTile(context, icon: HugeIcons.strokeRoundedStar, color: AppColors.orange),
                 onTap: () async {

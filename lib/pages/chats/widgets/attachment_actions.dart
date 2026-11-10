@@ -19,6 +19,7 @@ import 'package:open_filex/open_filex.dart';
 Future<void> openAttachment(BuildContext context, Message message) async {
   final attachment = message.attachment;
   if (attachment == null || message.isDeleted) return;
+  if (attachment.isBlocked) return _showBlocked(context);
 
   final chats = ChatService();
 
@@ -61,6 +62,10 @@ Future<void> saveAttachment(BuildContext context, Message message) async {
   final path = message.localPath;
   final attachment = message.attachment;
   if (path == null || attachment == null || !await File(path).exists()) return;
+  if (attachment.isBlocked) {
+    if (context.mounted) _showBlocked(context);
+    return;
+  }
 
   try {
     final saved = await FilePicker.platform.saveFile(dialogTitle: AppStrings.saveToDevice, fileName: attachment.name, bytes: await File(path).readAsBytes());
@@ -125,4 +130,12 @@ class ImageViewerPage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A program, a script or an archive sent by an app before 4.108: never opened nor saved
+void _showBlocked(BuildContext context) {
+  showCupertinoDialog(
+    context: context,
+    builder: (_) => Dialog(title: "Fichier bloqué", content: AppStrings.fileBlocked),
+  );
 }

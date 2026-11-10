@@ -373,7 +373,7 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
           if (editMode)
             ListSection(
               margin: const .only(top: 24),
-              footer: "En supprimeant cette branche, ses notes resteront dans ses sous-branches.",
+              footer: "En supprimant cette branche, ses notes resteront dans ses sous-branches.",
               children: [
                 ListTile.simple(
                   context,

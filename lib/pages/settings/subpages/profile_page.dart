@@ -209,8 +209,8 @@ class _ProfilePageState extends State<ProfilePage> {
               showCupertinoDialog(
                 context: mountedContext,
                 builder: (_) => Dialog(
-                  title: success ? "Profil actualisé!" : "Erreur",
-                  content: success ? "Le profil a été mis a jour avec succès!" : "Le profil n'a pas été enregistré. $error",
+                  title: success ? "Profil actualisé !" : "Erreur",
+                  content: success ? "Le profil a été mis à jour." : "Le profil n'a pas été enregistré. $error",
                   options: success ? {"OK": () => Navigator.pop(context)} : null,
                 ),
               );
@@ -248,7 +248,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       context: context,
                       builder: (_) => Dialog(
                         title: "Mot de passe erroné",
-                        content: "Si vous avez oublié votre mot de passe, contactez le support depuis les réglages. \n\nInstagram : @messagyre.ch",
+                        content: "Si vous avez oublié votre mot de passe, contactez le support depuis les réglages.\n\nInstagram : @messagyre.ch",
                       ),
                     );
                     return;
@@ -264,7 +264,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     builder: (_) => Dialog(
                       title: "Compte supprimé",
                       content:
-                          "Votre compte a été supprimé avec succès. Nous sommes désolés de vous voir partir. Vous serez redirigé vers l'écran de connexion.",
+                          "Votre compte a été supprimé. Nous sommes désolés de vous voir partir. Vous serez redirigé vers l'écran de connexion.",
                       options: {
                         "OK": () {
                           network.logout();
@@ -375,7 +375,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   context: context,
                   builder: (dialogContext) => Dialog.confirm(
                     content:
-                        "Débloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous pourrez à nouveau recevoir de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
+                        "Débloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous pourrez à nouveau recevoir des messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
                     onConfirm: () {
                       globals.unblockUser(account.username);
                       setState(() {});
@@ -470,7 +470,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     context: context,
                     builder: (_) => Dialog.confirm(
                       content:
-                          "Bloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous ne receverez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
+                          "Bloquer *${account.displayName ?? Account.getDefaultDisplayName(account.username)}* ?\nVous ne recevrez plus de messages de sa part. Cet utilisateur ne sera pas notifié de votre action.",
                       onConfirm: () {
                         globals.blockUser(account.username);
                         setState(() {});

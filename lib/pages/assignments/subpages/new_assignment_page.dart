@@ -181,7 +181,7 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
           isMissingContent = true;
         }
 
-        return Dialog(title: "Informations manquantes", content: "Pour créer ce devoir entrez ${missingInfos.join(" et ")} !");
+        return Dialog(title: "Informations manquantes", content: "Pour créer ce devoir, entrez ${missingInfos.join(" et ")} !");
       },
     );
   }

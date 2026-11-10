@@ -61,7 +61,7 @@ class FirebaseApi {
       final content = await NotificationContent.fromData(message.data, fallbackTitle: message.notification?.title, fallbackBody: message.notification?.body);
       final chatId = content.chatId;
       if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-        if (chatId != null) notificationOverlays.spawn(content.title, content.group != null ? "${content.senderName} : ${content.body}" : content.body, chatId);
+        if (chatId != null) notificationOverlays.spawn(content.title, content.isShared ? "${content.senderName} : ${content.body}" : content.body, chatId);
         notifications.resetBadge();
       }
     } catch (e) {
@@ -70,8 +70,10 @@ class FirebaseApi {
   }
 
   void _onMessageOpened(RemoteMessage message) {
-    final group = message.data['Group'], username = message.data['SenderUsername'];
-    if (group is String && group.isNotEmpty) {
+    final group = message.data['Group'], username = message.data['SenderUsername'], chat = message.data['Chat'];
+    if (chat is String && chat.isNotEmpty) {
+      NotificationsService.openChat(chat);
+    } else if (group is String && group.isNotEmpty) {
       NotificationsService.openChat("#$group");
     } else if (username is String) {
       NotificationsService.openChat(username);
@@ -95,13 +97,20 @@ class NotificationContent {
   /// The class, for a message of a class chat (apps from 4.94)
   final String? group;
 
-  NotificationContent(this.senderName, this.senderUsername, this.body, this.pictureUrl, {this.group});
+  /// Another shared conversation (the global chat, "@general") and its name
+  final String? chat;
+  final String? chatName;
 
-  /// The conversation it belongs to: the sender, or the class chat ("#1M05")
-  String? get chatId => group != null ? "#$group" : senderUsername;
+  NotificationContent(this.senderName, this.senderUsername, this.body, this.pictureUrl, {this.group, this.chat, this.chatName});
 
-  /// The conversation's name: the sender, or the class
-  String get title => group != null ? "Classe $group" : senderName;
+  /// A conversation of several people: the notification says who wrote
+  bool get isShared => group != null || chat != null;
+
+  /// The conversation it belongs to: the sender, the class chat ("#1M05") or the global chat ("@general")
+  String? get chatId => chat ?? (group != null ? "#$group" : senderUsername);
+
+  /// The conversation's name: the sender, the class or the shared conversation
+  String get title => chatName ?? (group != null ? "Classe $group" : senderName);
 
   static Future<NotificationContent> fromData(Map<String, dynamic> data, {String? fallbackTitle, String? fallbackBody}) async {
     final title = (data['Title'] ?? fallbackTitle ?? 'Messagyre').toString();
@@ -124,6 +133,8 @@ class NotificationContent {
       body,
       picture is String && picture.isNotEmpty ? picture : null,
       group: data['Group'] is String && (data['Group'] as String).isNotEmpty ? data['Group'] as String : null,
+      chat: data['Chat'] is String && (data['Chat'] as String).isNotEmpty ? data['Chat'] as String : null,
+      chatName: data['ChatName'] is String && (data['ChatName'] as String).isNotEmpty ? data['ChatName'] as String : null,
     );
   }
 }
@@ -183,7 +194,7 @@ Future<void> showMessageNotification(Map<String, dynamic> data, {bool initialize
       styleInformation: MessagingStyleInformation(
         person,
         conversationTitle: content.title,
-        groupConversation: content.group != null,
+        groupConversation: content.isShared,
         messages: messages.length > _maxMessagesPerNotification ? messages.sublist(messages.length - _maxMessagesPerNotification) : messages,
       ),
     ),

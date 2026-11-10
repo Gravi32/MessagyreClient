@@ -37,6 +37,22 @@ class RenderChatBubble extends RenderBox with SlottedContainerRenderObjectMixin<
 
   RenderBox? get _content => childForSlot(ChatSlot.content);
   RenderBox? get _timestamp => childForSlot(ChatSlot.timestamp);
+
+  // The intrinsic sizes let a bubble be as wide as its widest part (an answer's quote above the text, through
+  // IntrinsicWidth): the text on one line with the time next to it at most, its longest word above the time at least
+
+  @override
+  double computeMinIntrinsicWidth(double height) =>
+      math.max(_content?.getMinIntrinsicWidth(height) ?? 0, _timestamp?.getMinIntrinsicWidth(height) ?? 0);
+
+  @override
+  double computeMaxIntrinsicWidth(double height) => (_content?.getMaxIntrinsicWidth(height) ?? 0) + (_timestamp?.getMaxIntrinsicWidth(height) ?? 0) + 2;
+
+  @override
+  double computeMinIntrinsicHeight(double width) => (_content?.getMinIntrinsicHeight(width) ?? 0) + (_timestamp?.getMinIntrinsicHeight(width) ?? 0);
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => (_content?.getMaxIntrinsicHeight(width) ?? 0) + (_timestamp?.getMaxIntrinsicHeight(width) ?? 0);
   @override
   void performLayout() {
     final RenderBox? content = _content;
@@ -63,20 +79,32 @@ class RenderChatBubble extends RenderBox with SlottedContainerRenderObjectMixin<
     if (content is RenderParagraph) {
       final span = content.text as TextSpan?;
       if (span != null) {
-        final tp = TextPainter(text: span, textDirection: TextDirection.ltr, maxLines: null);
+        // Measured exactly like the paragraph draws itself: with the phone's text size (textScaler) and the same
+        // strut, otherwise a bigger system font makes the last line wider than measured and the time covers it
+        final tp = TextPainter(
+          text: span,
+          textDirection: content.textDirection,
+          textScaler: content.textScaler,
+          locale: content.locale,
+          strutStyle: content.strutStyle,
+          textWidthBasis: content.textWidthBasis,
+          textHeightBehavior: content.textHeightBehavior,
+        );
         tp.layout(maxWidth: maxWidth);
         final lines = tp.computeLineMetrics();
         if (lines.isNotEmpty) {
-          lastLineWidth = lines.last.width;
-          if (lastLineWidth + timestampSize.width <= maxWidth) {
+          lastLineWidth = lines.last.left + lines.last.width;
+          // A little margin: rounding must never put the time on the last letters
+          if (lastLineWidth + timestampSize.width + 2 <= maxWidth) {
             fitsInline = true;
           }
         }
+        tp.dispose();
       }
     }
 
     // Final bubble size
-    final double bubbleWidth = fitsInline ? math.max(lastLineWidth + timestampSize.width, contentSize.width) : math.max(contentSize.width, timestampSize.width);
+    final double bubbleWidth = fitsInline ? math.max(lastLineWidth + timestampSize.width + 2, contentSize.width) : math.max(contentSize.width, timestampSize.width);
 
     final double bubbleHeight = contentSize.height + (fitsInline ? 0 : timestampSize.height);
 
@@ -89,10 +117,11 @@ class RenderChatBubble extends RenderBox with SlottedContainerRenderObjectMixin<
     final timestampParentData = timestamp.parentData! as BoxParentData;
     const double timestampInlineTopPadding = 4.0; // Adjust this value to your needs
 
+    // From the real width (constrained), not the wanted one: the time never goes out of the bubble
     if (fitsInline) {
-      timestampParentData.offset = Offset(bubbleWidth - timestampSize.width, contentSize.height - timestampSize.height + timestampInlineTopPadding);
+      timestampParentData.offset = Offset(size.width - timestampSize.width, contentSize.height - timestampSize.height + timestampInlineTopPadding);
     } else {
-      timestampParentData.offset = Offset(bubbleWidth - timestampSize.width, contentSize.height);
+      timestampParentData.offset = Offset(size.width - timestampSize.width, contentSize.height);
     }
   }
 

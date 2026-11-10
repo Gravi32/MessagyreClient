@@ -80,9 +80,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     final responseData = tryJsonDecode(response.body);
     final solutions = {
-      "WrongFormat": "L'adresse e-mail doit respecter le format suivant : '*prénom*.*nom*' !",
-      "WrongDomain": "L'adresse doit terminer en '@*eduvaud.ch*' !",
-      "WrongAddress": "Utilisez votre adresse '*prénom*.*nom*@eduvaud.ch'",
+      "WrongFormat": "L'adresse e-mail doit avoir la forme « *prénom*.*nom* » !",
+      "WrongDomain": "L'adresse doit se terminer par « @*eduvaud.ch* » !",
+      "WrongAddress": "Utilisez votre adresse « *prénom*.*nom*@eduvaud.ch »",
       "AlreadyExists": "Cette adresse a déjà été utilisée !",
       "AlreadySent": "Veuillez patienter, le code a déjà été envoyé récemment !",
     };
@@ -320,7 +320,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Spacer(),
         stepTitle(HugeIcons.strokeRoundedSquareLock02, "Mot de passe"),
         CustomText(
-          "*Vérification réussie!*\n${widget.isInPasswordResetMode ? "Entrez votre *nouveau mot de passe*. *Ne l'oubliez pas cette fois* !" : "*Créez un nouveau mot de passe* pour accéder à votre compte. Ne l'oubliez pas !"}",
+          "*Vérification réussie !*\n${widget.isInPasswordResetMode ? "Entrez votre *nouveau mot de passe*. *Ne l'oubliez pas cette fois* !" : "*Créez un nouveau mot de passe* pour accéder à votre compte. Ne l'oubliez pas !"}",
           textAlign: .center,
           padding: .symmetric(horizontal: 20),
           style: AppStyles.subheadline(context),
@@ -393,7 +393,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       context: context,
       builder: (context) {
         return Dialog.confirm(
-          content: "Voulez-vous vraiment *annuler la création de votre compte*? Cette action est irréversible.",
+          content: "Voulez-vous vraiment *annuler la création de votre compte* ? Cette action est irréversible.",
           isDestructive: true,
           onConfirm: () {
             clearRegistrationCache();

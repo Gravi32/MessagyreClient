@@ -8,6 +8,10 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart' hide ConnectionState, Key;
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:http/http.dart' as http;
+import 'package:messagyre_client/database/models/grades/grade.dart';
+import 'package:messagyre_client/database/models/assignments/assignment.dart';
+import 'package:messagyre_client/database/models/chats/chat.dart';
+import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/services/backup_service.dart';
@@ -244,6 +248,7 @@ class NetworkService {
       debugPrint("[WebSocket] Connected successfully!");
 
       uploadAppVersion();
+      unawaited(uploadCounts());
       BackupService().sync(); // reads the saved copy if the start had no connection
     } catch (e, s) {
       debugPrint("[WebSocket] Connection FAILED: $e, $s");
@@ -500,6 +505,23 @@ class NetworkService {
     return response;
   }
 
+  /// How many grades, assignments, conversations and messages are on this phone (the admin page's usage)
+  Future<void> uploadCounts() async {
+    try {
+      final isar = DatabaseService().isar;
+      final counts = {
+        "Grades": await isar.grades.count(),
+        "Assignments": await isar.assignments.count(),
+        "Chats": await isar.chats.count(),
+        "Messages": await isar.messages.count(),
+      };
+      final response = await post("/analytics/upload-counts", counts);
+      if (response.statusCode != 200) debugPrint("[Network] Uploading the counts failed: ${response.statusCode} ${response.body}");
+    } catch (e) {
+      debugPrint("[Network] Uploading the counts failed: $e");
+    }
+  }
+
   Future<void> uploadAppVersion() async {
     final response = await post("/analytics/upload-app-version", {"AppVersion": globals.appVersion});
 
@@ -547,16 +569,17 @@ class NetworkService {
 
   /// Uploads an (already encrypted) attachment. Returns its ID, or the reason of the refusal.
   /// The access token lasts an hour: an upload or download refused with 401 is tried again once with a new one
-  Future<({String? id, String? error})> uploadFile(Uint8List bytes, {required String recipientUsername, void Function(double progress)? onProgress}) async {
+  /// [recipientUsername] null: a photo of the global chat (/global/photo, not encrypted, checked by the server).
+  Future<({String? id, String? error})> uploadFile(Uint8List bytes, {required String? recipientUsername, void Function(double progress)? onProgress}) async {
     final result = await _uploadFile(bytes, recipientUsername: recipientUsername, onProgress: onProgress);
     if (result.error != "Unauthorized" || (await refreshAccessToken()).statusCode != 200) return result;
     return _uploadFile(bytes, recipientUsername: recipientUsername, onProgress: onProgress);
   }
 
-  Future<({String? id, String? error})> _uploadFile(Uint8List bytes, {required String recipientUsername, void Function(double progress)? onProgress}) async {
-    final multipart = http.MultipartRequest("POST", getBackendUri(route: "/files/upload"))
-      ..fields["RecipientUsername"] = recipientUsername
-      ..files.add(http.MultipartFile.fromBytes("File", bytes, filename: "file.bin"));
+  Future<({String? id, String? error})> _uploadFile(Uint8List bytes, {required String? recipientUsername, void Function(double progress)? onProgress}) async {
+    final multipart = http.MultipartRequest("POST", getBackendUri(route: recipientUsername == null ? "/global/photo" : "/files/upload"))
+      ..files.add(http.MultipartFile.fromBytes("File", bytes, filename: recipientUsername == null ? "photo.jpg" : "file.bin"));
+    if (recipientUsername != null) multipart.fields["RecipientUsername"] = recipientUsername;
 
     // A streamed copy of the request, to follow how much was sent
     final body = multipart.finalize();
@@ -587,7 +610,8 @@ class NetworkService {
         error: switch (response.statusCode) {
           401 => "Unauthorized",
           507 => "StorageFull",
-          _ => response.body,
+          // The server writes its reason as a JSON string ("…"): the sentence alone
+          _ => tryJsonDecode(response.body) is String ? tryJsonDecode(response.body) as String : response.body,
         },
       );
     } catch (e) {
@@ -597,16 +621,17 @@ class NetworkService {
   }
 
   /// Downloads an attachment (still encrypted)
-  Future<({int statusCode, Uint8List? bytes})> downloadFile(String fileId, {void Function(double progress)? onProgress}) async {
-    final result = await _downloadFile(fileId, onProgress: onProgress);
+  /// [isPublic]: a photo of the global chat (/global/photo, not encrypted)
+  Future<({int statusCode, Uint8List? bytes})> downloadFile(String fileId, {bool isPublic = false, void Function(double progress)? onProgress}) async {
+    final result = await _downloadFile(fileId, isPublic: isPublic, onProgress: onProgress);
     if (result.statusCode != 401 || (await refreshAccessToken()).statusCode != 200) return result;
-    return _downloadFile(fileId, onProgress: onProgress);
+    return _downloadFile(fileId, isPublic: isPublic, onProgress: onProgress);
   }
 
-  Future<({int statusCode, Uint8List? bytes})> _downloadFile(String fileId, {void Function(double progress)? onProgress}) async {
+  Future<({int statusCode, Uint8List? bytes})> _downloadFile(String fileId, {bool isPublic = false, void Function(double progress)? onProgress}) async {
     final client = http.Client();
     try {
-      final request = http.Request("GET", getBackendUri(route: "/files/get?ID=$fileId"));
+      final request = http.Request("GET", getBackendUri(route: "${isPublic ? "/global/photo" : "/files/get"}?ID=${Uri.encodeQueryComponent(fileId)}"));
       if (globals.token != null) request.headers["Authorization"] = globals.token!;
 
       final response = await client.send(request).timeout(const Duration(seconds: 30));
@@ -656,6 +681,8 @@ class NetworkService {
     } catch (e) {
       debugPrint("[Access] The username couldn't be saved: $e");
     }
+    // Another account's conversations go before the app starts again with this one
+    await ChatService().claimFor(username);
 
     didSignIn();
   }

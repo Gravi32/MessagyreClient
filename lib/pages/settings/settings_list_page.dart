@@ -309,7 +309,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                           builder: (_) => Dialog(
                             title: "Exportation terminée",
                             content:
-                                "Les données ont été copiées et enregistrés dans un fichier.\nVous pouvez l'utiliser pour transférer vos donnés sur un autre dispositif.",
+                                "Les données ont été copiées et enregistrées dans un fichier.\nVous pouvez l'utiliser pour transférer vos données sur un autre appareil.",
                           ),
                         );
                       },
@@ -336,7 +336,7 @@ class _SettingsListPageState extends State<SettingsListPage> {
                             builder: (_) => Dialog(
                               title: "Importation terminée",
                               content:
-                                  "Les données ont été *importées avec succès*.\n\nPour qu'elles s'appliquent il est nécessaire de *redémarrer Messagyre* !",
+                                  "Les données ont été *importées avec succès*.\n\nPour qu'elles s'appliquent, *redémarrez Messagyre* !",
                             ),
                           );
                         } catch (e) {

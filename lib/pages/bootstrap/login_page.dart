@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     final password = passwordController.text;
 
     setState(() {
-      usernameError = !username.contains('.') ? "Le nom d'utilisateur doit contenir un point '.'" : null;
+      usernameError = !username.contains('.') ? "Le nom d'utilisateur doit contenir un point (prénom.nom)." : null;
       passwordError = password.length < 8 ? "Le mot de passe doit contenir au moins 8 caractères." : null;
       wasPasswordWrong = false;
     });
@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         setState(() {
           switch (responseData) {
             case "NotFound":
-              usernameError = "Ce compte n'existe pas ! Créez-le en appuyant sur \"Créer un compte\".";
+              usernameError = "Ce compte n'existe pas ! Créez-le en appuyant sur « Créer un compte ».";
               break;
             case "WrongPassword":
               passwordError = "Mot de passe incorrect !";

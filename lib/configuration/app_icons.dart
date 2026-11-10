@@ -24,7 +24,6 @@ class AppIcons {
   static const delete = HugeIcons.strokeRoundedDelete02;
   static const copy = HugeIcons.strokeRoundedCopy01;
   static const save = HugeIcons.strokeRoundedDownload04;
-  static const share = HugeIcons.strokeRoundedShare08;
   static const retry = HugeIcons.strokeRoundedRefresh;
   static const done = HugeIcons.strokeRoundedTick02;
   static const pin = HugeIcons.strokeRoundedPin;
@@ -35,10 +34,13 @@ class AppIcons {
   static const members = HugeIcons.strokeRoundedUserGroup;
   static const newChat = HugeIcons.strokeRoundedBubbleChatAdd;
   static const clear = HugeIcons.strokeRoundedCancel01;
-  static const more = HugeIcons.strokeRoundedMoreHorizontal;
 
   // Chat
   static const send = HugeIcons.strokeRoundedSent;
+  static const reply = HugeIcons.strokeRoundedArrowTurnBackward;
+  static const muted = HugeIcons.strokeRoundedNotificationOff01;
+  static const notificationsOn = HugeIcons.strokeRoundedNotification01;
+  static const globalChat = HugeIcons.strokeRoundedUserGroup;
   static const attach = HugeIcons.strokeRoundedAttachment01;
   static const photo = HugeIcons.strokeRoundedImage02;
   static const camera = HugeIcons.strokeRoundedCamera01;
@@ -78,9 +80,6 @@ class AppIcons {
 
   // Information
   static const info = HugeIcons.strokeRoundedInformationCircle;
-  static const warning = HugeIcons.strokeRoundedAlert02;
-  static const offline = HugeIcons.strokeRoundedWifiDisconnected01;
-  static const notification = HugeIcons.strokeRoundedNotification01;
 
   // Empty states
   static const emptyChats = HugeIcons.strokeRoundedSleeping;

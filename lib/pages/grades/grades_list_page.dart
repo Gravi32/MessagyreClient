@@ -12,7 +12,6 @@ import 'package:messagyre_client/pages/grades/widgets/grades_top_card.dart';
 import 'package:messagyre_client/pages/grades/widgets/subject_card.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
-import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/card_group.dart';
 import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
@@ -30,11 +29,9 @@ class GradesListPage extends StatefulWidget {
 
 class _GradesListPageState extends State<GradesListPage> {
   final database = DatabaseService();
-  final network = NetworkService();
   final globals = GlobalsService();
 
   final lockNotifier = ValueNotifier(0);
-  int lastSentGradesCount = 0;
 
   void showNewGradePopup({Grade? toEdit, Assignment? toReference}) async {
     await showCupertinoSheet(
@@ -75,11 +72,6 @@ class _GradesListPageState extends State<GradesListPage> {
               .getAll()
               .where((composite) => composite.subjects.any(hasSomething))
               .sorted((a, b) => a.name.compareTo(b.name));
-
-          if (lastSentGradesCount != allGrades.length) {
-            lastSentGradesCount = allGrades.length;
-            network.post("/analytics/upload-grades-count", {"Grades": allGrades.length});
-          }
 
           return ListView(
             padding: .zero,

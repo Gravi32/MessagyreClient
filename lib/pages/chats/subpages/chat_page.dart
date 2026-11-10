@@ -15,13 +15,16 @@ import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
+import 'package:messagyre_client/database/models/messages/message_reply.dart';
 import 'package:messagyre_client/pages/chats/subpages/class_profile_page.dart';
 import 'package:messagyre_client/pages/chats/widgets/attachment_actions.dart';
 import 'package:messagyre_client/pages/chats/widgets/message_bubble.dart';
+import 'package:messagyre_client/pages/settings/subpages/admin_page.dart' show adminUsernames;
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
 import 'package:messagyre_client/services/chat_service.dart';
 import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/global_chat_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
@@ -66,6 +69,19 @@ class _ChatPageState extends State<ChatPage> {
   /// Messages that slide in when they appear (new ones only, not the history)
   final Set<String> animatedUuids = {};
 
+  /// The message being answered (shown above the field), null when writing a normal message
+  Message? replyingTo;
+
+  /// The bubbles on screen, to scroll to the message an answer quotes
+  final Map<String, GlobalKey> bubbleKeys = {};
+
+  /// The message just scrolled to, lit up for a moment
+  String? highlightedUuid;
+  Timer? highlightTimer;
+
+  /// The messages as last shown (newest first), to find the one a quote points to
+  List<Message> shownMessages = const [];
+
   Account? account;
   bool isLoadingProfile = false;
   bool showScrollDownButton = false;
@@ -77,8 +93,19 @@ class _ChatPageState extends State<ChatPage> {
   late final String? className = ClassService.classOfChat(username);
   bool get isClassChat => className != null;
 
-  /// Still in this class (a class of an earlier school year stays readable)
-  bool get canWrite => !isClassChat || classes.current.value?.name == className;
+  /// The global chat ("@general"): everyone, not encrypted, moderated (see GlobalChatService)
+  late final bool isGlobalChat = GlobalChatService.isGlobal(username);
+  final global = GlobalChatService();
+  StreamSubscription? rejectionSubscription;
+
+  /// A chat of several people: who wrote each message is shown above it
+  bool get isShared => isClassChat || isGlobalChat;
+
+  /// The global chat's photos touched to be seen (blurred until then)
+  final Set<String> revealedPhotos = {};
+
+  /// Still in this class (a class of an earlier school year stays readable), not kept out of the global chat
+  bool get canWrite => isGlobalChat ? global.status.value.cantWrite == null : (!isClassChat || classes.current.value?.name == className);
 
   bool get isSupport => username == "support.messagyre";
   bool get isBlocked => !isClassChat && globals.blockedUsers.contains(username);
@@ -105,6 +132,15 @@ class _ChatPageState extends State<ChatPage> {
     globals.blockedUsersNotifier.addListener(onBlockedUsersChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => chats.markRead(username));
+
+    if (isGlobalChat) {
+      displayName = GlobalChatService.title;
+      global.status.addListener(onClassChanged);
+      unawaited(global.refreshStatus());
+      // A message refused by the server (spam, sanction, a photo refused): says why
+      rejectionSubscription = global.rejections.stream.listen((rejection) => showError(rejection.reason));
+      return;
+    }
 
     if (isClassChat) {
       displayName = ClassService.chatTitleOf(className!);
@@ -134,9 +170,12 @@ class _ChatPageState extends State<ChatPage> {
     incomingSubscription?.cancel();
     classes.current.removeListener(onClassChanged);
     classes.members.removeListener(onClassChanged);
+    global.status.removeListener(onClassChanged);
+    rejectionSubscription?.cancel();
     globals.blockedUsersNotifier.removeListener(onBlockedUsersChanged);
     fieldController.removeListener(onFieldChanged);
     scrollController.removeListener(onScroll);
+    highlightTimer?.cancel();
     fieldController.dispose();
     fieldFocusNode.dispose();
     scrollController.dispose();
@@ -165,6 +204,7 @@ class _ChatPageState extends State<ChatPage> {
   // #region -> Actions
 
   Future<void> openProfile() async {
+    if (isGlobalChat) return showGlobalInfo();
     if (isClassChat) return showMembers();
     if (account == null) {
       setState(() => isLoadingProfile = true);
@@ -176,6 +216,27 @@ class _ChatPageState extends State<ChatPage> {
       FocusManager.instance.primaryFocus?.unfocus();
       Navigator.push(context, CupertinoPageRoute(builder: (context) => ProfilePage(account!, openedFromChat: true)));
     }
+  }
+
+  /// The global chat's rules, and its notifications on or off
+  Future<void> showGlobalInfo() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final muted = global.status.value.isMuted;
+    final choice = await ActionSheet.show<String>(
+      context,
+      title: GlobalChatService.title,
+      message: GlobalChatService.rules.replaceAll("*", ""),
+      actions: [
+        SheetAction(
+          muted ? "Activer les notifications" : "Rendre silencieuse",
+          icon: muted ? AppIcons.notificationsOn : AppIcons.muted,
+          value: "mute",
+        ),
+      ],
+    );
+    if (choice != "mute" || !mounted) return;
+    final error = await global.setMuted(!muted);
+    if (error != null) showError(error);
   }
 
   /// The class chat's page: picture, description, delegates, media, members
@@ -198,8 +259,62 @@ class _ChatPageState extends State<ChatPage> {
     if (text.trim().isEmpty) return;
     HapticFeedback.lightImpact();
     fieldController.clear();
-    chats.sendText(username, text);
+    final reply = replyOf(replyingTo);
+    setState(() => replyingTo = null);
+    chats.sendText(username, text, replyTo: reply);
     scrollDown();
+  }
+
+  /// Who wrote a message, as a username (mine for my messages)
+  String authorOf(Message message) => message.isOwned ? (globals.username ?? "") : (message.senderUsername ?? username);
+
+  /// The name shown above a quoted message
+  String nameOf(String author) {
+    if (author == globals.username) return "Vous";
+    if (isGlobalChat) return global.displayNameOf(author);
+    if (isClassChat) return classes.displayNameOf(author);
+    return author == username ? displayName : Account.getDefaultDisplayName(author);
+  }
+
+  MessageReply? replyOf(Message? message) {
+    if (message == null) return null;
+    final text = message.displayText.trim().isNotEmpty ? message.displayText : message.content;
+    return MessageReply.of(uuid: message.uuid, sender: authorOf(message), text: text);
+  }
+
+  /// Answers [message]: it shows above the field, and the keyboard opens
+  void startReply(Message message) {
+    if (!canWrite || message.isDeleted || message.uuid == _supportWelcomeUuid) return;
+    HapticFeedback.selectionClick();
+    setState(() => replyingTo = message);
+    fieldFocusNode.requestFocus();
+  }
+
+  /// Scrolls to the message a quote points to and lights it up (when it is still in the conversation)
+  Future<void> scrollToMessage(String uuid) async {
+    final index = shownMessages.indexWhere((message) => message.uuid == uuid);
+    if (index < 0) {
+      showError("Ce message n'est plus dans la conversation : il a peut-être été supprimé.");
+      return;
+    }
+    // Not built yet (too far up): jumps close to it first, then to it exactly
+    for (var attempt = 0; attempt < 6 && bubbleKeys[uuid]?.currentContext == null; attempt++) {
+      if (!scrollController.hasClients) return;
+      final position = scrollController.position;
+      final target = (position.pixels + position.viewportDimension * .8).clamp(0.0, position.maxScrollExtent);
+      if (target == position.pixels) break;
+      scrollController.jumpTo(target);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    final context = bubbleKeys[uuid]?.currentContext;
+    if (context == null || !context.mounted) return;
+    await Scrollable.ensureVisible(context, alignment: .5, duration: AppDurations.normal, curve: Curves.easeOutCubic);
+    if (!mounted) return;
+    setState(() => highlightedUuid = uuid);
+    highlightTimer?.cancel();
+    highlightTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => highlightedUuid = null);
+    });
   }
 
   void showError(String message) {
@@ -213,18 +328,19 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> showAttachmentMenu() async {
     FocusManager.instance.primaryFocus?.unfocus();
 
-    if (!isClassChat && chats.encryptionStateOf(username).value == EncryptionState.unavailable) {
+    if (!isShared && chats.encryptionStateOf(username).value == EncryptionState.unavailable) {
       showError(AppStrings.encryptionOff);
       return;
     }
 
     final choice = await ActionSheet.show<String>(
       context,
-      actions: const [
-        SheetAction(AppStrings.attachPhoto, icon: AppIcons.photo, value: "gallery"),
-        SheetAction(AppStrings.attachCamera, icon: AppIcons.camera, value: "camera"),
-        SheetAction(AppStrings.attachFile, icon: AppIcons.file, value: "file"),
-        SheetAction("Devoir", icon: AppIcons.assignments, value: "assignment"),
+      message: isGlobalChat ? "Seules les photos sont acceptées ici : elles s'affichent floutées jusqu'à ce qu'on les touche." : null,
+      actions: [
+        const SheetAction(AppStrings.attachPhoto, icon: AppIcons.photo, value: "gallery"),
+        const SheetAction(AppStrings.attachCamera, icon: AppIcons.camera, value: "camera"),
+        if (!isGlobalChat) const SheetAction(AppStrings.attachFile, icon: AppIcons.file, value: "file"),
+        if (!isGlobalChat) const SheetAction("Devoir", icon: AppIcons.assignments, value: "assignment"),
       ],
     );
     if (choice == null || !mounted) return;
@@ -238,13 +354,13 @@ class _ChatPageState extends State<ChatPage> {
       // Photos are resized and compressed by the system before being encrypted: light for the server and the network
       switch (choice) {
         case "gallery":
-          final images = await picker.pickMultiImage(maxWidth: 2048, maxHeight: 2048, imageQuality: 80, limit: 10);
+          final images = await picker.pickMultiImage(maxWidth: 2048, maxHeight: 2048, imageQuality: 80, limit: isGlobalChat ? 1 : 10);
           picked.addAll(images.map((image) => (image.path, image.name, AttachmentKind.image)));
         case "camera":
           final image = await picker.pickImage(source: ImageSource.camera, maxWidth: 2048, maxHeight: 2048, imageQuality: 80);
           if (image != null) picked.add((image.path, image.name, AttachmentKind.image));
         case "file":
-          final result = await FilePicker.platform.pickFiles();
+          final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: Attachment.allowedExtensions.toList());
           final file = result?.files.single;
           if (file?.path != null) picked.add((file!.path!, file.name, _isImageName(file.name) ? AttachmentKind.image : AttachmentKind.file));
       }
@@ -253,9 +369,12 @@ class _ChatPageState extends State<ChatPage> {
       String? caption = fieldController.text.trim().isEmpty ? null : fieldController.text.trim();
       if (picked.isNotEmpty && caption != null) fieldController.clear();
 
+      var reply = picked.isEmpty ? null : replyOf(replyingTo);
+      if (reply != null) setState(() => replyingTo = null);
       for (final (path, name, kind) in picked) {
-        await chats.sendAttachment(username, path: path, name: name, kind: kind, caption: caption);
+        await chats.sendAttachment(username, path: path, name: name, kind: kind, caption: caption, replyTo: reply);
         caption = null;
+        reply = null;
       }
       if (picked.isNotEmpty) scrollDown();
     } on AttachmentException catch (e) {
@@ -285,16 +404,21 @@ class _ChatPageState extends State<ChatPage> {
       context,
       message: message.isDeleted ? null : (text.isNotEmpty ? text : message.content),
       actions: [
+        if (canWrite && !message.isDeleted) const SheetAction("Répondre", icon: AppIcons.reply, value: "reply"),
         if (message.isOwned && message.isFailed) const SheetAction(AppStrings.retry, icon: AppIcons.retry, value: "retry"),
         if (!message.isDeleted && text.isNotEmpty) const SheetAction(AppStrings.copy, icon: AppIcons.copy, value: "copy"),
         if (!message.isDeleted && hasFile) const SheetAction(AppStrings.saveToDevice, icon: AppIcons.save, value: "save"),
         const SheetAction(AppStrings.delete, icon: AppIcons.delete, value: "delete", isDestructive: true),
+        if (isGlobalChat && !message.isOwned && !message.isDeleted && adminUsernames.contains(globals.username))
+          const SheetAction("Supprimer pour tout le monde (admin)", icon: AppIcons.delete, value: "moderate", isDestructive: true),
         if (!message.isOwned && !message.isDeleted) const SheetAction(AppStrings.report, icon: AppIcons.report, value: "report", isDestructive: true),
       ],
     );
     if (!mounted) return;
 
     switch (choice) {
+      case "reply":
+        startReply(message);
       case "retry":
         chats.retry(message);
       case "copy":
@@ -303,6 +427,8 @@ class _ChatPageState extends State<ChatPage> {
         saveAttachment(context, message);
       case "delete":
         confirmDeletion(message);
+      case "moderate":
+        global.deleteForEveryone(message);
       case "report":
         showReportSheet(message);
     }
@@ -328,6 +454,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> showReportSheet(Message message) async {
+    if (isGlobalChat) return reportInGlobalChat(message);
     final choice = await ActionSheet.show<String>(
       context,
       title: AppStrings.reportTitle,
@@ -348,7 +475,34 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  /// In the global chat: 3 people reporting someone stop them writing for 3 days, 5 ban them
+  Future<void> reportInGlobalChat(Message message) async {
+    final author = message.senderUsername ?? "";
+    final choice = await ActionSheet.show<String>(
+      context,
+      title: AppStrings.reportTitle,
+      message: "Signalez un message inapproprié (insultes, harcèlement, spam, photo choquante). Signalée par 3 personnes, une personne ne peut plus écrire ici pendant 3 jours ; par 5, elle est exclue. Un message signalé par 3 personnes disparaît.",
+      actions: [
+        const SheetAction(AppStrings.report, icon: AppIcons.report, value: "report", isDestructive: true),
+        SheetAction(AppStrings.reportAndBlock(author), icon: AppIcons.block, value: "block", isDestructive: true),
+      ],
+    );
+    if (choice == null) return;
+    final result = await global.report(message, reason: choice == "block" ? "Blocked" : null);
+    if (choice == "block" && result.sent && author.isNotEmpty) await globals.blockUser(author);
+    if (!mounted) return;
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => Dialog(title: result.sent ? AppStrings.thanks : AppStrings.errorTitle, content: result.text),
+    );
+  }
+
   void onBubbleTap(Message message) {
+    // The global chat's photos: the first touch shows it, the next ones open it
+    if (isGlobalChat && message.attachment?.isImage == true && !message.isDeleted && !revealedPhotos.contains(message.uuid)) {
+      setState(() => revealedPhotos.add(message.uuid));
+      return;
+    }
     if (message.hasAttachment && !message.isDeleted) {
       openAttachment(context, message);
     } else if (message.isOwned && message.isFailed) {
@@ -395,7 +549,11 @@ class _ChatPageState extends State<ChatPage> {
                 Navigator.of(context).pop();
               },
             ),
-            isClassChat ? ClassAvatar(className: className!, size: AppSizes.avatarSmall) : ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
+            isGlobalChat
+                ? const GlobalChatAvatar(size: AppSizes.avatarSmall)
+                : isClassChat
+                ? ClassAvatar(className: className!, size: AppSizes.avatarSmall)
+                : ProfilePictureDisplay(accountUsername: username, isBlocked: isBlocked),
             Expanded(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -413,13 +571,18 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ],
                     ),
-                    Text(isClassChat ? classSubtitle : username, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.footnote(context)),
+                    Text(
+                      isGlobalChat ? (global.status.value.isMuted ? "Ouverte à tous · silencieuse" : "Ouverte à tous · non chiffrée") : (isClassChat ? classSubtitle : username),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppStyles.footnote(context),
+                    ),
                   ],
                 ),
               ),
             ),
             if (isLoadingProfile) GymnaseLoader(size: 18),
-            Button.icon(context, icon: isClassChat ? AppIcons.members : AppIcons.profile, onTap: openProfile),
+            Button.icon(context, icon: isGlobalChat ? (global.status.value.isMuted ? AppIcons.muted : AppIcons.info) : (isClassChat ? AppIcons.members : AppIcons.profile), onTap: openProfile),
           ],
         ),
       ),
@@ -464,7 +627,39 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// At the top of the conversation: who it is with and whether it is encrypted
+  /// At the top of the global chat: what it is and its rules
+  Widget buildGlobalHeader() {
+    final tertiary = AppColors.tertiaryText.adaptTo(context);
+    return Column(
+      children: [
+        RoundContainer(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: AppSpacing.xl, bottom: AppSpacing.m),
+          padding: const EdgeInsets.all(AppSpacing.l),
+          child: Column(
+            children: [
+              const GlobalChatAvatar(size: AppSizes.avatarLarge),
+              const SizedBox(height: AppSpacing.s),
+              Text(GlobalChatService.title, textAlign: TextAlign.center, style: AppStyles.header(context)),
+              Text("Tous les utilisateurs de Messagyre", style: AppStyles.secondaryText(context)),
+              const SizedBox(height: AppSpacing.s),
+              _Notice(icon: AppIcons.info, text: GlobalChatService.rules, color: tertiary),
+            ],
+          ),
+        ),
+        RoundContainer(
+          width: double.infinity,
+          borderRadius: AppRadius.m,
+          margin: const EdgeInsets.only(bottom: AppSpacing.l),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.m - 2, horizontal: AppSpacing.l),
+          child: _Notice(icon: AppIcons.notEncrypted, text: "Cette conversation n'est *pas chiffrée de bout en bout* : ne partagez rien de privé.", color: AppColors.orange),
+        ),
+      ],
+    );
+  }
+
   Widget buildHeader() {
+    if (isGlobalChat) return buildGlobalHeader();
     if (isClassChat) return buildClassHeader();
     return Column(
       children: [
@@ -539,6 +734,7 @@ class _ChatPageState extends State<ChatPage> {
       builder: (context, snapshot) {
         var messages = snapshot.data ?? database.messages.ofChat(username).reversed.toList();
         if (messages.isEmpty && isSupport) messages = [_supportWelcome];
+        shownMessages = messages;
 
         return ListView.builder(
           controller: scrollController,
@@ -563,13 +759,22 @@ class _ChatPageState extends State<ChatPage> {
 
             Widget bubble = MessageBubble(
               key: ValueKey(message.uuid),
+              bubbleKey: bubbleKeys.putIfAbsent(message.uuid, GlobalKey.new),
               message: message,
               joinsPrevious: joinsPrevious,
               joinsNext: joinsNext,
               onTap: onBubbleTap,
               onLongPress: showMessageMenu,
-              senderName: isClassChat && sender != null ? classes.displayNameOf(sender) : null,
+              senderName: sender == null ? null : (isGlobalChat ? global.displayNameOf(sender) : (isClassChat ? classes.displayNameOf(sender) : null)),
+              blurPhoto: isGlobalChat && !revealedPhotos.contains(message.uuid),
+              replyAuthorName: message.reply == null ? null : nameOf(message.reply!.sender),
+              onReplyTap: scrollToMessage,
+              isHighlighted: highlightedUuid == message.uuid,
             );
+
+            if (canWrite && !message.isDeleted && message.uuid != _supportWelcomeUuid) {
+              bubble = SwipeToReply(towardsLeft: message.isOwned, onReply: () => startReply(message), child: bubble);
+            }
 
             if (animatedUuids.contains(message.uuid)) bubble = _SlideIn(key: ValueKey("in-${message.uuid}"), fromRight: message.isOwned, child: bubble);
 
@@ -594,7 +799,11 @@ class _ChatPageState extends State<ChatPage> {
           color: surface,
           border: Border(top: separator),
         ),
-        child: Text(AppStrings.classChatReadOnly, textAlign: TextAlign.center, style: AppStyles.footnote(context)),
+        child: Text(
+          isGlobalChat ? (global.status.value.cantWrite ?? "") : AppStrings.classChatReadOnly,
+          textAlign: TextAlign.center,
+          style: AppStyles.footnote(context),
+        ),
       );
     }
 
@@ -623,6 +832,7 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
           ),
+          if (replyingTo != null) buildReplyPreview(replyingTo!),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             spacing: AppSpacing.s,
@@ -636,7 +846,7 @@ class _ChatPageState extends State<ChatPage> {
                         builder: (context, state, _) => Button.icon(
                           context,
                           icon: AppIcons.attach,
-                          iconColor: !isClassChat && state == EncryptionState.unavailable ? AppColors.inactive.adaptTo(context) : null,
+                          iconColor: !isShared && state == EncryptionState.unavailable ? AppColors.inactive.adaptTo(context) : null,
                           onTap: showAttachmentMenu,
                         ),
                       ),
@@ -654,18 +864,53 @@ class _ChatPageState extends State<ChatPage> {
                   scrollPhysics: const BouncingScrollPhysics(),
                 ),
               ),
-              SizedBox.square(
-                dimension: AppSizes.compactControl,
-                child: Button.icon(
-                  context,
-                  icon: AppIcons.send,
-                  transparent: !canSend,
-                  color: canSend ? null : AppColors.tertiaryBackground.adaptTo(context),
-                  iconColor: canSend ? AppColors.white : AppColors.tertiaryText.adaptTo(context),
-                  onTap: canSend ? sendText : null,
+              SendButton(enabled: canSend, onTap: sendText),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Above the field: the message being answered, with a cross to write a normal message instead
+  Widget buildReplyPreview(Message message) {
+    final reply = replyOf(message)!;
+    final color = MessageBubble.colorOf(reply.sender);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: Row(
+        spacing: AppSpacing.s,
+        children: [
+          AppIcon(icon: AppIcons.reply, size: 20, color: AppColors.tint.adaptTo(context)),
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => scrollToMessage(message.uuid),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.m, AppSpacing.xs + 2, AppSpacing.m, AppSpacing.xs + 2),
+                decoration: BoxDecoration(
+                  color: AppColors.tertiaryBackground.adaptTo(context),
+                  borderRadius: BorderRadius.circular(AppRadius.s),
+                  border: Border(left: BorderSide(color: color, width: 3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Réponse à ${nameOf(reply.sender)}",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppStyles.footnote(context).copyWith(fontWeight: FontWeight.w700, color: color),
+                    ),
+                    Text(reply.text, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.subheadline(context)),
+                  ],
                 ),
               ),
-            ],
+            ),
+          ),
+          SizedBox.square(
+            dimension: AppSizes.compactControl,
+            child: Button.icon(context, icon: AppIcons.close, onTap: () => setState(() => replyingTo = null)),
           ),
         ],
       ),
@@ -860,6 +1105,133 @@ class _AssignmentPicker extends StatelessWidget {
                   ),
               ],
             ),
+    );
+  }
+}
+
+/// The send button: purple when there is something to send, grey otherwise. The paper plane leans up and right:
+/// it is drawn a little smaller than the other icons and moved down and left, so that it looks centered.
+class SendButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onTap;
+  const SendButton({super.key, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: AppSizes.compactControl,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        onPressed: enabled ? onTap : null,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          decoration: BoxDecoration(
+            color: enabled ? AppColors.accent : AppColors.tertiaryBackground.adaptTo(context),
+            borderRadius: BorderRadius.circular(AppRadius.m),
+            boxShadow: enabled ? [BoxShadow(color: Color.lerp(AppColors.accent, AppColors.black, .35)!, offset: const Offset(0, 3))] : null,
+          ),
+          child: Center(
+            child: Transform.translate(
+              offset: const Offset(-1.5, 1.5),
+              child: AppIcon(icon: AppIcons.send, size: 21, color: enabled ? AppColors.white : AppColors.tertiaryText.adaptTo(context)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Drag a message towards the middle of the screen to answer it (like WhatsApp): my messages to the left, the
+/// others' to the right. An arrow appears behind it; past [threshold] it answers when let go.
+class SwipeToReply extends StatefulWidget {
+  final Widget child;
+  final bool towardsLeft;
+  final VoidCallback onReply;
+  const SwipeToReply({super.key, required this.child, required this.towardsLeft, required this.onReply});
+
+  static const threshold = 56.0;
+  static const maxOffset = 80.0;
+
+  @override
+  State<SwipeToReply> createState() => _SwipeToReplyState();
+}
+
+class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(vsync: this, duration: AppDurations.fast)
+    ..addListener(() => setState(() => offset = releasedAt * (1 - Curves.easeOut.transform(controller.value))));
+  double offset = 0;
+
+  /// Where the message was let go: it slides back from there
+  double releasedAt = 0;
+  bool passed = false;
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void onUpdate(DragUpdateDetails details) {
+    if (controller.isAnimating) controller.stop();
+    final delta = widget.towardsLeft ? -details.delta.dx : details.delta.dx;
+    setState(() {
+      // Harder to pull past the threshold, like a rubber band
+      final resistance = offset > SwipeToReply.threshold ? .35 : 1.0;
+      offset = (offset + delta * resistance).clamp(0.0, SwipeToReply.maxOffset);
+    });
+    if (!passed && offset >= SwipeToReply.threshold) {
+      passed = true;
+      HapticFeedback.lightImpact();
+    } else if (passed && offset < SwipeToReply.threshold) {
+      passed = false;
+    }
+  }
+
+  void onEnd([DragEndDetails? _]) {
+    if (passed) widget.onReply();
+    passed = false;
+    releasedAt = offset;
+    controller.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (offset / SwipeToReply.threshold).clamp(0.0, 1.0);
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragUpdate: onUpdate,
+      onHorizontalDragEnd: onEnd,
+      onHorizontalDragCancel: onEnd,
+      child: Stack(
+        alignment: widget.towardsLeft ? Alignment.centerRight : Alignment.centerLeft,
+        children: [
+          if (offset > 0)
+            Positioned(
+              left: widget.towardsLeft ? null : 4,
+              right: widget.towardsLeft ? 4 : null,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Opacity(
+                  opacity: progress,
+                  child: Transform.scale(
+                    scale: .6 + .4 * progress,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(color: passed ? AppColors.accent : AppColors.tertiaryBackground.adaptTo(context), shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: AppIcon(icon: AppIcons.reply, size: 18, color: passed ? AppColors.white : AppColors.secondaryText.adaptTo(context)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Transform.translate(offset: Offset(widget.towardsLeft ? -offset : offset, 0), child: widget.child),
+        ],
+      ),
     );
   }
 }

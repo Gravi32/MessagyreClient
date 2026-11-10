@@ -10,8 +10,10 @@ import 'package:messagyre_client/database/models/chats/chat.dart';
 import 'package:messagyre_client/database/models/assignments/assignment_share.dart';
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
+import 'package:messagyre_client/database/models/messages/message_reply.dart';
 import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
+import 'package:messagyre_client/services/global_chat_service.dart';
 import 'package:messagyre_client/services/encryption_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/services/network_service.dart';
@@ -67,6 +69,33 @@ class ChatService {
 
   bool _initialized = false;
 
+  static const _ownerKey = "ChatsOwner";
+
+  /// The conversations on this phone belong to one account. When another one signs in (at the start or at the
+  /// login), the previous account's conversations, messages, files and blocked people are removed from the phone:
+  /// they could not be read with the new account's key anyway. The same account signing in again keeps them.
+  Future<void> claimFor(String? username) async {
+    if (username == null) return;
+    final owner = globals.persistent.getString(_ownerKey);
+    if (owner == username) return;
+    // Phones from before this check: the conversations are taken as the current account's
+    if (owner != null) {
+      try {
+        await database.chats.clearAll();
+        final attachments = Directory(p.join((await getApplicationDocumentsDirectory()).path, "attachments"));
+        if (attachments.existsSync()) await attachments.delete(recursive: true);
+        globals.blockedUsersNotifier.value = [];
+        await globals.persistent.remove("BlockedUsers");
+        // The global chat is read again from the server for the new account
+        await globals.persistent.remove("GlobalChatSyncedOnce");
+        debugPrint("[Chat] Another account signed in: the conversations of the previous one were removed");
+      } catch (e) {
+        debugPrint("[Chat] Removing the previous account's conversations failed: $e");
+      }
+    }
+    await globals.persistent.setString(_ownerKey, username);
+  }
+
   void initialize() {
     if (_initialized) return;
     _initialized = true;
@@ -90,6 +119,7 @@ class ChatService {
   void _onConnectionStateChanged() {
     if (network.connectionState.value != ConnectionState.Connected) return;
     _seedReviewChats();
+    unawaited(GlobalChatService().onConnected());
     if (ClassService().current.value != null) unawaited(ClassService().loadMembers(force: true));
     resendPending();
     _resumeDownloads();
@@ -136,11 +166,11 @@ class ChatService {
     return database.chats.getByUsername(chatId) ?? Chat.custom(username: chatId, displayUsername: className == null ? null : ClassService.chatTitleOf(className));
   }
 
-  Future<void> sendText(String username, String text) async {
+  Future<void> sendText(String username, String text, {MessageReply? replyTo}) async {
     final content = text.trim();
     if (content.isEmpty) return;
 
-    final message = Message.custom(chatUsername: username, content: content, sentAt: DateTime.now(), isOwned: true);
+    final message = Message.custom(chatUsername: username, content: content, sentAt: DateTime.now(), isOwned: true, reply: replyTo);
     await database.chats.addMessage(await _chatFor(username), message);
     unawaited(_deliver(message.uuid));
   }
@@ -154,8 +184,10 @@ class ChatService {
 
   /// Sends a photo (from the gallery or the camera, already resized by image_picker) or any file.
   /// Throws an [AttachmentException] with a sentence for the user when it can't be sent.
-  Future<void> sendAttachment(String username, {required String path, required AttachmentKind kind, String? name, String? caption}) async {
-    if (encryptionStateOf(username).value == EncryptionState.unavailable) throw const AttachmentException(AppStrings.encryptionOff);
+  Future<void> sendAttachment(String username, {required String path, required AttachmentKind kind, String? name, String? caption, MessageReply? replyTo}) async {
+    final isGlobal = GlobalChatService.isGlobal(username);
+    if (!isGlobal && encryptionStateOf(username).value == EncryptionState.unavailable) throw const AttachmentException(AppStrings.encryptionOff);
+    if (isGlobal && kind != AttachmentKind.image) throw const AttachmentException("Seules les photos sont acceptées dans la conversation générale.");
 
     final source = File(path);
     final size = await source.length();
@@ -164,16 +196,21 @@ class ChatService {
     final uuid = const Uuid().v4();
     final fileName = _safeFileName(name ?? p.basename(path));
     final bytes = await source.readAsBytes();
+    if (kind != AttachmentKind.image && !Attachment.isAllowedName(fileName)) throw AttachmentException(AppStrings.fileTypeRefused(fileName));
+    if (_looksLikeProgram(bytes)) throw AttachmentException(AppStrings.fileTypeRefused(fileName));
 
     // Kept on this device: the server deletes its copy once the recipient has it
     final localPath = await _attachmentPath(uuid, fileName);
     await File(localPath).writeAsBytes(bytes, flush: true);
 
     final imageInfo = kind == AttachmentKind.image ? await compute(_imageInfo, bytes) : null;
-    final encrypted = await EncryptionService.encryptFile(bytes);
+    if (isGlobal && imageInfo == null) throw const AttachmentException("Ce fichier n'est pas une photo : seules les photos sont acceptées dans la conversation générale.");
+    // The global chat's photos aren't encrypted: the server checks them (everyone sees that chat)
+    final encrypted = isGlobal ? (key: "", iv: "", bytes: bytes) : await EncryptionService.encryptFile(bytes);
 
     final attachment = Attachment(
       kind: imageInfo != null ? AttachmentKind.image : AttachmentKind.file,
+      isPublic: isGlobal,
       key: encrypted.key,
       iv: encrypted.iv,
       name: fileName,
@@ -192,6 +229,7 @@ class ChatService {
       sentAt: DateTime.now(),
       isOwned: true,
       attachment: attachment,
+      reply: replyTo,
       localPath: localPath,
       transfer: TransferState.uploading,
     );
@@ -249,6 +287,11 @@ class ChatService {
       // 2. The message: without a connection it waits for the next one (resendPending)
       if (!network.isConnected) return;
 
+      if (GlobalChatService.isGlobal(username)) {
+        await GlobalChatService().deliver(message, attachment);
+        return;
+      }
+
       if (ClassService.isClassChat(username)) {
         await _deliverToClass(message, attachment);
         return;
@@ -264,7 +307,7 @@ class ChatService {
 
       final payload = <String, dynamic>{"CommunicationType": "Message", "Uuid": uuid, "RecipientUsername": username};
       if (key != null) {
-        payload.addAll(encryption.encryptMessage(message.content, key, attachmentJson: attachment?.toJson() ?? message.assignmentData));
+        payload.addAll(encryption.encryptMessage(message.content, key, attachmentJson: _extraJson(message, attachment)));
       } else if (attachment != null || message.assignmentData != null) {
         await _setStatus(uuid, MessageStatus.Failed);
         return;
@@ -288,6 +331,9 @@ class ChatService {
     }
   }
 
+  /// What goes encrypted next to the text: the attachment or the assignment, and the message answered
+  static String? _extraJson(Message message, Attachment? attachment) => MessageReply.mergeInto(attachment?.toJson() ?? message.assignmentData, message.reply);
+
   /// A message of a class chat: encrypted once, its key encrypted for every member who has a key
   Future<void> _deliverToClass(Message message, Attachment? attachment) async {
     final className = ClassService.classOfChat(message.chatUsername!)!;
@@ -309,7 +355,7 @@ class ChatService {
       "CommunicationType": "GroupMessage",
       "Uuid": message.uuid,
       "Group": className,
-      ...encryption.encryptForMany(message.content, keys, attachmentJson: attachment?.toJson() ?? message.assignmentData),
+      ...encryption.encryptForMany(message.content, keys, attachmentJson: _extraJson(message, attachment)),
     };
 
     final acknowledged = await network.sendAndWaitForAcknowledgement(message.uuid, payload);
@@ -327,15 +373,21 @@ class ChatService {
       if (encryptedBytes == null) {
         final localPath = message.localPath;
         if (localPath == null || !await File(localPath).exists()) throw const AttachmentException(AppStrings.fileMissing);
-        encryptedBytes = (await EncryptionService.encryptFile(await File(localPath).readAsBytes(), key: attachment.key, iv: attachment.iv)).bytes;
+        final plain = await File(localPath).readAsBytes();
+        encryptedBytes = attachment.isPublic ? plain : (await EncryptionService.encryptFile(plain, key: attachment.key, iv: attachment.iv)).bytes;
       }
 
+      final isGlobal = GlobalChatService.isGlobal(message.chatUsername);
       progress.value = 0;
-      final result = await network.uploadFile(encryptedBytes, recipientUsername: message.chatUsername!, onProgress: (value) => progress.value = value);
+      final result = await network.uploadFile(encryptedBytes, recipientUsername: isGlobal ? null : message.chatUsername!, onProgress: (value) => progress.value = value);
       progress.value = null;
 
       if (result.id != null) return result.id;
       debugPrint("[Chat] Upload refused: ${result.error}");
+      // The global chat's photos can be refused (too new an account, too many today...): the chat says why
+      if (isGlobal && result.error != null && result.error != "Network") {
+        GlobalChatService().rejections.add((uuid: message.uuid, reason: result.error == "Unauthorized" ? AppStrings.sessionExpired : result.error!));
+      }
     } catch (e) {
       debugPrint("[Chat] Upload failed: $e");
       progress.value = null;
@@ -374,6 +426,8 @@ class ChatService {
           await _onReceipt(data);
         case "Deletion":
           await _onDeletion(data);
+        case "GlobalMessage" || "GlobalDeletion" || "GlobalRejected" || "GlobalStatus":
+          await GlobalChatService().handleCommunication(data);
       }
     } catch (e, s) {
       debugPrint("[Chat] A communication couldn't be handled: $e\n$s");
@@ -401,6 +455,7 @@ class ChatService {
     String content;
     Attachment? attachment;
     AssignmentShare? sharedAssignment;
+    MessageReply? reply;
 
     final cipherText = data["CipherText"], iv = data["Iv"] ?? data["IV"], encryptedKey = data["EncryptedKey"];
     if (cipherText is String && iv is String && encryptedKey is String) {
@@ -409,6 +464,7 @@ class ChatService {
         content = decrypted.$1;
         attachment = Attachment.tryParse(decrypted.$2);
         sharedAssignment = attachment == null ? AssignmentShare.tryParse(decrypted.$2) : null;
+        reply = MessageReply.fromPayload(decrypted.$2);
       } catch (e) {
         debugPrint("[Chat] A message from $sender couldn't be decrypted: $e");
         content = "🔒 Ce message n'a pas pu être déchiffré.";
@@ -427,6 +483,7 @@ class ChatService {
       status: MessageStatus.Delivered,
       attachment: attachment,
       sharedAssignment: sharedAssignment,
+      reply: reply,
       transfer: attachment != null ? TransferState.pending : TransferState.none,
     );
 
@@ -490,7 +547,7 @@ class ChatService {
     if (unread.isEmpty) return;
 
     // No read receipts in a class chat
-    if (!ClassService.isClassChat(username) && (globals.persistent.getBool("SendReadReceipts") ?? true)) {
+    if (!ClassService.isClassChat(username) && !GlobalChatService.isGlobal(username) && (globals.persistent.getBool("SendReadReceipts") ?? true)) {
       // The newest 500 at most (the server's limit): older ones don't matter any more
       final uuids = unread.reversed.take(500).map((m) => m.uuid).toList();
       if (!network.sendRaw({"CommunicationType": "Read", "RecipientUsername": username, "Uuids": uuids})) return;
@@ -516,7 +573,7 @@ class ChatService {
       await database.messages.update(message.uuid, (m) => m.transfer = TransferState.downloading);
       progress.value = 0;
 
-      final result = await network.downloadFile(attachment.fileId!, onProgress: (value) => progress.value = value);
+      final result = await network.downloadFile(attachment.fileId!, isPublic: attachment.isPublic, onProgress: (value) => progress.value = value);
 
       if (result.statusCode == 404) {
         await database.messages.update(message.uuid, (m) => m.transfer = TransferState.expired);
@@ -524,7 +581,7 @@ class ChatService {
       }
       if (result.bytes == null) throw Exception("HTTP ${result.statusCode}");
 
-      final plain = await EncryptionService.decryptFile(result.bytes!, attachment.key, attachment.iv);
+      final plain = attachment.isPublic ? result.bytes! : await EncryptionService.decryptFile(result.bytes!, attachment.key, attachment.iv);
       final localPath = await _attachmentPath(message.uuid, attachment.name);
       await File(localPath).writeAsBytes(plain, flush: true);
 
@@ -547,6 +604,15 @@ class ChatService {
       final attachment = message.attachment;
       if (attachment != null && attachment.isImage && attachment.size <= autoDownloadBytes) unawaited(download(message));
     }
+  }
+
+  /// Programs disguised under another name: Windows (MZ), Linux and Android (ELF), scripts (#!)
+  static bool _looksLikeProgram(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    if (bytes[0] == 0x4D && bytes[1] == 0x5A) return true;
+    if (bytes[0] == 0x7F && bytes[1] == 0x45 && bytes[2] == 0x4C && bytes[3] == 0x46) return true;
+    if (bytes[0] == 0x23 && bytes[1] == 0x21) return true;
+    return false;
   }
 
   static Future<String> _attachmentPath(String uuid, String fileName) async {
@@ -611,6 +677,16 @@ class ChatService {
 
   // #region -> Deleting and reporting
 
+  /// Someone else deleted it (the global chat's moderation, its author): "Message supprimé" stays in its place
+  Future<void> markDeleted(Message message) async {
+    await _deleteLocalFile(message);
+    await database.messages.update(message.uuid, (m) {
+      m.isDeleted = true;
+      m.localPath = null;
+      m.transfer = TransferState.none;
+    });
+  }
+
   Future<void> deleteForMe(Message message) async {
     await _deleteLocalFile(message);
     await database.messages.delete(message);
@@ -625,6 +701,10 @@ class ChatService {
       m.transfer = TransferState.none;
     });
     final className = ClassService.classOfChat(message.chatUsername!);
+    if (GlobalChatService.isGlobal(message.chatUsername)) {
+      GlobalChatService().deleteForEveryone(message);
+      return;
+    }
     if (className != null) {
       network.sendRaw({"CommunicationType": "Deletion", "Group": className, "Uuids": [message.uuid]});
     } else {

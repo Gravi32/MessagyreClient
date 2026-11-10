@@ -39,7 +39,7 @@ class _GradesBySubjectPageState extends State<GradesBySubjectPage> {
         ),
       ),
       field: Field.search(
-        placeholder: "Chercher une branche...",
+        placeholder: "Chercher une branche…",
         onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase()),
       ),
       body: StreamBuilder(

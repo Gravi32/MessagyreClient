@@ -47,7 +47,7 @@ class SubjectCard extends StatelessWidget {
         builder: (_) => Dialog(
           title: "Branche bloquée",
           content:
-              "Cette branche est *bloquée à ${subject!.lockedGrade?.removeTrailingZero() ?? 4}*,\npour la débloquer ou changer la note: *Réglages > Branches*.",
+              "Cette branche est *bloquée à ${subject!.lockedGrade?.removeTrailingZero() ?? 4}*,\npour la débloquer ou changer la note : *Réglages → Branches*.",
         ),
       );
       return;

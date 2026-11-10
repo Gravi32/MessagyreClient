@@ -45,7 +45,6 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
   /// Why the shared assignments are missing, shown under the list (null when they loaded)
   String? sharedAssignmentsNotice;
 
-  int lastSentAssignmentsCount = -1;
   String? activeFilter;
 
   bool get isSearching => searchFieldFocusNode.hasFocus || activeFilter != null;
@@ -149,11 +148,6 @@ class AssignmentsListPageState extends State<AssignmentsListPage> {
         stream: database.assignments.watchAll(),
         builder: (context, snapshot) {
           final everyAssignment = snapshot.data ?? [];
-
-          if (snapshot.hasData && lastSentAssignmentsCount != everyAssignment.length) {
-            lastSentAssignmentsCount = everyAssignment.length;
-            network.post("/analytics/upload-assignments-count", {"Assignments": everyAssignment.length});
-          }
 
           final assignments = everyAssignment.where(matchesFilter).toList();
           final shared = sharedAssignments.where((a) => activeFilter == null || a.matches(activeFilter!)).sorted((a, b) => a.dueDate.compareTo(b.dueDate));

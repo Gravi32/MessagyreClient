@@ -68,6 +68,14 @@ class ChatRepository {
     });
   }
 
+  /// Removes every conversation and message from this device (another account signed in)
+  Future<void> clearAll() async {
+    await isar.writeTxn(() async {
+      await isar.messages.clear();
+      await isar.chats.clear();
+    });
+  }
+
   /// Before 4.84 messages were only linked to their chat (IsarLinks, without order): gives them their chatUsername
   Future<int> migrateLinkedMessages() async {
     var migrated = 0;

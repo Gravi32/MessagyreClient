@@ -85,7 +85,7 @@ class _NewGradePageState extends State<NewGradePage> {
       showCupertinoDialog(
         context: context,
         builder: (_) =>
-            Dialog(title: "Branche requise", content: "Veuillez entrer la branche de la note.", options: {"OK": () => setState(() => isMissingSubject = true)}),
+            Dialog(title: "Branche requise", content: "Choisissez la branche de la note.", options: {"OK": () => setState(() => isMissingSubject = true)}),
       );
       return;
     }
@@ -172,7 +172,7 @@ class _NewGradePageState extends State<NewGradePage> {
   static String weightLabel(double value) => value >= 1 ? "×${value.removeTrailingZero()}" : (fractions[value] ?? "${(value * 100).round()}%");
 
   /// The word under each usual weight
-  static final weightNames = <double, String>{2.0: "Double", 1.5: "Une et demie", 1.0: "Normale", .75: "Trois quarts", .5: "Moitié", .25: "Quart"};
+  static final weightNames = <double, String>{2.0: "Double", 1.5: "Une fois et demie", 1.0: "Normale", .75: "Trois quarts", .5: "Moitié", .25: "Quart"};
 
   /// What the chosen weight means, in a sentence (`*bold*` for CustomText)
   static String weightSentence(double value) {
@@ -384,7 +384,7 @@ class _NewGradePageState extends State<NewGradePage> {
               Container(height: .5, margin: const .only(left: 62), color: AppColors.separator.adaptTo(context)),
 
               // Date
-              ListTile.simple(context, icon: HugeIcons.strokeRoundedCalendar04, title: "Reçu ${formatDate(date, includeArticle: true)}", onTap: showDatePicker),
+              ListTile.simple(context, icon: HugeIcons.strokeRoundedCalendar04, title: "Reçue ${formatDate(date, includeArticle: true)}", onTap: showDatePicker),
             ],
           ),
         ),
@@ -499,7 +499,7 @@ class _NewGradePageState extends State<NewGradePage> {
                       final controller = TextEditingController();
                       return Dialog.entry(
                         title: "Nouveau groupe",
-                        placeholder: "Nom du groupe (TP, Vocs, ...)",
+                        placeholder: "Nom du groupe (TP, vocabulaire…)",
                         controller: controller,
                         onConfirm: () {
                           final newName = controller.text.trim();

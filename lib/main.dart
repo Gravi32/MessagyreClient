@@ -114,6 +114,9 @@ void main() {
 
         BootProcedure.setupSystemUI();
 
+        // The conversations of another account (signed out without starting again) never show
+        await ChatService().claimFor(GlobalsService().username);
+
         runApp(
           DevicePreview(
             enabled: false, // !kReleaseMode,

@@ -51,7 +51,7 @@ class _RecentGradesPageState extends State<RecentGradesPage> {
     return Page.sliver(
       topBar: TopBar.sliverWithChevron(context, title: "Toutes les notes"),
       field: Field.search(
-        placeholder: "Chercher une note...",
+        placeholder: "Chercher une note…",
         onChanged: (content) => setState(() => activeFilter = content.isEmpty ? null : content.toLowerCase()),
       ),
       body: ListView(
