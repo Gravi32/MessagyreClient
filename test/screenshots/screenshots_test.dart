@@ -31,6 +31,9 @@ import 'package:messagyre_client/pages/assignments/subpages/new_assignment_page.
 import 'package:messagyre_client/pages/settings/settings_list_page.dart';
 import 'package:messagyre_client/pages/settings/subpages/class_picker_page.dart';
 import 'package:messagyre_client/pages/search/search_page.dart';
+import 'package:messagyre_client/pages/search/news_admin_page.dart';
+import 'package:messagyre_client/utility/parsers/app_text_parser.dart';
+import 'package:stac/stac.dart';
 import 'package:messagyre_client/pages/bootstrap/login_page.dart';
 import 'package:messagyre_client/pages/subjects/subjects_list_page.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_subject_page.dart';
@@ -346,6 +349,8 @@ void main() {
 
     // The Isar library for Windows (isar_windows_x64.dll of the 3.1.0+1 release), path in ISAR_LIBRARY
     await Isar.initializeIsarCore(libraries: {Abi.windowsX64: Platform.environment["ISAR_LIBRARY"] ?? "isar.dll"});
+    // The announcements are drawn by Stac, with the app's own text widget
+    await Stac.initialize(parsers: [StacAppTextParser()]);
     await GlobalsService().initialize();
     await DatabaseService().initialize();
     await _seed(DatabaseService().isar, root.path);
@@ -558,6 +563,30 @@ void main() {
       ),
       "group_profile": () => _plain(const GroupProfilePage(groupId: "g-volley2026"), brightness),
       "new_group": () => _plain(const NewGroupPage(), brightness),
+      "news_new": () => _plain(const NewsEditorPage(), brightness),
+      // An announcement written by hand in the database, before the editor
+      "news_edit": () => _plain(
+        NewsEditorPage(
+          toEdit: {
+            "ID": 1,
+            "AuthorUsername": "support.messagyre",
+            "Priority": 10,
+            "CoverWidget": jsonEncode({
+              "type": "column",
+              "crossAxisAlignment": "stretch",
+              "children": [
+                {"type": "app_text", "data": "Messagyre est sur Instagram !", "style": "header", "color": "white"},
+                {"type": "app_text", "data": "Abonnez-vous pour ne pas rater les coulisses du projet et nos prochaines nouveautés !", "style": "primaryText", "color": "white"},
+              ],
+            }),
+            "PageWidget": "{}",
+            "Metadata": jsonEncode({"OnTapUrl": "https://www.instagram.com/messagyre.ch", "BackgroundColor": "cyan", "ForegroundColor": "white"}),
+            "TargetType": "All",
+            "ExpirationDate": "2026-12-24T23:59:59",
+          },
+        ),
+        brightness,
+      ),
       "tutorial_points": () => _plain(const CupertinoPageScaffold(child: Align(alignment: Alignment.bottomCenter, child: ReportTutorial(initialStep: 1))), brightness),
       "tutorial_negative": () => _plain(const CupertinoPageScaffold(child: Align(alignment: Alignment.bottomCenter, child: ReportTutorial(initialStep: 3))), brightness),
       "dialog": () => _plain(Dialog.confirm(content: "Voulez-vous vraiment supprimer cette note ?", isDestructive: true), brightness),

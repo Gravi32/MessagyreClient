@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Theme;
 import 'package:in_app_review/in_app_review.dart';
@@ -17,11 +16,13 @@ import 'package:messagyre_client/utility/widgets/basics/section_header.dart';
 import 'package:messagyre_client/utility/widgets/basics/empty_state.dart';
 import 'package:messagyre_client/main.dart';
 import 'package:messagyre_client/pages/settings/subpages/profile_page.dart';
+import 'package:messagyre_client/pages/settings/subpages/admin_page.dart' show adminUsernames;
+import 'package:messagyre_client/pages/search/news_admin_page.dart';
+import 'package:messagyre_client/pages/search/widgets/news_card.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
 import 'package:messagyre_client/utility/account_class.dart';
 import 'package:messagyre_client/utility/utility.dart';
-import 'package:messagyre_client/utility/widgets/basics/button.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
 import 'package:messagyre_client/utility/widgets/basics/round_container.dart';
@@ -29,7 +30,6 @@ import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/profile_picture_display.dart';
 import 'package:messagyre_client/utility/workarounds/bottom_spacing.dart';
-import 'package:stac/stac.dart';
 
 class SearchResult {
   final String username;
@@ -70,6 +70,14 @@ class SearchPageState extends State<SearchPage> {
   final newsNotifier = ValueNotifier<List<Map<String, dynamic>>>([]);
 
   List<SearchResult> searchResults = [];
+
+  bool get isAdmin => adminUsernames.contains(globals.username);
+
+  /// The page where an admin adds, edits and deletes announcements; the list here follows what was changed
+  Future<void> manageNews() async {
+    await Navigator.of(context).push(CupertinoPageRoute(builder: (_) => const NewsAdminPage()));
+    if (mounted) await fetchNews();
+  }
 
   Future<void> fetchNews() async {
     final apiResponse = await network.get("/news/get");
@@ -243,78 +251,17 @@ class SearchPageState extends State<SearchPage> {
             ),
           ),
 
-          if (newsContent.isNotEmpty) ...[const SizedBox(height: AppSpacing.section), SectionHeader(AppStrings.announcements)],
-          ...newsContent.map((newsBox) {
-            final Map<String, dynamic>? metadata = tryJsonDecode(newsBox["Metadata"] ?? "{}");
-            final Map<String, dynamic>? coverWidget = tryJsonDecode(newsBox["CoverWidget"] ?? "{}");
-            final Map<String, dynamic>? pageWidget = tryJsonDecode(newsBox["PageWidget"] ?? "{}");
-            final hasBackgroundImage = metadata?["BackgroundImageUrl"] != null;
-            final hasAuthor = (newsBox["AuthorUsername"] ?? "") != "";
-            final backgroundColor = AppColors.fromName(metadata?["BackgroundColor"]);
-            final foregroundColor = AppColors.fromName(metadata?["ForegroundColor"]);
-            final onTapUrl = metadata?["OnTapUrl"];
-
-            if (coverWidget == null || pageWidget == null) return const SizedBox();
-            final isTappable = onTapUrl != null || pageWidget.isNotEmpty;
-            const double authorPictureHeight = 30;
-            const double trailingButtonHeight = 40;
-            final double bottomPadding = max((hasAuthor ? authorPictureHeight + 8 : 0), (isTappable ? trailingButtonHeight + 8 : 0));
-
-            return Button(
-              margin: .only(bottom: AppSpacing.m),
-              transparent: true,
-              padding: .zero,
-              color: backgroundColor ?? AppColors.secondaryBackground.adaptTo(context),
-              rawChild: Stack(
-                children: [
-                  if (hasBackgroundImage)
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: .circular(AppRadius.card),
-                        child: Image.network(metadata?["BackgroundImageUrl"], fit: .cover),
-                      ),
-                    ),
-                  Container(
-                    padding: .all(AppSpacing.card),
-                    margin: .only(bottom: bottomPadding),
-                    child: Stac.fromJson(coverWidget, context) ?? const SizedBox(),
-                  ),
-                  if (hasAuthor)
-                    Positioned(
-                      bottom: 8,
-                      left: 8,
-                      child: SizedBox.square(
-                        dimension: authorPictureHeight,
-                        child: ProfilePictureDisplay(accountUsername: newsBox["AuthorUsername"], includeBadge: false),
-                      ),
-                    ),
-                  if (isTappable)
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Button.icon(
-                        context,
-                        icon: HugeIcons.strokeRoundedArrowRight01,
-                        size: trailingButtonHeight,
-                        color: backgroundColor,
-                        iconColor: foregroundColor,
-                      ),
-                    ),
-                ],
-              ),
-              onTap: isTappable
-                  ? () => onTapUrl != null
-                        ? openUrl(onTapUrl, tryApp: true)
-                        : showCupertinoSheet(
-                            context: context,
-                            builder: (context) => Page(
-                              topBar: TopBar.tab(context),
-                              child: Stac.fromJson(pageWidget, context) ?? Center(child: Text(AppStrings.pageError, style: AppStyles.error(context))),
-                            ),
-                          )
-                  : null,
-            );
-          }),
+          // The admins write the announcements from here: they see the title even when there is none
+          if (newsContent.isNotEmpty || isAdmin) ...[
+            const SizedBox(height: AppSpacing.section),
+            SectionHeader(AppStrings.announcements, actionText: "Gérer", onAction: isAdmin ? manageNews : null),
+          ],
+          if (newsContent.isEmpty && isAdmin)
+            Padding(
+              padding: const .only(left: 4, bottom: AppSpacing.m),
+              child: Text("Aucune annonce visible pour l'instant.", style: AppStyles.footnote(context)),
+            ),
+          for (final newsBox in newsContent) NewsCard(news: newsBox),
 
           const SizedBox(height: AppSpacing.section),
           ListSection(

@@ -10,6 +10,7 @@ import 'package:messagyre_client/configuration/app_strings.dart';
 import 'package:messagyre_client/configuration/app_styles.dart';
 import 'package:messagyre_client/configuration/app_theme.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
+import 'package:messagyre_client/pages/search/news_admin_page.dart';
 import 'package:messagyre_client/services/network_service.dart';
 import 'package:messagyre_client/utility/widgets/basics/action_sheet.dart';
 import 'package:messagyre_client/utility/widgets/basics/dialog.dart';
@@ -772,6 +773,19 @@ class _AdminPageState extends State<AdminPage> {
                     ),
                 ],
               ),
+            ListSection(
+              title: AppStrings.announcements,
+              margin: const EdgeInsets.only(top: AppSpacing.section),
+              footer: "Ajouter, modifier ou supprimer les annonces de l'onglet Recherche.",
+              children: [
+                ListTile.simple(
+                  context,
+                  icon: AppIcons.edit,
+                  title: "Gérer les annonces",
+                  onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => const NewsAdminPage())),
+                ),
+              ],
+            ),
             buildUsage(),
             buildCatalogStatus(),
             buildReported(),

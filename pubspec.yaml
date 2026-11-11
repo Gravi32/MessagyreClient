@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.109.1021+1021
+version: 4.110.1022+1022
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -113,6 +113,7 @@ version: 4.109.1021+1021
 # 4.107 Classes from the server (GET /classes/catalog: the list changes without an app release), app versions in the admin page, more space in the wallpaper page
 # 4.108 Global chat (moderated, photos blurred, silenceable), answers to messages (swipe or long press), send button and bubble fixes, previous account's chats removed, file types restricted, texts corrected, idea box removed
 # 4.109 Group chats (picture, description, admins, members, media and files tabs), bulletin rules per school and year with animated tutorials and a maximum of negative points, icons fixed (chevrons, subject icons), keyboard closed when leaving a page, soft animations
+# 4.110 Announcements editor for the admins (add, edit, hide, pin, end date, delete, with a live preview); coloured announcements filled with their colour instead of a pale wash
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
