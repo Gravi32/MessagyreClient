@@ -1,4 +1,5 @@
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
+import 'package:messagyre_client/utility/widgets/app_icon.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -60,13 +61,48 @@ class _AdminClass {
   _AdminClass(this.name, this.members, this.delegate, this.viceDelegate);
 }
 
+/// A shared chat and how many messages it got (GET /admin/chats)
+class _ChatCount {
+  final String chat;
+  final String kind;
+  final String name;
+  final int? members;
+  final int messages;
+  final DateTime? lastMessageAt;
+  _ChatCount(this.chat, this.kind, this.name, this.members, this.messages, this.lastMessageAt);
+
+  static _ChatCount? fromJson(Object? json) {
+    if (json is! Map || json["Chat"] == null) return null;
+    return _ChatCount(
+      json["Chat"].toString(),
+      json["Kind"]?.toString() ?? "",
+      json["Name"]?.toString() ?? json["Chat"].toString(),
+      (json["Members"] as num?)?.toInt(),
+      (json["Messages"] as num?)?.toInt() ?? 0,
+      DateTime.tryParse(json["LastMessageAt"]?.toString() ?? "")?.toLocal(),
+    );
+  }
+}
+
+typedef _VersionCounts = List<(String?, int)>;
+
 class _Stats {
   final List<_OnlineUser> online;
   final List<({DateTime time, int users})> series;
   final int activeUsers;
   final int totalAccounts;
   final List<_ActiveUser> users;
-  _Stats(this.online, this.series, this.activeUsers, this.totalAccounts, this.users);
+
+  /// The versions of the people active over the last 30 days, and of every account (servers from 4.111)
+  final _VersionCounts? activeVersions, allVersions;
+  _Stats(this.online, this.series, this.activeUsers, this.totalAccounts, this.users, this.activeVersions, this.allVersions);
+
+  static _VersionCounts? _versions(Object? json) => json is List
+      ? [
+          for (final row in json.whereType<Map>())
+            ((row["Version"] as String?)?.trim().isNotEmpty == true ? row["Version"] as String : null, (row["Users"] as num?)?.toInt() ?? 0),
+        ]
+      : null;
 
   static _Stats? tryParse(dynamic json) {
     if (json is! Map) return null;
@@ -92,6 +128,8 @@ class _Stats {
               (user["Hours"] as num?)?.toInt() ?? 0,
             ),
         ],
+        _versions((json["Versions"] as Map?)?["Active"]),
+        _versions((json["Versions"] as Map?)?["All"]),
       );
     } catch (_) {
       return null;
@@ -157,6 +195,11 @@ class _AdminPageState extends State<AdminPage> {
     for (final user in users) {
       counts[user.appVersion] = (counts[user.appVersion] ?? 0) + 1;
     }
+    return sortedVersions(counts);
+  }
+
+  /// [counts] by version, the newest first (unknown last)
+  static List<(String?, int)> sortedVersions(Map<String?, int> counts) {
     List<int> parts(String version) => [for (final part in version.split(RegExp(r'[.+]'))) int.tryParse(part) ?? 0];
     int compare(String? a, String? b) {
       if (a == null || b == null) return a == b ? 0 : (a == null ? 1 : -1);
@@ -440,6 +483,188 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  List<_ChatCount>? chatCounts;
+  String? chatCountsError;
+  bool showAllChats = false;
+
+  Future<void> loadChatCounts() async {
+    final response = await network.get("/admin/chats");
+    if (!mounted) return;
+    final data = response.statusCode == 200 ? tryJsonDecode(response.body) : null;
+    setState(() {
+      if (data is List) {
+        chatCounts = [for (final item in data) ?_ChatCount.fromJson(item)];
+        chatCountsError = null;
+      } else {
+        chatCountsError = AppStrings.errorFor(response);
+      }
+    });
+  }
+
+  /// How many messages each class chat, group and the global chat got
+  Widget buildChatCounts() {
+    final rows = chatCounts ?? const <_ChatCount>[];
+    final shown = showAllChats ? rows : rows.take(15);
+    final total = rows.fold(0, (sum, row) => sum + row.messages);
+    return ListSection(
+      title: "Messages des groupes",
+      margin: const EdgeInsets.only(top: AppSpacing.section),
+      footer: chatCountsError ??
+          (chatCounts == null
+              ? null
+              : rows.isEmpty
+              ? "Aucun message dans les classes, les groupes ou la conversation générale pour l'instant."
+              : "$total messages, comptés depuis le 24 novembre 2026 (la conversation générale avec ses 30 derniers jours). Les classes de cette année scolaire."),
+      children: [
+        if (chatCounts == null && chatCountsError == null) const ListTile(buildChevron: false, child: Center(child: GymnaseLoader(size: 18))),
+        for (final row in shown)
+          ListTile(
+            buildChevron: false,
+            child: Row(
+              spacing: AppSpacing.m,
+              children: [
+                AppIcon(
+                  icon: switch (row.kind) { "Global" => AppIcons.chats, "Class" => AppIcons.members, _ => AppIcons.newChat },
+                  size: 20,
+                  color: AppColors.tint.adaptTo(context),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(row.kind == "Class" ? "Classe ${row.name}" : row.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppStyles.strongText(context)),
+                      Text(
+                        [
+                          switch (row.kind) { "Global" => "tout le monde", "Class" => "classe", _ => "groupe" },
+                          if (row.members != null) "${row.members} membre${row.members == 1 ? "" : "s"}",
+                          if (row.lastMessageAt != null) "dernier ${lastSeenLabel(row.lastMessageAt!)}",
+                        ].join(" · "),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppStyles.footnote(context),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(row.messages.toString(), style: AppStyles.strongText(context).copyWith(color: AppColors.tint.adaptTo(context))),
+              ],
+            ),
+          ),
+        if (!showAllChats && rows.length > 15)
+          ListTile.simple(
+            context,
+            title: "Afficher les ${rows.length - 15} autres",
+            icon: AppIcons.chevronDown,
+            buildChevron: false,
+            onTap: () => setState(() => showAllChats = true),
+          ),
+      ],
+    );
+  }
+
+  /// The colours of the versions in the bars: the newest in the app's purple, the older ones fading to grey
+  static const versionColors = [
+    Color(0xFF8B3FD9),
+    Color(0xFF3A86FF),
+    Color(0xFF14B8A6),
+    Color(0xFFF59E0B),
+    Color(0xFFEF6F6C),
+    Color(0xFFEC4899),
+  ];
+
+  /// The share of each version in one bar, with a legend: the 6 most used, the rest as "Autres"
+  Widget buildVersionBar(String title, _VersionCounts versions) {
+    final sorted = sortedVersions({for (final (version, count) in versions) version: count});
+    final total = sorted.fold(0, (sum, row) => sum + row.$2);
+    if (total == 0) return const SizedBox.shrink();
+
+    // The 6 versions with the most people keep their colour (in version order); the others are added up
+    final top = (sorted.toList()..sort((a, b) => b.$2.compareTo(a.$2))).take(sorted.length > 7 ? 6 : 7).toSet();
+    final segments = <(String, int, Color)>[];
+    var others = 0;
+    for (final row in sorted) {
+      if (!top.contains(row)) {
+        others += row.$2;
+        continue;
+      }
+      final color = row.$1 == null ? AppColors.grey : versionColors[segments.where((s) => s.$3 != AppColors.grey).length % versionColors.length];
+      segments.add((row.$1 == null ? "Inconnue" : "v${row.$1}", row.$2, color));
+    }
+    if (others > 0) segments.add(("Autres", others, AppColors.quaternaryText.adaptTo(context)));
+
+    String percent(int count) {
+      final value = count * 100 / total;
+      return value < 1 && value > 0 ? "<1 %" : "${value.round()} %";
+    }
+
+    return RoundContainer(
+      padding: const EdgeInsets.all(AppSpacing.l),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: AppSpacing.m,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(title, style: AppStyles.strongText(context))),
+              Text("$total compte${total == 1 ? "" : "s"}", style: AppStyles.footnote(context)),
+            ],
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: SizedBox(
+              height: 18,
+              child: Row(
+                spacing: 2,
+                children: [
+                  for (final (_, count, color) in segments)
+                    Expanded(flex: max(1, (count * 1000 / total).round()), child: ColoredBox(color: color)),
+                ],
+              ),
+            ),
+          ),
+          Wrap(
+            spacing: AppSpacing.m,
+            runSpacing: AppSpacing.xs,
+            children: [
+              for (final (label, count, color) in segments)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: AppSpacing.xs,
+                  children: [
+                    Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                    Text("$label · ${percent(count)}", style: AppStyles.footnote(context)),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildVersionBars(_Stats current) {
+    if (current.activeVersions == null || current.allVersions == null) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.section, left: 4, bottom: AppSpacing.s),
+          child: Text("Versions de l'app", style: AppStyles.section(context)),
+        ),
+        buildVersionBar("Actifs sur 30 jours", current.activeVersions!),
+        const SizedBox(height: AppSpacing.m),
+        buildVersionBar("Tous les comptes", current.allVersions!),
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.s, left: 4, right: 4),
+          child: Text(
+            "La dernière version utilisée par chaque compte. « Inconnue » : une app qui ne l'a jamais envoyée.",
+            style: AppStyles.footnote(context),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> loadClasses() async {
     final response = await network.get("/admin/classes");
     if (!mounted) return;
@@ -520,6 +745,7 @@ class _AdminPageState extends State<AdminPage> {
     loadUsage();
     loadCatalogStatus();
     loadReported();
+    loadChatCounts();
     refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) => load());
   }
 
@@ -773,6 +999,8 @@ class _AdminPageState extends State<AdminPage> {
                     ),
                 ],
               ),
+            buildVersionBars(current),
+            buildChatCounts(),
             ListSection(
               title: AppStrings.announcements,
               margin: const EdgeInsets.only(top: AppSpacing.section),

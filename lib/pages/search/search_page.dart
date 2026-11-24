@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/material.dart' show Theme;
@@ -86,7 +87,33 @@ class SearchPageState extends State<SearchPage> {
 
     App.pages[3].showBadge.value = globals.persistent.getInt("SeenNewsCount") != newsNotifier.value.length;
     globals.persistent.setInt("SeenNewsCount", newsNotifier.value.length);
+    reportViews();
   }
+
+  /// The search tab is open: its announcements were seen. Each one is told to the server once per phone (the server
+  /// counts each person once anyway), so the admins see how many people read it.
+  Future<void> reportViews() async {
+    if (MainPage.pageIndex.value != _searchTab || !mounted) return;
+    final seen = (globals.persistent.getStringList("ViewedNewsIDs") ?? const []).toSet();
+    final ids = [
+      for (final row in newsNotifier.value)
+        if ((row["ID"] as num?)?.toInt() case final id? when !seen.contains("$id")) id,
+    ];
+    if (ids.isEmpty) return;
+    try {
+      final response = await network.post("/news/viewed", {"IDs": ids});
+      if (response.statusCode != 200) return;
+      // The newest 200 are enough: older announcements are gone
+      final kept = [...seen, for (final id in ids) "$id"];
+      await globals.persistent.setStringList("ViewedNewsIDs", kept.skip(max(0, kept.length - 200)).toList());
+    } catch (e) {
+      // Counted the next time the tab is opened
+      debugPrint("[News] The views couldn't be sent: $e");
+    }
+  }
+
+  /// The search tab's index in the dock
+  static const _searchTab = 3;
 
   void search(String query) async {
     final int thisSearch = ++searchCounter;
@@ -304,7 +331,14 @@ class SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     searchBarFocusNode.addListener(() => setState(() {}));
+    MainPage.pageIndex.addListener(reportViews);
     fetchNews();
+  }
+
+  @override
+  void dispose() {
+    MainPage.pageIndex.removeListener(reportViews);
+    super.dispose();
   }
 
   @override

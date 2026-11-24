@@ -23,6 +23,13 @@ class CompositeSubject {
   final thirdSubject = IsarLink<Subject>();
   double thirdSubjectPeriodsPerWeek = 0;
 
+  /// Since 4.111: counted as soon as one sub-subject has grades (the others are left out of its average until they
+  /// have some). Otherwise every sub-subject needs grades.
+  bool countWithMissingParts = false;
+
+  /// "In brackets" (since 4.111): its average is shown but it doesn't count in the report
+  bool excludedFromReport = false;
+
   CompositeSubject();
 
   @override

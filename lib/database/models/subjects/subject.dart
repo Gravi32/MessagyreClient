@@ -27,6 +27,10 @@ class Subject {
   /// Null when it was locked by hand.
   String? lockedYear;
 
+  /// A subject "in brackets" (since 4.111): its grades and average are kept, but it doesn't count in the report
+  /// (nor in the general average, nor in a composite subject it's part of)
+  bool excludedFromReport = false;
+
   Subject();
 
   @ignore

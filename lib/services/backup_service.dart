@@ -307,6 +307,7 @@ class BackupFormat {
     "IsLocked": subject.isLocked,
     "LockedGrade": subject.lockedGrade,
     "LockedYear": subject.lockedYear,
+    "Excluded": subject.excludedFromReport,
   };
 
   static Subject? toSubject(Map json, {Subject? existing}) {
@@ -319,7 +320,8 @@ class BackupFormat {
       ..colorValue = _int(json["Color"])
       ..isLocked = json["IsLocked"] == true
       ..lockedGrade = _double(json["LockedGrade"])
-      ..lockedYear = json["LockedYear"] as String?;
+      ..lockedYear = json["LockedYear"] as String?
+      ..excludedFromReport = json["Excluded"] == true;
   }
 
   static Map<String, dynamic> composite(CompositeSubject composite) => {
@@ -328,6 +330,8 @@ class BackupFormat {
     "Parts": [
       for (final part in composite.parts) {"Subject": part.subject.code, "Periods": part.periods},
     ],
+    "CountWithMissingParts": composite.countWithMissingParts,
+    "Excluded": composite.excludedFromReport,
   };
 
   /// Fills [composite] from [json]; false when two of its subjects are missing
@@ -344,7 +348,9 @@ class BackupFormat {
       ..name = name
       ..firstSubjectPeriodsPerWeek = parts[0].periods
       ..secondSubjectPeriodsPerWeek = parts[1].periods
-      ..thirdSubjectPeriodsPerWeek = parts.length > 2 ? parts[2].periods : 0;
+      ..thirdSubjectPeriodsPerWeek = parts.length > 2 ? parts[2].periods : 0
+      ..countWithMissingParts = json["CountWithMissingParts"] == true
+      ..excludedFromReport = json["Excluded"] == true;
     composite.firstSubject.value = parts[0].subject;
     composite.secondSubject.value = parts[1].subject;
     composite.thirdSubject.value = parts.length > 2 ? parts[2].subject : null;

@@ -323,46 +323,37 @@ class _NewGroupPageState extends State<NewGroupPage> {
       ),
       spacing: AppSpacing.l,
       children: [
-        Padding(
-          padding: const .symmetric(horizontal: AppSpacing.page),
-          child: Row(
-            spacing: AppSpacing.m,
-            children: [
-              CupertinoButton(
-                padding: .zero,
-                minimumSize: .zero,
-                onPressed: choosePicture,
-                child: Stack(
-                  clipBehavior: .none,
-                  children: [
-                    picturePath != null
-                        ? GroupAvatar(groupId: "", size: 64, localPath: picturePath)
-                        : Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.tertiaryBackground.adaptTo(context)),
-                            child: Center(child: AppIcon(icon: AppIcons.camera, size: 24, color: AppColors.tint.adaptTo(context))),
-                          ),
-                  ],
-                ),
+        Row(
+          spacing: AppSpacing.m,
+          children: [
+            CupertinoButton(
+              padding: .zero,
+              minimumSize: .zero,
+              onPressed: choosePicture,
+              child: Stack(
+                clipBehavior: .none,
+                children: [
+                  picturePath != null
+                      ? GroupAvatar(groupId: "", size: 64, localPath: picturePath)
+                      : Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.tertiaryBackground.adaptTo(context)),
+                          child: Center(child: AppIcon(icon: AppIcons.camera, size: 24, color: AppColors.tint.adaptTo(context))),
+                        ),
+                ],
               ),
-              Expanded(
-                child: Field(placeholder: "Nom du groupe", controller: nameController, maxLines: 1, textCapitalization: TextCapitalization.sentences),
-              ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: Field(placeholder: "Nom du groupe", controller: nameController, maxLines: 1, textCapitalization: TextCapitalization.sentences),
+            ),
+          ],
         ),
-        Padding(
-          padding: const .symmetric(horizontal: AppSpacing.page),
-          child: Text(
-            "Les messages du groupe sont chiffrés de bout en bout. Vous en serez administrateur·rice : vous pourrez ajouter et retirer des membres, et changer son nom et sa photo.",
-            style: AppStyles.footnote(context),
-          ),
+        Text(
+          "Les messages du groupe sont chiffrés de bout en bout. Vous en serez administrateur·rice : vous pourrez ajouter et retirer des membres, et changer son nom et sa photo.",
+          style: AppStyles.footnote(context),
         ),
-        Padding(
-          padding: const .symmetric(horizontal: AppSpacing.page),
-          child: _PeoplePicker(excluded: const {}, onChanged: (chosen) => setState(() => members = chosen)),
-        ),
+        _PeoplePicker(excluded: const {}, onChanged: (chosen) => setState(() => members = chosen)),
       ],
     );
   }
@@ -406,12 +397,9 @@ class _AddGroupMembersPageState extends State<AddGroupMembersPage> {
         trailing: Button.icon(context, icon: AppIcons.done, isLoading: isAdding, enabled: chosen.isNotEmpty && !isAdding, onTap: add),
       ),
       children: [
-        Padding(
-          padding: const .symmetric(horizontal: AppSpacing.page),
-          child: _PeoplePicker(
-            excluded: {for (final member in widget.group.members) member.username},
-            onChanged: (people) => setState(() => chosen = people),
-          ),
+        _PeoplePicker(
+          excluded: {for (final member in widget.group.members) member.username},
+          onChanged: (people) => setState(() => chosen = people),
         ),
       ],
     );

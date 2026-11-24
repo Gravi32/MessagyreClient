@@ -47,6 +47,10 @@ class Message {
   @enumerated
   TransferState transfer = TransferState.none;
 
+  /// One of my messages in a class chat, a group or the global chat: how many people saw it (since 4.111; null before
+  /// the server told it)
+  int? views;
+
   Message();
 
   @ignore

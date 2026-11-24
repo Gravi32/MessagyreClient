@@ -71,6 +71,7 @@ import 'package:messagyre_client/pages/settings/subpages/archives_page.dart';
 import 'package:messagyre_client/pages/subjects/subpages/new_composite_subject_page.dart';
 import 'package:messagyre_client/services/archive_service.dart';
 import 'package:messagyre_client/utility/utility.dart';
+import 'package:messagyre_client/pages/search/widgets/news_card.dart';
 
 class _TemporaryPaths extends Fake with MockPlatformInterfaceMixin implements PathProviderPlatform {
   final String root;
@@ -124,6 +125,13 @@ Future<void> _seed(Isar isar, String root) async {
     ..name = "Français"
     ..colorValue = AppColors.orange.toARGB32()
     ..iconCodePoint = 0xe0ef;
+  // In brackets: its grades don't count in the report
+  final latin = Subject()
+    ..code = "latin"
+    ..name = "Latin"
+    ..colorValue = AppColors.brown.toARGB32()
+    ..iconCodePoint = 0xe0ef
+    ..excludedFromReport = true;
 
   // A real photo on disk for the received picture
   final photo = img.Image(width: 1200, height: 900);
@@ -224,7 +232,8 @@ Future<void> _seed(Isar isar, String root) async {
     Message.custom(uuid: "g2", chatUsername: "@general", senderUsername: "noah.dubois", content: "Oui, je les poste ce soir", sentAt: now.subtract(const Duration(minutes: 35)), isOwned: false, status: MessageStatus.Delivered,
         reply: MessageReply.of(uuid: "g1", sender: "lea.martin", text: "Quelqu'un a les corrigés du test de chimie ?")),
     Message.custom(uuid: "g3", chatUsername: "@general", content: "Merci beaucoup !", sentAt: now.subtract(const Duration(minutes: 30)), isOwned: true, status: MessageStatus.Sent,
-        reply: MessageReply.of(uuid: "g2", sender: "noah.dubois", text: "Oui, je les poste ce soir")),
+        reply: MessageReply.of(uuid: "g2", sender: "noah.dubois", text: "Oui, je les poste ce soir"))
+      ..views = 128,
   ];
 
   // A group chat: three members, I am an admin
@@ -242,11 +251,12 @@ Future<void> _seed(Isar isar, String root) async {
   };
   final groupMessages = [
     Message.custom(uuid: "v1", chatUsername: "#g-volley2026", senderUsername: "lea.martin", content: "On s'entraîne quand même jeudi ?", sentAt: now.subtract(const Duration(minutes: 20)), isOwned: false, status: MessageStatus.Delivered),
-    Message.custom(uuid: "v2", chatUsername: "#g-volley2026", content: "Oui, je prends les ballons", sentAt: now.subtract(const Duration(minutes: 18)), isOwned: true, status: MessageStatus.Sent),
+    Message.custom(uuid: "v2", chatUsername: "#g-volley2026", content: "Oui, je prends les ballons", sentAt: now.subtract(const Duration(minutes: 18)), isOwned: true, status: MessageStatus.Sent)
+      ..views = 2,
   ];
 
   await isar.writeTxn(() async {
-    await isar.subjects.putAll([maths, french]);
+    await isar.subjects.putAll([maths, french, latin]);
     await isar.messages.putAll(globalMessages);
     await isar.messages.putAll(groupMessages);
     await isar.chats.putAll([
@@ -301,6 +311,7 @@ Future<void> _seed(Isar isar, String root) async {
       g(maths, "TE dérivées", 5.5, 30, weight: 2),
       g(french, "Dissertation", 4, 6, weight: 2),
       g(french, "Lecture Candide", 5.5, 20),
+      g(latin, "Version", 3.5, 8),
     ];
     await isar.grades.putAll(grades);
     for (final grade in grades) {
@@ -583,6 +594,22 @@ void main() {
             "Metadata": jsonEncode({"OnTapUrl": "https://www.instagram.com/messagyre.ch", "BackgroundColor": "cyan", "ForegroundColor": "white"}),
             "TargetType": "All",
             "ExpirationDate": "2026-12-24T23:59:59",
+          },
+        ),
+        brightness,
+      ),
+      // Any colour and the shimmer (4.111)
+      "news_custom": () => _plain(
+        NewsEditorPage(
+          toEdit: {
+            "ID": 2,
+            "AuthorUsername": "",
+            "Priority": 1,
+            "Views": 214,
+            "CoverWidget": jsonEncode(NewsContent.build(title: "Soirée du Gymnase", text: "Vendredi 12 décembre dès 19 h, à l'aula.", colorName: "orange")["CoverWidget"]),
+            "PageWidget": "{}",
+            "Metadata": jsonEncode({"BackgroundColor": "orange", "ForegroundColor": "white", "CustomColor": "#E8590C", "Shimmer": true, "Title": "Soirée du Gymnase", "Text": "Vendredi 12 décembre dès 19 h, à l'aula."}),
+            "TargetType": "All",
           },
         ),
         brightness,

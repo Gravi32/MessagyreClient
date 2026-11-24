@@ -23,23 +23,28 @@ const SubjectSchema = CollectionSchema(
       name: r'colorValue',
       type: IsarType.long,
     ),
-    r'iconCodePoint': PropertySchema(
+    r'excludedFromReport': PropertySchema(
       id: 2,
+      name: r'excludedFromReport',
+      type: IsarType.bool,
+    ),
+    r'iconCodePoint': PropertySchema(
+      id: 3,
       name: r'iconCodePoint',
       type: IsarType.long,
     ),
-    r'isLocked': PropertySchema(id: 3, name: r'isLocked', type: IsarType.bool),
+    r'isLocked': PropertySchema(id: 4, name: r'isLocked', type: IsarType.bool),
     r'lockedGrade': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'lockedGrade',
       type: IsarType.double,
     ),
     r'lockedYear': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'lockedYear',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(id: 6, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 7, name: r'name', type: IsarType.string),
   },
 
   estimateSize: _subjectEstimateSize,
@@ -96,11 +101,12 @@ void _subjectSerialize(
 ) {
   writer.writeString(offsets[0], object.code);
   writer.writeLong(offsets[1], object.colorValue);
-  writer.writeLong(offsets[2], object.iconCodePoint);
-  writer.writeBool(offsets[3], object.isLocked);
-  writer.writeDouble(offsets[4], object.lockedGrade);
-  writer.writeString(offsets[5], object.lockedYear);
-  writer.writeString(offsets[6], object.name);
+  writer.writeBool(offsets[2], object.excludedFromReport);
+  writer.writeLong(offsets[3], object.iconCodePoint);
+  writer.writeBool(offsets[4], object.isLocked);
+  writer.writeDouble(offsets[5], object.lockedGrade);
+  writer.writeString(offsets[6], object.lockedYear);
+  writer.writeString(offsets[7], object.name);
 }
 
 Subject _subjectDeserialize(
@@ -112,12 +118,13 @@ Subject _subjectDeserialize(
   final object = Subject();
   object.code = reader.readString(offsets[0]);
   object.colorValue = reader.readLongOrNull(offsets[1]);
-  object.iconCodePoint = reader.readLongOrNull(offsets[2]);
+  object.excludedFromReport = reader.readBool(offsets[2]);
+  object.iconCodePoint = reader.readLongOrNull(offsets[3]);
   object.id = id;
-  object.isLocked = reader.readBool(offsets[3]);
-  object.lockedGrade = reader.readDoubleOrNull(offsets[4]);
-  object.lockedYear = reader.readStringOrNull(offsets[5]);
-  object.name = reader.readString(offsets[6]);
+  object.isLocked = reader.readBool(offsets[4]);
+  object.lockedGrade = reader.readDoubleOrNull(offsets[5]);
+  object.lockedYear = reader.readStringOrNull(offsets[6]);
+  object.name = reader.readString(offsets[7]);
   return object;
 }
 
@@ -133,14 +140,16 @@ P _subjectDeserializeProp<P>(
     case 1:
       return (reader.readLongOrNull(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
-    case 3:
       return (reader.readBool(offset)) as P;
+    case 3:
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -562,6 +571,15 @@ extension SubjectQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterFilterCondition>
+  excludedFromReportEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'excludedFromReport', value: value),
       );
     });
   }
@@ -1137,6 +1155,18 @@ extension SubjectQuerySortBy on QueryBuilder<Subject, Subject, QSortBy> {
     });
   }
 
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByExcludedFromReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> sortByExcludedFromReportDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.desc);
+    });
+  }
+
   QueryBuilder<Subject, Subject, QAfterSortBy> sortByIconCodePoint() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iconCodePoint', Sort.asc);
@@ -1221,6 +1251,18 @@ extension SubjectQuerySortThenBy
   QueryBuilder<Subject, Subject, QAfterSortBy> thenByColorValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'colorValue', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByExcludedFromReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Subject, Subject, QAfterSortBy> thenByExcludedFromReportDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.desc);
     });
   }
 
@@ -1313,6 +1355,12 @@ extension SubjectQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Subject, Subject, QDistinct> distinctByExcludedFromReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'excludedFromReport');
+    });
+  }
+
   QueryBuilder<Subject, Subject, QDistinct> distinctByIconCodePoint() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'iconCodePoint');
@@ -1365,6 +1413,12 @@ extension SubjectQueryProperty
   QueryBuilder<Subject, int?, QQueryOperations> colorValueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'colorValue');
+    });
+  }
+
+  QueryBuilder<Subject, bool, QQueryOperations> excludedFromReportProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'excludedFromReport');
     });
   }
 

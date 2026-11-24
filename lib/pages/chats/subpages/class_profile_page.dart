@@ -466,27 +466,20 @@ class _ClassProfilePageState extends State<ClassProfilePage> {
             spacing: AppSpacing.xl,
             topBar: TopBar.tab(context, title: ClassService.chatTitleOf(className)),
             children: [
-              Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page), child: buildHeader(group, members.length)),
+              buildHeader(group, members.length),
               if (isMember)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-                  child: ListSection(
-                    title: "Délégués",
-                    footer:
-                        "Élus par la classe : chacun vote pour un·e délégué·e et un·e vice, et peut changer son vote. Ils peuvent changer la photo et la description de la classe, et modifier ou supprimer les devoirs partagés.",
-                    children: [buildRoleTile(group, ClassService.delegateRole), buildRoleTile(group, ClassService.viceRole)],
-                  ),
+                ListSection(
+                  title: "Délégués",
+                  footer:
+                      "Élus par la classe : chacun vote pour un·e délégué·e et un·e vice, et peut changer son vote. Ils peuvent changer la photo et la description de la classe, et modifier ou supprimer les devoirs partagés.",
+                  children: [buildRoleTile(group, ClassService.delegateRole), buildRoleTile(group, ClassService.viceRole)],
                 ),
-              if (media != null) Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page), child: media),
-              if (assignments != null) Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page), child: assignments),
+              if (media != null) media,
+              if (assignments != null) assignments,
               if (isMember && members.isEmpty) const Center(child: GymnaseLoader(size: 22)),
-              if (isMember && members.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page), child: buildMembers(group, members)),
+              if (isMember && members.isNotEmpty) buildMembers(group, members),
               if (!isMember)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-                  child: CustomText(AppStrings.classChatReadOnly, textAlign: TextAlign.center, style: AppStyles.secondaryText(context)),
-                ),
-              const SizedBox(height: AppSpacing.xl),
+                CustomText(AppStrings.classChatReadOnly, textAlign: TextAlign.center, style: AppStyles.secondaryText(context)),
             ],
           );
         },

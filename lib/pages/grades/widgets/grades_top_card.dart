@@ -199,7 +199,7 @@ class _GradesTopCardState extends State<GradesTopCard> {
 
   @override
   Widget build(BuildContext context) {
-    final grades = database.grades.getAll();
+    final grades = report.countedGrades;
 
     return Column(crossAxisAlignment: .stretch, spacing: AppSpacing.m, children: [buildAverageCard(grades), buildReportCard()]);
   }

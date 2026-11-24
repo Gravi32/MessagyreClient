@@ -19,13 +19,35 @@ class ReportService {
   List<Subject> get allSubjects {
     final compositeCodes = allCompositeSubjects.expand((c) => c.subjects.map((s) => s.code)).toSet();
 
-    return database.subjects.getAll().where((s) => !compositeCodes.contains(s.code)).sorted((a, b) {
+    return database.subjects.getAll().where((s) => !compositeCodes.contains(s.code) && !s.excludedFromReport).sorted((a, b) {
       if (a.isLocked != b.isLocked) return a.isLocked ? 1 : -1;
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
   }
 
-  List<CompositeSubject> get allCompositeSubjects => database.compositeSubjects.getAll().sortedBy((s) => s.name.toLowerCase());
+  List<CompositeSubject> get allCompositeSubjects =>
+      database.compositeSubjects.getAll().where((c) => !c.excludedFromReport).sortedBy((s) => s.name.toLowerCase());
+
+  /// The subjects in brackets: shown apart in the report, never counted
+  List<Object> get excludedSubjects {
+    final compositeCodes = database.compositeSubjects.getAll().expand((c) => c.subjects.map((s) => s.code)).toSet();
+    return [
+      ...database.compositeSubjects.getAll().where((c) => c.excludedFromReport).sortedBy((c) => c.name.toLowerCase()),
+      ...database.subjects.getAll().where((s) => s.excludedFromReport && !compositeCodes.contains(s.code)).sortedBy((s) => s.name.toLowerCase()),
+    ];
+  }
+
+  /// The grades that count in the general average: not those of a subject in brackets
+  /// (nor of a composite subject in brackets)
+  List<Grade> get countedGrades {
+    final excludedCodes = {
+      for (final subject in database.subjects.getAll())
+        if (subject.excludedFromReport) subject.code,
+      for (final composite in database.compositeSubjects.getAll())
+        if (composite.excludedFromReport) ...composite.subjects.map((s) => s.code),
+    };
+    return allGrades.where((g) => !excludedCodes.contains(g.subject.value?.code)).toList();
+  }
 
   bool get usingDoubleCompensation => globals.persistent.getBool("UseDoubleCompensation") ?? false;
   bool get usingRestrictedGroup => globals.persistent.getBool("UseRestrictedGroup") ?? false;

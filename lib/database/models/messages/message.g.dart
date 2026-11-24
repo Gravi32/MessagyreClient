@@ -74,6 +74,7 @@ const MessageSchema = CollectionSchema(
       enumMap: _MessagetransferEnumValueMap,
     ),
     r'uuid': PropertySchema(id: 14, name: r'uuid', type: IsarType.string),
+    r'views': PropertySchema(id: 15, name: r'views', type: IsarType.long),
   },
 
   estimateSize: _messageEstimateSize,
@@ -192,6 +193,7 @@ void _messageSerialize(
   writer.writeByte(offsets[12], object.status.index);
   writer.writeByte(offsets[13], object.transfer.index);
   writer.writeString(offsets[14], object.uuid);
+  writer.writeLong(offsets[15], object.views);
 }
 
 Message _messageDeserialize(
@@ -219,6 +221,7 @@ Message _messageDeserialize(
       _MessagetransferValueEnumMap[reader.readByteOrNull(offsets[13])] ??
       TransferState.none;
   object.uuid = reader.readString(offsets[14]);
+  object.views = reader.readLongOrNull(offsets[15]);
   return object;
 }
 
@@ -263,6 +266,8 @@ P _messageDeserializeProp<P>(
           as P;
     case 14:
       return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2377,6 +2382,81 @@ extension MessageQueryFilter
       );
     });
   }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> viewsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'views'),
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> viewsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'views'),
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> viewsEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'views', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> viewsGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'views',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> viewsLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'views',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> viewsBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'views',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
 }
 
 extension MessageQueryObject
@@ -2563,6 +2643,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByUuidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uuid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByViews() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'views', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByViewsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'views', Sort.desc);
     });
   }
 }
@@ -2760,6 +2852,18 @@ extension MessageQuerySortThenBy
       return query.addSortBy(r'uuid', Sort.desc);
     });
   }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByViews() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'views', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByViewsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'views', Sort.desc);
+    });
+  }
 }
 
 extension MessageQueryWhereDistinct
@@ -2883,6 +2987,12 @@ extension MessageQueryWhereDistinct
       return query.addDistinctBy(r'uuid', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByViews() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'views');
+    });
+  }
 }
 
 extension MessageQueryProperty
@@ -2980,6 +3090,12 @@ extension MessageQueryProperty
   QueryBuilder<Message, String, QQueryOperations> uuidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uuid');
+    });
+  }
+
+  QueryBuilder<Message, int?, QQueryOperations> viewsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'views');
     });
   }
 }

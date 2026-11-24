@@ -286,28 +286,36 @@ double calculateAverage(List<Grade> grades, {bool round = false}) {
   );
 }
 
-double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {bool round = false}) {
-  final database = DatabaseService();
-  final allGrades = database.grades.getAll();
+/// [grades]: all the grades (read from the database when not given)
+double? calculateCompositeSubjectAverage(CompositeSubject compositeSubject, {bool round = false, List<Grade>? grades}) {
+  final allGrades = grades ?? DatabaseService().grades.getAll();
 
   final parts = compositeSubject.parts;
   if (parts.length < 2) return null;
 
   // Every sub-subject needs grades: each one weighs as many periods per week as it has.
   // A finished (locked) sub-subject counts with its final grade (ex: physics ended after the first year).
-  var weightedSum = 0.0;
+  // A sub-subject in brackets is left out; with [CompositeSubject.countWithMissingParts], so is one without grades.
+  var weightedSum = 0.0, periods = 0.0;
   for (final part in parts) {
+    if (part.subject.excludedFromReport) continue;
     final lockedGrade = part.subject.isLocked ? part.subject.lockedGrade : null;
     if (lockedGrade != null) {
       weightedSum += lockedGrade * part.periods;
+      periods += part.periods;
       continue;
     }
-    final grades = allGrades.where((g) => g.subject.value?.code == part.subject.code).toList();
-    if (grades.isEmpty) return null;
-    weightedSum += calculateAverage(grades) * part.periods;
+    final partGrades = allGrades.where((g) => g.subject.value?.code == part.subject.code).toList();
+    if (partGrades.isEmpty) {
+      if (compositeSubject.countWithMissingParts) continue;
+      return null;
+    }
+    weightedSum += calculateAverage(partGrades) * part.periods;
+    periods += part.periods;
   }
+  if (periods == 0) return null;
 
-  final result = weightedSum / compositeSubject.totalPeriodsPerWeek;
+  final result = weightedSum / periods;
 
   return round ? result.roundToHalves() : result;
 }

@@ -11,6 +11,7 @@ import 'package:messagyre_client/database/models/assignments/assignment_share.da
 import 'package:messagyre_client/database/models/messages/attachment.dart';
 import 'package:messagyre_client/database/models/messages/message.dart';
 import 'package:messagyre_client/database/models/messages/message_reply.dart';
+import 'package:messagyre_client/utility/utility.dart' show tryJsonDecode;
 import 'package:messagyre_client/services/class_service.dart';
 import 'package:messagyre_client/services/group_service.dart';
 import 'package:messagyre_client/services/database_service.dart';
@@ -472,6 +473,8 @@ class ChatService {
           await _onDeletion(data);
         case "GroupChanged":
           await GroupService().handleCommunication(data);
+        case "Views":
+          await _onViews(data["Counts"]);
         case "GlobalMessage" || "GlobalDeletion" || "GlobalRejected" || "GlobalStatus":
           await GlobalChatService().handleCommunication(data);
       }
@@ -545,6 +548,37 @@ class ChatService {
     if (attachment != null && attachment.isImage && attachment.size <= autoDownloadBytes) unawaited(download(message));
   }
 
+  /// {uuid: count}: how many people saw my messages of the shared chats
+  Future<void> _onViews(Object? counts) async {
+    if (counts is! Map) return;
+    for (final MapEntry(:key, :value) in counts.entries) {
+      if (value is! num) continue;
+      await database.messages.update(key.toString(), (m) {
+        if (m.isOwned) m.views = value.toInt();
+      });
+    }
+  }
+
+  /// Asks the server how many people saw my messages of a class chat, a group or the global chat (the newest 500)
+  Future<void> refreshViews(String chatId) async {
+    if (sharedGroupOf(chatId) == null && !GlobalChatService.isGlobal(chatId)) return;
+    final mine = database.messages
+        .ofChat(chatId)
+        .reversed
+        .where((m) => m.isOwned && !m.isDeleted && m.status != MessageStatus.Sending && m.status != MessageStatus.Failed)
+        .take(500)
+        .map((m) => m.uuid)
+        .toList();
+    if (mine.isEmpty) return;
+    try {
+      final response = await network.post("/views/counts", {"Uuids": mine});
+      if (response.statusCode == 200) await _onViews(tryJsonDecode(response.body));
+    } catch (e) {
+      // Only a number under my messages: tried again at the next opening
+      debugPrint("[Chat] The views couldn't be read: $e");
+    }
+  }
+
   Future<void> _onReceipt(Map<String, dynamic> data) async {
     final from = data["SenderUsername"]?.toString();
     final uuids = data["Uuids"];
@@ -592,10 +626,13 @@ class ChatService {
     final unread = database.messages.unreadReceived(username);
     if (unread.isEmpty) return;
 
-    // No read receipts in a class chat or a group
-    if (sharedGroupOf(username) == null && !GlobalChatService.isGlobal(username) && (globals.persistent.getBool("SendReadReceipts") ?? true)) {
-      // The newest 500 at most (the server's limit): older ones don't matter any more
-      final uuids = unread.reversed.take(500).map((m) => m.uuid).toList();
+    // The newest 500 at most (the server's limit): older ones don't matter any more
+    final uuids = unread.reversed.take(500).map((m) => m.uuid).toList();
+    final isShared = sharedGroupOf(username) != null || GlobalChatService.isGlobal(username);
+    if (isShared) {
+      // No read receipts in a class chat, a group or the global chat: their senders see how many people saw them
+      if (!network.sendRaw({"CommunicationType": "Viewed", "Uuids": uuids})) return;
+    } else if (globals.persistent.getBool("SendReadReceipts") ?? true) {
       if (!network.sendRaw({"CommunicationType": "Read", "RecipientUsername": username, "Uuids": uuids})) return;
     }
 

@@ -428,7 +428,7 @@ class _GroupProfilePageState extends State<GroupProfilePage> {
             topBar: TopBar.tab(context, title: "Groupe"),
             children: [
               Padding(
-                padding: const .all(AppSpacing.page),
+                padding: const .symmetric(vertical: AppSpacing.page),
                 child: Text("Vous ne faites plus partie de ce groupe. Ses anciens messages restent sur votre téléphone.", textAlign: .center, style: AppStyles.secondaryText(context)),
               ),
             ],
@@ -441,37 +441,33 @@ class _GroupProfilePageState extends State<GroupProfilePage> {
           spacing: AppSpacing.xl,
           topBar: TopBar.tab(context, title: group.name),
           children: [
-            Padding(padding: const .symmetric(horizontal: AppSpacing.page), child: buildHeader(group)),
-            Padding(
-              padding: const .symmetric(horizontal: AppSpacing.page),
-              child: Column(
-                crossAxisAlignment: .stretch,
-                spacing: AppSpacing.l,
-                children: [
-                  SegmentedControl<_Tab>(
-                    options: const {"Membres": _Tab.members, "Médias": _Tab.media, "Fichiers": _Tab.files},
-                    onTap: (value) => setState(() => tab = value),
+            buildHeader(group),
+            Column(
+              crossAxisAlignment: .stretch,
+              spacing: AppSpacing.l,
+              children: [
+                SegmentedControl<_Tab>(
+                  options: const {"Membres": _Tab.members, "Médias": _Tab.media, "Fichiers": _Tab.files},
+                  onTap: (value) => setState(() => tab = value),
+                ),
+                AnimatedSwitcher(
+                  duration: AppDurations.normal,
+                  switchInCurve: Curves.easeOutCubic,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(position: Tween(begin: const Offset(0, .03), end: Offset.zero).animate(animation), child: child),
                   ),
-                  AnimatedSwitcher(
-                    duration: AppDurations.normal,
-                    switchInCurve: Curves.easeOutCubic,
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(position: Tween(begin: const Offset(0, .03), end: Offset.zero).animate(animation), child: child),
-                    ),
-                    child: KeyedSubtree(
-                      key: ValueKey(tab),
-                      child: switch (tab) {
-                        _Tab.members => buildMembers(group),
-                        _Tab.media => buildMedia(messages),
-                        _Tab.files => buildFiles(messages),
-                      },
-                    ),
+                  child: KeyedSubtree(
+                    key: ValueKey(tab),
+                    child: switch (tab) {
+                      _Tab.members => buildMembers(group),
+                      _Tab.media => buildMedia(messages),
+                      _Tab.files => buildFiles(messages),
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.xl),
           ],
         );
       },

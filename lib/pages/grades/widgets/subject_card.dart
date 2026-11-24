@@ -116,8 +116,11 @@ class SubjectCard extends StatelessWidget {
     final hasAverage = (average ?? 0) != 0;
     final color = subject?.color ?? compositeSubject?.firstSubject.value?.color ?? AppColors.grey;
 
+    final isExcluded = subject?.excludedFromReport ?? compositeSubject?.excludedFromReport ?? false;
     final String subtitle = isSubjectLocked
         ? "Bloquée"
+        : isExcluded
+        ? "Entre parenthèses · hors bulletin"
         : compositeSubjectMode
         ? "Branche composée · ${compositeSubject!.subjects.length} parties"
         : subjectGrades.isEmpty

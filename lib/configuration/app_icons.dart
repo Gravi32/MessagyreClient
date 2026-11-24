@@ -35,6 +35,17 @@ class AppIcons {
   static const newChat = HugeIcons.strokeRoundedBubbleChatAdd;
   static const clear = HugeIcons.strokeRoundedCancel01;
 
+  // Subjects
+  static const inBrackets = HugeIcons.strokeRounded1stBracket;
+  static const countPartial = HugeIcons.strokeRoundedCalculator;
+
+  // Views, announcements
+  static const views = HugeIcons.strokeRoundedView;
+  static const colorPicker = HugeIcons.strokeRoundedColorPicker;
+  static const shimmer = HugeIcons.strokeRoundedSparkles;
+  static const image = HugeIcons.strokeRoundedImage01;
+  static const imageAdd = HugeIcons.strokeRoundedImageAdd01;
+
   // Chat
   static const send = HugeIcons.strokeRoundedSent;
   static const reply = HugeIcons.strokeRoundedArrowTurnBackward;

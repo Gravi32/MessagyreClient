@@ -263,6 +263,12 @@ class MessageFooter extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: AppSpacing.xxs,
       children: [
+        // How many people saw it (my messages in the shared chats)
+        if (message.isOwned && !message.isDeleted && message.views != null) ...[
+          AppIcon(icon: AppIcons.views, size: 13, color: color),
+          Text(message.views.toString(), style: AppStyles.caption(context).copyWith(color: color, fontFeatures: const [FontFeature.tabularFigures()])),
+          const SizedBox(width: AppSpacing.xs),
+        ],
         Text(DateFormat('HH:mm').format(message.sentAt), style: AppStyles.caption(context).copyWith(color: color)),
         if (message.isOwned && !message.isDeleted)
           AppIcon(icon: status.icon, size: 14, color: message.status == MessageStatus.Read ? AppColors.mint : (message.isFailed ? AppColors.red : color)),

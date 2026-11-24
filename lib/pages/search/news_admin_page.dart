@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart' hide Page;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
 import 'package:messagyre_client/configuration/app_icons.dart';
@@ -21,7 +23,9 @@ import 'package:messagyre_client/utility/widgets/basics/field.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_section.dart';
 import 'package:messagyre_client/utility/widgets/basics/list_tile.dart';
 import 'package:messagyre_client/utility/widgets/basics/page.dart';
+import 'package:messagyre_client/utility/widgets/basics/segmented_control.dart';
 import 'package:messagyre_client/utility/widgets/basics/tag.dart';
+import 'package:messagyre_client/utility/widgets/color_picker.dart';
 import 'package:messagyre_client/utility/widgets/basics/top_bar.dart';
 import 'package:messagyre_client/utility/widgets/custom_date_picker.dart';
 import 'package:messagyre_client/utility/widgets/gymnase_mark.dart';
@@ -99,6 +103,16 @@ class _NewsAdminPageState extends State<NewsAdminPage> {
         Padding(
           padding: const .only(left: 2),
           child: Text(_day(created), style: AppStyles.footnote(context)),
+        ),
+      // How many people saw it (each person once, since 24 November 2026)
+      if (row["Views"] is num)
+        Row(
+          mainAxisSize: .min,
+          spacing: 3,
+          children: [
+            AppIcon(icon: AppIcons.views, size: 14, color: AppColors.secondaryText.adaptTo(context)),
+            Text("${row["Views"]} vue${row["Views"] == 1 ? "" : "s"}", style: AppStyles.footnote(context)),
+          ],
         ),
     ];
   }
@@ -181,6 +195,17 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
       content != null && content!.metadata["Title"] == null && (content!.texts.length > 2 || content!.coverWidget?["type"] != "column");
 
   String color = "accent";
+
+  /// Any colour, chosen with the picker (then [color] is the nearest named one, for the apps before 4.111)
+  Color? customColor;
+  bool showPicker = false;
+  bool shimmer = false;
+
+  /// The picture uploaded for this announcement (POST /admin/news/picture), behind the text or above it
+  String? imageUrl;
+  String imageMode = "Background";
+  bool isUploading = false;
+
   bool pinned = false;
   bool signed = true;
   bool visible = true;
@@ -198,6 +223,10 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
       textController.text = existing.text;
       urlController.text = existing.url ?? "";
       color = colors.contains(existing.colorName?.toLowerCase()) ? existing.colorName!.toLowerCase() : (existing.colorName == null ? "" : "accent");
+      customColor = colorFromHex(existing.customColor);
+      shimmer = existing.shimmer;
+      imageUrl = existing.contentImage ?? existing.backgroundImage;
+      imageMode = existing.contentImage != null ? "Content" : "Background";
       pinned = ((existing.row["Priority"] as num?) ?? 0) >= 10;
       signed = existing.author != "";
       visible = target != "None";
@@ -221,13 +250,65 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
       title: titleController.text.trim().isEmpty ? "Titre de l'annonce" : titleController.text.trim(),
       text: textController.text.trim(),
       colorName: color,
+      customColor: color.isEmpty ? null : customColor,
+      shimmer: shimmer,
+      imageUrl: imageUrl,
+      imageMode: imageMode,
       url: urlController.text.trim(),
       author: signed ? (content?.author.isNotEmpty == true ? content!.author : globals.username ?? "") : "",
     );
-    // The picture behind an existing announcement stays on a coloured card
-    final picture = content?.metadata["BackgroundImageUrl"];
-    if (picture != null && color.isNotEmpty) (built["Metadata"] as Map)["BackgroundImageUrl"] = picture;
     return built;
+  }
+
+  /// The named colour closest to [custom]: what the apps before 4.111 show
+  static String nearestName(Color custom) {
+    double distance(Color other) =>
+        pow(other.r - custom.r, 2).toDouble() + pow(other.g - custom.g, 2).toDouble() + pow(other.b - custom.b, 2).toDouble();
+    final named = colors.where((name) => name.isNotEmpty).toList();
+    named.sort((a, b) => distance(AppColors.fromName(a)!).compareTo(distance(AppColors.fromName(b)!)));
+    return named.first;
+  }
+
+  /// Picks a photo and sends it to the server (Cloudinary): it is kept even if the announcement isn't saved
+  Future<void> choosePicture() async {
+    XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1600, maxHeight: 1600, imageQuality: 85);
+    } catch (e) {
+      if (mounted) showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
+      return;
+    }
+    if (picked == null || !mounted) return;
+
+    setState(() => isUploading = true);
+    try {
+      Future<http.Response> send() async {
+        final request = http.MultipartRequest("POST", network.getBackendUri(route: "/admin/news/picture"))..headers["Authorization"] = globals.token ?? "";
+        request.files.add(await http.MultipartFile.fromPath("File", picked!.path));
+        return http.Response.fromStream(await request.send().timeout(const Duration(seconds: 60)));
+      }
+
+      var response = await send();
+      if (response.statusCode == 401 && (await network.refreshAccessToken()).statusCode == 200) response = await send();
+      if (!mounted) return;
+      final data = response.statusCode == 200 ? tryJsonDecode(response.body) : null;
+      if (data is Map && data["Url"] is String) {
+        setState(() {
+          imageUrl = data["Url"];
+          isUploading = false;
+        });
+        return;
+      }
+      setState(() => isUploading = false);
+      showCupertinoDialog(
+        context: context,
+        builder: (_) => Dialog(title: "La photo n'a pas été envoyée", content: _errorOf(response), options: {AppStrings.close: () {}}),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => isUploading = false);
+      showCupertinoDialog(context: context, builder: (_) => Dialog.error(e));
+    }
   }
 
   Future<void> save() async {
@@ -249,6 +330,10 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
         "Title": title,
         "Text": textController.text.trim(),
         "Color": color,
+        "CustomColor": color.isNotEmpty && customColor != null ? colorToHex(customColor!) : "",
+        "Shimmer": shimmer,
+        "ImageUrl": imageUrl ?? "",
+        "ImageMode": imageUrl == null ? "" : imageMode,
         "Url": url,
         "Signed": signed,
         "Pinned": pinned,
@@ -311,7 +396,11 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
             minimumSize: .zero,
             onPressed: () {
               HapticFeedback.selectionClick();
-              setState(() => color = name);
+              setState(() {
+                color = name;
+                customColor = null;
+                showPicker = false;
+              });
             },
             child: AnimatedContainer(
               duration: AppDurations.fast,
@@ -320,15 +409,89 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
               decoration: BoxDecoration(
                 shape: .circle,
                 color: name.isEmpty ? AppColors.secondaryBackground.adaptTo(context) : AppColors.fromName(name),
-                border: .all(color: color == name ? AppColors.text.adaptTo(context) : AppColors.quaternaryText.adaptTo(context), width: color == name ? 3 : 1),
+                border: .all(color: isChosen(name) ? AppColors.text.adaptTo(context) : AppColors.quaternaryText.adaptTo(context), width: isChosen(name) ? 3 : 1),
               ),
-              child: color == name
+              child: isChosen(name)
                   ? Center(
                       child: AppIcon(icon: AppIcons.done, size: 16, strokeWidth: 2.6, color: name.isEmpty ? AppColors.text.adaptTo(context) : AppColors.white),
                     )
                   : null,
             ),
           ),
+        // Any other colour
+        CupertinoButton(
+          padding: .zero,
+          minimumSize: .zero,
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            setState(() {
+              showPicker = !showPicker;
+              if (customColor == null) {
+                customColor = AppColors.fromName(color.isEmpty ? "accent" : color);
+                color = nearestName(customColor!);
+              }
+            });
+          },
+          child: AnimatedContainer(
+            duration: AppDurations.fast,
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: .circle,
+              color: customColor,
+              gradient: customColor != null
+                  ? null
+                  : const SweepGradient(colors: [Color(0xFFFF4D4D), Color(0xFFFFC23D), Color(0xFF3DDC84), Color(0xFF3A86FF), Color(0xFFB23DFF), Color(0xFFFF4D4D)]),
+              border: .all(color: customColor != null ? AppColors.text.adaptTo(context) : AppColors.quaternaryText.adaptTo(context), width: customColor != null ? 3 : 1),
+            ),
+            child: Center(
+              child: AppIcon(icon: customColor != null ? AppIcons.done : AppIcons.colorPicker, size: 16, strokeWidth: 2.4, color: AppColors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// A preset is chosen only while no custom colour is
+  bool isChosen(String name) => color == name && customColor == null;
+
+  Widget buildPicture() {
+    final url = imageUrl;
+    return Column(
+      crossAxisAlignment: .stretch,
+      spacing: AppSpacing.m,
+      children: [
+        if (url != null)
+          SegmentedControl<String>(
+            key: ValueKey("picture-$url"),
+            options: const {"En fond": "Background", "Dans l'annonce": "Content"},
+            defaultIndex: imageMode == "Content" ? 1 : 0,
+            onTap: (value) => setState(() => imageMode = value),
+          ),
+        ListSection(
+          footer: url == null
+              ? "Une photo PNG ou JPEG (5 Mo au plus) : derrière le texte, assombrie pour qu'il reste lisible, ou en haut de l'annonce."
+              : (imageMode == "Background" ? "Le texte passe en blanc sur la photo." : "La photo s'affiche au-dessus du titre, sur toute la largeur."),
+          children: [
+            ListTile.simple(
+              context,
+              icon: url == null ? AppIcons.imageAdd : AppIcons.image,
+              title: url == null ? "Ajouter une photo" : "Changer la photo",
+              isLoading: isUploading,
+              onTap: isUploading ? null : choosePicture,
+            ),
+            if (url != null)
+              ListTile.simple(
+                context,
+                icon: AppIcons.delete,
+                title: "Retirer la photo",
+                isDestructive: true,
+                buildChevron: false,
+                onTap: () => setState(() => imageUrl = null),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -371,6 +534,34 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
 
           sectionTitle("Couleur"),
           buildColors(),
+          AnimatedSize(
+            duration: AppDurations.normal,
+            curve: Curves.easeOutCubic,
+            alignment: .topCenter,
+            child: showPicker && customColor != null
+                ? Padding(
+                    padding: const .only(top: AppSpacing.l),
+                    child: ColorPicker(
+                      color: customColor!,
+                      onChanged: (picked) => setState(() {
+                        customColor = picked;
+                        color = nearestName(picked);
+                      }),
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+          if (customColor != null)
+            Padding(
+              padding: const .only(top: AppSpacing.s, left: 4),
+              child: Text(
+                "Les versions de l'app avant la 4.111 montrent la couleur la plus proche de la liste.",
+                style: AppStyles.footnote(context),
+              ),
+            ),
+
+          sectionTitle("Photo"),
+          buildPicture(),
 
           sectionTitle("Lien"),
           Field(
@@ -403,6 +594,14 @@ class _NewsEditorPageState extends State<NewsEditorPage> {
                   onTap: () => setState(() => visible = !visible),
                   trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: visible, onChanged: (value) => setState(() => visible = value)),
                 ),
+              ListTile.simple(
+                context,
+                icon: AppIcons.shimmer,
+                title: "Reflet animé",
+                buildChevron: false,
+                onTap: () => setState(() => shimmer = !shimmer),
+                trailing: CupertinoSwitch(activeTrackColor: AppColors.accent, value: shimmer, onChanged: (value) => setState(() => shimmer = value)),
+              ),
               ListTile.simple(
                 context,
                 icon: AppIcons.pin,

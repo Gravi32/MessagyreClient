@@ -144,7 +144,10 @@ class _ChatPageState extends State<ChatPage> {
     scrollController.addListener(onScroll);
     globals.blockedUsersNotifier.addListener(onBlockedUsersChanged);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => chats.markRead(username));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      chats.markRead(username);
+      unawaited(chats.refreshViews(username));
+    });
 
     if (isGlobalChat) {
       displayName = GlobalChatService.title;

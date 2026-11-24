@@ -544,7 +544,6 @@ class _NewGradePageState extends State<NewGradePage> {
             ],
           ),
         ],
-        const SizedBox(height: AppSpacing.xxl),
       ],
     );
   }

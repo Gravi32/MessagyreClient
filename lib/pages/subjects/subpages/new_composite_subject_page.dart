@@ -58,6 +58,9 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
   late double thirdSubjectPeriodsPerWeek = hasThirdSubject ? widget.toEdit!.thirdSubjectPeriodsPerWeek.clamp(.5, 10) : 5;
   bool isMissingThirdSubject = false;
 
+  late var countWithMissingParts = widget.toEdit?.countWithMissingParts ?? false;
+  late var excludedFromReport = widget.toEdit?.excludedFromReport ?? false;
+
   bool get canBeConfirmed =>
       titleController.text.isNotEmpty && firstSubject != null && secondSubject != null && (!hasThirdSubject || thirdSubject != null) && _distinctSubjects;
 
@@ -83,7 +86,9 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
       ..firstSubjectPeriodsPerWeek = firstSubjectPeriodsPerWeek
       ..secondSubjectPeriodsPerWeek = secondSubjectPeriodsPerWeek
       ..thirdSubject.value = hasThirdSubject ? thirdSubject : null
-      ..thirdSubjectPeriodsPerWeek = hasThirdSubject ? thirdSubjectPeriodsPerWeek : 0;
+      ..thirdSubjectPeriodsPerWeek = hasThirdSubject ? thirdSubjectPeriodsPerWeek : 0
+      ..countWithMissingParts = countWithMissingParts
+      ..excludedFromReport = excludedFromReport;
 
     await database.compositeSubjects.save(compositeSubject);
 
@@ -368,6 +373,44 @@ class _NewCompositeSubjectPageState extends State<NewCompositeSubjectPage> {
             ),
 
           buildCalculationsTile(),
+
+          ListSection(
+            margin: const .only(top: 24),
+            footer: countWithMissingParts
+                ? "La moyenne est calculée avec les sous-branches qui ont déjà des notes : les autres s'ajoutent dès leur première note."
+                : "Sinon, la branche ne compte que quand *chaque* sous-branche a au moins une note.",
+            children: [
+              ListTile.simple(
+                context,
+                title: "Compter sans toutes les notes",
+                icon: AppIcons.countPartial,
+                trailing: CupertinoSwitch(
+                  activeTrackColor: AppColors.accent,
+                  value: countWithMissingParts,
+                  onChanged: (value) => setState(() => countWithMissingParts = value),
+                ),
+              ),
+            ],
+          ),
+
+          ListSection(
+            margin: const .only(top: 16),
+            footer: excludedFromReport
+                ? "Sa moyenne reste visible, mais elle ne compte *ni dans le bulletin, ni dans la moyenne générale*."
+                : "Pour une branche qui ne compte pas pour la promotion : ses notes restent, mais le bulletin l'ignore.",
+            children: [
+              ListTile.simple(
+                context,
+                title: "Entre parenthèses",
+                icon: AppIcons.inBrackets,
+                trailing: CupertinoSwitch(
+                  activeTrackColor: AppColors.accent,
+                  value: excludedFromReport,
+                  onChanged: (value) => setState(() => excludedFromReport = value),
+                ),
+              ),
+            ],
+          ),
 
           // Delete button
           if (editMode)

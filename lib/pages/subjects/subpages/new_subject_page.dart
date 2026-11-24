@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:messagyre_client/configuration/app_colors.dart';
+import 'package:messagyre_client/configuration/app_icons.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
 import 'package:messagyre_client/services/database_service.dart';
 import 'package:messagyre_client/services/globals_service.dart';
@@ -281,6 +282,7 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
   late final ValueNotifier<Color> colorNotifier = ValueNotifier(widget.toEdit?.color ?? AppColors.grey);
   late final ValueNotifier<IconData> iconNotifier = ValueNotifier(widget.toEdit?.icon ?? Icons.question_mark_rounded);
   late var isLocked = widget.toEdit?.isLocked ?? false;
+  late var excludedFromReport = widget.toEdit?.excludedFromReport ?? false;
   late var grade = widget.toEdit?.lockedGrade ?? currentAverage ?? 4.0;
 
   /// The average of this subject's current grades, rounded to the half point: what it keeps once locked
@@ -288,6 +290,9 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
     final grades = database.grades.getAll().where((grade) => grade.subject.value?.code == widget.toEdit?.code).toList();
     return !editMode || grades.isEmpty ? null : clampDouble(calculateAverage(grades, round: true), 1, 6);
   }();
+
+  late final bool isPartOfComposite =
+      editMode && database.compositeSubjects.getAll().any((c) => c.subjects.any((s) => s.code == widget.toEdit?.code));
 
   late final bool canBeDeleted =
       !(!editMode ||
@@ -305,7 +310,8 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
       ..colorValue = colorNotifier.value.toInt()
       ..isLocked = isLocked
       ..lockedGrade = isLocked ? grade : null
-      ..lockedYear = isLocked ? widget.toEdit?.lockedYear : null;
+      ..lockedYear = isLocked ? widget.toEdit?.lockedYear : null
+      ..excludedFromReport = excludedFromReport;
 
     await database.subjects.save(subject);
 
@@ -447,6 +453,26 @@ class _NewSubjectPageState extends State<NewSubjectPage> {
                   buildChevron: false,
                   child: GradePicker(grade: grade, onGradeChanged: (newGrade) => setState(() => grade = newGrade)),
                 ),
+            ],
+          ),
+
+          // In brackets: grades kept, not counted
+          ListSection(
+            margin: .only(top: 16),
+            footer: excludedFromReport
+                ? "Vous pouvez y entrer des notes, mais elle ne compte *ni dans le bulletin, ni dans la moyenne générale*${isPartOfComposite ? ", ni dans sa branche composée" : ""}."
+                : "Pour une branche qui ne compte pas pour la promotion : ses notes restent, mais le bulletin l'ignore.",
+            children: [
+              ListTile.simple(
+                context,
+                title: "Entre parenthèses",
+                icon: AppIcons.inBrackets,
+                trailing: CupertinoSwitch(
+                  activeTrackColor: AppColors.accent,
+                  value: excludedFromReport,
+                  onChanged: (value) => setState(() => excludedFromReport = value),
+                ),
+              ),
             ],
           ),
 

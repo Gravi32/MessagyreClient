@@ -18,24 +18,34 @@ const CompositeSubjectSchema = CollectionSchema(
   id: -6647909848621739095,
   properties: {
     r'code': PropertySchema(id: 0, name: r'code', type: IsarType.string),
-    r'firstSubjectPeriodsPerWeek': PropertySchema(
+    r'countWithMissingParts': PropertySchema(
       id: 1,
+      name: r'countWithMissingParts',
+      type: IsarType.bool,
+    ),
+    r'excludedFromReport': PropertySchema(
+      id: 2,
+      name: r'excludedFromReport',
+      type: IsarType.bool,
+    ),
+    r'firstSubjectPeriodsPerWeek': PropertySchema(
+      id: 3,
       name: r'firstSubjectPeriodsPerWeek',
       type: IsarType.double,
     ),
-    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 4, name: r'name', type: IsarType.string),
     r'secondSubjectPeriodsPerWeek': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'secondSubjectPeriodsPerWeek',
       type: IsarType.double,
     ),
     r'thirdSubjectPeriodsPerWeek': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'thirdSubjectPeriodsPerWeek',
       type: IsarType.double,
     ),
     r'totalPeriodsPerWeek': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'totalPeriodsPerWeek',
       type: IsarType.double,
     ),
@@ -107,11 +117,13 @@ void _compositeSubjectSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.code);
-  writer.writeDouble(offsets[1], object.firstSubjectPeriodsPerWeek);
-  writer.writeString(offsets[2], object.name);
-  writer.writeDouble(offsets[3], object.secondSubjectPeriodsPerWeek);
-  writer.writeDouble(offsets[4], object.thirdSubjectPeriodsPerWeek);
-  writer.writeDouble(offsets[5], object.totalPeriodsPerWeek);
+  writer.writeBool(offsets[1], object.countWithMissingParts);
+  writer.writeBool(offsets[2], object.excludedFromReport);
+  writer.writeDouble(offsets[3], object.firstSubjectPeriodsPerWeek);
+  writer.writeString(offsets[4], object.name);
+  writer.writeDouble(offsets[5], object.secondSubjectPeriodsPerWeek);
+  writer.writeDouble(offsets[6], object.thirdSubjectPeriodsPerWeek);
+  writer.writeDouble(offsets[7], object.totalPeriodsPerWeek);
 }
 
 CompositeSubject _compositeSubjectDeserialize(
@@ -122,11 +134,13 @@ CompositeSubject _compositeSubjectDeserialize(
 ) {
   final object = CompositeSubject();
   object.code = reader.readString(offsets[0]);
-  object.firstSubjectPeriodsPerWeek = reader.readDouble(offsets[1]);
+  object.countWithMissingParts = reader.readBool(offsets[1]);
+  object.excludedFromReport = reader.readBool(offsets[2]);
+  object.firstSubjectPeriodsPerWeek = reader.readDouble(offsets[3]);
   object.id = id;
-  object.name = reader.readString(offsets[2]);
-  object.secondSubjectPeriodsPerWeek = reader.readDouble(offsets[3]);
-  object.thirdSubjectPeriodsPerWeek = reader.readDouble(offsets[4]);
+  object.name = reader.readString(offsets[4]);
+  object.secondSubjectPeriodsPerWeek = reader.readDouble(offsets[5]);
+  object.thirdSubjectPeriodsPerWeek = reader.readDouble(offsets[6]);
   return object;
 }
 
@@ -140,14 +154,18 @@ P _compositeSubjectDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
       return (reader.readDouble(offset)) as P;
     case 4:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readDouble(offset)) as P;
+    case 6:
+      return (reader.readDouble(offset)) as P;
+    case 7:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -515,6 +533,27 @@ extension CompositeSubjectQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'code', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  countWithMissingPartsEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'countWithMissingParts',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterFilterCondition>
+  excludedFromReportEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'excludedFromReport', value: value),
       );
     });
   }
@@ -1089,6 +1128,34 @@ extension CompositeSubjectQuerySortBy
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  sortByCountWithMissingParts() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'countWithMissingParts', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  sortByCountWithMissingPartsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'countWithMissingParts', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  sortByExcludedFromReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  sortByExcludedFromReportDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
   sortByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firstSubjectPeriodsPerWeek', Sort.asc);
@@ -1170,6 +1237,34 @@ extension CompositeSubjectQuerySortThenBy
   thenByCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'code', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  thenByCountWithMissingParts() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'countWithMissingParts', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  thenByCountWithMissingPartsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'countWithMissingParts', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  thenByExcludedFromReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QAfterSortBy>
+  thenByExcludedFromReportDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'excludedFromReport', Sort.desc);
     });
   }
 
@@ -1267,6 +1362,20 @@ extension CompositeSubjectQueryWhereDistinct
   }
 
   QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
+  distinctByCountWithMissingParts() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'countWithMissingParts');
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
+  distinctByExcludedFromReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'excludedFromReport');
+    });
+  }
+
+  QueryBuilder<CompositeSubject, CompositeSubject, QDistinct>
   distinctByFirstSubjectPeriodsPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'firstSubjectPeriodsPerWeek');
@@ -1314,6 +1423,20 @@ extension CompositeSubjectQueryProperty
   QueryBuilder<CompositeSubject, String, QQueryOperations> codeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'code');
+    });
+  }
+
+  QueryBuilder<CompositeSubject, bool, QQueryOperations>
+  countWithMissingPartsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'countWithMissingParts');
+    });
+  }
+
+  QueryBuilder<CompositeSubject, bool, QQueryOperations>
+  excludedFromReportProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'excludedFromReport');
     });
   }
 

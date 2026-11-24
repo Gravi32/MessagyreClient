@@ -137,22 +137,24 @@ class _ReportCardPageState extends State<ReportCardPage> with AppearOnOpen {
     );
   }
 
-  Widget buildSubjectRow(Subject subject) {
-    double? average = subject.lockedGrade ?? report.allAverages[subject.code];
-    double? rawAverage = report.allAveragesRaw[subject.code];
+  Widget buildSubjectRow(Subject subject, {bool excluded = false}) {
+    final grades = report.allGrades.where((g) => g.subject.value?.code == subject.code).toList();
+    double? average = subject.lockedGrade ?? (grades.isEmpty ? null : calculateAverage(grades, round: true));
+    double? rawAverage = grades.isEmpty ? null : calculateAverage(grades);
 
     if (average != null && average < 1) average = null;
 
-    return buildRow(subject.name, average, rawAverage, subject.isLocked, subject: subject);
+    return buildRow(excluded ? "(${subject.name})" : subject.name, average, rawAverage, subject.isLocked, subject: subject);
   }
 
-  Widget buildCompositeSubjectRow(CompositeSubject compositeSubject) {
+  Widget buildCompositeSubjectRow(CompositeSubject compositeSubject, {bool excluded = false}) {
     double? average = calculateCompositeSubjectAverage(compositeSubject, round: true);
-    double? rawAverage = report.allAveragesRaw[compositeSubject.code];
+    double? rawAverage = calculateCompositeSubjectAverage(compositeSubject);
 
     if (average != null && average < 1) average = null;
 
-    return buildRow(compositeSubject.name, average, rawAverage, false, compositeSubject: compositeSubject);
+    final name = excluded ? "(${compositeSubject.name})" : compositeSubject.name;
+    return buildRow(name, average, rawAverage, false, compositeSubject: compositeSubject);
   }
 
   void onSubjectSelected(String selectedSubjectCode) {
@@ -318,7 +320,9 @@ class _ReportCardPageState extends State<ReportCardPage> with AppearOnOpen {
     final restrictedGroupCompositeSubjects = report.restrictedGroupCompositeSubjects;
     final restrictedGroupSubjects = report.restrictedGroupSubjects;
 
-    Widget subjectRow(Object subject) => subject is CompositeSubject ? buildCompositeSubjectRow(subject) : buildSubjectRow(subject as Subject);
+    Widget subjectRow(Object subject, {bool excluded = false}) =>
+        subject is CompositeSubject ? buildCompositeSubjectRow(subject, excluded: excluded) : buildSubjectRow(subject as Subject, excluded: excluded);
+    final excludedList = report.excludedSubjects;
 
     final mainList = [
       ...allCompositeSubjects,
@@ -434,6 +438,15 @@ class _ReportCardPageState extends State<ReportCardPage> with AppearOnOpen {
           if (usingRestrictedGroup && restrictedList.isNotEmpty) ...[
             sectionTitle("Groupe restreint"),
             CardGroup(separatorInset: AppSpacing.l + 32 + AppSpacing.m, children: [for (final subject in restrictedList) subjectRow(subject)]),
+          ],
+
+          // In brackets: their averages, never counted
+          if (excludedList.isNotEmpty) ...[
+            sectionTitle("Entre parenthèses"),
+            CardGroup(
+              separatorInset: AppSpacing.l + 32 + AppSpacing.m,
+              children: [for (final subject in excludedList) subjectRow(subject, excluded: true)],
+            ),
           ],
 
           sectionTitle("Règles"),
