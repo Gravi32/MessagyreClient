@@ -160,6 +160,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
         // jsonEncode can't write a DateTime or an enum by itself
         "DueDate": assignment.dueDate.toUtc().toIso8601String(),
         "Type": assignment.type.name,
+        // Its name on my phone: the others' app finds their own subject with it (lib/utility/subject_matching.dart)
+        if (assignment.subject.value != null) "Subject": assignment.subject.value!.name.trim(),
       });
 
       // The assignment is saved on the phone anyway: the error says why the class won't see it

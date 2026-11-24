@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:messagyre_client/database/models/assignments/assignment.dart';
 import 'package:messagyre_client/database/models/subjects/subject.dart';
+import 'package:messagyre_client/utility/subject_matching.dart';
 
 /// An assignment sent in a chat (apps from 4.105), so that the others can add it to their own list. It travels
 /// end-to-end encrypted in the message's "Attachment" field, like the description of a photo. It has no "Key":
@@ -75,15 +76,8 @@ class AssignmentShare {
     }
   }
 
-  /// The subject of this phone with the same name (ignoring case and accents' absence is too clever: exact name)
-  Subject? matchingSubject(Iterable<Subject> subjects) {
-    final name = subjectName?.trim().toLowerCase();
-    if (name == null) return null;
-    for (final subject in subjects) {
-      if (subject.name.trim().toLowerCase() == name) return subject;
-    }
-    return null;
-  }
+  /// The subject of this phone the sender means, even named a little differently ("Francais" = "Français")
+  Subject? matchingSubject(Iterable<Subject> subjects) => matchSubjectByName(subjectName, subjects);
 
   /// Whether an assignment of this phone is this one (already added)
   bool isSameAs(Assignment assignment) =>

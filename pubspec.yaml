@@ -2,7 +2,7 @@ name: messagyre_client
 description: "Gymnase de Renens' private messaging and personal agenda app."
 publish_to: "none"
 
-version: 4.111.1023+1023
+version: 4.112.1025+1025
 # 1.0   Initial release
 # 1.1   Added Settings page
 # 1.2   Added Assignment page
@@ -115,6 +115,7 @@ version: 4.111.1023+1023
 # 4.109 Group chats (picture, description, admins, members, media and files tabs), bulletin rules per school and year with animated tutorials and a maximum of negative points, icons fixed (chevrons, subject icons), keyboard closed when leaving a page, soft animations
 # 4.110 Announcements editor for the admins (add, edit, hide, pin, end date, delete, with a live preview); coloured announcements filled with their colour instead of a pale wash
 # 4.111 Subjects in brackets (grades kept, not counted) and composite subjects counted without every part's grades; views of my messages in class chats, groups and the global chat and of the announcements; announcements with any colour, a shimmer and a picture; admin page with messages per group and app versions as bars; double side padding removed (group, class and new group pages)
+# 4.112 Subject of class-shared assignments (shown in the class list, proposed when adding one), subjects matched without accents and with short names ("Francais" = "Français", "Math" = "Mathématiques"); new assignment page stays until the class share is confirmed, edited assignments no longer shared again
 
 environment:
   sdk: '>=3.10.0 <4.0.0'

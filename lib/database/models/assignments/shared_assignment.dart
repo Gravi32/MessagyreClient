@@ -10,6 +10,9 @@ class SharedAssignment {
   final DateTime dueDate;
   final AssignmentType type;
 
+  /// The subject's name on the author's phone (apps from 4.112; null for the older ones)
+  final String? subjectName;
+
   /// Whether I can change or remove it: I wrote it, or I am a delegate of the class (the server decides)
   final bool canEdit;
 
@@ -23,6 +26,7 @@ class SharedAssignment {
     this.authorUsername,
     required this.dueDate,
     required this.type,
+    this.subjectName,
     this.canEdit = false,
     this.editedBy,
   });
@@ -32,7 +36,7 @@ class SharedAssignment {
     _ => content.trim(),
   };
 
-  bool matches(String filter) => "${title ?? ""} $content ${authorUsername ?? ""}".toLowerCase().contains(filter);
+  bool matches(String filter) => "${title ?? ""} $content ${subjectName ?? ""} ${authorUsername ?? ""}".toLowerCase().contains(filter);
 
   static SharedAssignment? tryParse(dynamic json) {
     if (json is! Map) return null;
@@ -46,6 +50,7 @@ class SharedAssignment {
       authorUsername: json["AuthorUsername"]?.toString(),
       dueDate: dueDate,
       type: AssignmentType.values.asNameMap()[(json["Type"]?.toString() ?? "assignment").toLowerCase()] ?? AssignmentType.assignment,
+      subjectName: (json["Subject"]?.toString().trim().isEmpty ?? true) ? null : json["Subject"].toString().trim(),
       canEdit: json["CanEdit"] == true,
       editedBy: json["EditedBy"]?.toString(),
     );

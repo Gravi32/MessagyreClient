@@ -186,6 +186,7 @@ class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
     type: widget.assignment.type,
     title: widget.assignment.title,
     content: widget.assignment.content,
+    subjectName: widget.assignment.subjectName,
     dueDate: widget.assignment.dueDate.toLocal().dateOnly(),
   );
 
@@ -274,6 +275,7 @@ class _SharedAssignmentTileState extends State<SharedAssignmentTile> {
             Text(assignment.content, style: AppStyles.subheadline(context), softWrap: true, maxLines: 3, overflow: .ellipsis),
           Text(
             [
+              ?assignment.subjectName,
               formatDate(assignment.dueDate),
               if (author != null && author.isNotEmpty) AppStrings.sharedBy(Account.getDefaultDisplayName(author)),
               if (assignment.editedBy != null && assignment.editedBy != author) "modifié par ${Account.getDefaultDisplayName(assignment.editedBy!)}",
