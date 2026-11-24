@@ -80,8 +80,9 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
           : (globals.persistent.getBool("ScheduleAssignmentNotificationsByDefault") ?? true ? dueDate.add(const Duration(days: -1)).copyWith(hour: 17) : null));
 
   late bool addingToGradesPage = editMode ? widget.toEdit!.referenceId != null : true;
-  // An assignment received from someone isn't shared again by default
-  late bool isShared = editMode ? widget.toEdit!.isShared : widget.prefill == null;
+  // An assignment received from someone isn't shared again by default, and neither is one being edited: its class copy
+  // (if any) is a separate one, changed from the class list; sharing it again would add a duplicate
+  late bool isShared = editMode ? false : widget.prefill == null;
 
   bool isMissingTitle = false;
   bool isMissingContent = false;
@@ -91,7 +92,35 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
   String? userClass;
 
+  bool isSaving = false;
+
   void confirmAssignment() async {
+    if (isSaving) return;
+
+    // Sharing with the class needs a confirmation first: the page stays open until it is answered (cancel = nothing saved)
+    final shareWithClass = isShared && userClass != null;
+    if (shareWithClass) {
+      var confirmed = false;
+      await showCupertinoDialog(
+        context: context,
+        builder: (_) => Dialog.confirm(
+          content:
+              "Si un utilisateur de la $userClass décide d'accepter ce devoir, vous pourrez annuler le partage mais le devoir ne sera pas supprimé de son compte.",
+          onConfirm: () => confirmed = true,
+        ),
+      );
+      if (!confirmed || !mounted) return;
+    }
+
+    isSaving = true;
+    try {
+      await saveAssignment(shareWithClass: shareWithClass);
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  Future<void> saveAssignment({required bool shareWithClass}) async {
     final assignment = widget.toEdit ?? Assignment();
     final effectiveReferenceId = assignment.referenceId ?? const Uuid().v4();
 
@@ -112,29 +141,6 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
       }
     }
 
-    if (isShared && userClass != null && mounted) {
-      showCupertinoDialog(
-        context: context,
-        builder: (_) => Dialog.confirm(
-          content:
-              "Si un utilisateur de la $userClass décide d'accepter ce devoir, vous pourrez annuler le partage mais le devoir ne sera pas supprimé de son compte.",
-          onConfirm: () async {
-            final apiResponse = await network.post("/shared/assignments/add", {
-              "Title": assignment.title,
-              "Content": assignment.content,
-              // jsonEncode can't write a DateTime or an enum by itself
-              "DueDate": assignment.dueDate.toUtc().toIso8601String(),
-              "Type": assignment.type.name,
-            });
-
-            if (apiResponse.statusCode != 200 && mounted) {
-              showCupertinoDialog(context: context, builder: (_) => Dialog.networkError(apiResponse));
-            }
-          },
-        ),
-      );
-    }
-
     await database.assignments.save(assignment);
 
     final stableId = effectiveReferenceId.hashCode.remainder(100000);
@@ -146,6 +152,21 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
     }
 
     await globals.persistent.setBool("ScheduleAssignmentNotificationsByDefault", notificationDate != null);
+
+    if (shareWithClass) {
+      final apiResponse = await network.post("/shared/assignments/add", {
+        "Title": assignment.title,
+        "Content": assignment.content,
+        // jsonEncode can't write a DateTime or an enum by itself
+        "DueDate": assignment.dueDate.toUtc().toIso8601String(),
+        "Type": assignment.type.name,
+      });
+
+      // The assignment is saved on the phone anyway: the error says why the class won't see it
+      if (apiResponse.statusCode != 200 && mounted) {
+        await showCupertinoDialog(context: context, builder: (_) => Dialog.networkError(apiResponse));
+      }
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -216,7 +237,8 @@ class _NewAssignmentPageState extends State<NewAssignmentPage> {
 
     if (globals.username != null) {
       network.getAccount(globals.username!).then((account) {
-        userClass = account?.classOrRole;
+        // The "share with the class" switch appears once the class is known
+        if (mounted) setState(() => userClass = account?.classOrRole);
       });
     }
 
